@@ -65,7 +65,7 @@ function LandingPage() {
         <div className="border-b border-white/10 bg-black">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
-              <Link to="/" className="flex items-center">
+              <Link to="/inicio" className="flex items-center">
                 <img
                   src="/logo-box-bravos-final.png"
                   alt="Box Bravos"

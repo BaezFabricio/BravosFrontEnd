@@ -1,31 +1,33 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-import LandingPage from './app/page.jsx'
-import LoginPage from './app/login/page.jsx'
-import RecuperarContrasenaPage from './app/recuperar-contraseña/page.jsx'
+import LandingPage from './app/LandingPage.jsx'
+import LoginPage from './app/login/LoginPage.jsx'
+import RegistroPage from './app/registro/RegistroPage.jsx'
+import RecuperarContrasenaPage from './app/recuperar-contraseña/RecuperarContrasenaPage.jsx'
 import AdminLayout from './app/admin/layout.jsx'
-import AdminDashboard from './app/admin/page.jsx'
-import MembresiasPage from './app/admin/membresias/page.jsx'
-import PerfilesPage from './app/admin/perfiles/page.jsx'
-import UsuariosPage from './app/admin/usuarios/page.jsx'
-import DetalleUsuarioPage from './app/admin/usuarios/[id]/page.jsx'
-import NuevoUsuarioPage from './app/admin/usuarios/nuevo/page.jsx'
-import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/page.jsx'
+import AdminDashboard from './app/admin/AdminDashboard.jsx'
+import MembresiasPage from './app/admin/membresias/MembresiasPage.jsx'
+import PerfilesPage from './app/admin/perfiles/PerfilesPage.jsx'
+import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
+import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
+import NuevoUsuarioPage from './app/admin/usuarios/nuevo/NuevoUsuarioPage.jsx'
+import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/EditarUsuarioPage.jsx'
 import AlumnoLayout from './app/alumno/layout.jsx'
-import AlumnoDashboard from './app/alumno/page.jsx'
-import AlumnoReservarPage from './app/alumno/reservar/page.jsx'
-import AlumnoReservasPage from './app/alumno/reservas/page.jsx'
-import AlumnoCreditosPage from './app/alumno/creditos/page.jsx'
-import AlumnoPerfilPage from './app/alumno/perfil/page.jsx'
+import AlumnoDashboard from './app/alumno/AlumnoDashboard.jsx'
+import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
+import AlumnoReservasPage from './app/alumno/reservas/ReservasPage.jsx'
+import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
+import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/inicio" replace />} />
+        <Route path="/inicio" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
-        <Route path="/registro" element={<Navigate to="/login" replace />} />
+        <Route path="/registro" element={<RegistroPage />} />
 
         <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
         <Route path="/admin/membresias" element={<AdminLayout><MembresiasPage /></AdminLayout>} />
@@ -41,7 +43,7 @@ function App() {
         <Route path="/alumno/creditos" element={<AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout>} />
         <Route path="/alumno/perfil" element={<AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout>} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>
     </BrowserRouter>
   )

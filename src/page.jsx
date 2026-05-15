@@ -1,1 +1,1 @@
-export { default } from './app/page.jsx'
+export { default } from './app/LandingPage.jsx'
