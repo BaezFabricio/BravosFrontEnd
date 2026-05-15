@@ -1,0 +1,398 @@
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  UserX,
+  UserCheck,
+  Trash2,
+  Filter,
+  Download,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { HelpTooltip } from "@/components/ui/help-tooltip"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+const mockUsers = [
+  { id: "1", nombre: "María García", dni: "32456789", email: "maria@email.com", telefono: "+54 11 1234 5678", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 12 },
+  { id: "2", nombre: "Juan Pérez", dni: "28765432", email: "juan@email.com", telefono: "+54 11 2345 6789", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 8 },
+  { id: "3", nombre: "Carlos López", dni: "35678901", email: "carlos@email.com", telefono: "+54 11 3456 7890", perfil: "alumno", estado: "suspendido", membresia: "vencida", creditos: 0 },
+  { id: "4", nombre: "Ana Martínez", dni: "30123456", email: "ana@email.com", telefono: "+54 11 4567 8901", perfil: "alumno", estado: "activo", membresia: "por_vencer", creditos: 3 },
+  { id: "5", nombre: "Pablo Ruiz", dni: "29876543", email: "pablo@email.com", telefono: "+54 11 5678 9012", perfil: "profesor", estado: "activo", membresia: "vigente", creditos: 0 },
+  { id: "6", nombre: "Laura Fernández", dni: "33210987", email: "laura@email.com", telefono: "+54 11 6789 0123", perfil: "alumno", estado: "suspendido", membresia: "vencida", creditos: 0 },
+  { id: "7", nombre: "Roberto Díaz", dni: "27654321", email: "roberto@email.com", telefono: "+54 11 7890 1234", perfil: "alumno", estado: "inactivo", membresia: "vencida", creditos: 0 },
+  { id: "8", nombre: "Sofía Torres", dni: "34567890", email: "sofia@email.com", telefono: "+54 11 8901 2345", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 15 },
+]
+
+const statusConfig = {
+  activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
+}
+
+const membershipConfig = {
+  vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+}
+
+const roleLabels = {
+  admin: "Administrador",
+  profesor: "Profesor",
+  alumno: "Alumno",
+}
+
+export default function UsuariosPage() {
+  const [users, setUsers] = useState(mockUsers)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [roleFilter, setRoleFilter] = useState("all")
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, user: null, action: "" })
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, user: null })
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      user.dni.includes(search) ||
+      user.email.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === "all" || user.estado === statusFilter
+    const matchesRole = roleFilter === "all" || user.perfil === roleFilter
+    return matchesSearch && matchesStatus && matchesRole
+  })
+
+  const handleStatusChange = async (userId, newStatus) => {
+    try {
+      const response = await fetch("/api/usuarios/estado", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          estado: newStatus,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar estado")
+      }
+
+      setUsers(users.map((u) => (u.id === userId ? { ...u, estado: newStatus } : u)))
+    } catch {
+      // Handle error
+    }
+    setConfirmDialog({ open: false, user: null, action: "" })
+  }
+
+  const handleDeleteUser = async (userId) => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/usuarios/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Error al eliminar usuario")
+      }
+
+      setUsers(users.filter((u) => u.id !== userId))
+    } catch {
+      // Handle error
+    } finally {
+      setIsDeleting(false)
+      setDeleteDialog({ open: false, user: null })
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground">Gestion de Usuarios</h1>
+            <HelpTooltip content="Aqui puedes ver, crear, editar, suspender o eliminar usuarios del sistema. Usa los filtros para encontrar usuarios especificos." />
+          </div>
+          <p className="text-muted-foreground">Administra los usuarios del sistema</p>
+        </div>
+        <Link to="/admin/usuarios/nuevo">
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Usuario
+            <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3 ml-1" />
+          </Button>
+        </Link>
+      </div>
+
+      <Card className="bg-card border-border">
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, DNI o email..."
+                className="pl-9 bg-secondary border-border"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <HelpTooltip content="Escribe el nombre, DNI o email del usuario que buscas. La busqueda se actualiza automaticamente." />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="activo">Activo</SelectItem>
+                <SelectItem value="suspendido">Suspendido</SelectItem>
+                <SelectItem value="inactivo">Inactivo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
+                <SelectValue placeholder="Perfil" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los perfiles</SelectItem>
+                <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="profesor">Profesor</SelectItem>
+                <SelectItem value="alumno">Alumno</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" className="border-border">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
+              </Button>
+              <HelpTooltip content="Descarga un archivo Excel con todos los usuarios filtrados actualmente." />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Usuarios ({filteredUsers.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-secondary/50">
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Usuario</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">DNI</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Teléfono</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Perfil</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Estado</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Membresía</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Créditos</th>
+                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium text-foreground">{user.nombre}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                      </div>
+                    </td>
+                    <td className="p-4 hidden md:table-cell">
+                      <span className="text-foreground">{user.dni}</span>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="text-foreground">{user.telefono}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-foreground">{roleLabels[user.perfil]}</span>
+                    </td>
+                    <td className="p-4">
+                      <Badge variant="outline" className={statusConfig[user.estado].className}>
+                        {statusConfig[user.estado].label}
+                      </Badge>
+                    </td>
+                    <td className="p-4 hidden sm:table-cell">
+                      <Badge variant="outline" className={membershipConfig[user.membresia].className}>
+                        {membershipConfig[user.membresia].label}
+                      </Badge>
+                    </td>
+                    <td className="p-4 hidden lg:table-cell">
+                      <span className="font-medium text-foreground">{user.creditos}</span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/usuarios/${user.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Detalle
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/usuarios/${user.id}/editar`}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user.estado === "activo" && (
+                            <DropdownMenuItem
+                              onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
+                              className="text-yellow-500"
+                            >
+                              <UserX className="mr-2 h-4 w-4" />
+                              Suspender
+                            </DropdownMenuItem>
+                          )}
+                          {user.estado === "suspendido" && (
+                            <DropdownMenuItem
+                              onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
+                              className="text-green-500"
+                            >
+                              <UserCheck className="mr-2 h-4 w-4" />
+                              Activar
+                            </DropdownMenuItem>
+                          )}
+                          {user.estado !== "inactivo" && (
+                            <DropdownMenuItem
+                              onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
+                              className="text-yellow-500"
+                            >
+                              <UserX className="mr-2 h-4 w-4" />
+                              Dar de Baja
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setDeleteDialog({ open: true, user })}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar Permanente
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>
+              {confirmDialog.action === "suspend" && "Suspender Usuario"}
+              {confirmDialog.action === "activate" && "Activar Usuario"}
+              {confirmDialog.action === "deactivate" && "Dar de Baja Usuario"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmDialog.action === "suspend" &&
+                `¿Estás seguro de suspender a ${confirmDialog.user?.nombre}? El usuario no podrá reservar clases ni usar sus créditos.`}
+              {confirmDialog.action === "activate" &&
+                `¿Estás seguro de activar a ${confirmDialog.user?.nombre}? El usuario podrá volver a usar el sistema.`}
+              {confirmDialog.action === "deactivate" &&
+                `¿Estás seguro de dar de baja a ${confirmDialog.user?.nombre}? Esta acción deshabilitará completamente al usuario.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDialog({ open: false, user: null, action: "" })}>
+              Cancelar
+            </Button>
+            <Button
+              variant={confirmDialog.action === "activate" ? "default" : "destructive"}
+              onClick={() => {
+                if (confirmDialog.user) {
+                  const newStatus =
+                    confirmDialog.action === "suspend"
+                      ? "suspendido"
+                      : confirmDialog.action === "activate"
+                      ? "activo"
+                      : "inactivo"
+                  handleStatusChange(confirmDialog.user.id, newStatus)
+                }
+              }}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Eliminar Usuario Permanentemente</DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>{`¿Estás seguro de eliminar permanentemente a ${deleteDialog.user?.nombre}?`}</p>
+              <p className="font-semibold text-destructive">
+                Esta acción no se puede deshacer. Se eliminarán todos los datos del usuario, incluyendo historial de reservas y créditos.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, user: null })}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteDialog.user) {
+                  handleDeleteUser(deleteDialog.user.id)
+                }
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar Permanentemente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
