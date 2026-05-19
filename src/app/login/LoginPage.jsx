@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
 
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -83,6 +84,13 @@ export default function LoginPage() {
       
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-2xl">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver atrás
+          </button>
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">BRAVOS GYM</h1>
             <h2 className="text-xl font-semibold text-foreground">Iniciar Sesión</h2>

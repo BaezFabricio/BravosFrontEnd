@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
   Search,
@@ -11,6 +11,8 @@ import {
   Trash2,
   Filter,
   Download,
+  AlertCircle,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,17 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-const mockUsers = [
-  { id: "1", nombre: "María García", dni: "32456789", email: "maria@email.com", telefono: "+54 11 1234 5678", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 12 },
-  { id: "2", nombre: "Juan Pérez", dni: "28765432", email: "juan@email.com", telefono: "+54 11 2345 6789", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 8 },
-  { id: "3", nombre: "Carlos López", dni: "35678901", email: "carlos@email.com", telefono: "+54 11 3456 7890", perfil: "alumno", estado: "suspendido", membresia: "vencida", creditos: 0 },
-  { id: "4", nombre: "Ana Martínez", dni: "30123456", email: "ana@email.com", telefono: "+54 11 4567 8901", perfil: "alumno", estado: "activo", membresia: "por_vencer", creditos: 3 },
-  { id: "5", nombre: "Pablo Ruiz", dni: "29876543", email: "pablo@email.com", telefono: "+54 11 5678 9012", perfil: "profesor", estado: "activo", membresia: "vigente", creditos: 0 },
-  { id: "6", nombre: "Laura Fernández", dni: "33210987", email: "laura@email.com", telefono: "+54 11 6789 0123", perfil: "alumno", estado: "suspendido", membresia: "vencida", creditos: 0 },
-  { id: "7", nombre: "Roberto Díaz", dni: "27654321", email: "roberto@email.com", telefono: "+54 11 7890 1234", perfil: "alumno", estado: "inactivo", membresia: "vencida", creditos: 0 },
-  { id: "8", nombre: "Sofía Torres", dni: "34567890", email: "sofia@email.com", telefono: "+54 11 8901 2345", perfil: "alumno", estado: "activo", membresia: "vigente", creditos: 15 },
-]
+import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario } from "@/api"
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
@@ -70,13 +62,34 @@ const roleLabels = {
 }
 
 export default function UsuariosPage() {
-  const [users, setUsers] = useState(mockUsers)
+  const [users, setUsers] = useState([])
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [roleFilter, setRoleFilter] = useState("all")
   const [confirmDialog, setConfirmDialog] = useState({ open: false, user: null, action: "" })
   const [deleteDialog, setDeleteDialog] = useState({ open: false, user: null })
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Cargar usuarios de la API al montar el componente
+  useEffect(() => {
+    cargarUsuarios()
+  }, [])
+
+  const cargarUsuarios = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const data = await getUsuarios()
+      setUsers(data)
+    } catch (err) {
+      console.error("Error al cargar usuarios:", err)
+      setError("No se pudieron cargar los usuarios. Por favor, intenta nuevamente.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -90,24 +103,11 @@ export default function UsuariosPage() {
 
   const handleStatusChange = async (userId, newStatus) => {
     try {
-      const response = await fetch("/api/usuarios/estado", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          estado: newStatus,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar estado")
-      }
-
+      await cambiarEstadoUsuario(userId, newStatus)
       setUsers(users.map((u) => (u.id === userId ? { ...u, estado: newStatus } : u)))
-    } catch {
-      // Handle error
+    } catch (err) {
+      console.error("Error al cambiar estado:", err)
+      setError("Error al cambiar el estado del usuario")
     }
     setConfirmDialog({ open: false, user: null, action: "" })
   }
@@ -115,23 +115,11 @@ export default function UsuariosPage() {
   const handleDeleteUser = async (userId) => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/usuarios/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar usuario")
-      }
-
+      await eliminarUsuario(userId)
       setUsers(users.filter((u) => u.id !== userId))
-    } catch {
-      // Handle error
+    } catch (err) {
+      console.error("Error al eliminar usuario:", err)
+      setError("Error al eliminar el usuario")
     } finally {
       setIsDeleting(false)
       setDeleteDialog({ open: false, user: null })
@@ -140,6 +128,13 @@ export default function UsuariosPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -211,7 +206,13 @@ export default function UsuariosPage() {
           <CardTitle className="text-lg">Usuarios ({filteredUsers.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
+              <p className="text-muted-foreground">Cargando usuarios...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-secondary/50">
@@ -319,7 +320,8 @@ export default function UsuariosPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

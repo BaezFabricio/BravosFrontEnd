@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff } from "lucide-react"
+import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,11 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { crearUsuario } from "@/api"
 
 export default function NuevoUsuarioPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
@@ -48,13 +50,50 @@ export default function NuevoUsuarioPage() {
     }
 
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
-    navigate("/admin/usuarios")
+    try {
+      // Enviar datos al backend
+      await crearUsuario({
+        nombre: formData.nombre,
+        dni: formData.dni,
+        email: formData.email,
+        telefono: formData.telefono,
+        perfil: formData.perfil,
+        password: formData.password,
+        creditos: parseInt(formData.creditos),
+      })
+
+      setIsSuccess(true)
+      setErrors({})
+
+      // Redirigir después de 1.5 segundos
+      setTimeout(() => {
+        navigate("/admin/usuarios")
+      }, 1500)
+    } catch (err) {
+      console.error("Error al crear usuario:", err)
+      const errorMessage = err.response?.data?.message || "Error al crear el usuario. Intenta nuevamente."
+      setErrors({ general: errorMessage })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="space-y-6">
+      {isSuccess && (
+        <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600">
+          <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+          <p>Usuario creado exitosamente. Redirigiendo...</p>
+        </div>
+      )}
+
+      {errors.general && (
+        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <p>{errors.general}</p>
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         <Link to="/admin/usuarios">
           <Button variant="ghost" size="icon">

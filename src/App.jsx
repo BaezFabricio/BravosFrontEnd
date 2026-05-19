@@ -29,6 +29,7 @@ function App() {
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
         <Route path="/registro" element={<RegistroPage />} />
 
+
         <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
         <Route path="/admin/membresias" element={<AdminLayout><MembresiasPage /></AdminLayout>} />
         <Route path="/admin/perfiles" element={<AdminLayout><PerfilesPage /></AdminLayout>} />

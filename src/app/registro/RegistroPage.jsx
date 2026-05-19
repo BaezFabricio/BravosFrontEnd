@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { HelpTooltip } from '@/components/ui/help-tooltip'
 import { Input } from '@/components/ui/input'
+import { registroUsuario } from '@/api'
 
 function RegistroPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -74,32 +76,20 @@ function RegistroPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/registro', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          dni: formData.dni,
-          email: formData.email,
-          telefono: formData.telefono,
-          password: formData.password,
-        }),
+      await registroUsuario({
+        nombre: formData.nombre,
+        dni: formData.dni,
+        email: formData.email,
+        telefono: formData.telefono,
+        password: formData.password,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setErrors({ general: data.message || 'Error al registrar' })
-        setIsLoading(false)
-        return
-      }
-
-      setIsLoading(false)
       setIsSuccess(true)
-    } catch {
-      setErrors({ general: 'Error de conexión. Intenta de nuevo.' })
+    } catch (err) {
+      console.error('Error al registrar:', err)
+      const errorMessage = err.response?.data?.message || 'Error de conexión. Intenta de nuevo.'
+      setErrors({ general: errorMessage })
+    } finally {
       setIsLoading(false)
     }
   }
@@ -161,8 +151,15 @@ function RegistroPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver atrás
+          </button>
           <div className="mb-6 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-accent">BRAVOS GYM</h1>
+            <h1 className="mb-2 text-3xl font-bold text-primary">BRAVOS GYM</h1>
             <h2 className="text-xl font-semibold text-foreground">Crear Cuenta</h2>
             <p className="mt-2 text-sm text-muted-foreground">Completa tus datos para registrarte</p>
           </div>
@@ -316,7 +313,7 @@ function RegistroPage() {
 
             <Button
               type="submit"
-              className="mt-2 h-12 w-full bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
+              className="mt-2 h-12 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (
