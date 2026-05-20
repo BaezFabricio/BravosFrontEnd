@@ -63,7 +63,7 @@ function RegistroPage() {
     return newErrors
   }
 
-  const handleSubmit = async (event) => {
+const handleSubmit = async (event) => {
     event.preventDefault()
     const newErrors = validateForm()
 
@@ -76,11 +76,13 @@ function RegistroPage() {
     setIsLoading(true)
 
     try {
+      // Mapeamos los campos para que coincidan EXACTAMENTE con lo que espera tu Backend
       await registroUsuario({
-        nombre: formData.nombre,
+        nombrecompleto: formData.nombre, // Cambiado de 'nombre' a 'nombrecompleto'
         dni: formData.dni,
-        email: formData.email,
+        correo: formData.email,          // Cambiado de 'email' a 'correo'
         telefono: formData.telefono,
+        username: formData.email,        // Usamos el email como username para que no falle el backend
         password: formData.password,
       })
 
