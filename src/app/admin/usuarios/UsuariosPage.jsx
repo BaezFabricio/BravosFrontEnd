@@ -82,7 +82,8 @@ export default function UsuariosPage() {
       setIsLoading(true)
       setError(null)
       const data = await getUsuarios()
-      setUsers(data)
+      // Nos aseguramos de que 'data' sea un array válido antes de guardarlo
+      setUsers(Array.isArray(data) ? data : [])
     } catch (err) {
       console.error("Error al cargar usuarios:", err)
       setError("No se pudieron cargar los usuarios. Por favor, intenta nuevamente.")
@@ -91,11 +92,28 @@ export default function UsuariosPage() {
     }
   }
 
+  // ✨ FILTRO BLINDADO CONTRA CAMPOS NULOS O MAYÚSCULAS DE LA BASE DE DATOS
   const filteredUsers = users.filter((user) => {
+    // Normalizamos textos básicos para evitar errores con .toLowerCase()
+    const nombreUser = user?.nombre ? String(user.nombre).toLowerCase() : ""
+    const dniUser = user?.dni ? String(user.dni) : ""
+    const emailUser = user?.email ? String(user.email).toLowerCase() : ""
+    
+    // Validamos y limpiamos las propiedades que indexan configuraciones visuales (evita el crash de pantalla negra)
+    const estadoUser = user?.estado ? String(user.estado).toLowerCase().trim() : "activo"
+    const perfilUser = user?.perfil ? String(user.perfil).toLowerCase().trim() : "alumno"
+    const membresiaUser = user?.membresia ? String(user.membresia).toLowerCase().trim() : "vencida"
+
+    // Guardamos los valores corregidos temporalmente en el objeto del usuario para el renderizado seguro abajo
+    user.estado = statusConfig[estadoUser] ? estadoUser : "activo"
+    user.perfil = roleLabels[perfilUser] ? perfilUser : "alumno"
+    user.membresia = membershipConfig[membresiaUser] ? membresiaUser : "vencida"
+
     const matchesSearch =
-      user.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      user.dni.includes(search) ||
-      user.email.toLowerCase().includes(search.toLowerCase())
+      nombreUser.includes(search.toLowerCase()) ||
+      dniUser.includes(search) ||
+      emailUser.includes(search.toLowerCase())
+    
     const matchesStatus = statusFilter === "all" || user.estado === statusFilter
     const matchesRole = roleFilter === "all" || user.perfil === roleFilter
     return matchesSearch && matchesStatus && matchesRole
@@ -138,8 +156,8 @@ export default function UsuariosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground">Gestion de Usuarios</h1>
-            <HelpTooltip content="Aqui puedes ver, crear, editar, suspender o eliminar usuarios del sistema. Usa los filtros para encontrar usuarios especificos." />
+            <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
+            <HelpTooltip content="Aquí puedes ver, crear, editar, suspender o eliminar usuarios del sistema. Usa los filtros para encontrar usuarios específicos." />
           </div>
           <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
@@ -164,7 +182,7 @@ export default function UsuariosPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <HelpTooltip content="Escribe el nombre, DNI o email del usuario que buscas. La busqueda se actualiza automaticamente." />
+                <HelpTooltip content="Escribe el nombre, DNI o email del usuario que buscas. La búsqueda se actualiza automáticamente." />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -213,118 +231,119 @@ export default function UsuariosPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-secondary/50">
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Usuario</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">DNI</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Teléfono</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Perfil</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Estado</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Membresía</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Créditos</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium text-foreground">{user.nombre}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </td>
-                    <td className="p-4 hidden md:table-cell">
-                      <span className="text-foreground">{user.dni}</span>
-                    </td>
-                    <td className="p-4 hidden lg:table-cell">
-                      <span className="text-foreground">{user.telefono}</span>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-foreground">{roleLabels[user.perfil]}</span>
-                    </td>
-                    <td className="p-4">
-                      <Badge variant="outline" className={statusConfig[user.estado].className}>
-                        {statusConfig[user.estado].label}
-                      </Badge>
-                    </td>
-                    <td className="p-4 hidden sm:table-cell">
-                      <Badge variant="outline" className={membershipConfig[user.membresia].className}>
-                        {membershipConfig[user.membresia].label}
-                      </Badge>
-                    </td>
-                    <td className="p-4 hidden lg:table-cell">
-                      <span className="font-medium text-foreground">{user.creditos}</span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/usuarios/${user.id}`}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver Detalle
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/usuarios/${user.id}/editar`}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {user.estado === "activo" && (
-                            <DropdownMenuItem
-                              onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                              className="text-yellow-500"
-                            >
-                              <UserX className="mr-2 h-4 w-4" />
-                              Suspender
-                            </DropdownMenuItem>
-                          )}
-                          {user.estado === "suspendido" && (
-                            <DropdownMenuItem
-                              onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
-                              className="text-green-500"
-                            >
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Activar
-                            </DropdownMenuItem>
-                          )}
-                          {user.estado !== "inactivo" && (
-                            <DropdownMenuItem
-                              onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
-                              className="text-yellow-500"
-                            >
-                              <UserX className="mr-2 h-4 w-4" />
-                              Dar de Baja
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => setDeleteDialog({ open: true, user })}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar Permanente
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/50">
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Usuario</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">DNI</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Teléfono</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Perfil</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Estado</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Membresía</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Créditos</th>
+                    <th className="text-right p-4 text-sm font-medium text-muted-foreground">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium text-foreground">{user.nombre}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </td>
+                      <td className="p-4 hidden md:table-cell">
+                        <span className="text-foreground">{user.dni}</span>
+                      </td>
+                      <td className="p-4 hidden lg:table-cell">
+                        <span className="text-foreground">{user.telefono}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-foreground">{roleLabels[user.perfil]}</span>
+                      </td>
+                      <td className="p-4">
+                        <Badge variant="outline" className={statusConfig[user.estado].className}>
+                          {statusConfig[user.estado].label}
+                        </Badge>
+                      </td>
+                      <td className="p-4 hidden sm:table-cell">
+                        <Badge variant="outline" className={membershipConfig[user.membresia].className}>
+                          {membershipConfig[user.membresia].label}
+                        </Badge>
+                      </td>
+                      <td className="p-4 hidden lg:table-cell">
+                        <span className="font-medium text-foreground">{user.creditos}</span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={`/admin/usuarios/${user.id}`}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Ver Detalle
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/admin/usuarios/${user.id}/editar`}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {user.estado === "activo" && (
+                              <DropdownMenuItem
+                                onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
+                                className="text-yellow-500"
+                              >
+                                <UserX className="mr-2 h-4 w-4" />
+                                Suspender
+                              </DropdownMenuItem>
+                            )}
+                            {user.estado === "suspendido" && (
+                              <DropdownMenuItem
+                                onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
+                                className="text-green-500"
+                              >
+                                <UserCheck className="mr-2 h-4 w-4" />
+                                Activar
+                              </DropdownMenuItem>
+                            )}
+                            {user.estado !== "inactivo" && (
+                              <DropdownMenuItem
+                                onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
+                                className="text-yellow-500"
+                              >
+                                <UserX className="mr-2 h-4 w-4" />
+                                Dar de Baja
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => setDeleteDialog({ open: true, user })}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar Permanente
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Diálogos de Confirmación de Estado */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -354,8 +373,8 @@ export default function UsuariosPage() {
                     confirmDialog.action === "suspend"
                       ? "suspendido"
                       : confirmDialog.action === "activate"
-                      ? "activo"
-                      : "inactivo"
+                        ? "activo"
+                        : "inactivo"
                   handleStatusChange(confirmDialog.user.id, newStatus)
                 }
               }}
@@ -366,6 +385,7 @@ export default function UsuariosPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Diálogo de Eliminación Permanente */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>

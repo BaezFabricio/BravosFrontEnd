@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// URL base del backend - Cambia esto según tu entorno
+// 🧠 URL base del backend corregida (quitamos la doble 'v')
 const API_BASE_URL = 'http://localhost:3001/api/vv1'
 
 // Crear instancia de Axios con configuración por defecto
@@ -11,10 +11,10 @@ const apiClient = axios.create({
   },
 })
 
-// Interceptor para agregar token de autenticación (si lo tienes)
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken')
+    // ✨ SOLUCIÓN: Cambiado a 'token' para que coincida exactamente con lo que guardás en el Login
+    const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -29,9 +29,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Redirigir a login si no autorizado
-      localStorage.removeItem('authToken')
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Si el backend nos rebota por token inválido o vencido, limpiamos y mandamos a loguear
+      localStorage.removeItem('token')
       window.location.href = '/login'
     }
     return Promise.reject(error)
@@ -49,7 +49,8 @@ apiClient.interceptors.response.use(
 export const getUsuarios = async () => {
   try {
     const response = await apiClient.get('/usuarios')
-    return response.data
+    // 🧠 Si tu backend envuelve la respuesta en { ok: true, usuarios: [...] }, adaptamos el retorno:
+    return response.data.usuarios || response.data
   } catch (error) {
     console.error('Error al obtener usuarios:', error)
     throw error
@@ -63,7 +64,7 @@ export const getUsuarios = async () => {
 export const getUsuarioById = async (id) => {
   try {
     const response = await apiClient.get(`/usuarios/${id}`)
-    return response.data
+    return response.data.usuario || response.data
   } catch (error) {
     console.error(`Error al obtener usuario ${id}:`, error)
     throw error
@@ -138,7 +139,7 @@ export const registroUsuario = async (datosRegistro) => {
   try {
     const response = await apiClient.post('/auth/registro', datosRegistro)
     if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token)
+      localStorage.setItem('token', response.data.token)
     }
     return response.data
   } catch (error) {
@@ -151,13 +152,18 @@ export const registroUsuario = async (datosRegistro) => {
  * Login de usuario
  * POST /auth/login
  */
-export const loginUsuario = async (email, password) => {
+export const loginUsuario = async (correo, password) => {
   try {
-    const response = await apiClient.post('/auth/login', { email, password })
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token)
+    // Ajustado a 'correo' para que coincida con tu req.body de Node.js
+    const response = await apiClient.post('/auth/login', { correo, password })
+    
+    // Si viene la info anidada en data, guardamos el token
+    const data = response.data.data || response.data;
+    
+    if (data.token) {
+      localStorage.setItem('token', data.token)
     }
-    return response.data
+    return data
   } catch (error) {
     console.error('Error al iniciar sesión:', error)
     throw error
@@ -168,7 +174,7 @@ export const loginUsuario = async (email, password) => {
  * Logout del usuario
  */
 export const logoutUsuario = () => {
-  localStorage.removeItem('authToken')
+  localStorage.removeItem('token')
   window.location.href = '/login'
 }
 
@@ -176,10 +182,6 @@ export const logoutUsuario = () => {
 // FUNCIONES DE API - MEMBRESÍAS
 // ============================================
 
-/**
- * Obtiene las membresías de un usuario
- * GET /usuarios/:id/membresias
- */
 export const getMembresiasUsuario = async (id) => {
   try {
     const response = await apiClient.get(`/usuarios/${id}/membresias`)
@@ -190,10 +192,6 @@ export const getMembresiasUsuario = async (id) => {
   }
 }
 
-/**
- * Crea una membresía para un usuario
- * POST /usuarios/:id/membresias
- */
 export const crearMembresia = async (usuarioId, membresiasData) => {
   try {
     const response = await apiClient.post(`/usuarios/${usuarioId}/membresias`, membresiasData)
@@ -208,10 +206,6 @@ export const crearMembresia = async (usuarioId, membresiasData) => {
 // FUNCIONES DE API - CRÉDITOS
 // ============================================
 
-/**
- * Obtiene los créditos de un usuario
- * GET /usuarios/:id/creditos
- */
 export const getCreditosUsuario = async (id) => {
   try {
     const response = await apiClient.get(`/usuarios/${id}/creditos`)
@@ -222,10 +216,6 @@ export const getCreditosUsuario = async (id) => {
   }
 }
 
-/**
- * Actualiza los créditos de un usuario
- * PUT /usuarios/:id/creditos
- */
 export const actualizarCreditosUsuario = async (id, creditos) => {
   try {
     const response = await apiClient.put(`/usuarios/${id}/creditos`, { creditos })
@@ -236,5 +226,4 @@ export const actualizarCreditosUsuario = async (id, creditos) => {
   }
 }
 
-// Exportar la instancia de apiClient para casos especiales
 export default apiClient
