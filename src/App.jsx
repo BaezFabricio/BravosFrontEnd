@@ -18,6 +18,7 @@ import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
 import AlumnoReservasPage from './app/alumno/reservas/ReservasPage.jsx'
 import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
+import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
         <Route path="/registro" element={<RegistroPage />} />
+        <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
 
 
         <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />

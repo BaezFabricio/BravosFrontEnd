@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import {
   ChevronDown,
   ChevronRight,
-  ExternalLink,
   MapPin,
   Menu,
   X,
+  LogOut, // 👈 Sumamos el ícono de Cerrar Sesión
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -50,14 +50,27 @@ function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+  // ✨ NUEVO: Estado para verificar si existe sesión activa
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    // Verificamos si hay un token guardado en el navegador
+    const token = localStorage.getItem('token')
+    setIsLoggedIn(!!token)
+
     const interval = setInterval(() => {
       setCurrentImageIndex((previousIndex) => (previousIndex + 1) % heroImages.length)
     }, 5000)
 
     return () => clearInterval(interval)
   }, [])
+
+  // ✨ NUEVO: Función para limpiar el token y reiniciar la vista
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    window.location.reload() // Refresca instantáneamente para actualizar el Navbar
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black">
@@ -106,30 +119,36 @@ function LandingPage() {
                     )}
                   </div>
                 ))}
-
-                <a
-                  href="#"
-                  className="flex items-center gap-1 px-4 py-2 text-sm font-semibold tracking-wide text-white/80 transition-colors hover:text-white"
-                >
-                  TIENDA
-                  <ExternalLink className="h-3 w-3" />
-                </a>
               </nav>
 
+              {/* ✨ MODIFICADO: Botones Desktop Condicionales */}
               <div className="hidden items-center gap-3 lg:flex">
-                <Link to="/login">
-                  <Button
-                    variant="ghost"
-                    className="text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+                {!isLoggedIn ? (
+                  <>
+                    <Link to="/login">
+                      <Button
+                        variant="ghost"
+                        className="text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+                      >
+                        INGRESAR
+                      </Button>
+                    </Link>
+                    <Link to="/registro">
+                      <Button className="bg-accent px-6 text-sm font-bold text-accent-foreground hover:bg-accent/90">
+                        UNIRSE
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={handleLogout}
+                    variant="destructive" 
+                    className="flex items-center gap-2 font-bold px-5 bg-yellow-600 hover:bg-yellow-700 text-white"
                   >
-                    INGRESAR
+                    <LogOut className="h-4 w-4" />
+                    CERRAR SESIÓN
                   </Button>
-                </Link>
-                <Link to="/registro">
-                  <Button className="bg-accent px-6 text-sm font-bold text-accent-foreground hover:bg-accent/90">
-                    UNIRSE
-                  </Button>
-                </Link>
+                )}
               </div>
 
               <button
@@ -174,17 +193,34 @@ function LandingPage() {
                   </div>
                 ))}
 
+                {/* ✨ MODIFICADO: Botones Mobile Condicionales */}
                 <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
-                      INGRESAR
+                  {!isLoggedIn ? (
+                    <>
+                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
+                          INGRESAR
+                        </Button>
+                      </Link>
+                      <Link to="/registro" onClick={() => setMobileMenuOpen(false)}>
+                        <Button className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90">
+                          UNIRSE
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      variant="destructive" 
+                      className="w-full flex items-center justify-center gap-2 font-bold bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      CERRAR SESIÓN
                     </Button>
-                  </Link>
-                  <Link to="/registro" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90">
-                      UNIRSE
-                    </Button>
-                  </Link>
+                  )}
                 </div>
               </div>
             </div>
