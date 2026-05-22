@@ -39,39 +39,54 @@ useEffect(() => {
   }, [token]);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#111', color: '#fff', fontFamily: 'Arial, sans-serif' }}>
-      <div style={{ backgroundColor: '#1e1e1e', padding: '40px', borderRadius: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
-        
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px', letterSpacing: '1px' }}>BRAVOS GYM 🏋️‍♂️</h1>
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4">
+      <div
+        className="absolute inset-0 flex items-center justify-center opacity-10"
+        style={{
+          backgroundImage: "url('/logo-box-bravos-final.png')",
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-md">
+        <div className="rounded-2xl border border-border bg-card/95 p-8 text-center shadow-2xl backdrop-blur-sm">
+          <h1 className="mb-2 text-3xl font-bold text-primary">BRAVOS BOX</h1>
 
         {status === 'loading' && (
           <div>
-            <div style={{ border: '4px solid #333', borderTop: '4px solid #2e7d32', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '20px auto' }}></div>
-            <p style={{ color: '#aaa' }}>Procesando tu activación, aguardá un instante...</p>
+            <div className="mx-auto my-5 h-10 w-10 animate-spin rounded-full border-4 border-secondary border-t-primary" />
+            <p className="text-sm text-muted-foreground">Procesando tu activación, aguardá un instante...</p>
           </div>
         )}
 
         {status === 'success' && (
-          <div>
-            <div style={{ fontSize: '50px', color: '#4caf50', marginBottom: '15px' }}>✓</div>
-            <h2 style={{ color: '#4caf50', marginBottom: '10px' }}>¡Cuenta Activada!</h2>
-            <p style={{ color: '#ccc', marginBottom: '25px', fontSize: '14px' }}>{mensaje}</p>
-            <Link to="/login" style={{ display: 'inline-block', backgroundColor: '#2e7d32', color: '#fff', padding: '12px 30px', borderRadius: '5px', textDecoration: 'none', fontWeight: 'bold', uppercase: 'true', width: '80%' }}>
-              Iniciar Sesión
+          <div className="space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-4xl text-primary">
+              ✓
+            </div>
+            <h2 className="text-2xl font-semibold text-foreground">¡Cuenta Activada!</h2>
+            <p className="text-sm text-muted-foreground">{mensaje}</p>
+            <Link to="/login" className="inline-flex h-12 w-full items-center justify-center rounded-md bg-primary px-6 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              Iniciar sesión
             </Link>
           </div>
         )}
 
         {status === 'error' && (
-          <div>
-            <div style={{ fontSize: '50px', color: '#f44336', marginBottom: '15px' }}>✕</div>
-            <h2 style={{ color: '#f44336', marginBottom: '10px' }}>Hubo un problema</h2>
-            <p style={{ color: '#ccc', marginBottom: '25px', fontSize: '14px' }}>{mensaje}</p>
-            <Link to="/registro" style={{ display: 'inline-block', backgroundColor: '#333', color: '#fff', padding: '12px 30px', borderRadius: '5px', textDecoration: 'none', fontWeight: 'bold', width: '80%' }}>
-              Volver al Registro
+          <div className="space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/20 text-4xl text-destructive">
+              ✕
+            </div>
+            <h2 className="text-2xl font-semibold text-foreground">Hubo un problema</h2>
+            <p className="text-sm text-muted-foreground">{mensaje}</p>
+            <Link to="/registro" className="inline-flex h-12 w-full items-center justify-center rounded-md bg-secondary px-6 font-semibold text-foreground transition-colors hover:bg-secondary/80">
+              Volver al registro
             </Link>
           </div>
         )}
+        </div>
       </div>
 
       {/* Mini estilo para la animación del spinner */}

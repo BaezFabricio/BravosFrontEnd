@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { HelpTooltip } from '@/components/ui/help-tooltip'
 import { Input } from '@/components/ui/input'
 import { registroUsuario } from '@/api'
+import axios from 'axios' // Importamos para la llamada de corrección de email
 
 function RegistroPage() {
   const navigate = useNavigate()
@@ -13,6 +14,13 @@ function RegistroPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  
+  // 🎯 Estados nuevos para controlar la corrección del mail
+  const [usuarioId, setUsuarioId] = useState(null)
+  const [isEditingEmail, setIsEditingEmail] = useState(false)
+  const [newEmailInput, setNewEmailInput] = useState('')
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+
   const [formData, setFormData] = useState({
     nombre: '',
     dni: '',
@@ -63,7 +71,7 @@ function RegistroPage() {
     return newErrors
   }
 
-const handleSubmit = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const newErrors = validateForm()
 
@@ -76,15 +84,18 @@ const handleSubmit = async (event) => {
     setIsLoading(true)
 
     try {
-      // Mapeamos los campos para que coincidan EXACTAMENTE con lo que espera tu Backend
-      await registroUsuario({
-        nombrecompleto: formData.nombre, // Cambiado de 'nombre' a 'nombrecompleto'
+      const response = await registroUsuario({
+        nombrecompleto: formData.nombre, 
         dni: formData.dni,
-        correo: formData.email,          // Cambiado de 'email' a 'correo'
+        correo: formData.email,          
         telefono: formData.telefono,
-        username: formData.email,        // Usamos el email como username para que no falle el backend
+        username: formData.email,        
         password: formData.password,
       })
+
+      // Guardamos el ID que nos devuelve el backend por si se equivocó de mail
+      const idAsignado = response?.data?.data?.usuario?.idUsuario || response?.data?.usuario?.idUsuario;
+      setUsuarioId(idAsignado);
 
       setIsSuccess(true)
     } catch (err) {
@@ -96,13 +107,39 @@ const handleSubmit = async (event) => {
     }
   }
 
+  // 🔄 Función para corregir el email en caliente
+  const handleUpdateEmail = async () => {
+    if (!newEmailInput || !/\S+@\S+\.\S+/.test(newEmailInput)) {
+      alert('Por favor, ingresa un correo válido.')
+      return
+    }
+
+    setIsUpdatingEmail(true)
+    try {
+      await axios.post('/api/auth/reenviar-verificacion', {
+        idUsuario: usuarioId,
+        nuevoCorreo: newEmailInput
+      })
+
+      setFormData({ ...formData, email: newEmailInput })
+      setIsEditingEmail(false)
+      alert('¡Correo modificado y nuevo código enviado con éxito!')
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || 'No se pudo actualizar el correo.')
+    } finally {
+      setIsUpdatingEmail(false)
+    }
+  }
+
+  // PANTALLA DONDE INDICA QUE SE ENVIÓ EL GMAIL (Muestra el botón de editar)
   if (isSuccess) {
     return (
       <div
         className="relative flex min-h-screen items-center justify-center p-4"
         style={{
-          backgroundImage: "url('/logo.jpg')",
-          backgroundSize: 'cover',
+          backgroundImage: "url('/logo-box-bravos-final.png')",
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
@@ -117,10 +154,42 @@ const handleSubmit = async (event) => {
 
             <h2 className="text-2xl font-bold text-foreground">Registro Exitoso</h2>
 
-            <p className="text-muted-foreground">
-              Hemos enviado un correo de verificación a{' '}
-              <span className="font-medium text-primary">{formData.email}</span>
-            </p>
+            <div className="space-y-2">
+              <p className="text-muted-foreground">
+                Hemos enviado un correo de verificación a:
+              </p>
+              
+              {/* 🛠️ ACÁ ESTÁ EL SALVAVIDAS QUE MODIFICA EL MAIL */}
+              {!isEditingEmail ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <span className="font-medium text-primary text-lg">{formData.email}</span>
+                  <button 
+                    onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email); }}
+                    className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
+                  >
+                    ¿Te equivocaste de correo? Modificar email
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 max-w-xs mx-auto mt-2">
+                  <Input 
+                    type="email" 
+                    value={newEmailInput} 
+                    onChange={(e) => setNewEmailInput(e.target.value)}
+                    className="h-9 text-center bg-secondary"
+                    placeholder="Escribe tu correo correcto"
+                  />
+                  <div className="flex gap-2 justify-center">
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}>
+                      Cancelar
+                    </Button>
+                    <Button size="sm" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>
+                      {isUpdatingEmail ? 'Guardando...' : 'Confirmar y Reenviar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="rounded-lg border border-border bg-secondary/50 p-4">
               <p className="text-sm text-muted-foreground">
