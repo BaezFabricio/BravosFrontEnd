@@ -38,13 +38,13 @@ const reservas = [
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
@@ -135,7 +135,7 @@ export default function DetalleUsuarioPage() {
           {currentStatus === "activo" ? (
             <Button 
               variant="outline" 
-              className="text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10"
+              className="text-green-500 border-green-500/50 hover:bg-green-500/10"
               onClick={() => setStatusDialog({ open: true, action: "suspend" })}
             >
               <UserX className="mr-2 h-4 w-4" />

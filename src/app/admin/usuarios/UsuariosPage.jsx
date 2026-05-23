@@ -45,13 +45,13 @@ import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario } from "@/api"
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
@@ -299,7 +299,7 @@ export default function UsuariosPage() {
                             {user.estado === "activo" && (
                               <DropdownMenuItem
                                 onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                                className="text-yellow-500"
+                                className="text-green-500"
                               >
                                 <UserX className="mr-2 h-4 w-4" />
                                 Suspender
@@ -315,9 +315,9 @@ export default function UsuariosPage() {
                               </DropdownMenuItem>
                             )}
                             {user.estado !== "inactivo" && (
-                              <DropdownMenuItem
+                                <DropdownMenuItem
                                 onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
-                                className="text-yellow-500"
+                                className="text-green-500"
                               >
                                 <UserX className="mr-2 h-4 w-4" />
                                 Dar de Baja

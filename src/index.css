@@ -16,7 +16,7 @@
   --secondary-foreground: oklch(0.95 0 0);
   --muted: oklch(0.18 0.01 145);
   --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.7 0.15 90);
+  --accent: oklch(0.62 0.17 145);
   --accent-foreground: oklch(0.1 0 0);
   --destructive: oklch(0.5 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
@@ -40,12 +40,12 @@
   
   /* Custom Bravos colors */
   --bravos-green: oklch(0.5 0.12 145);
-  --bravos-gold: oklch(0.7 0.15 90);
+  --bravos-gold: oklch(0.62 0.17 145);
   --bravos-olive: oklch(0.55 0.1 85);
   --bravos-dark: oklch(0.08 0 0);
   --success: oklch(0.55 0.15 145);
   --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.7 0.15 85);
+  --warning: oklch(0.62 0.17 145);
   --warning-foreground: oklch(0.1 0 0);
 }
 
@@ -62,7 +62,7 @@
   --secondary-foreground: oklch(0.95 0 0);
   --muted: oklch(0.18 0.01 145);
   --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.55 0.1 85);
+  --accent: oklch(0.58 0.15 145);
   --accent-foreground: oklch(0.1 0 0);
   --destructive: oklch(0.5 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
@@ -136,3 +136,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Override rápido: mapear clases "yellow" a nuestro verde de marca
+   Esto fuerza que cualquier clase generada que contenga "yellow-500"
+   use el color `--color-bravos-green`. Es una solución temporal
+   (evita rebuild inmediato), recomendable hacer `npm run build` luego.
+*/
+
+[class*="text-yellow-500"] {
+  color: var(--color-bravos-green) !important;
+}
+
+[class*="text-yellow-500/"], [class*="text-yellow-500\\/"] {
+  color: var(--color-bravos-green) !important;
+}
+
+[class*="bg-yellow-500"] {
+  background-color: var(--color-bravos-green) !important;
+}
+
+[class*="bg-yellow-500/"], [class*="bg-yellow-500\\/"] {
+  background-color: color-mix(in oklab, var(--color-bravos-green) 20%, transparent) !important;
+}
+
+[class*="border-yellow-500"] {
+  border-color: var(--color-bravos-green) !important;
+}
+
+/* Catch icon color utilities */
+[class*="text-yellow-500"] svg, [class*="text-yellow-500"] * {
+  color: var(--color-bravos-green) !important;
+  fill: var(--color-bravos-green) !important;
+}
+

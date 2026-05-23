@@ -23,13 +23,13 @@ const userData = {
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
@@ -141,10 +141,10 @@ export default function PerfilPage() {
       )}
 
       {userData.estado === "suspendido" && (
-        <Alert className="bg-yellow-500/10 border-yellow-500/20">
-          <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          <AlertTitle className="text-yellow-500">Cuenta Suspendida</AlertTitle>
-          <AlertDescription className="text-yellow-500/80">
+        <Alert className="bg-green-500/10 border-green-500/20">
+          <AlertTriangle className="h-4 w-4 text-green-500" />
+          <AlertTitle className="text-green-500">Cuenta Suspendida</AlertTitle>
+          <AlertDescription className="text-green-500/80">
             Tu cuenta está suspendida por falta de pago. Regulariza tu membresía para volver a reservar clases y usar tus créditos.
           </AlertDescription>
         </Alert>

@@ -82,10 +82,10 @@ export default function CreditosPage() {
         </Card>
       </div>
 
-      <Card className="bg-card border-border border-yellow-500/30">
+      <Card className="bg-card border-border border-green-500/30">
         <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+            <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-green-500 mt-0.5" />
             <div>
               <h4 className="font-medium text-foreground">Importante sobre los créditos</h4>
               <ul className="mt-2 space-y-1 text-sm text-muted-foreground">

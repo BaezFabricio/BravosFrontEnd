@@ -81,7 +81,7 @@ export default function NuevoUsuarioPage() {
   return (
     <div className="space-y-6">
       {isSuccess && (
-        <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-600">
+        <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
           <p>Usuario creado exitosamente. Redirigiendo...</p>
         </div>

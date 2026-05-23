@@ -143,7 +143,7 @@ function LandingPage() {
                   <Button 
                     onClick={handleLogout}
                     variant="destructive" 
-                    className="flex items-center gap-2 font-bold px-5 bg-yellow-600 hover:bg-yellow-700 text-white"
+                    className="flex items-center gap-2 font-bold px-5 bg-green-500 hover:bg-green-600 text-white"
                   >
                     <LogOut className="h-4 w-4" />
                     CERRAR SESIÓN
@@ -267,9 +267,6 @@ function LandingPage() {
           </div>
 
           <div className="mb-6 flex flex-col items-start">
-            <p className="mb-2 text-xl font-black tracking-widest text-white sm:text-2xl md:text-3xl">
-              A LOS
-            </p>
             <img
               src="/logo-box-bravos-final.png"
               alt="Box Bravos"
@@ -277,8 +274,8 @@ function LandingPage() {
               height="140"
               className="object-contain"
             />
-            <p className="mt-2 text-xl font-black tracking-widest text-white sm:text-2xl md:text-3xl">
-              DE MALVINAS
+            <p className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl">
+              Centro de Entrenamiento
             </p>
           </div>
 
@@ -500,7 +497,7 @@ function LandingPage() {
                 <h3 className="mb-4 text-lg font-bold text-white">CONTACTO</h3>
                 <div className="space-y-2 text-white/60">
                   <p>Tel: +54 11 1234-5678</p>
-                  <p>Email: info@crossfitbravos.com</p>
+                  <p>Email: bravosbox1@gmail.com</p>
                 </div>
               </div>
             </div>

@@ -247,7 +247,7 @@ export default function PerfilesPage() {
 
   const getColorClasses = (color) => {
     const colors = {
-      green: { bg: "bg-green-600", border: "border-green-600", text: "text-green-600" },
+      green: { bg: "bg-green-500", border: "border-green-500", text: "text-green-500" },
       red: { bg: "bg-red-600", border: "border-red-600", text: "text-red-600" },
       blue: { bg: "bg-blue-600", border: "border-blue-600", text: "text-blue-600" },
       amber: { bg: "bg-amber-500", border: "border-amber-500", text: "text-amber-500" },
@@ -407,7 +407,7 @@ export default function PerfilesPage() {
                           <span className="font-medium">{modulo.nombre}</span>
                           {isActivo && (
                             <div className="flex gap-1 ml-auto">
-                              {permisos.alta && <div className="w-2 h-2 rounded-full bg-green-600"></div>}
+                              {permisos.alta && <div className="w-2 h-2 rounded-full bg-green-500"></div>}
                               {permisos.baja && <div className="w-2 h-2 rounded-full bg-red-600"></div>}
                               {permisos.consulta && <div className="w-2 h-2 rounded-full bg-blue-600"></div>}
                               {permisos.modificacion && <div className="w-2 h-2 rounded-full bg-amber-500"></div>}

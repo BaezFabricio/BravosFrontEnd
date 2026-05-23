@@ -212,8 +212,8 @@ export default function ReservarClasePage() {
                       className={
                         clase.cuposDisponibles === 0
                           ? "bg-red-500/10 text-red-500 border-red-500/20"
-                          : clase.cuposDisponibles <= 3
-                          ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+                            : clase.cuposDisponibles <= 3
+                              ? "bg-green-500/10 text-green-500 border-green-500/20"
                           : "bg-green-500/10 text-green-500 border-green-500/20"
                       }
                     >
@@ -268,9 +268,9 @@ export default function ReservarClasePage() {
             </div>
           )}
 
-          <Alert className="bg-yellow-500/10 border-yellow-500/20">
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-500/80">
+          <Alert className="bg-green-500/10 border-green-500/20">
+            <AlertCircle className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-500/80">
               Se descontará 1 crédito de tu cuenta. Si no asistes, el crédito también será descontado.
             </AlertDescription>
           </Alert>
