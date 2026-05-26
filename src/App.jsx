@@ -12,6 +12,9 @@ import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
 import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
 import NuevoUsuarioPage from './app/admin/usuarios/nuevo/NuevoUsuarioPage.jsx'
 import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/EditarUsuarioPage.jsx'
+// 🚀 IMPORTAMOS EL NUEVO COMPONENTE DE PERSONALIZACIÓN
+import ConfiguracionLandingPage from './app/admin/configuracion/ConfiguracionLandingPage.jsx' 
+
 import AlumnoLayout from './app/alumno/layout.jsx'
 import AlumnoDashboard from './app/alumno/AlumnoDashboard.jsx'
 import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
@@ -31,7 +34,7 @@ function App() {
         <Route path="/registro" element={<RegistroPage />} />
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
 
-
+        {/* RUTAS DE ADMINISTRADOR */}
         <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
         <Route path="/admin/membresias" element={<AdminLayout><MembresiasPage /></AdminLayout>} />
         <Route path="/admin/perfiles" element={<AdminLayout><PerfilesPage /></AdminLayout>} />
@@ -39,7 +42,9 @@ function App() {
         <Route path="/admin/usuarios/nuevo" element={<AdminLayout><NuevoUsuarioPage /></AdminLayout>} />
         <Route path="/admin/usuarios/:id" element={<AdminLayout><DetalleUsuarioPage /></AdminLayout>} />
         <Route path="/admin/usuarios/:id/editar" element={<AdminLayout><EditarUsuarioPage /></AdminLayout>} />
+        <Route path="/admin/configuracion" element={<AdminLayout><ConfiguracionLandingPage /></AdminLayout>} />
 
+        {/* RUTAS DE ALUMNO */}
         <Route path="/alumno" element={<AlumnoLayout><AlumnoDashboard /></AlumnoLayout>} />
         <Route path="/alumno/reservar" element={<AlumnoLayout><AlumnoReservarPage /></AlumnoLayout>} />
         <Route path="/alumno/reservas" element={<AlumnoLayout><AlumnoReservasPage /></AlumnoLayout>} />
