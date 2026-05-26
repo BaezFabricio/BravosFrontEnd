@@ -10,6 +10,9 @@ function ConfiguracionLandingPage() {
 
   // Estados para los campos del formulario
   const [tituloHero, setTituloHero] = useState('')
+  const [tituloSize, setTituloSize] = useState('')
+  const [tituloFont, setTituloFont] = useState('')
+  const [tituloAlign, setTituloAlign] = useState('')
   const [logo, setLogo] = useState(null)
   
   // Estados para las 3 imágenes
@@ -41,12 +44,16 @@ function ConfiguracionLandingPage() {
       
       if (data) {
         setTituloHero(data.tituloHero || '')
+        setTituloSize(data.tituloHeroSize || '')
+        setTituloFont(data.tituloHeroFont || '')
+        setTituloAlign(data.tituloHeroAlign || '')
         if (data.logoUrl) setLogoPreview(data.logoUrl)
-        // Ajustado para recibir array de imágenes si el backend las envía así
+        // Ajustado para recibir array u objeto de imágenes si el backend las envía así
         if (data.heroImages) {
-          setHeroPreview1(data.heroImages[0] || '/landing-hero-1.jpg')
-          setHeroPreview2(data.heroImages[1] || '/landing-hero-2.jpg')
-          setHeroPreview3(data.heroImages[2] || '/landing-hero-3.jpg')
+          const imgs = Array.isArray(data.heroImages) ? data.heroImages : Object.values(data.heroImages)
+          setHeroPreview1(imgs[0] || '/landing-hero-1.jpg')
+          setHeroPreview2(imgs[1] || '/landing-hero-2.jpg')
+          setHeroPreview3(imgs[2] || '/landing-hero-3.jpg')
         }
       }
     } catch (error) {
@@ -93,6 +100,10 @@ function ConfiguracionLandingPage() {
 
       const formData = new FormData()
       formData.append('tituloHero', tituloHero)
+      // Agregar estilos del título si fueron configurados
+      if (tituloSize) formData.append('tituloHeroSize', tituloSize)
+      if (tituloFont) formData.append('tituloHeroFont', tituloFont)
+      if (tituloAlign) formData.append('tituloHeroAlign', tituloAlign)
       if (logo) formData.append('logo', logo)
       if (imagenHero1) formData.append('imagenHero1', imagenHero1)
       if (imagenHero2) formData.append('imagenHero2', imagenHero2)
@@ -191,6 +202,43 @@ function ConfiguracionLandingPage() {
                   onChange={(e) => setTituloHero(e.target.value)}
                   className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
                 />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-zinc-400">Tamaño (px)</label>
+                    <input
+                      type="number"
+                      min={10}
+                      max={200}
+                      value={tituloSize}
+                      onChange={(e) => setTituloSize(e.target.value)}
+                      className="w-24 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-zinc-400">Alineación</label>
+                    <select
+                      value={tituloAlign}
+                      onChange={(e) => setTituloAlign(e.target.value)}
+                      className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                    >
+                      <option value="left">Izquierda</option>
+                      <option value="center">Centro</option>
+                      <option value="right">Derecha</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-zinc-400">Tipografía</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Arial, 'Roboto', sans-serif"
+                      value={tituloFont}
+                      onChange={(e) => setTituloFont(e.target.value)}
+                      className="w-48 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

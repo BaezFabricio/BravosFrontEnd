@@ -54,6 +54,9 @@ function LandingPage() {
   const [heroImages, setHeroImages] = useState(defaultHeroImages)
   const [titulo, setTitulo] = useState('Centro de Entrenamiento')
   const [logoUrl, setLogoUrl] = useState('/logo-box-bravos-final.png')
+  const [tituloSize, setTituloSize] = useState(null)
+  const [tituloFont, setTituloFont] = useState(null)
+  const [tituloAlign, setTituloAlign] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -68,6 +71,9 @@ function LandingPage() {
 
         if (data?.tituloHero) setTitulo(data.tituloHero)
         if (data?.logoUrl) setLogoUrl(data.logoUrl)
+        if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
+        if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
+        if (data?.tituloHeroAlign) setTituloAlign(data.tituloHeroAlign)
 
         if (data?.heroImages) {
           const imagenesBackend = Object.values(data.heroImages).filter(Boolean)
@@ -296,7 +302,7 @@ function LandingPage() {
             <span className="text-white/80">Formosa Capital</span>
           </div>
 
-          <div className="mb-6 flex flex-col items-start">
+            <div className="mb-6 flex flex-col items-start" style={{ textAlign: tituloAlign || undefined }}>
             <img
               src={logoUrl}
               alt="Box Bravos"
@@ -304,7 +310,14 @@ function LandingPage() {
               height="140"
               className="object-contain"
             />
-            <p className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl">
+            <p
+              className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl"
+              style={{
+                fontSize: tituloSize ? `${tituloSize}px` : undefined,
+                fontFamily: tituloFont || undefined,
+                textAlign: tituloAlign || undefined,
+              }}
+            >
               {titulo}
             </p>
           </div>
