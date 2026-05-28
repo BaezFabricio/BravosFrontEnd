@@ -12,6 +12,7 @@ import {
   Shield,
   ChevronDown,
   Bell,
+  Home, // 👈 Ícono para el botón de volver al inicio
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,6 +39,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Overlay para móviles */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -45,14 +47,20 @@ export default function AdminLayout({ children }) {
         />
       )}
 
+      {/* Sidebar Lateral */}
       <aside
         className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
+          {/* Header del Sidebar (Logo + Nombre) */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <Link to="/admin" className="flex items-center gap-3">
+            <Link 
+              to="/" 
+              onClick={() => window.location.href = '/'} 
+              className="flex items-center gap-3"
+            >
               <img
                 src="/logo.jpg"
                 alt="Bravos Gym"
@@ -70,6 +78,7 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
 
+          {/* Menú de navegación principal */}
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -91,6 +100,7 @@ export default function AdminLayout({ children }) {
             })}
           </nav>
 
+          {/* Footer del Sidebar (Info del Usuario Logueado) */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
@@ -105,9 +115,12 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
+      {/* Contenedor Principal (Derecha) */}
       <div className="lg:pl-64">
+        {/* Barra de Navegación Superior (Header) */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+            {/* Botón Hamburguesa para Móviles */}
             <button
               className="lg:hidden text-foreground"
               onClick={() => setSidebarOpen(true)}
@@ -117,7 +130,21 @@ export default function AdminLayout({ children }) {
 
             <div className="flex-1 lg:flex-none" />
 
+            {/* Acciones de la derecha */}
             <div className="flex items-center gap-3">
+              
+              {/* 🚀 BOTÓN NUEVO: Volver a Inicio / Ver Landing Principal */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2 text-muted-foreground hover:text-foreground hidden sm:flex"
+                onClick={() => window.location.href = '/'}
+              >
+                <Home className="h-4 w-4" />
+                Ver Sitio
+              </Button>
+
+              {/* Botón de Notificaciones */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -125,6 +152,7 @@ export default function AdminLayout({ children }) {
                 </span>
               </Button>
 
+              {/* Menú Desplegable de Usuario */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
@@ -147,8 +175,9 @@ export default function AdminLayout({ children }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {/* Cerrar sesión también fuerza la limpieza volviendo a la raíz */}
                   <DropdownMenuItem asChild className="text-destructive">
-                    <Link to="/">
+                    <Link to="/" onClick={() => window.location.href = '/'}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Cerrar Sesión
                     </Link>
@@ -159,6 +188,7 @@ export default function AdminLayout({ children }) {
           </div>
         </header>
 
+        {/* Contenido Dinámico de las Vistas del Admin */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
     </div>
