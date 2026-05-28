@@ -4,6 +4,7 @@ import { Mail, Loader2, ArrowLeft, CheckCircle2, KeyRound, Eye, EyeOff, Lock } f
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { enviarCodigoRecuperacion, verificarCodigoRecuperacion, resetearContrasena } from "@/api"
 
 export default function RecuperarContrasenaPage() {
   const [step, setStep] = useState("email")
@@ -31,29 +32,12 @@ export default function RecuperarContrasenaPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch("/api/auth/recuperar-contrasena", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          action: "send_code",
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setErrors({ email: data.message || "Error al enviar código" })
-        setIsLoading(false)
-        return
-      }
-
+      await enviarCodigoRecuperacion(email)
       setIsLoading(false)
       setStep("code")
-    } catch {
-      setErrors({ email: "Error de conexión. Intenta de nuevo." })
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || "Error al enviar código"
+      setErrors({ email: msg })
       setIsLoading(false)
     }
   }
@@ -69,30 +53,12 @@ export default function RecuperarContrasenaPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch("/api/auth/recuperar-contrasena", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          code,
-          action: "verify_code",
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setErrors({ code: data.message || "Código inválido" })
-        setIsLoading(false)
-        return
-      }
-
+      await verificarCodigoRecuperacion(email, code)
       setIsLoading(false)
       setStep("newPassword")
-    } catch {
-      setErrors({ code: "Error de conexión. Intenta de nuevo." })
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || "Código inválido"
+      setErrors({ code: msg })
       setIsLoading(false)
     }
   }
@@ -122,31 +88,12 @@ export default function RecuperarContrasenaPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch("/api/auth/recuperar-contrasena", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          code,
-          password,
-          action: "reset_password",
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setErrors({ password: data.message || "Error al cambiar contraseña" })
+        await resetearContrasena(email, code, password)
         setIsLoading(false)
-        return
-      }
-
-      setIsLoading(false)
-      setStep("success")
-    } catch {
-      setErrors({ password: "Error de conexión. Intenta de nuevo." })
+        setStep("success")
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Error de conexión. Intenta de nuevo."
+      setErrors({ password: msg })
       setIsLoading(false)
     }
   }
@@ -213,7 +160,7 @@ export default function RecuperarContrasenaPage() {
               </form>
 
               <div className="mt-6 text-center">
-                <Link href="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver al inicio de sesión
                 </Link>
@@ -368,7 +315,7 @@ export default function RecuperarContrasenaPage() {
                 Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.
               </p>
               
-              <Link href="/login">
+              <Link to="/login">
                 <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
                   Ir a Iniciar Sesión
                 </Button>

@@ -11,22 +11,25 @@ import {
   AlertTitle,
 } from "@/components/ui/alert"
 
-const userData = {
-  nombre: "María García",
-  dni: "32456789",
-  email: "maria@email.com",
-  telefono: "+54 11 1234 5678",
-  perfil: "Alumno",
-  estado: "activo",
-  membresia: "vigente",
-  vencimientoMembresia: "15 de Abril, 2024",
-  fechaRegistro: "15 de Enero, 2024",
-  creditos: 12,
+import apiClient from "@/api"
+
+// Valores por defecto mínimos (usados mientras cargan datos reales)
+const defaultUserData = {
+  nombre: "",
+  dni: "",
+  email: "",
+  telefono: "",
+  perfil: "usuario",
+  estado: "inactivo",
+  membresia: null,
+  vencimientoMembresia: "",
+  fechaRegistro: "",
+  creditos: 0,
 }
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-red-500/10 text-red-500 border-red-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
@@ -44,6 +47,8 @@ export default function PerfilPage() {
   })
   const [isSavingAvatar, setIsSavingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState("")
+  const [userData, setUserData] = useState(defaultUserData)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const handleAvatarUpdated = (event) => {
@@ -52,6 +57,72 @@ export default function PerfilPage() {
 
     window.addEventListener("avatar-updated", handleAvatarUpdated)
     return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await apiClient.get('/auth/me', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        const data = response.data?.data || response.data
+        const usuario = data?.usuario || data
+        if (mounted && usuario) {
+          // Helper: buscar recursivamente posibles nombres de campo en la respuesta
+          const findValue = (obj, names) => {
+            if (!obj || typeof obj !== 'object') return undefined
+            const lowerNames = names.map((n) => n.toLowerCase())
+            let found
+            const visit = (o) => {
+              if (found !== undefined || o == null) return
+              if (typeof o !== 'object') return
+              for (const k of Object.keys(o)) {
+                if (lowerNames.includes(k.toLowerCase())) {
+                  found = o[k]
+                  return
+                }
+              }
+              for (const k of Object.keys(o)) {
+                visit(o[k])
+                if (found !== undefined) return
+              }
+            }
+            visit(obj)
+            return found
+          }
+
+          // Mapear campos desde la API a lo que usa la UI
+          setUserData({
+            nombre: usuario.nombrecompleto || usuario.nombre || usuario.displayName || '',
+            idUsuario: usuario.idUsuario || usuario.idUsuario || null,
+            dni: findValue(usuario, ['dni', 'DNI', 'documento', 'nroDocumento', 'numeroDocumento', 'rut']) || '',
+            email: usuario.correo || usuario.email || '',
+            telefono: findValue(usuario, ['telefono', 'phone', 'celular', 'mobile', 'cel']) || '',
+            perfil: (usuario.perfil || usuario.nombrePerfil || usuario.rol || 'usuario').toLowerCase(),
+            estado: (usuario.estado || 'inactivo').toLowerCase(),
+            membresia: usuario.membresia || null,
+            vencimientoMembresia: usuario.vencimiento || usuario.vencimientoMembresia || '',
+            fechaRegistro: findValue(usuario, ['fechaRegistro', 'fecha_registro', 'createdAt', 'created_at', 'created', 'registered_at']) || '',
+            creditos: usuario.creditos || 0,
+          })
+
+          // actualizar avatar si viene en usuario
+          if (usuario.avatarUrl) {
+            setAvatarUrl(usuario.avatarUrl)
+            localStorage.setItem('avatarUrl', usuario.avatarUrl)
+          }
+        }
+      } catch (error) {
+        console.error('No se pudo obtener perfil:', error)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    fetchProfile()
+    return () => { mounted = false }
   }, [])
 
   const getIniciales = (name) => {
@@ -65,9 +136,26 @@ export default function PerfilPage() {
     return name.substring(0, 2).toUpperCase()
   }
 
+  const maskDNI = (dni) => {
+    if (!dni) return '—'
+    const s = String(dni)
+    const last = s.slice(-4)
+    return `****${last}`
+  }
+
+  const maskPhone = (phone) => {
+    if (!phone) return '—'
+    const s = String(phone)
+    const last = s.slice(-4)
+    return `****${last}`
+  }
+
   const nombreVisible = storedUser?.nombrecompleto || storedUser?.nombre || userData.nombre
   const correoVisible = storedUser?.correo || storedUser?.email || userData.email
-  const perfilVisible = storedUser?.perfil || storedUser?.rol || storedUser?.tipo || userData.perfil
+  // Priorizar el valor retornado por la API para decidir qué mostrar
+  const perfilVisible = (userData.perfil || storedUser?.perfil || storedUser?.rol || storedUser?.tipo || 'usuario').toLowerCase()
+  const isNormalUser = perfilVisible === 'usuario' || perfilVisible === 'cliente' || perfilVisible === ''
+  const isOwner = Boolean(storedUser?.idUsuario && userData.idUsuario && Number(storedUser.idUsuario) === Number(userData.idUsuario))
 
   const handleAvatarChange = (event) => {
     const file = event.target.files?.[0]
@@ -119,12 +207,14 @@ export default function PerfilPage() {
     reader.readAsDataURL(file)
   }
 
-  const status = statusConfig[userData.estado]
-  const membership = membershipConfig[userData.membresia]
+  const status = statusConfig[userData.estado] || statusConfig.inactivo
+  const membership = membershipConfig[userData.membresia] || null
 
   const handleGoHome = () => {
     navigate("/inicio")
   }
+
+  
 
   return (
     <div className="space-y-6">
@@ -176,7 +266,7 @@ export default function PerfilPage() {
                   <CreditCard className="h-4 w-4" />
                   DNI
                 </p>
-                <p className="font-medium text-foreground">{userData.dni}</p>
+                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -190,50 +280,53 @@ export default function PerfilPage() {
                   <Phone className="h-4 w-4" />
                   Teléfono
                 </p>
-                <p className="font-medium text-foreground">{userData.telefono}</p>
+                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Miembro desde
                 </p>
-                <p className="font-medium text-foreground">{userData.fechaRegistro}</p>
+                <p className="font-medium text-foreground">{userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—'}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Mostrar estado de cuenta solo si el usuario es alumno o tiene membresía */}
         <div className="space-y-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Estado de Cuenta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Estado Usuario</span>
-                <Badge variant="outline" className={status.className}>
-                  {status.label}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Membresía</span>
-                <Badge variant="outline" className={membership.className}>
-                  {membership.label}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Vencimiento</span>
-                <span className="text-sm font-medium text-foreground">{userData.vencimientoMembresia}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Créditos</span>
-                <span className="text-lg font-bold text-primary">{userData.creditos}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {(userData.perfil === 'alumno' || userData.membresia) && (
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Estado de Cuenta
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Estado Usuario</span>
+                  <Badge variant="outline" className={status.className}>
+                    {status.label}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Membresía</span>
+                  <Badge variant="outline" className={membership?.className || 'bg-gray-500/10 text-gray-500'}>
+                    {membership?.label || (userData.membresia ? userData.membresia : '—')}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Vencimiento</span>
+                  <span className="text-sm font-medium text-foreground">{userData.vencimientoMembresia || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Créditos</span>
+                  <span className="text-lg font-bold text-primary">{userData.creditos || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -260,7 +353,7 @@ export default function PerfilPage() {
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <h3 className="font-semibold text-foreground mb-4">Acciones</h3>
-          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4">
             <Button variant="outline">Cambiar Contraseña</Button>
             <Button variant="outline">Actualizar Datos</Button>
             <Button variant="outline" onClick={handleGoHome} className="gap-2">
@@ -270,6 +363,8 @@ export default function PerfilPage() {
           </div>
         </CardContent>
       </Card>
+
+      
     </div>
   )
 }

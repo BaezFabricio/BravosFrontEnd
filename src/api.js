@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// 🧠 URL base del backend corregida (quitamos la doble 'v')
+// 🧠 URL base del backend configurada para la versión vv1
 const API_BASE_URL = 'http://localhost:3001/api/vv1'
 
 // Crear instancia de Axios con configuración por defecto
@@ -176,6 +176,52 @@ export const loginUsuario = async (correo, password) => {
 export const logoutUsuario = () => {
   localStorage.removeItem('token')
   window.location.href = '/login'
+}
+
+// ============================================
+// FUNCIONES DE API - RECUPERACIÓN DE CONTRASEÑA
+// ============================================
+
+/**
+ * Enviar código de verificación al correo
+ * POST /auth/recuperar-contrasena  { email, action: 'send_code' }
+ */
+export const enviarCodigoRecuperacion = async (email) => {
+  try {
+    const response = await apiClient.post('/auth/recuperar-contrasena', { email, action: 'send_code' })
+    return response.data
+  } catch (error) {
+    console.error('Error al enviar código de recuperación:', error)
+    throw error
+  }
+}
+
+/**
+ * Verificar código de recuperación
+ * POST /auth/recuperar-contrasena  { email, code, action: 'verify_code' }
+ */
+export const verificarCodigoRecuperacion = async (email, code) => {
+  try {
+    const response = await apiClient.post('/auth/recuperar-contrasena', { email, code, action: 'verify_code' })
+    return response.data
+  } catch (error) {
+    console.error('Error al verificar código de recuperación:', error)
+    throw error
+  }
+}
+
+/**
+ * Resetear la contraseña
+ * POST /auth/recuperar-contrasena  { email, code, password, action: 'reset_password' }
+ */
+export const resetearContrasena = async (email, code, password) => {
+  try {
+    const response = await apiClient.post('/auth/recuperar-contrasena', { email, code, password, action: 'reset_password' })
+    return response.data
+  } catch (error) {
+    console.error('Error al resetear contraseña:', error)
+    throw error
+  }
 }
 
 // ============================================
