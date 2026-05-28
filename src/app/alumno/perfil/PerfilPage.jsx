@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,6 +37,7 @@ const membershipConfig = {
 }
 
 export default function PerfilPage() {
+  const navigate = useNavigate()
   const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
   const [avatarUrl, setAvatarUrl] = useState(() => {
     return localStorage.getItem("avatarUrl") || storedUser?.avatarUrl || ""
@@ -119,6 +121,10 @@ export default function PerfilPage() {
 
   const status = statusConfig[userData.estado]
   const membership = membershipConfig[userData.membresia]
+
+  const handleGoHome = () => {
+    navigate("/inicio")
+  }
 
   return (
     <div className="space-y-6">
@@ -257,6 +263,10 @@ export default function PerfilPage() {
           <div className="flex flex-wrap gap-4">
             <Button variant="outline">Cambiar Contraseña</Button>
             <Button variant="outline">Actualizar Datos</Button>
+            <Button variant="outline" onClick={handleGoHome} className="gap-2">
+              <Home className="h-4 w-4" />
+              Volver al inicio
+            </Button>
           </div>
         </CardContent>
       </Card>

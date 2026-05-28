@@ -60,10 +60,22 @@ function SharedProfileRoute({ children }) {
       return <AdminLayout>{children}</AdminLayout>
     }
 
-    return <AlumnoLayout>{children}</AlumnoLayout>
+    if (perfil === 'alumno') {
+      return <AlumnoLayout>{children}</AlumnoLayout>
+    }
+
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="p-4 lg:p-6">{children}</main>
+      </div>
+    )
   } catch (error) {
     console.error('Error al resolver el layout del perfil:', error)
-    return <AlumnoLayout>{children}</AlumnoLayout>
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="p-4 lg:p-6">{children}</main>
+      </div>
+    )
   }
 }
 
@@ -94,7 +106,7 @@ function App() {
         <Route path="/alumno/reservas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservasPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/creditos" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
-        <Route path="/perfil" element={<RequireAuth allowedRoles={["admin", "administrador", "alumno"]}><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
+        <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
 
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>
