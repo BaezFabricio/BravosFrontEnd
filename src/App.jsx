@@ -23,6 +23,50 @@ import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 
+function RequireAuth({ children, allowedRoles }) {
+  const token = localStorage.getItem('token')
+  const usuarioRaw = localStorage.getItem('usuario')
+
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return children
+  }
+
+  try {
+    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null
+    const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || '').toLowerCase()
+
+    if (allowedRoles.includes(perfil)) {
+      return children
+    }
+  } catch (error) {
+    console.error('Error al validar el usuario autenticado:', error)
+  }
+
+  return <Navigate to="/inicio" replace />
+}
+
+function SharedProfileRoute({ children }) {
+  const usuarioRaw = localStorage.getItem('usuario')
+
+  try {
+    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null
+    const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || '').toLowerCase()
+
+    if (perfil === 'admin' || perfil === 'administrador') {
+      return <AdminLayout>{children}</AdminLayout>
+    }
+
+    return <AlumnoLayout>{children}</AlumnoLayout>
+  } catch (error) {
+    console.error('Error al resolver el layout del perfil:', error)
+    return <AlumnoLayout>{children}</AlumnoLayout>
+  }
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -35,21 +79,22 @@ function App() {
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
 
         {/* RUTAS DE ADMINISTRADOR */}
-        <Route path="/admin" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-        <Route path="/admin/membresias" element={<AdminLayout><MembresiasPage /></AdminLayout>} />
-        <Route path="/admin/perfiles" element={<AdminLayout><PerfilesPage /></AdminLayout>} />
-        <Route path="/admin/usuarios" element={<AdminLayout><UsuariosPage /></AdminLayout>} />
-        <Route path="/admin/usuarios/nuevo" element={<AdminLayout><NuevoUsuarioPage /></AdminLayout>} />
-        <Route path="/admin/usuarios/:id" element={<AdminLayout><DetalleUsuarioPage /></AdminLayout>} />
-        <Route path="/admin/usuarios/:id/editar" element={<AdminLayout><EditarUsuarioPage /></AdminLayout>} />
-        <Route path="/admin/configuracion" element={<AdminLayout><ConfiguracionLandingPage /></AdminLayout>} />
+        <Route path="/admin" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/membresias" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><MembresiasPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/:id" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><DetalleUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/:id/editar" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><EditarUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/configuracion" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><ConfiguracionLandingPage /></AdminLayout></RequireAuth>} />
 
         {/* RUTAS DE ALUMNO */}
-        <Route path="/alumno" element={<AlumnoLayout><AlumnoDashboard /></AlumnoLayout>} />
-        <Route path="/alumno/reservar" element={<AlumnoLayout><AlumnoReservarPage /></AlumnoLayout>} />
-        <Route path="/alumno/reservas" element={<AlumnoLayout><AlumnoReservasPage /></AlumnoLayout>} />
-        <Route path="/alumno/creditos" element={<AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout>} />
-        <Route path="/alumno/perfil" element={<AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout>} />
+        <Route path="/alumno" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDashboard /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/reservar" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservarPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/reservas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservasPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/creditos" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/perfil" element={<RequireAuth allowedRoles={["admin", "administrador", "alumno"]}><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
 
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>

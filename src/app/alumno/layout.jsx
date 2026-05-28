@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
   Calendar,
@@ -13,6 +13,7 @@ import {
   Bell,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,8 +32,68 @@ const navigation = [
 
 export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userData, setUserData] = useState({
+    nombrecompleto: "María García",
+    correo: "maria@email.com",
+    perfil: "alumno",
+  })
+  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("avatarUrl") || "")
   const location = useLocation()
+  const navigate = useNavigate()
   const pathname = location.pathname
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("usuario")
+    const storedAvatar = localStorage.getItem("avatarUrl")
+
+    if (storedAvatar) setAvatarUrl(storedAvatar)
+
+    if (!storedUser) return
+
+    try {
+      const parsedUser = JSON.parse(storedUser)
+      if (parsedUser?.avatarUrl) {
+        localStorage.setItem("avatarUrl", parsedUser.avatarUrl)
+        setAvatarUrl(parsedUser.avatarUrl)
+      }
+
+      setUserData({
+        nombrecompleto: parsedUser?.nombrecompleto || parsedUser?.nombre || parsedUser?.username || "María García",
+        correo: parsedUser?.correo || parsedUser?.email || "maria@email.com",
+        perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || "alumno",
+      })
+    } catch (error) {
+      console.error("Error al parsear el usuario desde localStorage:", error)
+    }
+
+    const handleAvatarUpdated = (event) => {
+      setAvatarUrl(event.detail || "")
+    }
+
+    window.addEventListener("avatar-updated", handleAvatarUpdated)
+    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+  }, [])
+
+  const getIniciales = (name) => {
+    if (!name) return "MG"
+
+    const parts = name.trim().split(" ")
+
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const avatarFallback = getIniciales(userData.nombrecompleto)
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("usuario")
+    localStorage.removeItem("avatarUrl")
+    navigate("/login", { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,12 +152,15 @@ export default function AlumnoLayout({ children }) {
 
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-                <span className="text-sm font-bold text-sidebar-primary-foreground">MG</span>
-              </div>
+              <Avatar className="h-10 w-10 border border-sidebar-border">
+                <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                <AvatarFallback className="bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
+                  {avatarFallback}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">María García</p>
-                <p className="text-xs text-muted-foreground truncate">Alumno</p>
+                <p className="text-sm font-medium text-sidebar-foreground truncate">{userData.nombrecompleto}</p>
+                <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
               </div>
             </div>
           </div>
@@ -123,30 +187,33 @@ export default function AlumnoLayout({ children }) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary-foreground">MG</span>
-                    </div>
+                    <Avatar className="h-8 w-8 border border-border">
+                      <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                      <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">
+                        {avatarFallback}
+                      </AvatarFallback>
+                    </Avatar>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">María García</p>
-                    <p className="text-xs text-muted-foreground">maria@email.com</p>
+                    <p className="text-sm font-medium">{userData.nombrecompleto}</p>
+                    <p className="text-xs text-muted-foreground">{userData.correo}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/alumno/perfil">
+                    <Link to="/perfil">
                       <User className="mr-2 h-4 w-4" />
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild className="text-destructive">
-                    <Link to="/">
+                    <button type="button" onClick={handleLogout} className="w-full text-left">
                       <LogOut className="mr-2 h-4 w-4" />
                       Cerrar Sesión
-                    </Link>
+                    </button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

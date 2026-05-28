@@ -65,24 +65,26 @@ export default function LoginPage() {
         localStorage.setItem("token", data.data.token)
       }
 
+      localStorage.setItem("usuario", JSON.stringify(data.data.usuario))
+      if (data.data?.usuario?.avatarUrl) {
+        localStorage.setItem("avatarUrl", data.data.usuario.avatarUrl)
+      }
+
       const usuario = data.data?.usuario;
-      const perfil = usuario?.perfil; 
+      const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || "").toLowerCase()
+      const tienePanel = perfil === "admin" || perfil === "administrador" || perfil === "alumno"
 
       // 3. ✨ Redirección estricta según el flujo de Bravos Gym
-      if (perfil === "admin") {
-        window.location.href = "/admin"
+      if (perfil === "admin" || perfil === "administrador") {
+        navigate("/admin", { replace: true })
       } 
       else if (perfil === "alumno") {
-        window.location.href = "/alumno"
+        navigate("/alumno", { replace: true })
       } 
-      // Si el perfil viene NULL (recién registrado, sin aprobación del admin todavía)
-      // se queda en la página principal pública de la web.
-      else if (!perfil) {
-        window.location.href = "/" 
+      // Si el usuario aún no tiene un perfil habilitado, se queda en el sitio público.
+      else if (!tienePanel) {
+        navigate("/inicio", { replace: true })
       } 
-      else {
-        window.location.href = `/${perfil}`
-      }
 
     } catch (error) {
       console.error("Error en el login:", error)

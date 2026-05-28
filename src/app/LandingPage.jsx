@@ -9,9 +9,12 @@ import {
   LogOut,
   Bell,
   Settings
+  ,User
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { LogoBoxBravos } from '@/components/logo-box-bravos'
 
 const navigation = [
   {
@@ -61,48 +64,66 @@ function LandingPage() {
   const [tituloFont, setTituloFont] = useState(null)
   const [tituloAlign, setTituloAlign] = useState(null)
 
+  const [logoTs, setLogoTs] = useState(Date.now())
+
+  const useVectorLogo = !logoUrl || logoUrl.includes('logo-box-bravos-final.png')
+
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('avatarUrl') || '')
   const [userData, setUserData] = useState({
     nombrecompleto: 'Usuario Bravos',
     correo: 'sin-correo@bravos.com',
     perfil: 'cliente',
     estado: 'activo'
-  })
+  });
 
   // 🔐 CONTROL DE SESIÓN Y CONFIGURACIÓN VISUAL
-  useEffect(() => {
-    let isMounted = true
-    const token = localStorage.getItem("token")
-    const storedUser = localStorage.getItem("usuario")
+    useEffect(() => {
+      let isMounted = true
+      const token = localStorage.getItem("token")
+      const storedUser = localStorage.getItem("usuario")
+      const storedAvatar = localStorage.getItem("avatarUrl")
 
-    // Si el navegador guardó el token, el usuario SI ESTÁ LOGUEADO
-    if (token) {
-      setIsLoggedIn(true)
-      
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser)
-          setUserData({
-            nombrecompleto: parsedUser?.nombrecompleto || 'Usuario Bravos',
-            correo: parsedUser?.correo || 'sin-correo@bravos.com',
-            perfil: parsedUser?.perfil || 'cliente',
-            estado: parsedUser?.estado || 'activo'
-          })
-        } catch (error) {
-          console.error("Error al parsear el usuario:", error)
-        }
+      if (storedAvatar) {
+        setAvatarUrl(storedAvatar)
       }
-    } else {
-      setIsLoggedIn(false)
-    }
 
-    // Pedir la configuración visual al backend (títulos, logos, etc.)
-    fetch('http://localhost:3001/landing/config')
+      if (token) {
+        setIsLoggedIn(true)
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser)
+            setUserData({
+              nombrecompleto: parsedUser?.nombrecompleto || parsedUser?.nombre || parsedUser?.username || 'Usuario Bravos',
+              correo: parsedUser?.correo || parsedUser?.email || 'sin-correo@bravos.com',
+              perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || 'cliente',
+              estado: parsedUser?.estado || 'activo'
+            })
+          } catch (error) {
+            console.error("Error al parsear el usuario:", error)
+          }
+        }
+      } else {
+        setIsLoggedIn(false)
+      }
+
+      const handleAvatarUpdated = (event) => {
+        setAvatarUrl(event.detail || "")
+      }
+
+      window.addEventListener("avatar-updated", handleAvatarUpdated)
+
+    // Pedir la configuración visual al backend (títulos, logos, etc.) — evitar caché
+    fetch(`http://localhost:3001/landing/config?t=${new Date().getTime()}`)
       .then((res) => res.json())
       .then((data) => {
         if (!isMounted) return
+        console.info('Landing /landing/config response:', data)
         if (data?.tituloHero) setTitulo(data.tituloHero)
-        if (data?.logoUrl) setLogoUrl(data.logoUrl)
+        if (data?.logoUrl) {
+          setLogoUrl(data.logoUrl)
+          setLogoTs(Date.now())
+        }
         if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
         if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
         if (data?.tituloHeroAlign) setTituloAlign(data.tituloHeroAlign)
@@ -122,6 +143,7 @@ function LandingPage() {
 
     return () => {
       isMounted = false
+      window.removeEventListener("avatar-updated", handleAvatarUpdated)
     }
   }, [])
 
@@ -139,21 +161,27 @@ function LandingPage() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('usuario')
+    localStorage.removeItem('avatarUrl')
     window.location.reload()
   }
 
   const handleModuloRedirect = () => {
     setUserMenuOpen(false)
-    const p = userData.perfil ? userData.perfil.toLowerCase() : 'cliente'
+    // refuerza por si acaso alguna prop aún se mapea raro
+    const p = (userData.perfil || userData.rol || userData.tipo || 'cliente').toLowerCase()
 
-    if (p === 'admin' || p === 'administrador') {
-      navigate('/admin/dashboard')
-    } else if (p === 'coach' || p === 'entrenador') {
-      navigate('/coach/panel')
+    if (['admin', 'administrador'].includes(p)) {
+      navigate('/admin')
+    } else if (['alumno'].includes(p)) {
+      navigate('/alumno')
     } else {
-      navigate('/atleta/perfil')
+      navigate('/inicio')
     }
   }
+
+  const puedeAccederPanel = ['admin', 'administrador', 'alumno'].includes(
+    (userData.perfil || userData.rol || userData.tipo || '').toLowerCase(),
+  )
 
   const getIniciales = (name) => {
     if (!name || name === 'Usuario Bravos') return 'UB'
@@ -173,13 +201,15 @@ function LandingPage() {
               
               {/* Enlace del logo corregido (Navegación interna de React sin recargar) */}
               <Link to="/" className="flex items-center">
-                <img
-                  src={logoUrl}
-                  alt="Box Bravos"
-                  width="180"
-                  height="60"
-                  className="object-contain"
-                />
+                {useVectorLogo ? (
+                  <LogoBoxBravos className="block h-auto w-auto max-h-[60px] max-w-[180px]" width={180} height={52} />
+                ) : (
+                  <img
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                    alt="Box Bravos"
+                    className="block h-auto w-auto max-h-[60px] max-w-[180px] object-contain"
+                  />
+                )}
               </Link>
 
               <nav className="hidden items-center gap-1 lg:flex">
@@ -254,9 +284,12 @@ function LandingPage() {
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                         className="flex items-center gap-1 focus:outline-none"
                       >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-700 text-sm font-bold text-white tracking-wider border border-green-600 hover:bg-green-600 transition-colors uppercase">
-                          {getIniciales(userData.nombrecompleto)}
-                        </div>
+                        <Avatar className="h-9 w-9 border border-green-600 bg-green-700 text-white">
+                          <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                          <AvatarFallback className="bg-green-700 text-sm font-bold text-white tracking-wider uppercase">
+                            {getIniciales(userData.nombrecompleto)}
+                          </AvatarFallback>
+                        </Avatar>
                         <ChevronDown className={`h-4 w-4 text-white/60 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                       </button>
 
@@ -270,13 +303,27 @@ function LandingPage() {
                             </div>
 
                             <div className="p-1">
+                              <Link
+                                to="/perfil"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
+                              >
+                                <User className="h-4 w-4 text-zinc-400" />
+                                <span>Mi Perfil</span>
+                              </Link>
+
                               <button
                                 onClick={handleModuloRedirect}
+                                disabled={!puedeAccederPanel}
                                 className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
                               >
                                 <Settings className="h-4 w-4 text-zinc-400" />
                                 <span>
-                                  {userData.perfil === 'admin' || userData.perfil === 'administrador' ? 'Panel de Control' : 'Mi Módulo'}
+                                  {userData.perfil === 'admin' || userData.perfil === 'administrador'
+                                    ? 'Panel de Control'
+                                    : userData.perfil === 'alumno'
+                                      ? 'Mi Módulo'
+                                      : 'Cuenta pendiente'}
                                 </span>
                               </button>
                               
@@ -362,8 +409,10 @@ function LandingPage() {
                         onClick={handleModuloRedirect} 
                         variant="outline" 
                         className="w-full flex items-center justify-center gap-2 border-zinc-800 text-white hover:bg-white/5"
+                        disabled={!puedeAccederPanel}
                       >
-                        <Settings className="h-4 w-4 text-zinc-400" /> PANEL DE CONTROL
+                        <Settings className="h-4 w-4 text-zinc-400" />
+                        {puedeAccederPanel ? 'PANEL DE CONTROL' : 'CUENTA PENDIENTE'}
                       </Button>
                       <Button 
                         onClick={() => {
@@ -424,20 +473,27 @@ function LandingPage() {
             <span className="text-white/80">Formosa Capital</span>
           </div>
 
-          <div className="mb-6 flex flex-col items-start" style={{ textAlign: tituloAlign || undefined }}>
-            <img
-              src={logoUrl}
-              alt="Box Bravos"
-              width="400"
-              height="140"
-              className="object-contain"
-            />
+          <div className="mb-6 flex w-full max-w-[620px] flex-col items-start">
+            <div className="flex w-full justify-start overflow-visible px-4 py-2 sm:px-6 sm:py-3">
+              <div className="flex h-[120px] w-[360px] items-center justify-start overflow-hidden -ml-6 sm:-ml-8">
+                {useVectorLogo ? (
+                  <LogoBoxBravos className="block h-full w-full" width={360} height={104} />
+                ) : (
+                  <img
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                    alt="Box Bravos"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'left center' }}
+                    className="block"
+                  />
+                )}
+              </div>
+            </div>
             <p
               className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl"
               style={{
                 fontSize: tituloSize ? `${tituloSize}px` : undefined,
                 fontFamily: tituloFont || undefined,
-                textAlign: tituloAlign || undefined,
+                textAlign: 'left',
               }}
             >
               {titulo}

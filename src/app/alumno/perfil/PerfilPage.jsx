@@ -1,7 +1,9 @@
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Alert,
   AlertDescription,
@@ -34,6 +36,87 @@ const membershipConfig = {
 }
 
 export default function PerfilPage() {
+  const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    return localStorage.getItem("avatarUrl") || storedUser?.avatarUrl || ""
+  })
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState("")
+
+  useEffect(() => {
+    const handleAvatarUpdated = (event) => {
+      setAvatarUrl(event.detail || "")
+    }
+
+    window.addEventListener("avatar-updated", handleAvatarUpdated)
+    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+  }, [])
+
+  const getIniciales = (name) => {
+    if (!name) return "MG"
+
+    const parts = name.trim().split(" ")
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const nombreVisible = storedUser?.nombrecompleto || storedUser?.nombre || userData.nombre
+  const correoVisible = storedUser?.correo || storedUser?.email || userData.email
+  const perfilVisible = storedUser?.perfil || storedUser?.rol || storedUser?.tipo || userData.perfil
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const value = reader.result
+      const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
+      const userId = storedUser?.idUsuario
+      setAvatarError("")
+
+      if (!userId) {
+        setAvatarError("No pude identificar tu usuario para guardar la foto en la base de datos.")
+        return
+      }
+
+      setIsSavingAvatar(true)
+
+      fetch(`http://localhost:3001/api/vv1/usuarios/${userId}/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        body: JSON.stringify({ avatarData: value }),
+      })
+        .then(async (response) => {
+          const data = await response.json()
+          if (!response.ok) throw new Error(data?.message || "No se pudo guardar la foto")
+
+          const persistedAvatar = data?.data?.avatarUrl || value
+          setAvatarUrl(persistedAvatar)
+          localStorage.setItem("avatarUrl", persistedAvatar)
+          localStorage.setItem(
+            "usuario",
+            JSON.stringify({ ...storedUser, avatarUrl: persistedAvatar })
+          )
+          window.dispatchEvent(new CustomEvent("avatar-updated", { detail: persistedAvatar }))
+        })
+        .catch((error) => {
+          console.error("Error al guardar el avatar:", error)
+          setAvatarError(error.message || "No se pudo guardar la foto en la base de datos.")
+        })
+        .finally(() => {
+          setIsSavingAvatar(false)
+        })
+    }
+    reader.readAsDataURL(file)
+  }
+
   const status = statusConfig[userData.estado]
   const membership = membershipConfig[userData.membresia]
 
@@ -54,14 +137,32 @@ export default function PerfilPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6 mb-6">
-              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-foreground">MG</span>
-              </div>
+              <Avatar className="h-20 w-20 border border-border bg-background">
+                <AvatarImage src={avatarUrl} alt={userData.nombre} />
+                <AvatarFallback className="bg-primary text-2xl font-bold text-primary-foreground">
+                  {getIniciales(nombreVisible)}
+                </AvatarFallback>
+              </Avatar>
               <div>
-                <h3 className="text-xl font-bold text-foreground">{userData.nombre}</h3>
-                <p className="text-muted-foreground">{userData.perfil}</p>
+                <h3 className="text-xl font-bold text-foreground">{nombreVisible}</h3>
+                <p className="text-muted-foreground">{perfilVisible}</p>
               </div>
             </div>
+
+            <div className="mb-6 flex items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50">
+                <Camera className="h-4 w-4" />
+                {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+              </label>
+              <p className="text-xs text-muted-foreground">Se guarda en la base de datos si el backend responde bien.</p>
+            </div>
+
+            {avatarError && (
+              <p className="mb-4 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {avatarError}
+              </p>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1">
@@ -76,7 +177,7 @@ export default function PerfilPage() {
                   <Mail className="h-4 w-4" />
                   Correo Electrónico
                 </p>
-                <p className="font-medium text-foreground">{userData.email}</p>
+                <p className="font-medium text-foreground">{correoVisible}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Save, Image as ImageIcon, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LogoBoxBravos } from '@/components/logo-box-bravos'
 
 function ConfiguracionLandingPage() {
   const [loading, setLoading] = useState(true)
@@ -26,6 +27,8 @@ function ConfiguracionLandingPage() {
   const [heroPreview1, setHeroPreview1] = useState('/landing-hero-1.jpg')
   const [heroPreview2, setHeroPreview2] = useState('/landing-hero-2.jpg')
   const [heroPreview3, setHeroPreview3] = useState('/landing-hero-3.jpg')
+
+  const useVectorLogo = !logoPreview || logoPreview.includes('logo-box-bravos-final.png')
 
   // URL base de tu backend
   const API_URL = 'http://localhost:3001'
@@ -118,10 +121,23 @@ function ConfiguracionLandingPage() {
         throw new Error('Error al guardar los datos en el servidor')
       }
 
-      setMensaje({
-        texto: '¡Los cambios se actualizaron correctamente!',
-        tipo: 'success'
-      })
+      // Tras guardar, pedir al backend la configuración persistida
+      const nuevaConfigRes = await fetch(`${API_URL}/landing/config?t=${new Date().getTime()}`)
+      if (nuevaConfigRes.ok) {
+        const nuevaConfig = await nuevaConfigRes.json()
+        if (nuevaConfig?.tituloHero) setTituloHero(nuevaConfig.tituloHero)
+        if (nuevaConfig?.tituloHeroSize) setTituloSize(nuevaConfig.tituloHeroSize)
+        if (nuevaConfig?.tituloHeroFont) setTituloFont(nuevaConfig.tituloHeroFont)
+        if (nuevaConfig?.tituloHeroAlign) setTituloAlign(nuevaConfig.tituloHeroAlign)
+        if (nuevaConfig?.heroImages) {
+          const imgs = Array.isArray(nuevaConfig.heroImages) ? nuevaConfig.heroImages : Object.values(nuevaConfig.heroImages)
+          setHeroPreview1(imgs[0] || '/landing-hero-1.jpg')
+          setHeroPreview2(imgs[1] || '/landing-hero-2.jpg')
+          setHeroPreview3(imgs[2] || '/landing-hero-3.jpg')
+        }
+      }
+
+      setMensaje({ texto: '¡Los cambios se actualizaron correctamente!', tipo: 'success' })
     } catch (error) {
       console.error('Error al guardar:', error)
       setMensaje({
@@ -244,8 +260,16 @@ function ConfiguracionLandingPage() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold tracking-wide text-zinc-300">Logo de Navegación</label>
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-24 bg-zinc-900 border border-zinc-800 rounded p-1 flex items-center justify-center">
-                    <img src={logoPreview} alt="Preview Logo" className="max-h-full max-w-full object-contain" />
+                  <div className="flex h-28 w-64 items-center justify-start overflow-hidden rounded border border-zinc-800 bg-zinc-900 p-2 sm:h-32 sm:w-72">
+                    {useVectorLogo ? (
+                      <LogoBoxBravos className="block h-full w-full" width={220} height={64} />
+                    ) : (
+                      <img
+                        src={logoPreview}
+                        alt="Preview Logo"
+                        className="block h-full w-full object-contain object-left"
+                      />
+                    )}
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer bg-zinc-900 hover:bg-zinc-800 text-xs font-bold py-2.5 px-4 border border-zinc-800 rounded-md transition-colors">
                     <Upload className="h-3.5 w-3.5" />
