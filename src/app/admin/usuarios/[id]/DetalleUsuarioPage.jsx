@@ -1,6 +1,6 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ArrowLeft, User, Mail, Phone, CreditCard, Calendar, Pencil, UserX, UserCheck, History, Trash2, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { ArrowLeft, User, Mail, Phone, CreditCard, Calendar, Pencil, UserX, UserCheck, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,22 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-const user = {
-  id: "1",
-  nombre: "María García",
-  dni: "32456789",
-  email: "maria@email.com",
-  telefono: "+54 11 1234 5678",
-  perfil: "alumno",
-  estado: "activo",
-  membresia: "vigente",
-  creditos: 12,
-  creditosUsados: 8,
-  fechaRegistro: "2024-01-15",
-  ultimoAcceso: "2024-03-10",
-  vencimientoMembresia: "2024-04-15",
-}
+import { cambiarEstadoUsuario, eliminarUsuario, getUsuarioById, normalizarUsuario } from "@/api"
 
 const reservas = [
   { id: "1", clase: "Funcional WOD", fecha: "2024-03-10", hora: "08:00", coach: "Pablo Ruiz", asistio: true },
@@ -50,70 +35,96 @@ const membershipConfig = {
 
 export default function DetalleUsuarioPage() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isActionLoading, setIsActionLoading] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [statusDialog, setStatusDialog] = useState({ open: false, action: "" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState(user.estado)
+  const [error, setError] = useState("")
 
-  const status = statusConfig[currentStatus]
-  const membership = membershipConfig[user.membresia]
+  useEffect(() => {
+    const cargarUsuario = async () => {
+      try {
+        setIsLoading(true)
+        setError("")
+        const data = await getUsuarioById(id)
+        setUser(normalizarUsuario(data))
+      } catch (fetchError) {
+        console.error("Error al cargar detalle del usuario:", fetchError)
+        setError("No se pudo cargar el detalle del usuario.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (id) {
+      cargarUsuario()
+    }
+  }, [id])
+
+  const status = statusConfig[user?.estado] || statusConfig.activo
+  const membership = membershipConfig[user?.membresia] || membershipConfig.vencida
 
   const handleStatusChange = async (newStatus) => {
-    setIsLoading(true)
     try {
-      const response = await fetch(`/api/usuarios/${user.id}/estado`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          estado: newStatus,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar estado")
-      }
-
-      setCurrentStatus(newStatus)
-    } catch {
-      // Handle error
+      setIsActionLoading(true)
+      await cambiarEstadoUsuario(id, newStatus)
+      setUser((currentUser) => ({ ...currentUser, estado: newStatus }))
+    } catch (statusError) {
+      console.error("Error al actualizar estado:", statusError)
+      setError("No se pudo actualizar el estado del usuario.")
     } finally {
-      setIsLoading(false)
+      setIsActionLoading(false)
       setStatusDialog({ open: false, action: "" })
     }
   }
 
   const handleDelete = async () => {
-    setIsLoading(true)
     try {
-      const response = await fetch(`/api/usuarios/${user.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar usuario")
-      }
-
+      setIsActionLoading(true)
+      await eliminarUsuario(id)
       navigate("/admin/usuarios")
-    } catch {
-      // Handle error
+    } catch (deleteError) {
+      console.error("Error al eliminar usuario:", deleteError)
+      setError("No se pudo eliminar el usuario.")
     } finally {
-      setIsLoading(false)
+      setIsActionLoading(false)
       setDeleteDialog(false)
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 p-4 bg-card border border-border rounded-lg">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">Cargando usuario...</p>
+      </div>
+    )
+  }
+
+  if (error && !user) {
+    return (
+      <div className="space-y-4">
+        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+          {error}
+        </div>
+        <Link to="/admin/usuarios">
+          <Button variant="outline">Volver a usuarios</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {error && (
+        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+          <p>{error}</p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link to="/admin/usuarios">
             <Button variant="ghost" size="icon">
@@ -121,29 +132,29 @@ export default function DetalleUsuarioPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{user.nombre}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{user?.nombre}</h1>
             <p className="text-muted-foreground">Detalle del usuario</p>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to={`/admin/usuarios/${user.id}/editar`}>
+          <Link to={`/admin/usuarios/${id}/editar`}>
             <Button variant="outline">
               <Pencil className="mr-2 h-4 w-4" />
               Editar
             </Button>
           </Link>
-          {currentStatus === "activo" ? (
-            <Button 
-              variant="outline" 
+          {user?.estado === "activo" ? (
+            <Button
+              variant="outline"
               className="text-green-500 border-green-500/50 hover:bg-green-500/10"
               onClick={() => setStatusDialog({ open: true, action: "suspend" })}
             >
               <UserX className="mr-2 h-4 w-4" />
               Suspender
             </Button>
-          ) : currentStatus !== "inactivo" ? (
-            <Button 
-              variant="outline" 
+          ) : user?.estado !== "inactivo" ? (
+            <Button
+              variant="outline"
               className="text-green-500 border-green-500/50 hover:bg-green-500/10"
               onClick={() => setStatusDialog({ open: true, action: "activate" })}
             >
@@ -151,8 +162,8 @@ export default function DetalleUsuarioPage() {
               Activar
             </Button>
           ) : null}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="text-destructive border-destructive/50 hover:bg-destructive/10"
             onClick={() => setDeleteDialog(true)}
           >
@@ -174,39 +185,39 @@ export default function DetalleUsuarioPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Nombre Completo</p>
-                <p className="font-medium text-foreground">{user.nombre}</p>
+                <p className="font-medium text-foreground">{user?.nombre}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">DNI</p>
                 <p className="font-medium text-foreground flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  {user.dni}
+                  {user?.dni}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Correo Electrónico</p>
                 <p className="font-medium text-foreground flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  {user.email}
+                  {user?.email}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Teléfono</p>
                 <p className="font-medium text-foreground flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  {user.telefono}
+                  {user?.telefono}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Fecha de Registro</p>
                 <p className="font-medium text-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  {user.fechaRegistro}
+                  {user?.fechaRegistro || "Sin dato"}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Último Acceso</p>
-                <p className="font-medium text-foreground">{user.ultimoAcceso}</p>
+                <p className="font-medium text-foreground">{user?.ultimoAcceso || "Sin dato"}</p>
               </div>
             </div>
           </CardContent>
@@ -231,12 +242,8 @@ export default function DetalleUsuarioPage() {
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Vencimiento</span>
-                <span className="text-sm font-medium text-foreground">{user.vencimientoMembresia}</span>
-              </div>
-              <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Perfil</span>
-                <span className="text-sm font-medium text-foreground capitalize">{user.perfil}</span>
+                <span className="text-sm font-medium text-foreground capitalize">{user?.perfil}</span>
               </div>
             </CardContent>
           </Card>
@@ -247,18 +254,8 @@ export default function DetalleUsuarioPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center mb-4">
-                <p className="text-4xl font-bold text-primary">{user.creditos}</p>
+                <p className="text-4xl font-bold text-primary">{user?.creditos ?? 0}</p>
                 <p className="text-sm text-muted-foreground">disponibles</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Usados este mes</span>
-                  <span className="font-medium text-foreground">{user.creditosUsados}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total del plan</span>
-                  <span className="font-medium text-foreground">{user.creditos + user.creditosUsados}</span>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -267,12 +264,9 @@ export default function DetalleUsuarioPage() {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <History className="h-5 w-5 text-primary" />
-            Historial de Reservas
-          </CardTitle>
+          <CardTitle className="text-lg">Reservas Recientes</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -281,28 +275,15 @@ export default function DetalleUsuarioPage() {
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Fecha</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Hora</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Coach</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Asistencia</th>
                 </tr>
               </thead>
               <tbody>
                 {reservas.map((reserva) => (
                   <tr key={reserva.id} className="border-b border-border">
-                    <td className="p-4 font-medium text-foreground">{reserva.clase}</td>
+                    <td className="p-4 text-foreground">{reserva.clase}</td>
                     <td className="p-4 text-foreground">{reserva.fecha}</td>
                     <td className="p-4 text-foreground">{reserva.hora}</td>
                     <td className="p-4 text-foreground">{reserva.coach}</td>
-                    <td className="p-4">
-                      <Badge
-                        variant="outline"
-                        className={
-                          reserva.asistio
-                            ? "bg-green-500/10 text-green-500 border-green-500/20"
-                            : "bg-red-500/10 text-red-500 border-red-500/20"
-                        }
-                      >
-                        {reserva.asistio ? "Asistió" : "No asistió"}
-                      </Badge>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -319,8 +300,8 @@ export default function DetalleUsuarioPage() {
             </DialogTitle>
             <DialogDescription>
               {statusDialog.action === "suspend"
-                ? `¿Estás seguro de suspender a ${user.nombre}? El usuario no podrá reservar clases ni usar sus créditos.`
-                : `¿Estás seguro de activar a ${user.nombre}? El usuario podrá volver a usar el sistema.`}
+                ? `¿Estás seguro de suspender a ${user?.nombre}? El usuario no podrá reservar clases ni usar sus créditos.`
+                : `¿Estás seguro de activar a ${user?.nombre}? El usuario podrá volver a usar el sistema.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -330,16 +311,10 @@ export default function DetalleUsuarioPage() {
             <Button
               variant={statusDialog.action === "activate" ? "default" : "destructive"}
               onClick={() => handleStatusChange(statusDialog.action === "suspend" ? "suspendido" : "activo")}
-              disabled={isLoading}
+              disabled={isActionLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                "Confirmar"
-              )}
+              {isActionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Confirmar
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -349,30 +324,17 @@ export default function DetalleUsuarioPage() {
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-destructive">Eliminar Usuario Permanentemente</DialogTitle>
-            <DialogDescription className="space-y-2">
-              <p>{`¿Estás seguro de eliminar permanentemente a ${user.nombre}?`}</p>
-              <p className="font-semibold text-destructive">
-                Esta acción no se puede deshacer. Se eliminarán todos los datos del usuario, incluyendo historial de reservas y créditos.
-              </p>
+            <DialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán todos los datos del usuario.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Eliminando...
-                </>
-              ) : (
-                "Eliminar Permanentemente"
-              )}
+            <Button variant="destructive" onClick={handleDelete} disabled={isActionLoading}>
+              {isActionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

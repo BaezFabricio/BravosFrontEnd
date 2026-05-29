@@ -114,7 +114,7 @@ function LandingPage() {
       window.addEventListener("avatar-updated", handleAvatarUpdated)
 
     // Pedir la configuración visual al backend (títulos, logos, etc.) — evitar caché
-    fetch(`http://localhost:3001/landing/config?t=${new Date().getTime()}`)
+    fetch(`/landing/config?t=${new Date().getTime()}`)
       .then((res) => res.json())
       .then((data) => {
         if (!isMounted) return

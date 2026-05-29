@@ -30,8 +30,8 @@ function ConfiguracionLandingPage() {
 
   const useVectorLogo = !logoPreview || logoPreview.includes('logo-box-bravos-final.png')
 
-  // URL base de tu backend
-  const API_URL = 'http://localhost:3001'
+  // Usamos misma origin y proxy de Vite para evitar problemas de red/CORS
+  const API_URL = ''
 
   // Cargar configuración inicial
   const cargarConfiguracion = async () => {

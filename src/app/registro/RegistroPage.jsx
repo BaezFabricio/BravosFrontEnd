@@ -5,8 +5,7 @@ import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User
 import { Button } from '@/components/ui/button'
 import { HelpTooltip } from '@/components/ui/help-tooltip'
 import { Input } from '@/components/ui/input'
-import { registroUsuario } from '@/api'
-import axios from 'axios' // Importamos para la llamada de corrección de email
+import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 
 function RegistroPage() {
   const navigate = useNavigate()
@@ -94,7 +93,7 @@ function RegistroPage() {
       })
 
       // Guardamos el ID que nos devuelve el backend por si se equivocó de mail
-      const idAsignado = response?.data?.data?.usuario?.idUsuario || response?.data?.usuario?.idUsuario;
+      const idAsignado = response?.data?.usuario?.idUsuario || response?.usuario?.idUsuario || response?.idUsuario;
       setUsuarioId(idAsignado);
 
       setIsSuccess(true)
@@ -116,9 +115,9 @@ function RegistroPage() {
 
     setIsUpdatingEmail(true)
     try {
-      await axios.post('/api/auth/reenviar-verificacion', {
+      await reenviarVerificacionCuenta({
         idUsuario: usuarioId,
-        nuevoCorreo: newEmailInput
+        nuevoCorreo: newEmailInput,
       })
 
       setFormData({ ...formData, email: newEmailInput })

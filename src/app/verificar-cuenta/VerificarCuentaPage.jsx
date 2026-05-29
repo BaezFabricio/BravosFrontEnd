@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/vv1';
+
 function VerificarCuentaPage() {
-  const { token } = useParams(); // Agarramos el token de la URL de React
+  const { token: tokenEnRuta } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = tokenEnRuta || searchParams.get('token') || '';
   const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
   const [mensaje, setMensaje] = useState('');
 
@@ -11,16 +15,27 @@ useEffect(() => {
     let unmounted = false;
 
     const verificarToken = async () => {
+      if (!token) {
+        if (!unmounted) {
+          setStatus('error');
+          setMensaje('No encontramos un token de verificación en el enlace.');
+        }
+        return;
+      }
+
       try {
-        const response = await axios.get(`http://localhost:3001/api/vv1/auth/verificar/${token}`);
-        
-        if (!unmounted && response.data.status === 'success') {
+        const response = await axios.get(`${API_BASE_URL}/auth/verificar/${token}`);
+
+        if (!unmounted) {
           setStatus('success');
-          setMensaje('¡Tu cuenta ha sido activada con éxito!');
+          setMensaje(response?.data?.message || '¡Tu cuenta ha sido activada con éxito!');
         }
       } catch (error) {
         if (!unmounted) {
-          if (error.response?.status === 400 || error.response?.data?.errorCode === 'INVALID_TOKEN') {
+          const statusCode = error.response?.status;
+          const errorCode = error.response?.data?.errorCode;
+
+          if (statusCode === 400 || statusCode === 409 || errorCode === 'INVALID_TOKEN') {
             setStatus('success');
             setMensaje('¡Tu cuenta ya se encuentra verificada y lista para usar!');
           } else {

@@ -1,7 +1,69 @@
 import axios from 'axios'
 
-// 🧠 URL base del backend configurada para la versión vv1
-const API_BASE_URL = 'http://localhost:3001/api/vv1'
+// URL base configurable para evitar hardcodear localhost (soporta móvil/LAN)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/vv1'
+
+const normalizeText = (value, fallback = '') => {
+  if (value === null || value === undefined) {
+    return fallback
+  }
+
+  const text = String(value).trim()
+  return text || fallback
+}
+
+export const normalizarUsuario = (usuario = {}) => {
+  const perfil = normalizeText(usuario.perfil ?? usuario.rol ?? usuario.tipo, 'alumno').toLowerCase()
+  const estado = normalizeText(usuario.estado, 'activo').toLowerCase()
+  const membresia = normalizeText(usuario.membresia, 'vencida').toLowerCase()
+  const idNormalizado =
+    usuario.id ??
+    usuario.idUsuario ??
+    usuario.id_usuario ??
+    usuario.usuarioId ??
+    usuario.usuario_id ??
+    usuario._id ??
+    normalizeText(usuario.email ?? usuario.correo ?? usuario.dni, 'sin-id')
+
+  return {
+    ...usuario,
+    id: idNormalizado,
+    nombre: normalizeText(usuario.nombre ?? usuario.nombrecompleto ?? usuario.fullName ?? usuario.username),
+    dni: normalizeText(usuario.dni ?? usuario.documento),
+    email: normalizeText(usuario.email ?? usuario.correo),
+    telefono: normalizeText(usuario.telefono ?? usuario.celular ?? usuario.phone),
+    perfil,
+    estado,
+    membresia,
+    creditos: Number(usuario.creditos ?? usuario.creditosDisponibles ?? 0),
+  }
+}
+
+const normalizarRespuestaUsuarios = (data) => {
+  const usuarios = data?.usuarios ?? data?.data?.usuarios ?? data?.rows ?? data?.data?.rows ?? data?.data ?? data
+
+  if (!Array.isArray(usuarios)) {
+    return []
+  }
+
+  return usuarios.map(normalizarUsuario)
+}
+
+const construirPayloadUsuario = (usuarioData = {}) => ({
+  nombre: usuarioData.nombre,
+  nombrecompleto: usuarioData.nombre,
+  dni: usuarioData.dni,
+  email: usuarioData.email,
+  correo: usuarioData.email,
+  telefono: usuarioData.telefono,
+  perfil: usuarioData.perfil,
+  rol: usuarioData.perfil,
+  tipo: usuarioData.perfil,
+  password: usuarioData.password,
+  creditos: usuarioData.creditos,
+  estado: usuarioData.estado,
+  membresia: usuarioData.membresia,
+})
 
 // Crear instancia de Axios con configuración por defecto
 const apiClient = axios.create({
@@ -48,9 +110,10 @@ apiClient.interceptors.response.use(
  */
 export const getUsuarios = async () => {
   try {
-    const response = await apiClient.get('/usuarios')
-    // 🧠 Si tu backend envuelve la respuesta en { ok: true, usuarios: [...] }, adaptamos el retorno:
-    return response.data.usuarios || response.data
+    const response = await apiClient.get('/usuarios', {
+      params: { _ts: Date.now() },
+    })
+    return normalizarRespuestaUsuarios(response.data)
   } catch (error) {
     console.error('Error al obtener usuarios:', error)
     throw error
@@ -64,7 +127,7 @@ export const getUsuarios = async () => {
 export const getUsuarioById = async (id) => {
   try {
     const response = await apiClient.get(`/usuarios/${id}`)
-    return response.data.usuario || response.data
+    return normalizarUsuario(response.data.usuario || response.data?.data?.usuario || response.data)
   } catch (error) {
     console.error(`Error al obtener usuario ${id}:`, error)
     throw error
@@ -73,14 +136,61 @@ export const getUsuarioById = async (id) => {
 
 /**
  * Crea un nuevo usuario
- * POST /usuarios
+ * POST /auth/registro (fallback: /usuarios)
  */
 export const crearUsuario = async (usuarioData) => {
   try {
-    const response = await apiClient.post('/usuarios', usuarioData)
-    return response.data
+    const payloadRegistro = {
+      nombrecompleto: usuarioData.nombre,
+      dni: usuarioData.dni,
+      correo: usuarioData.email,
+      telefono: usuarioData.telefono,
+      username: usuarioData.email,
+      password: usuarioData.password,
+    }
+
+    try {
+      const responseRegistro = await apiClient.post('/auth/registro', payloadRegistro)
+      const idUsuario =
+        responseRegistro?.data?.data?.usuario?.idUsuario ??
+        responseRegistro?.data?.usuario?.idUsuario ??
+        responseRegistro?.data?.idUsuario
+
+      if (idUsuario && (usuarioData.perfil || usuarioData.creditos !== undefined || usuarioData.estado || usuarioData.membresia)) {
+        try {
+          await apiClient.put(`/usuarios/${idUsuario}`, construirPayloadUsuario(usuarioData))
+        } catch (syncError) {
+          console.warn('Usuario creado en auth, pero no se pudieron sincronizar campos extra:', syncError)
+        }
+      }
+
+      return responseRegistro.data
+    } catch (errorRegistro) {
+      if (errorRegistro.response?.status === 404 || errorRegistro.response?.status === 405) {
+        const responseFallback = await apiClient.post('/usuarios', {
+          nombrecompleto: usuarioData.nombre,
+          nombre: usuarioData.nombre,
+          dni: usuarioData.dni,
+          correo: usuarioData.email,
+          email: usuarioData.email,
+          username: usuarioData.email,
+          telefono: usuarioData.telefono,
+          password: usuarioData.password,
+          perfil: usuarioData.perfil,
+          rol: usuarioData.perfil,
+          creditos: usuarioData.creditos,
+          estado: usuarioData.estado,
+          membresia: usuarioData.membresia,
+        })
+        return responseFallback.data
+      }
+
+      throw errorRegistro
+    }
   } catch (error) {
-    console.error('Error al crear usuario:', error)
+    if (error.response?.status !== 409) {
+      console.error('Error al crear usuario:', error)
+    }
     throw error
   }
 }
@@ -91,7 +201,7 @@ export const crearUsuario = async (usuarioData) => {
  */
 export const actualizarUsuario = async (id, usuarioData) => {
   try {
-    const response = await apiClient.put(`/usuarios/${id}`, usuarioData)
+    const response = await apiClient.put(`/usuarios/${id}`, construirPayloadUsuario(usuarioData))
     return response.data
   } catch (error) {
     console.error(`Error al actualizar usuario ${id}:`, error)
@@ -144,6 +254,23 @@ export const registroUsuario = async (datosRegistro) => {
     return response.data
   } catch (error) {
     console.error('Error al registrar usuario:', error)
+    throw error
+  }
+}
+
+/**
+ * Reenvía el correo de verificación para una cuenta recién creada
+ * POST /auth/reenviar-verificacion
+ */
+export const reenviarVerificacionCuenta = async ({ idUsuario, nuevoCorreo }) => {
+  try {
+    const response = await apiClient.post('/auth/reenviar-verificacion', {
+      idUsuario,
+      nuevoCorreo,
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error al reenviar verificación de cuenta:', error)
     throw error
   }
 }

@@ -88,6 +88,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
         <Route path="/registro" element={<RegistroPage />} />
+        <Route path="/verificar-cuenta" element={<VerificarCuentaPage />} />
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
 
         {/* RUTAS DE ADMINISTRADOR */}

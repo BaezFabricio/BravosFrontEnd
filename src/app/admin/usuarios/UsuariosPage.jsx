@@ -41,7 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario } from "@/api"
+import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
@@ -93,29 +93,31 @@ export default function UsuariosPage() {
   }
 
   // ✨ FILTRO BLINDADO CONTRA CAMPOS NULOS O MAYÚSCULAS DE LA BASE DE DATOS
-  const filteredUsers = users.filter((user) => {
-    // Normalizamos textos básicos para evitar errores con .toLowerCase()
-    const nombreUser = user?.nombre ? String(user.nombre).toLowerCase() : ""
-    const dniUser = user?.dni ? String(user.dni) : ""
-    const emailUser = user?.email ? String(user.email).toLowerCase() : ""
-    
-    // Validamos y limpiamos las propiedades que indexan configuraciones visuales (evita el crash de pantalla negra)
-    const estadoUser = user?.estado ? String(user.estado).toLowerCase().trim() : "activo"
-    const perfilUser = user?.perfil ? String(user.perfil).toLowerCase().trim() : "alumno"
-    const membresiaUser = user?.membresia ? String(user.membresia).toLowerCase().trim() : "vencida"
+  const filteredUsers = users
+    .map((user) => normalizarUsuario(user))
+    .filter((user) => {
+    const nombreUser = user.nombre.toLowerCase()
+    const dniUser = user.dni
+    const emailUser = user.email.toLowerCase()
 
-    // Guardamos los valores corregidos temporalmente en el objeto del usuario para el renderizado seguro abajo
-    user.estado = statusConfig[estadoUser] ? estadoUser : "activo"
-    user.perfil = roleLabels[perfilUser] ? perfilUser : "alumno"
-    user.membresia = membershipConfig[membresiaUser] ? membresiaUser : "vencida"
+    const estadoUser = statusConfig[user.estado] ? user.estado : "activo"
+    const perfilUser = roleLabels[user.perfil] ? user.perfil : "alumno"
+    const membresiaUser = membershipConfig[user.membresia] ? user.membresia : "vencida"
+
+    const userToRender = {
+      ...user,
+      estado: estadoUser,
+      perfil: perfilUser,
+      membresia: membresiaUser,
+    }
 
     const matchesSearch =
       nombreUser.includes(search.toLowerCase()) ||
       dniUser.includes(search) ||
       emailUser.includes(search.toLowerCase())
     
-    const matchesStatus = statusFilter === "all" || user.estado === statusFilter
-    const matchesRole = roleFilter === "all" || user.perfil === roleFilter
+    const matchesStatus = statusFilter === "all" || userToRender.estado === statusFilter
+    const matchesRole = roleFilter === "all" || userToRender.perfil === roleFilter
     return matchesSearch && matchesStatus && matchesRole
   })
 
@@ -161,13 +163,15 @@ export default function UsuariosPage() {
           </div>
           <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
-        <Link to="/admin/usuarios/nuevo">
-          <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Usuario
-            <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3 ml-1" />
+        <div className="flex items-center gap-2">
+          <Button asChild className="bg-primary hover:bg-primary/90">
+            <Link to="/admin/usuarios/nuevo">
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo Usuario
+            </Link>
           </Button>
-        </Link>
+          <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3" />
+        </div>
       </div>
 
       <Card className="bg-card border-border">
@@ -260,16 +264,16 @@ export default function UsuariosPage() {
                         <span className="text-foreground">{user.telefono}</span>
                       </td>
                       <td className="p-4">
-                        <span className="text-foreground">{roleLabels[user.perfil]}</span>
+                        <span className="text-foreground">{roleLabels[user.perfil] || roleLabels.alumno}</span>
                       </td>
                       <td className="p-4">
-                        <Badge variant="outline" className={statusConfig[user.estado].className}>
-                          {statusConfig[user.estado].label}
+                        <Badge variant="outline" className={statusConfig[user.estado]?.className || statusConfig.activo.className}>
+                          {statusConfig[user.estado]?.label || statusConfig.activo.label}
                         </Badge>
                       </td>
                       <td className="p-4 hidden sm:table-cell">
-                        <Badge variant="outline" className={membershipConfig[user.membresia].className}>
-                          {membershipConfig[user.membresia].label}
+                        <Badge variant="outline" className={membershipConfig[user.membresia]?.className || membershipConfig.vencida.className}>
+                          {membershipConfig[user.membresia]?.label || membershipConfig.vencida.label}
                         </Badge>
                       </td>
                       <td className="p-4 hidden lg:table-cell">

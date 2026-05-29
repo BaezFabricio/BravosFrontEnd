@@ -12,23 +12,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { crearUsuario } from "@/api"
+import { crearUsuario, getUsuarios, reenviarVerificacionCuenta } from "@/api"
 
 export default function NuevoUsuarioPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("Usuario creado exitosamente. Redirigiendo...")
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
     email: "",
     telefono: "",
-    perfil: "",
+    perfil: "alumno",
     password: "",
     creditos: "12",
   })
   const [errors, setErrors] = useState({})
+
+  const normalizarTelefono = (telefono = "") => telefono.replace(/\D/g, "")
 
   const validateForm = () => {
     const newErrors = {}
@@ -51,16 +54,73 @@ export default function NuevoUsuarioPage() {
 
     setIsLoading(true)
     try {
-      // Enviar datos al backend
-      await crearUsuario({
-        nombre: formData.nombre,
-        dni: formData.dni,
-        email: formData.email,
-        telefono: formData.telefono,
+      const usuarios = await getUsuarios()
+      const emailNormalizado = formData.email.trim().toLowerCase()
+      const dniNormalizado = formData.dni.trim()
+      const telefonoNormalizado = normalizarTelefono(formData.telefono)
+      const usuarioDuplicado = usuarios.find((usuario) => {
+        const emailUsuario = (usuario.email || "").trim().toLowerCase()
+        const dniUsuario = (usuario.dni || "").trim()
+        const telefonoUsuario = normalizarTelefono(usuario.telefono || "")
+        return (
+          emailUsuario === emailNormalizado ||
+          dniUsuario === dniNormalizado ||
+          (telefonoNormalizado && telefonoUsuario === telefonoNormalizado)
+        )
+      })
+
+      if (usuarioDuplicado) {
+        const emailUsuario = (usuarioDuplicado.email || "").trim().toLowerCase()
+        const dniUsuario = (usuarioDuplicado.dni || "").trim()
+        const telefonoUsuario = normalizarTelefono(usuarioDuplicado.telefono || "")
+        const campoDuplicado =
+          emailUsuario === emailNormalizado
+            ? "correo"
+            : dniUsuario === dniNormalizado
+              ? "DNI"
+              : "teléfono"
+
+        setErrors({
+          general: `Ya existe un usuario con ese ${campoDuplicado}. Usá otro dato o editá el usuario existente.`,
+        })
+        return
+      }
+
+      // Creamos el usuario en la tabla principal y luego pedimos el correo de verificación
+      const response = await crearUsuario({
+        nombre: formData.nombre.trim(),
+        dni: formData.dni.trim(),
+        email: formData.email.trim().toLowerCase(),
+        telefono: formData.telefono.trim(),
         perfil: formData.perfil,
         password: formData.password,
         creditos: parseInt(formData.creditos),
+        estado: "activo",
+        membresia: "vencida",
       })
+
+      const usuarioCreado = response?.data?.data?.usuario || response?.data?.usuario || response?.usuario || response
+      const idUsuarioCreado =
+        usuarioCreado?.idUsuario ||
+        usuarioCreado?.id ||
+        response?.data?.data?.idUsuario ||
+        response?.data?.idUsuario ||
+        response?.idUsuario
+
+      if (idUsuarioCreado) {
+        try {
+          await reenviarVerificacionCuenta({
+            idUsuario: idUsuarioCreado,
+            nuevoCorreo: formData.email,
+          })
+          setSuccessMessage("Usuario creado y correo de verificación enviado. Redirigiendo...")
+        } catch (verificationError) {
+          console.error("El usuario se creó, pero falló el envío de verificación:", verificationError)
+          setSuccessMessage("Usuario creado, pero no se pudo enviar el correo de verificación. Redirigiendo...")
+        }
+      } else {
+        setSuccessMessage("Usuario creado. No se pudo determinar el ID para enviar verificación. Redirigiendo...")
+      }
 
       setIsSuccess(true)
       setErrors({})
@@ -70,8 +130,34 @@ export default function NuevoUsuarioPage() {
         navigate("/admin/usuarios")
       }, 1500)
     } catch (err) {
-      console.error("Error al crear usuario:", err)
-      const errorMessage = err.response?.data?.message || "Error al crear el usuario. Intenta nuevamente."
+      const statusCode = err.response?.status
+      const backendMessage = err.response?.data?.message
+      const backendDetalle = err.response?.data?.detail || err.response?.data?.error || err.response?.data?.details
+
+      let errorMessage = backendMessage || "Error al crear el usuario. Intenta nuevamente."
+
+      if (statusCode === 409) {
+        const detalleTexto =
+          typeof backendDetalle === "string"
+            ? backendDetalle
+            : backendDetalle
+              ? JSON.stringify(backendDetalle)
+              : ""
+        const pista = detalleTexto.toLowerCase()
+
+        if (pista.includes("telefono") || pista.includes("phone")) {
+          errorMessage = "El teléfono ya está registrado. Probá con otro número."
+        } else if (pista.includes("dni") || pista.includes("documento")) {
+          errorMessage = "El DNI ya está registrado."
+        } else if (pista.includes("correo") || pista.includes("email") || pista.includes("mail")) {
+          errorMessage = "El correo electrónico ya está registrado."
+        } else {
+          errorMessage = backendMessage || "Ya existe un registro con esos datos (correo, DNI o teléfono)."
+        }
+      } else {
+        console.error("Error al crear usuario:", err)
+      }
+
       setErrors({ general: errorMessage })
     } finally {
       setIsLoading(false)
@@ -83,7 +169,7 @@ export default function NuevoUsuarioPage() {
       {isSuccess && (
         <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          <p>Usuario creado exitosamente. Redirigiendo...</p>
+          <p>{successMessage}</p>
         </div>
       )}
 

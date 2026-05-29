@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
@@ -40,7 +42,7 @@ export default function LoginPage() {
     
     try {
       // 1. Petición al Backend (usando la ruta vv1)
-      const response = await fetch("http://localhost:3001/api/vv1/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

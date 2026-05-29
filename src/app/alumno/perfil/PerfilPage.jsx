@@ -13,6 +13,8 @@ import {
 
 import apiClient from "@/api"
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
+
 // Valores por defecto mínimos (usados mientras cargan datos reales)
 const defaultUserData = {
   nombre: "",
@@ -175,7 +177,7 @@ export default function PerfilPage() {
 
       setIsSavingAvatar(true)
 
-      fetch(`http://localhost:3001/api/vv1/usuarios/${userId}/avatar`, {
+      fetch(`${API_BASE_URL}/usuarios/${userId}/avatar`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

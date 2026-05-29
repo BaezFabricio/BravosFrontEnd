@@ -15,15 +15,16 @@ export function HelpTooltip({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button 
-          type="button"
+        <span 
           className={cn(
-            "inline-flex items-center justify-center rounded-full p-0.5 text-muted-foreground hover:text-accent transition-colors",
+            "inline-flex items-center justify-center rounded-full p-0.5 text-muted-foreground hover:text-accent transition-colors cursor-help",
             className
           )}
+          aria-label="Ayuda"
+          tabIndex={0}
         >
           <HelpCircle className={cn("h-4 w-4", iconClassName)} />
-        </button>
+        </span>
       </TooltipTrigger>
       <TooltipContent 
         side={side} 
