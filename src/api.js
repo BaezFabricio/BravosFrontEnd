@@ -259,15 +259,26 @@ export const registroUsuario = async (datosRegistro) => {
 }
 
 /**
- * Reenvía el correo de verificación para una cuenta recién creada
+ * Reenvía el correo de verificación para una cuenta existente o recién creada
  * POST /auth/reenviar-verificacion
  */
-export const reenviarVerificacionCuenta = async ({ idUsuario, nuevoCorreo }) => {
+export const reenviarVerificacionCuenta = async ({ idUsuario, correo, nuevoCorreo } = {}) => {
   try {
-    const response = await apiClient.post('/auth/reenviar-verificacion', {
-      idUsuario,
-      nuevoCorreo,
-    })
+    const payload = {}
+
+    if (idUsuario !== undefined && idUsuario !== null && idUsuario !== '') {
+      payload.idUsuario = idUsuario
+    }
+
+    if (correo !== undefined && correo !== null && correo !== '') {
+      payload.correo = correo
+    }
+
+    if (nuevoCorreo !== undefined && nuevoCorreo !== null && nuevoCorreo !== '') {
+      payload.nuevoCorreo = nuevoCorreo
+    }
+
+    const response = await apiClient.post('/auth/reenviar-verificacion', payload)
     return response.data
   } catch (error) {
     console.error('Error al reenviar verificación de cuenta:', error)
