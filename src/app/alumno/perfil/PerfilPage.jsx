@@ -1,41 +1,222 @@
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
 
-const userData = {
-  nombre: "María García",
-  dni: "32456789",
-  email: "maria@email.com",
-  telefono: "+54 11 1234 5678",
-  perfil: "Alumno",
-  estado: "activo",
-  membresia: "vigente",
-  vencimientoMembresia: "15 de Abril, 2024",
-  fechaRegistro: "15 de Enero, 2024",
-  creditos: 12,
+import apiClient from "@/api"
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
+
+// Valores por defecto mínimos (usados mientras cargan datos reales)
+const defaultUserData = {
+  nombre: "",
+  dni: "",
+  email: "",
+  telefono: "",
+  perfil: "usuario",
+  estado: "inactivo",
+  membresia: null,
+  vencimientoMembresia: "",
+  fechaRegistro: "",
+  creditos: 0,
 }
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-red-500/10 text-red-500 border-red-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
 export default function PerfilPage() {
-  const status = statusConfig[userData.estado]
-  const membership = membershipConfig[userData.membresia]
+  const navigate = useNavigate()
+  const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    return localStorage.getItem("avatarUrl") || storedUser?.avatarUrl || ""
+  })
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false)
+  const [avatarError, setAvatarError] = useState("")
+  const [userData, setUserData] = useState(defaultUserData)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const handleAvatarUpdated = (event) => {
+      setAvatarUrl(event.detail || "")
+    }
+
+    window.addEventListener("avatar-updated", handleAvatarUpdated)
+    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await apiClient.get('/auth/me', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        const data = response.data?.data || response.data
+        const usuario = data?.usuario || data
+        if (mounted && usuario) {
+          // Helper: buscar recursivamente posibles nombres de campo en la respuesta
+          const findValue = (obj, names) => {
+            if (!obj || typeof obj !== 'object') return undefined
+            const lowerNames = names.map((n) => n.toLowerCase())
+            let found
+            const visit = (o) => {
+              if (found !== undefined || o == null) return
+              if (typeof o !== 'object') return
+              for (const k of Object.keys(o)) {
+                if (lowerNames.includes(k.toLowerCase())) {
+                  found = o[k]
+                  return
+                }
+              }
+              for (const k of Object.keys(o)) {
+                visit(o[k])
+                if (found !== undefined) return
+              }
+            }
+            visit(obj)
+            return found
+          }
+
+          // Mapear campos desde la API a lo que usa la UI
+          setUserData({
+            nombre: usuario.nombrecompleto || usuario.nombre || usuario.displayName || '',
+            idUsuario: usuario.idUsuario || usuario.idUsuario || null,
+            dni: findValue(usuario, ['dni', 'DNI', 'documento', 'nroDocumento', 'numeroDocumento', 'rut']) || '',
+            email: usuario.correo || usuario.email || '',
+            telefono: findValue(usuario, ['telefono', 'phone', 'celular', 'mobile', 'cel']) || '',
+            perfil: (usuario.perfil || usuario.nombrePerfil || usuario.rol || 'usuario').toLowerCase(),
+            estado: (usuario.estado || 'inactivo').toLowerCase(),
+            membresia: usuario.membresia || null,
+            vencimientoMembresia: usuario.vencimiento || usuario.vencimientoMembresia || '',
+            fechaRegistro: findValue(usuario, ['fechaRegistro', 'fecha_registro', 'createdAt', 'created_at', 'created', 'registered_at']) || '',
+            creditos: usuario.creditos || 0,
+          })
+
+          // actualizar avatar si viene en usuario
+          if (usuario.avatarUrl) {
+            setAvatarUrl(usuario.avatarUrl)
+            localStorage.setItem('avatarUrl', usuario.avatarUrl)
+          }
+        }
+      } catch (error) {
+        console.error('No se pudo obtener perfil:', error)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    fetchProfile()
+    return () => { mounted = false }
+  }, [])
+
+  const getIniciales = (name) => {
+    if (!name) return "MG"
+
+    const parts = name.trim().split(" ")
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const maskDNI = (dni) => {
+    if (!dni) return '—'
+    const s = String(dni)
+    const last = s.slice(-4)
+    return `****${last}`
+  }
+
+  const maskPhone = (phone) => {
+    if (!phone) return '—'
+    const s = String(phone)
+    const last = s.slice(-4)
+    return `****${last}`
+  }
+
+  const nombreVisible = storedUser?.nombrecompleto || storedUser?.nombre || userData.nombre
+  const correoVisible = storedUser?.correo || storedUser?.email || userData.email
+  // Priorizar el valor retornado por la API para decidir qué mostrar
+  const perfilVisible = (userData.perfil || storedUser?.perfil || storedUser?.rol || storedUser?.tipo || 'usuario').toLowerCase()
+  const isNormalUser = perfilVisible === 'usuario' || perfilVisible === 'cliente' || perfilVisible === ''
+  const isOwner = Boolean(storedUser?.idUsuario && userData.idUsuario && Number(storedUser.idUsuario) === Number(userData.idUsuario))
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const value = reader.result
+      const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
+      const userId = storedUser?.idUsuario
+      setAvatarError("")
+
+      if (!userId) {
+        setAvatarError("No pude identificar tu usuario para guardar la foto en la base de datos.")
+        return
+      }
+
+      setIsSavingAvatar(true)
+
+      fetch(`${API_BASE_URL}/usuarios/${userId}/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        body: JSON.stringify({ avatarData: value }),
+      })
+        .then(async (response) => {
+          const data = await response.json()
+          if (!response.ok) throw new Error(data?.message || "No se pudo guardar la foto")
+
+          const persistedAvatar = data?.data?.avatarUrl || value
+          setAvatarUrl(persistedAvatar)
+          localStorage.setItem("avatarUrl", persistedAvatar)
+          localStorage.setItem(
+            "usuario",
+            JSON.stringify({ ...storedUser, avatarUrl: persistedAvatar })
+          )
+          window.dispatchEvent(new CustomEvent("avatar-updated", { detail: persistedAvatar }))
+        })
+        .catch((error) => {
+          console.error("Error al guardar el avatar:", error)
+          setAvatarError(error.message || "No se pudo guardar la foto en la base de datos.")
+        })
+        .finally(() => {
+          setIsSavingAvatar(false)
+        })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const status = statusConfig[userData.estado] || statusConfig.inactivo
+  const membership = membershipConfig[userData.membresia] || null
+
+  const handleGoHome = () => {
+    navigate("/inicio")
+  }
+
+  
 
   return (
     <div className="space-y-6">
@@ -54,14 +235,32 @@ export default function PerfilPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6 mb-6">
-              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-foreground">MG</span>
-              </div>
+              <Avatar className="h-20 w-20 border border-border bg-background">
+                <AvatarImage src={avatarUrl} alt={userData.nombre} />
+                <AvatarFallback className="bg-primary text-2xl font-bold text-primary-foreground">
+                  {getIniciales(nombreVisible)}
+                </AvatarFallback>
+              </Avatar>
               <div>
-                <h3 className="text-xl font-bold text-foreground">{userData.nombre}</h3>
-                <p className="text-muted-foreground">{userData.perfil}</p>
+                <h3 className="text-xl font-bold text-foreground">{nombreVisible}</h3>
+                <p className="text-muted-foreground">{perfilVisible}</p>
               </div>
             </div>
+
+            <div className="mb-6 flex items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50">
+                <Camera className="h-4 w-4" />
+                {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+              </label>
+              <p className="text-xs text-muted-foreground">Se guarda en la base de datos si el backend responde bien.</p>
+            </div>
+
+            {avatarError && (
+              <p className="mb-4 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {avatarError}
+              </p>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1">
@@ -69,64 +268,67 @@ export default function PerfilPage() {
                   <CreditCard className="h-4 w-4" />
                   DNI
                 </p>
-                <p className="font-medium text-foreground">{userData.dni}</p>
+                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   Correo Electrónico
                 </p>
-                <p className="font-medium text-foreground">{userData.email}</p>
+                <p className="font-medium text-foreground">{correoVisible}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   Teléfono
                 </p>
-                <p className="font-medium text-foreground">{userData.telefono}</p>
+                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Miembro desde
                 </p>
-                <p className="font-medium text-foreground">{userData.fechaRegistro}</p>
+                <p className="font-medium text-foreground">{userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—'}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Mostrar estado de cuenta solo si el usuario es alumno o tiene membresía */}
         <div className="space-y-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Estado de Cuenta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Estado Usuario</span>
-                <Badge variant="outline" className={status.className}>
-                  {status.label}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Membresía</span>
-                <Badge variant="outline" className={membership.className}>
-                  {membership.label}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Vencimiento</span>
-                <span className="text-sm font-medium text-foreground">{userData.vencimientoMembresia}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Créditos</span>
-                <span className="text-lg font-bold text-primary">{userData.creditos}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {(userData.perfil === 'alumno' || userData.membresia) && (
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Estado de Cuenta
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Estado Usuario</span>
+                  <Badge variant="outline" className={status.className}>
+                    {status.label}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Membresía</span>
+                  <Badge variant="outline" className={membership?.className || 'bg-gray-500/10 text-gray-500'}>
+                    {membership?.label || (userData.membresia ? userData.membresia : '—')}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Vencimiento</span>
+                  <span className="text-sm font-medium text-foreground">{userData.vencimientoMembresia || '—'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Créditos</span>
+                  <span className="text-lg font-bold text-primary">{userData.creditos || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -141,10 +343,10 @@ export default function PerfilPage() {
       )}
 
       {userData.estado === "suspendido" && (
-        <Alert className="bg-yellow-500/10 border-yellow-500/20">
-          <AlertTriangle className="h-4 w-4 text-yellow-500" />
-          <AlertTitle className="text-yellow-500">Cuenta Suspendida</AlertTitle>
-          <AlertDescription className="text-yellow-500/80">
+        <Alert className="bg-green-500/10 border-green-500/20">
+          <AlertTriangle className="h-4 w-4 text-green-500" />
+          <AlertTitle className="text-green-500">Cuenta Suspendida</AlertTitle>
+          <AlertDescription className="text-green-500/80">
             Tu cuenta está suspendida por falta de pago. Regulariza tu membresía para volver a reservar clases y usar tus créditos.
           </AlertDescription>
         </Alert>
@@ -153,12 +355,18 @@ export default function PerfilPage() {
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <h3 className="font-semibold text-foreground mb-4">Acciones</h3>
-          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4">
             <Button variant="outline">Cambiar Contraseña</Button>
             <Button variant="outline">Actualizar Datos</Button>
+            <Button variant="outline" onClick={handleGoHome} className="gap-2">
+              <Home className="h-4 w-4" />
+              Volver al inicio
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      
     </div>
   )
 }

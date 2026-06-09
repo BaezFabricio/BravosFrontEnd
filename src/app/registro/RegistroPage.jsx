@@ -1,16 +1,25 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { HelpTooltip } from '@/components/ui/help-tooltip'
 import { Input } from '@/components/ui/input'
+import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 
 function RegistroPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  
+  // 🎯 Estados nuevos para controlar la corrección del mail
+  const [usuarioId, setUsuarioId] = useState(null)
+  const [isEditingEmail, setIsEditingEmail] = useState(false)
+  const [newEmailInput, setNewEmailInput] = useState('')
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+
   const [formData, setFormData] = useState({
     nombre: '',
     dni: '',
@@ -74,43 +83,62 @@ function RegistroPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/auth/registro', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: formData.nombre,
-          dni: formData.dni,
-          email: formData.email,
-          telefono: formData.telefono,
-          password: formData.password,
-        }),
+      const response = await registroUsuario({
+        nombrecompleto: formData.nombre, 
+        dni: formData.dni,
+        correo: formData.email,          
+        telefono: formData.telefono,
+        username: formData.email,        
+        password: formData.password,
       })
 
-      const data = await response.json()
+      // Guardamos el ID que nos devuelve el backend por si se equivocó de mail
+      const idAsignado = response?.data?.usuario?.idUsuario || response?.usuario?.idUsuario || response?.idUsuario;
+      setUsuarioId(idAsignado);
 
-      if (!response.ok) {
-        setErrors({ general: data.message || 'Error al registrar' })
-        setIsLoading(false)
-        return
-      }
-
-      setIsLoading(false)
       setIsSuccess(true)
-    } catch {
-      setErrors({ general: 'Error de conexión. Intenta de nuevo.' })
+    } catch (err) {
+      console.error('Error al registrar:', err)
+      const errorMessage = err.response?.data?.message || 'Error de conexión. Intenta de nuevo.'
+      setErrors({ general: errorMessage })
+    } finally {
       setIsLoading(false)
     }
   }
 
+  // 🔄 Función para corregir el email en caliente
+  const handleUpdateEmail = async () => {
+    if (!newEmailInput || !/\S+@\S+\.\S+/.test(newEmailInput)) {
+      alert('Por favor, ingresa un correo válido.')
+      return
+    }
+
+    setIsUpdatingEmail(true)
+    try {
+      await reenviarVerificacionCuenta({
+        idUsuario: usuarioId,
+        nuevoCorreo: newEmailInput,
+      })
+
+      setFormData({ ...formData, email: newEmailInput })
+      setIsEditingEmail(false)
+      alert('¡Correo modificado y nuevo código enviado con éxito!')
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || 'No se pudo actualizar el correo.')
+    } finally {
+      setIsUpdatingEmail(false)
+    }
+  }
+
+  // PANTALLA DONDE INDICA QUE SE ENVIÓ EL GMAIL (Muestra el botón de editar)
   if (isSuccess) {
     return (
       <div
         className="relative flex min-h-screen items-center justify-center p-4"
         style={{
-          backgroundImage: "url('/logo.jpg')",
-          backgroundSize: 'cover',
+          backgroundImage: "url('/logo-box-bravos-final.png')",
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
@@ -125,10 +153,42 @@ function RegistroPage() {
 
             <h2 className="text-2xl font-bold text-foreground">Registro Exitoso</h2>
 
-            <p className="text-muted-foreground">
-              Hemos enviado un correo de verificación a{' '}
-              <span className="font-medium text-primary">{formData.email}</span>
-            </p>
+            <div className="space-y-2">
+              <p className="text-muted-foreground">
+                Hemos enviado un correo de verificación a:
+              </p>
+              
+              {/* 🛠️ ACÁ ESTÁ EL SALVAVIDAS QUE MODIFICA EL MAIL */}
+              {!isEditingEmail ? (
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <span className="font-medium text-primary text-lg">{formData.email}</span>
+                  <button 
+                    onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email); }}
+                    className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
+                  >
+                    ¿Te equivocaste de correo? Modificar email
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 max-w-xs mx-auto mt-2">
+                  <Input 
+                    type="email" 
+                    value={newEmailInput} 
+                    onChange={(e) => setNewEmailInput(e.target.value)}
+                    className="h-9 text-center bg-secondary"
+                    placeholder="Escribe tu correo correcto"
+                  />
+                  <div className="flex gap-2 justify-center">
+                    <Button size="sm" variant="outline" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}>
+                      Cancelar
+                    </Button>
+                    <Button size="sm" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>
+                      {isUpdatingEmail ? 'Guardando...' : 'Confirmar y Reenviar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="rounded-lg border border-border bg-secondary/50 p-4">
               <p className="text-sm text-muted-foreground">
@@ -161,8 +221,15 @@ function RegistroPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver atrás
+          </button>
           <div className="mb-6 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-accent">BRAVOS GYM</h1>
+            <h1 className="mb-2 text-3xl font-bold text-primary">BRAVOS GYM</h1>
             <h2 className="text-xl font-semibold text-foreground">Crear Cuenta</h2>
             <p className="mt-2 text-sm text-muted-foreground">Completa tus datos para registrarte</p>
           </div>
@@ -316,7 +383,7 @@ function RegistroPage() {
 
             <Button
               type="submit"
-              className="mt-2 h-12 w-full bg-accent font-semibold text-accent-foreground hover:bg-accent/90"
+              className="mt-2 h-12 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (

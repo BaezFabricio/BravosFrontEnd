@@ -37,7 +37,7 @@
   --sidebar-accent-foreground: #f2f2f2;
   --sidebar-border: #313d35;
   --sidebar-ring: #3f7d55;
-  
+
   /* Custom Bravos colors */
   --bravos-green: #3f7d55;
   --bravos-gold: #53a86c;
@@ -132,7 +132,43 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Override rápido: mapear clases "yellow" a nuestro verde de marca */
+
+[class*="text-yellow-500"] {
+  color: var(--color-bravos-green) !important;
+}
+
+[class*="text-yellow-500/"],
+[class*="text-yellow-500\\/"] {
+  color: var(--color-bravos-green) !important;
+}
+
+[class*="bg-yellow-500"] {
+  background-color: var(--color-bravos-green) !important;
+}
+
+[class*="bg-yellow-500/"],
+[class*="bg-yellow-500\\/"] {
+  background-color: color-mix(
+    in oklab,
+    var(--color-bravos-green) 20%,
+    transparent
+  ) !important;
+}
+
+[class*="border-yellow-500"] {
+  border-color: var(--color-bravos-green) !important;
+}
+
+/* Catch icon color utilities */
+[class*="text-yellow-500"] svg,
+[class*="text-yellow-500"] * {
+  color: var(--color-bravos-green) !important;
+  fill: var(--color-bravos-green) !important;
 }

@@ -74,9 +74,9 @@ export default function AdminDashboard() {
                     className={`text-sm mt-1 ${
                       stat.changeType === "positive"
                         ? "text-green-500"
-                        : stat.changeType === "negative"
-                        ? "text-red-500"
-                        : "text-yellow-500"
+                          : stat.changeType === "negative"
+                          ? "text-red-500"
+                          : "text-green-500"
                     }`}
                   >
                     {stat.change}
@@ -95,10 +95,10 @@ export default function AdminDashboard() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <AlertTriangle className="h-5 w-5 text-green-500" />
               Suspendidos por Falta de Pago
             </CardTitle>
-            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
               {suspendedUsers.length} usuarios
             </Badge>
           </CardHeader>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                       ? "bg-red-500"
                       : activity.type === "payment"
                       ? "bg-primary"
-                      : "bg-yellow-500"
+                      : "bg-green-500"
                   }`}
                 />
                 <div className="flex-1">

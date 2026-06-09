@@ -1,11 +1,14 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
+
 export default function LoginPage() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -18,6 +21,7 @@ export default function LoginPage() {
     e.preventDefault()
     const newErrors = {}
 
+    // Validaciones básicas en el Frontend
     if (!formData.email) {
       newErrors.email = "El correo electrónico es requerido"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -37,40 +41,62 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch("/api/auth/login", {
+      // 1. Petición al Backend (usando la ruta vv1)
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: formData.email,
+          correo: formData.email,
           password: formData.password,
         }),
       })
 
       const data = await response.json()
 
+      // Si las credenciales están mal o falta verificar, frena acá
       if (!response.ok) {
         setErrors({ general: data.message || "Error al iniciar sesión" })
         setIsLoading(false)
         return
       }
 
-      if (data.user?.rol === "admin") {
-        window.location.href = "/admin"
-      } else {
-        window.location.href = "/alumno"
+      // 2. Guardamos el token JWT en el LocalStorage
+      if (data.data?.token) {
+        localStorage.setItem("token", data.data.token)
       }
-    } catch {
-      setErrors({ general: "Error de conexión. Intenta de nuevo." })
+
+      localStorage.setItem("usuario", JSON.stringify(data.data.usuario))
+      if (data.data?.usuario?.avatarUrl) {
+        localStorage.setItem("avatarUrl", data.data.usuario.avatarUrl)
+      }
+
+      const usuario = data.data?.usuario;
+      const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || "").toLowerCase()
+      const tienePanel = perfil === "admin" || perfil === "administrador" || perfil === "alumno"
+
+      // 3. ✨ Redirección estricta según el flujo de Bravos Gym
+      if (perfil === "admin" || perfil === "administrador") {
+        navigate("/admin", { replace: true })
+      } 
+      else if (perfil === "alumno") {
+        navigate("/alumno", { replace: true })
+      } 
+      // Si el usuario aún no tiene un perfil habilitado, se queda en el sitio público.
+      else if (!tienePanel) {
+        navigate("/inicio", { replace: true })
+      } 
+
+    } catch (error) {
+      console.error("Error en el login:", error)
+      setErrors({ general: "Error de conexión. Asegúrate de que el backend esté encendido." })
       setIsLoading(false)
     }
   }
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 relative bg-background"
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 relative bg-background">
       <div 
         className="absolute inset-0 flex items-center justify-center opacity-10"
         style={{
@@ -83,6 +109,14 @@ export default function LoginPage() {
       
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-2xl">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver atrás
+          </button>
+          
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">BRAVOS GYM</h1>
             <h2 className="text-xl font-semibold text-foreground">Iniciar Sesión</h2>
@@ -92,7 +126,7 @@ export default function LoginPage() {
           </div>
 
           {errors.general && (
-            <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center">
+            <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center font-medium">
               {errors.general}
             </div>
           )}
@@ -101,7 +135,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
                 <label htmlFor="email" className="text-sm font-medium text-foreground">Correo Electrónico</label>
-                <HelpTooltip content="Ingresa el correo electrónico con el que te registraste en el gimnasio. Este será tu usuario para acceder al sistema." />
+                <HelpTooltip content="Ingresa el correo electrónico con el que te registraste en el gimnasio." />
               </div>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -122,7 +156,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
                 <label htmlFor="password" className="text-sm font-medium text-foreground">Contraseña</label>
-                <HelpTooltip content="Tu contraseña debe ser la misma que creaste al registrarte. Si la olvidaste, usa el enlace de recuperación." />
+                <HelpTooltip content="Tu contraseña de acceso." />
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

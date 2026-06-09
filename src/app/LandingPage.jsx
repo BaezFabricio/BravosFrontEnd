@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronDown,
   ChevronRight,
-  ExternalLink,
   MapPin,
   Menu,
   X,
+  LogOut,
+  Bell,
+  Settings
+  ,User
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { LogoBoxBravos } from '@/components/logo-box-bravos'
 
 const navigation = [
   {
@@ -44,20 +49,148 @@ const navigation = [
   },
 ]
 
-const heroImages = ['/landing-hero-1.jpg', '/landing-hero-2.jpg', '/landing-hero-3.jpg']
+const defaultHeroImages = ['/landing-hero-1.jpg', '/landing-hero-2.jpg', '/landing-hero-3.jpg']
 
 function LandingPage() {
+  const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [heroImages, setHeroImages] = useState(defaultHeroImages)
+  const [titulo, setTitulo] = useState('Centro de Entrenamiento')
+  const [logoUrl, setLogoUrl] = useState('/logo-box-bravos-final.png')
+  const [tituloSize, setTituloSize] = useState(null)
+  const [tituloFont, setTituloFont] = useState(null)
+  const [tituloAlign, setTituloAlign] = useState(null)
 
+  const [logoTs, setLogoTs] = useState(Date.now())
+
+  const useVectorLogo = !logoUrl || logoUrl.includes('logo-box-bravos-final.png')
+
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('avatarUrl') || '')
+  const [userData, setUserData] = useState({
+    nombrecompleto: 'Usuario Bravos',
+    correo: 'sin-correo@bravos.com',
+    perfil: 'cliente',
+    estado: 'activo'
+  });
+
+  // 🔐 CONTROL DE SESIÓN Y CONFIGURACIÓN VISUAL
+    useEffect(() => {
+      let isMounted = true
+      const token = localStorage.getItem("token")
+      const storedUser = localStorage.getItem("usuario")
+      const storedAvatar = localStorage.getItem("avatarUrl")
+
+      if (storedAvatar) {
+        setAvatarUrl(storedAvatar)
+      }
+
+      if (token) {
+        setIsLoggedIn(true)
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser)
+            setUserData({
+              nombrecompleto: parsedUser?.nombrecompleto || parsedUser?.nombre || parsedUser?.username || 'Usuario Bravos',
+              correo: parsedUser?.correo || parsedUser?.email || 'sin-correo@bravos.com',
+              perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || 'cliente',
+              estado: parsedUser?.estado || 'activo'
+            })
+          } catch (error) {
+            console.error("Error al parsear el usuario:", error)
+          }
+        }
+      } else {
+        setIsLoggedIn(false)
+      }
+
+      const handleAvatarUpdated = (event) => {
+        setAvatarUrl(event.detail || "")
+      }
+
+      window.addEventListener("avatar-updated", handleAvatarUpdated)
+
+    // Pedir la configuración visual al backend (títulos, logos, etc.) — evitar caché
+    fetch(`/landing/config?t=${new Date().getTime()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return
+        console.info('Landing /landing/config response:', data)
+        if (data?.tituloHero) setTitulo(data.tituloHero)
+        if (data?.logoUrl) {
+          setLogoUrl(data.logoUrl)
+          setLogoTs(Date.now())
+        }
+        if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
+        if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
+        if (data?.tituloHeroAlign) setTituloAlign(data.tituloHeroAlign)
+        if (data?.heroImages) {
+          const imagenesBackend = Object.values(data.heroImages).filter(Boolean)
+          if (imagenesBackend.length > 0) {
+            setHeroImages(imagenesBackend)
+            return
+          }
+        }
+        setHeroImages(defaultHeroImages)
+      })
+      .catch((err) => {
+        console.error('Error al cargar config desde el admin:', err)
+        if (isMounted) setHeroImages(defaultHeroImages)
+      })
+
+    return () => {
+      isMounted = false
+      window.removeEventListener("avatar-updated", handleAvatarUpdated)
+    }
+  }, [])
+
+  // Slider automático del fondo
   useEffect(() => {
+    if (heroImages.length <= 1) return
+
     const interval = setInterval(() => {
       setCurrentImageIndex((previousIndex) => (previousIndex + 1) % heroImages.length)
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [heroImages])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('usuario')
+    localStorage.removeItem('avatarUrl')
+    window.location.reload()
+  }
+
+  const handleModuloRedirect = () => {
+    setUserMenuOpen(false)
+    // refuerza por si acaso alguna prop aún se mapea raro
+    const p = (userData.perfil || userData.rol || userData.tipo || 'cliente').toLowerCase()
+
+    if (['admin', 'administrador'].includes(p)) {
+      navigate('/admin')
+    } else if (['alumno'].includes(p)) {
+      navigate('/alumno')
+    } else {
+      navigate('/inicio')
+    }
+  }
+
+  const puedeAccederPanel = ['admin', 'administrador', 'alumno'].includes(
+    (userData.perfil || userData.rol || userData.tipo || '').toLowerCase(),
+  )
+
+  const getIniciales = (name) => {
+    if (!name || name === 'Usuario Bravos') return 'UB'
+    const parts = name.trim().split(' ')
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black">
@@ -65,18 +198,30 @@ function LandingPage() {
         <div className="border-b border-white/10 bg-black">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
-              <Link to="/inicio" className="flex items-center">
-                <img
-                  src="/logo-box-bravos-final.png"
-                  alt="Box Bravos"
-                  width="180"
-                  height="60"
-                  className="object-contain"
-                />
+              
+              {/* Enlace del logo corregido (Navegación interna de React sin recargar) */}
+              <Link to="/" className="flex items-center">
+                {useVectorLogo ? (
+                  <LogoBoxBravos className="block h-auto w-auto max-h-[60px] max-w-[180px]" width={180} height={52} />
+                ) : (
+                  <img
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                    alt="Box Bravos"
+                    className="block h-auto w-auto max-h-[60px] max-w-[180px] object-contain"
+                  />
+                )}
               </Link>
 
               <nav className="hidden items-center gap-1 lg:flex">
-                {navigation.map((item) => (
+                {/* Enlace de inicio corregido sin recarga dura */}
+                <Link 
+                  to="/" 
+                  className="px-4 py-2 text-sm font-semibold tracking-wide text-white/80 transition-colors hover:text-white"
+                >
+                  INICIO
+                </Link>
+
+                {navigation.filter(item => item.name !== 'INICIO').map((item) => (
                   <div
                     key={item.name}
                     className="relative"
@@ -106,30 +251,99 @@ function LandingPage() {
                     )}
                   </div>
                 ))}
-
-                <a
-                  href="#"
-                  className="flex items-center gap-1 px-4 py-2 text-sm font-semibold tracking-wide text-white/80 transition-colors hover:text-white"
-                >
-                  TIENDA
-                  <ExternalLink className="h-3 w-3" />
-                </a>
               </nav>
 
               <div className="hidden items-center gap-3 lg:flex">
-                <Link to="/login">
-                  <Button
-                    variant="ghost"
-                    className="text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
-                  >
-                    INGRESAR
-                  </Button>
-                </Link>
-                <Link to="/registro">
-                  <Button className="bg-accent px-6 text-sm font-bold text-accent-foreground hover:bg-accent/90">
-                    UNIRSE
-                  </Button>
-                </Link>
+                {!isLoggedIn ? (
+                  <>
+                    <Link to="/login">
+                      <Button
+                        variant="ghost"
+                        className="text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+                      >
+                        INGRESAR
+                      </Button>
+                    </Link>
+                    <Link to="/registro">
+                      <Button className="bg-accent px-6 text-sm font-bold text-accent-foreground hover:bg-accent/90">
+                        UNIRSE
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-4 relative">
+                    <button className="relative p-2 text-white/80 hover:text-white transition-colors">
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
+                        3
+                      </span>
+                    </button>
+
+                    <div className="relative">
+                      <button 
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        className="flex items-center gap-1 focus:outline-none"
+                      >
+                        <Avatar className="h-9 w-9 border border-green-600 bg-green-700 text-white">
+                          <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                          <AvatarFallback className="bg-green-700 text-sm font-bold text-white tracking-wider uppercase">
+                            {getIniciales(userData.nombrecompleto)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <ChevronDown className={`h-4 w-4 text-white/60 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {userMenuOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                          <div className="absolute right-0 mt-3 w-64 rounded-md border border-zinc-800 bg-[#0c0c0e] shadow-2xl z-50 overflow-hidden">
+                            <div className="border-b border-zinc-800 p-4">
+                              <p className="text-sm font-bold text-white capitalize">{userData.nombrecompleto}</p>
+                              <p className="text-xs text-zinc-400 truncate mt-0.5">{userData.correo}</p>
+                            </div>
+
+                            <div className="p-1">
+                              <Link
+                                to="/perfil"
+                                onClick={() => setUserMenuOpen(false)}
+                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
+                              >
+                                <User className="h-4 w-4 text-zinc-400" />
+                                <span>Mi Perfil</span>
+                              </Link>
+
+                              <button
+                                onClick={handleModuloRedirect}
+                                disabled={!puedeAccederPanel}
+                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
+                              >
+                                <Settings className="h-4 w-4 text-zinc-400" />
+                                <span>
+                                  {userData.perfil === 'admin' || userData.perfil === 'administrador'
+                                    ? 'Panel de Control'
+                                    : userData.perfil === 'alumno'
+                                      ? 'Mi Módulo'
+                                      : 'Cuenta pendiente'}
+                                </span>
+                              </button>
+                              
+                              <button
+                                onClick={() => {
+                                  setUserMenuOpen(false)
+                                  handleLogout()
+                                }}
+                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-red-500 hover:bg-red-950/20 transition-colors border-t border-zinc-800/60"
+                              >
+                                <LogOut className="h-4 w-4 text-red-500" />
+                                <span className="font-medium">Cerrar Sesión</span>
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button
@@ -143,6 +357,7 @@ function LandingPage() {
           </div>
         </div>
 
+        {/* MOBILE MENU */}
         {mobileMenuOpen && (
           <div className="border-b border-white/10 bg-black lg:hidden">
             <div className="container mx-auto px-4 py-4">
@@ -175,16 +390,43 @@ function LandingPage() {
                 ))}
 
                 <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
-                      INGRESAR
-                    </Button>
-                  </Link>
-                  <Link to="/registro" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90">
-                      UNIRSE
-                    </Button>
-                  </Link>
+                  {!isLoggedIn ? (
+                    <>
+                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
+                          INGRESAR
+                        </Button>
+                      </Link>
+                      <Link to="/registro" onClick={() => setMobileMenuOpen(false)}>
+                        <Button className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90">
+                          UNIRSE
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={handleModuloRedirect} 
+                        variant="outline" 
+                        className="w-full flex items-center justify-center gap-2 border-zinc-800 text-white hover:bg-white/5"
+                        disabled={!puedeAccederPanel}
+                      >
+                        <Settings className="h-4 w-4 text-zinc-400" />
+                        {puedeAccederPanel ? 'PANEL DE CONTROL' : 'CUENTA PENDIENTE'}
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          handleLogout()
+                        }}
+                        variant="destructive" 
+                        className="w-full flex items-center justify-center gap-2 font-bold bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        CERRAR SESIÓN
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -192,6 +434,7 @@ function LandingPage() {
         )}
       </header>
 
+      {/* SECCIÓN HERO */}
       <section className="relative flex min-h-screen items-end pb-16 sm:pb-24">
         {heroImages.map((imageSource, index) => (
           <div
@@ -202,7 +445,7 @@ function LandingPage() {
           >
             <img
               src={imageSource}
-              alt="Entrenamiento funcional"
+              alt="Entrenamiento"
               className="h-full w-full object-cover"
               loading={index === 0 ? 'eager' : 'lazy'}
             />
@@ -230,19 +473,30 @@ function LandingPage() {
             <span className="text-white/80">Formosa Capital</span>
           </div>
 
-          <div className="mb-6 flex flex-col items-start">
-            <p className="mb-2 text-xl font-black tracking-widest text-white sm:text-2xl md:text-3xl">
-              A LOS
-            </p>
-            <img
-              src="/logo-box-bravos-final.png"
-              alt="Box Bravos"
-              width="400"
-              height="140"
-              className="object-contain"
-            />
-            <p className="mt-2 text-xl font-black tracking-widest text-white sm:text-2xl md:text-3xl">
-              DE MALVINAS
+          <div className="mb-6 flex w-full max-w-[620px] flex-col items-start">
+            <div className="flex w-full justify-start overflow-visible px-4 py-2 sm:px-6 sm:py-3">
+              <div className="flex h-[120px] w-[360px] items-center justify-start overflow-hidden -ml-6 sm:-ml-8">
+                {useVectorLogo ? (
+                  <LogoBoxBravos className="block h-full w-full" width={360} height={104} />
+                ) : (
+                  <img
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                    alt="Box Bravos"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'left center' }}
+                    className="block"
+                  />
+                )}
+              </div>
+            </div>
+            <p
+              className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl"
+              style={{
+                fontSize: tituloSize ? `${tituloSize}px` : undefined,
+                fontFamily: tituloFont || undefined,
+                textAlign: 'left',
+              }}
+            >
+              {titulo}
             </p>
           </div>
 
@@ -253,6 +507,7 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SECCIÓN FRASE MOTIVACIONAL */}
       <section className="bg-black py-20 md:py-32">
         <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
           <blockquote className="text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
@@ -263,6 +518,7 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SECCIÓN SOBRE NOSOTROS */}
       <section id="nosotros" className="relative py-20 md:py-32">
         <div className="absolute inset-0">
           <img src="/gym-interior.jpg" alt="Interior del Box" className="h-full w-full object-cover" />
@@ -276,7 +532,7 @@ function LandingPage() {
             </h2>
 
             <p className="mt-6 text-lg leading-relaxed text-white/70">
-              Somos mas que un gimnasio. Somos una comunidad de atletas comprometidos con la excelencia.
+              Somos mas que un gimnasio. Somos una comunidad de atletas comprometidos con la excellence.
               Desde 2019, hemos ayudado a cientos de personas a transformar sus vidas a traves del entrenamiento funcional.
             </p>
 
@@ -304,10 +560,11 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SECCIÓN CLASES */}
       <section id="clases" className="bg-zinc-950 py-20 md:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="mb-12 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
-            NUESTRAS <span className="text-accent">CLASES</span>
+            NUESTREAS <span className="text-accent">CLASES</span>
           </h2>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -315,16 +572,14 @@ function LandingPage() {
               {
                 name: 'FUNCIONAL',
                 image: '/hero-crossfit.jpg',
-                description:
-                  'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.',
+                description: 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.',
                 duration: '60 MIN',
                 level: 'TODOS',
               },
               {
                 name: 'WOD INTENSIVO',
                 image: '/wod-training.jpg',
-                description:
-                  'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.',
+                description: 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.',
                 duration: '45 MIN',
                 level: 'INT/AVZ',
               },
@@ -358,6 +613,7 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* SECCIÓN HORARIOS */}
       <section id="horarios" className="relative py-20 md:py-32">
         <div className="absolute inset-0">
           <img src="/landing-hero-2.jpg" alt="Training" className="h-full w-full object-cover" />
@@ -410,30 +666,10 @@ function LandingPage() {
               </div>
             ))}
           </div>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            <div className="border border-white/10 bg-white/5 p-6">
-              <h3 className="mb-2 font-bold text-accent">HORARIO DE ATENCION</h3>
-              <p className="text-sm text-white/70">Lunes a Viernes: 06:00 - 22:00</p>
-              <p className="text-sm text-white/70">Sabados: 08:00 - 14:00</p>
-              <p className="text-sm text-white/70">Domingos: Cerrado</p>
-            </div>
-            <div className="border border-white/10 bg-white/5 p-6">
-              <h3 className="mb-2 font-bold text-accent">DURACION DE CLASES</h3>
-              <p className="text-sm text-white/70">Funcional: 60 minutos</p>
-              <p className="text-sm text-white/70">WOD Intensivo: 45 minutos</p>
-              <p className="text-sm text-white/70">Open Box: 90 minutos</p>
-            </div>
-            <div className="border border-white/10 bg-white/5 p-6">
-              <h3 className="mb-2 font-bold text-accent">CAPACIDAD</h3>
-              <p className="text-sm text-white/70">Funcional: 15 personas</p>
-              <p className="text-sm text-white/70">WOD Intensivo: 12 personas</p>
-              <p className="text-sm text-white/70">Open Box: 20 personas</p>
-            </div>
-          </div>
         </div>
       </section>
 
+      {/* SECCIÓN CONTACTO */}
       <section id="contacto" className="bg-zinc-950 py-20 md:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="mb-12 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">
@@ -450,23 +686,6 @@ function LandingPage() {
                   <p className="text-white/60">Formosa Capital, Argentina</p>
                 </div>
               </div>
-
-              <div className="mt-8">
-                <h3 className="mb-4 text-lg font-bold text-white">HORARIOS DE ATENCION</h3>
-                <div className="space-y-2 text-white/60">
-                  <p>Lunes a Viernes: 6:00 - 22:00</p>
-                  <p>Sabados: 8:00 - 14:00</p>
-                  <p>Domingos: Cerrado</p>
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="mb-4 text-lg font-bold text-white">CONTACTO</h3>
-                <div className="space-y-2 text-white/60">
-                  <p>Tel: +54 11 1234-5678</p>
-                  <p>Email: info@crossfitbravos.com</p>
-                </div>
-              </div>
             </div>
 
             <div className="relative aspect-video overflow-hidden rounded-lg bg-white/5 md:aspect-auto">
@@ -481,33 +700,14 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="border-t border-white/10 bg-black py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">
-              <img src="/logo.jpg" alt="Bravos Gym" width="40" height="40" className="rounded" />
               <span className="text-lg font-black tracking-tight text-accent">CROSSFIT BRAVOS</span>
             </div>
-
-            <div className="flex items-center gap-4">
-              <a href="#" className="p-2 text-white/50 transition-colors hover:text-white">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/30 text-[10px] font-black leading-none">
-                  IG
-                </span>
-              </a>
-              <a href="#" className="p-2 text-white/50 transition-colors hover:text-white">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/30 text-[10px] font-black leading-none">
-                  FB
-                </span>
-              </a>
-              <a href="#" className="p-2 text-white/50 transition-colors hover:text-white">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/30 text-[10px] font-black leading-none">
-                  YT
-                </span>
-              </a>
-            </div>
-
-            <p className="text-sm text-white/40">2024 CrossFit Bravos. Todos los derechos reservados.</p>
+            <p className="text-sm text-white/40">2026 CrossFit Bravos. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

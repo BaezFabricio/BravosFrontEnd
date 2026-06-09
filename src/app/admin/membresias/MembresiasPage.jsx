@@ -31,7 +31,7 @@ const membresias = [
 
 const estadoConfig = {
   vigente: { label: "Vigente", className: "bg-green-500/10 text-green-500 border-green-500/20", icon: CheckCircle2 },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20", icon: Clock },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20", icon: Clock },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: AlertTriangle },
 }
 
@@ -83,9 +83,9 @@ export default function MembresiasPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Por Vencer</p>
-                <p className="text-2xl font-bold text-yellow-500">{stats.porVencer}</p>
+                <p className="text-2xl font-bold text-green-500">{stats.porVencer}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-500/50" />
+              <Clock className="h-8 w-8 text-green-500/50" />
             </div>
           </CardContent>
         </Card>
@@ -179,7 +179,7 @@ export default function MembresiasPage() {
                             membresia.diasRestantes < 0
                               ? "text-red-500"
                               : membresia.diasRestantes <= 5
-                              ? "text-yellow-500"
+                              ? "text-green-500"
                               : "text-foreground"
                           }`}
                         >

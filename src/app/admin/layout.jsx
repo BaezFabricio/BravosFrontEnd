@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
   Users,
@@ -12,8 +13,11 @@ import {
   Shield,
   ChevronDown,
   Bell,
+  Home, // 👈 Ícono para el botón de volver al inicio
+  User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,11 +37,72 @@ const navigation = [
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userData, setUserData] = useState({
+    nombrecompleto: "Administrador",
+    correo: "admin@bravos.com",
+    perfil: "admin",
+  })
+  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("avatarUrl") || "")
   const location = useLocation()
+  const navigate = useNavigate()
   const pathname = location.pathname
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("usuario")
+    const storedAvatar = localStorage.getItem("avatarUrl")
+
+    if (storedAvatar) setAvatarUrl(storedAvatar)
+
+    if (!storedUser) return
+
+    try {
+      const parsedUser = JSON.parse(storedUser)
+      if (parsedUser?.avatarUrl) {
+        localStorage.setItem("avatarUrl", parsedUser.avatarUrl)
+        setAvatarUrl(parsedUser.avatarUrl)
+      }
+
+      setUserData({
+        nombrecompleto: parsedUser?.nombrecompleto || parsedUser?.nombre || parsedUser?.username || "Administrador",
+        correo: parsedUser?.correo || parsedUser?.email || "admin@bravos.com",
+        perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || "admin",
+      })
+    } catch (error) {
+      console.error("Error al parsear el usuario desde localStorage:", error)
+    }
+
+    const handleAvatarUpdated = (event) => {
+      setAvatarUrl(event.detail || "")
+    }
+
+    window.addEventListener("avatar-updated", handleAvatarUpdated)
+    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+  }, [])
+
+  const getIniciales = (name) => {
+    if (!name) return "AD"
+
+    const parts = name.trim().split(" ")
+
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase()
+    }
+
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const avatarFallback = getIniciales(userData.nombrecompleto)
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("usuario")
+    localStorage.removeItem("avatarUrl")
+    navigate("/login", { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Overlay para móviles */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -45,14 +110,20 @@ export default function AdminLayout({ children }) {
         />
       )}
 
+      {/* Sidebar Lateral */}
       <aside
         className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
+          {/* Header del Sidebar (Logo + Nombre) */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <Link to="/admin" className="flex items-center gap-3">
+            <Link 
+              to="/" 
+              onClick={() => window.location.href = '/'} 
+              className="flex items-center gap-3"
+            >
               <img
                 src="/logo.jpg"
                 alt="Bravos Gym"
@@ -70,6 +141,7 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
 
+          {/* Menú de navegación principal */}
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -91,23 +163,32 @@ export default function AdminLayout({ children }) {
             })}
           </nav>
 
+          {/* Footer del Sidebar (Info del Usuario Logueado) */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-                <span className="text-sm font-bold text-sidebar-primary-foreground">AD</span>
-              </div>
+              <Avatar className="h-10 w-10 border border-sidebar-border">
+                <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                <AvatarFallback className="bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
+                  {avatarFallback}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">Admin</p>
-                <p className="text-xs text-muted-foreground truncate">admin@bravos.com</p>
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {userData.nombrecompleto}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
               </div>
             </div>
           </div>
         </div>
       </aside>
 
+      {/* Contenedor Principal (Derecha) */}
       <div className="lg:pl-64">
+        {/* Barra de Navegación Superior (Header) */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+            {/* Botón Hamburguesa para Móviles */}
             <button
               className="lg:hidden text-foreground"
               onClick={() => setSidebarOpen(true)}
@@ -117,7 +198,21 @@ export default function AdminLayout({ children }) {
 
             <div className="flex-1 lg:flex-none" />
 
+            {/* Acciones de la derecha */}
             <div className="flex items-center gap-3">
+              
+              {/* 🚀 BOTÓN NUEVO: Volver a Inicio / Ver Landing Principal */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2 text-muted-foreground hover:text-foreground hidden sm:flex"
+                onClick={() => window.location.href = '/'}
+              >
+                <Home className="h-4 w-4" />
+                Ver Sitio
+              </Button>
+
+              {/* Botón de Notificaciones */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -125,20 +220,31 @@ export default function AdminLayout({ children }) {
                 </span>
               </Button>
 
+              {/* Menú Desplegable de Usuario */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary-foreground">AD</span>
-                    </div>
+                    <Avatar className="h-8 w-8 border border-border">
+                      <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                      <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">
+                        {avatarFallback}
+                      </AvatarFallback>
+                    </Avatar>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">Administrador</p>
-                    <p className="text-xs text-muted-foreground">admin@bravos.com</p>
+                    <p className="text-sm font-medium">{userData.nombrecompleto}</p>
+                    <p className="text-xs text-muted-foreground">{userData.correo}</p>
                   </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil">
+                      <User className="mr-2 h-4 w-4" />
+                      Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/admin/configuracion">
@@ -147,11 +253,12 @@ export default function AdminLayout({ children }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {/* Cerrar sesión también fuerza la limpieza volviendo a la raíz */}
                   <DropdownMenuItem asChild className="text-destructive">
-                    <Link to="/">
+                    <button type="button" onClick={handleLogout} className="w-full text-left">
                       <LogOut className="mr-2 h-4 w-4" />
                       Cerrar Sesión
-                    </Link>
+                    </button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -159,6 +266,7 @@ export default function AdminLayout({ children }) {
           </div>
         </header>
 
+        {/* Contenido Dinámico de las Vistas del Admin */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
     </div>

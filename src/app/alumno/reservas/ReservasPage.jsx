@@ -135,9 +135,9 @@ export default function ReservasPage() {
             </Card>
           ) : (
             <div className="space-y-4">
-              <Alert className="bg-yellow-500/10 border-yellow-500/20">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                <AlertDescription className="text-yellow-500/80">
+              <Alert className="bg-green-500/10 border-green-500/20">
+                <AlertTriangle className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-green-500/80">
                   Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto.
                 </AlertDescription>
               </Alert>
@@ -179,9 +179,9 @@ export default function ReservasPage() {
             </div>
           )}
 
-          <Alert className="bg-yellow-500/10 border-yellow-500/20">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-500/80">
+          <Alert className="bg-green-500/10 border-green-500/20">
+            <AlertTriangle className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-500/80">
               Si cancelas con más de 2 horas de anticipación, tu crédito será devuelto automáticamente.
             </AlertDescription>
           </Alert>
