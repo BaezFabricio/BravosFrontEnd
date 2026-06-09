@@ -12,6 +12,10 @@ import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
 import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
 import NuevoUsuarioPage from './app/admin/usuarios/nuevo/NuevoUsuarioPage.jsx'
 import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/EditarUsuarioPage.jsx'
+import ClasesPage from './app/admin/clases/ClasesPage.jsx'
+import NuevaClasePage from './app/admin/clases/NuevaClasePage.jsx'
+import EditarClasePage from './app/admin/clases/EditarClasePage.jsx'
+import TurnosPage from './app/admin/clases/TurnosPage.jsx'
 import AlumnoLayout from './app/alumno/layout.jsx'
 import AlumnoDashboard from './app/alumno/AlumnoDashboard.jsx'
 import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
@@ -38,6 +42,12 @@ function App() {
         <Route path="/admin/usuarios/:id/editar" element={<AdminLayout><EditarUsuarioPage /></AdminLayout>} />
 
         <Route path="/alumno" element={<AlumnoLayout><AlumnoDashboard /></AlumnoLayout>} />
+          {/* Clases */}
+          <Route path="/admin/clases" element={<AdminLayout><ClasesPage /></AdminLayout>} />
+          <Route path="/admin/clases/nueva" element={<AdminLayout><NuevaClasePage /></AdminLayout>} />
+          <Route path="/admin/clases/:id/editar" element={<AdminLayout><EditarClasePage /></AdminLayout>} />
+          <Route path="/admin/clases/turnos" element={<AdminLayout><TurnosPage /></AdminLayout>} />
+
         <Route path="/alumno/reservar" element={<AlumnoLayout><AlumnoReservarPage /></AlumnoLayout>} />
         <Route path="/alumno/reservas" element={<AlumnoLayout><AlumnoReservasPage /></AlumnoLayout>} />
         <Route path="/alumno/creditos" element={<AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout>} />
