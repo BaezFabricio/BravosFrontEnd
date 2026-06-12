@@ -55,12 +55,6 @@ const membershipConfig = {
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
-const roleLabels = {
-  admin: "Administrador",
-  profesor: "Profesor",
-  alumno: "Alumno",
-}
-
 export default function UsuariosPage() {
   const [users, setUsers] = useState([])
   const [search, setSearch] = useState("")
@@ -72,18 +66,41 @@ export default function UsuariosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Cargar usuarios de la API al montar el componente
+  // 🟢 ESTADO PARA LOS PERMISOS DEL USUARIO LOGUEADO
+  const [permisos, setPermisos] = useState([])
+
+  // Cargar usuarios y permisos al montar el componente
   useEffect(() => {
     cargarUsuarios()
+
+    // 🟢 CARGAMOS LOS PERMISOS DESDE EL LOCALSTORAGE
+    const storedPermisos = localStorage.getItem("permisos")
+    if (storedPermisos) {
+      try {
+        setPermisos(JSON.parse(storedPermisos))
+      } catch (err) {
+        console.error("Error al parsear permisos en UsuariosPage:", err)
+      }
+    }
   }, [])
 
   const cargarUsuarios = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const data = await getUsuarios()
-      // Nos aseguramos de que 'data' sea un array válido antes de guardarlo
-      setUsers(Array.isArray(data) ? data : [])
+      const token = localStorage.getItem("token")
+
+      // 🟢 FETCH DIRECTO AL BACKEND: Saltamos getUsuarios() para evitar filtros fantasmas
+      const res = await fetch("http://localhost:3001/api/vv1/usuarios", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      const resultado = await res.json()
+      
+      // 🔴 REVISIÓN CLAVE: Mirá este log en la consola del navegador (F12)
+      console.log("📥 DATOS REALES QUE LLEGAN A LA TABLA:", resultado)
+
+      const listaReal = resultado.data || resultado;
+      setUsers(Array.isArray(listaReal) ? listaReal : [])
     } catch (err) {
       console.error("Error al cargar usuarios:", err)
       setError("No se pudieron cargar los usuarios. Por favor, intenta nuevamente.")
@@ -94,32 +111,42 @@ export default function UsuariosPage() {
 
   // ✨ FILTRO BLINDADO CONTRA CAMPOS NULOS O MAYÚSCULAS DE LA BASE DE DATOS
   const filteredUsers = users
-    .map((user) => normalizarUsuario(user))
+    .map((user) => {
+      const normalized = normalizarUsuario ? normalizarUsuario(user) : user
+      
+      // 🟢 CAPTURA DIRECTA DE SQL: Si el backend manda nombrePerfil, lo usamos directo sin intermediarios
+      const nombrePerfilReal = user.nombrePerfil || normalized.nombrePerfil || user.perfil || "";
+      const idPerfilReal = user.idPerfil !== undefined ? user.idPerfil : normalized.idPerfil;
+      const idReal = user.idUsuario || normalized.idUsuario || user.id || normalized.id;
+
+      return {
+        ...normalized,
+        ...user, // Inyectamos las propiedades crudas encima
+        idUsuario: idReal,
+        idPerfil: idPerfilReal,
+        nombrePerfil: nombrePerfilReal, // 👈 Forzamos que se guarde el texto real que viene de la query
+        estado: statusConfig[user.estado || normalized.estado] ? (user.estado || normalized.estado) : "activo",
+        membresia: membershipConfig[user.membresia || normalized.membresia] ? (user.membresia || normalized.membresia) : "vencida"
+      }
+    })
     .filter((user) => {
-    const nombreUser = user.nombre.toLowerCase()
-    const dniUser = user.dni
-    const emailUser = user.email.toLowerCase()
+      const nombreUser = (user.nombre || user.nombrecompleto || "").toLowerCase()
+      const dniUser = user.dni || ""
+      const emailUser = (user.email || user.correo || "").toLowerCase()
 
-    const estadoUser = statusConfig[user.estado] ? user.estado : "activo"
-    const perfilUser = roleLabels[user.perfil] ? user.perfil : "alumno"
-    const membresiaUser = membershipConfig[user.membresia] ? user.membresia : "vencida"
-
-    const userToRender = {
-      ...user,
-      estado: estadoUser,
-      perfil: perfilUser,
-      membresia: membresiaUser,
-    }
-
-    const matchesSearch =
-      nombreUser.includes(search.toLowerCase()) ||
-      dniUser.includes(search) ||
-      emailUser.includes(search.toLowerCase())
-    
-    const matchesStatus = statusFilter === "all" || userToRender.estado === statusFilter
-    const matchesRole = roleFilter === "all" || userToRender.perfil === roleFilter
-    return matchesSearch && matchesStatus && matchesRole
-  })
+      const matchesSearch =
+        nombreUser.includes(search.toLowerCase()) ||
+        dniUser.includes(search) ||
+        emailUser.includes(search.toLowerCase())
+      
+      const matchesStatus = statusFilter === "all" || user.estado === statusFilter
+      
+      // Filtro de roles por ID numérico o texto
+      const stringPerfil = String(user.nombrePerfil || user.idPerfil || "").toLowerCase()
+      const matchesRole = roleFilter === "all" || stringPerfil.includes(roleFilter.toLowerCase())
+      
+      return matchesSearch && matchesStatus && matchesRole
+    })
 
   const handleStatusChange = async (userId, newStatus) => {
     try {
@@ -163,15 +190,19 @@ export default function UsuariosPage() {
           </div>
           <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button asChild className="bg-primary hover:bg-primary/90">
-            <Link to="/admin/usuarios/nuevo">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Usuario
-            </Link>
-          </Button>
-          <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3" />
-        </div>
+        
+        {/* 🟢 PROTECCIÓN DEL BOTÓN NUEVO USUARIO (Requiere usuarios:alta) */}
+        {permisos.includes("usuarios:alta") && (
+          <div className="flex items-center gap-2">
+            <Button asChild className="bg-primary hover:bg-primary/90">
+              <Link to="/admin/usuarios/nuevo">
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Usuario
+              </Link>
+            </Button>
+            <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3" />
+          </div>
+        )}
       </div>
 
       <Card className="bg-card border-border">
@@ -212,13 +243,17 @@ export default function UsuariosPage() {
                 <SelectItem value="alumno">Alumno</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" className="border-border">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
-              <HelpTooltip content="Descarga un archivo Excel con todos los usuarios filtrados actualmente." />
-            </div>
+            
+            {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR (Disponible si puede consultar) */}
+            {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
+              <div className="flex items-center gap-1">
+                <Button variant="outline" className="border-border">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar
+                </Button>
+                <HelpTooltip content="Descarga un archivo Excel con todos los usuarios filtrados actualmente." />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -264,7 +299,9 @@ export default function UsuariosPage() {
                         <span className="text-foreground">{user.telefono}</span>
                       </td>
                       <td className="p-4">
-                        <span className="text-foreground">{roleLabels[user.perfil] || roleLabels.alumno}</span>
+                        <span className="text-foreground font-medium">
+                          {user.nombrePerfil || user.perfil || "Sin Perfil"}
+                        </span>
                       </td>
                       <td className="p-4">
                         <Badge variant="outline" className={statusConfig[user.estado]?.className || statusConfig.activo.className}>
@@ -287,39 +324,56 @@ export default function UsuariosPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link to={`/admin/usuarios/${user.id}`}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver Detalle
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/admin/usuarios/${user.id}/editar`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {user.estado === "activo" && (
-                              <DropdownMenuItem
-                                onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                                className="text-green-500"
-                              >
-                                <UserX className="mr-2 h-4 w-4" />
-                                Suspender
+                            
+                            {/* 🟢 ACCIÓN: VER DETALLE (Requiere consulta o ver) */}
+                            {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
+                              <DropdownMenuItem asChild>
+                               <Link to={`/admin/usuarios/${user.idUsuario || user.id}`}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Ver Detalle
+                                </Link>
                               </DropdownMenuItem>
                             )}
-                            {user.estado === "suspendido" && (
-                              <DropdownMenuItem
-                                onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
-                                className="text-green-500"
-                              >
-                                <UserCheck className="mr-2 h-4 w-4" />
-                                Activar
+
+                            {/* 🟢 ACCIÓN: EDICIÓN (Requiere modificacion) */}
+                            {permisos.includes("usuarios:modificacion") && (
+                              <DropdownMenuItem asChild>
+                                <Link to={`/admin/usuarios/${user.idUsuario || user.id}/editar`}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Editar
+                                </Link>
                               </DropdownMenuItem>
                             )}
-                            {user.estado !== "inactivo" && (
-                                <DropdownMenuItem
+                            
+                            {/* 🟢 ACCIONES DE CAMBIO DE ESTADO (Requieren modificacion) */}
+                            {permisos.includes("usuarios:modificacion") && (
+                              <>
+                                <DropdownMenuSeparator />
+                                {user.estado === "activo" && (
+                                  <DropdownMenuItem
+                                    onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
+                                    className="text-green-500"
+                                  >
+                                    <UserX className="mr-2 h-4 w-4" />
+                                    Suspender
+                                  </DropdownMenuItem>
+                                )}
+                                
+                                {user.estado === "suspendido" && (
+                                  <DropdownMenuItem
+                                    onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
+                                    className="text-green-500"
+                                  >
+                                    <UserCheck className="mr-2 h-4 w-4" />
+                                    Activar
+                                  </DropdownMenuItem>
+                                )}
+                              </>
+                            )}
+
+                            {/* 🟢 ACCIÓN: DAR DE BAJA (Requiere baja) */}
+                            {permisos.includes("usuarios:baja") && user.estado !== "inactivo" && (
+                              <DropdownMenuItem
                                 onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
                                 className="text-green-500"
                               >
@@ -327,14 +381,21 @@ export default function UsuariosPage() {
                                 Dar de Baja
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => setDeleteDialog({ open: true, user })}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Eliminar Permanente
-                            </DropdownMenuItem>
+
+                            {/* 🟢 ACCIÓN: ELIMINAR PERMANENTE (Requiere baja) */}
+                            {permisos.includes("usuarios:baja") && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteDialog({ open: true, user })}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Eliminar Permanente
+                                </DropdownMenuItem>
+                              </>
+                            )}
+
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>

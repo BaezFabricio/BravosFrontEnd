@@ -12,7 +12,6 @@ import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
 import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
 import NuevoUsuarioPage from './app/admin/usuarios/nuevo/NuevoUsuarioPage.jsx'
 import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/EditarUsuarioPage.jsx'
-// 🚀 IMPORTAMOS EL NUEVO COMPONENTE DE PERSONALIZACIÓN
 import ConfiguracionLandingPage from './app/admin/configuracion/ConfiguracionLandingPage.jsx' 
 
 import AlumnoLayout from './app/alumno/layout.jsx'
@@ -23,9 +22,17 @@ import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 
+import ProfesorLayout from './app/profesor/ProfesorLayout.jsx'
+import ProfesorDashboard from "./app/profesor/ProfesorDashboard"
+import ProfesorPerfilPage from './app/profesor/perfil/ProfesorPerfilPage.jsx'
+import RutinasPage from "./app/profesor/rutinas/RutinasPage"
+import NuevaRutinaPage from './app/profesor/rutinas/nueva/NuevaRutinaPage.jsx'
+import DetalleRutinaPage from './app/profesor/rutinas/[id]/DetalleRutinaPage.jsx'
+
+// 🟢 GUARDIÁN DE RUTAS DINÁMICO POR PERMISOS
 function RequireAuth({ children, allowedRoles }) {
   const token = localStorage.getItem('token')
-  const usuarioRaw = localStorage.getItem('usuario')
+  const permisosRaw = localStorage.getItem('permisos')
 
   if (!token) {
     return <Navigate to="/login" replace />
@@ -36,11 +43,28 @@ function RequireAuth({ children, allowedRoles }) {
   }
 
   try {
-    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null
-    const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || '').toLowerCase()
+    const permisos = permisosRaw ? JSON.parse(permisosRaw) : []
+    
+    const tieneModulosAdmin = permisos.some(p => 
+      p.startsWith('usuarios:') || p.startsWith('dashboard:') || 
+      p.startsWith('perfiles:') || p.startsWith('membresias:') ||
+      p.startsWith('clases:') || p.startsWith('reservas:') ||
+      p.startsWith('creditos:') || p.startsWith('configuracion:')
+    );
+    
+    const tieneModulosAlumno = permisos.some(p => p.startsWith('alumno'));
+    const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor'));
 
-    if (allowedRoles.includes(perfil)) {
-      return children
+    if (allowedRoles.includes('admin') || allowedRoles.includes('administrador')) {
+      if (tieneModulosAdmin) return children
+    }
+
+    if (allowedRoles.includes('alumno')) {
+      if (tieneModulosAlumno) return children
+    }
+
+    if (allowedRoles.includes('profesor')) {
+      if (tieneModulosProfesor) return children
     }
   } catch (error) {
     console.error('Error al validar el usuario autenticado:', error)
@@ -49,19 +73,26 @@ function RequireAuth({ children, allowedRoles }) {
   return <Navigate to="/inicio" replace />
 }
 
+// 🟢 LAYOUT COMPARTIDO DINÁMICO POR PERMISOS
 function SharedProfileRoute({ children }) {
-  const usuarioRaw = localStorage.getItem('usuario')
+  const permisosRaw = localStorage.getItem('permisos')
 
   try {
-    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null
-    const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || '').toLowerCase()
+    const permisos = permisosRaw ? JSON.parse(permisosRaw) : []
+    const tieneModulosAdmin = permisos.some(p => p.startsWith('usuarios:') || p.startsWith('dashboard:') || p.startsWith('perfiles:'));
+    const tieneModulosAlumno = permisos.some(p => p.startsWith('alumno'));
+    const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor'));
 
-    if (perfil === 'admin' || perfil === 'administrador') {
+    if (tieneModulosAdmin) {
       return <AdminLayout>{children}</AdminLayout>
     }
 
-    if (perfil === 'alumno') {
+    if (tieneModulosAlumno) {
       return <AlumnoLayout>{children}</AlumnoLayout>
+    }
+
+    if (tieneModulosProfesor) {
+      return <ProfesorLayout>{children}</ProfesorLayout>
     }
 
     return (
@@ -92,14 +123,15 @@ function App() {
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
 
         {/* RUTAS DE ADMINISTRADOR */}
-        <Route path="/admin" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/membresias" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><MembresiasPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/usuarios/:id" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><DetalleUsuarioPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/usuarios/:id/editar" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><EditarUsuarioPage /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/configuracion" element={<RequireAuth allowedRoles={["admin", "administrador"]}><AdminLayout><ConfiguracionLandingPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/membresias" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><MembresiasPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
+        {/* 🟢 CORREGIDO: Se removió el cierre huérfano </AdminDashboard> de esta línea */}
+        <Route path="/admin/usuarios/:id" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><DetalleUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/:id/editar" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><EditarUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/configuracion" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><ConfiguracionLandingPage /></AdminLayout></RequireAuth>} />
 
         {/* RUTAS DE ALUMNO */}
         <Route path="/alumno" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDashboard /></AlumnoLayout></RequireAuth>} />
@@ -109,10 +141,17 @@ function App() {
         <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
 
+        {/* RUTAS DE PROFESOR CORREGIDAS */}
+        <Route path="/profesor" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorDashboard /></ProfesorLayout></RequireAuth>} />
+        <Route path="/profesor/perfil" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorPerfilPage /></ProfesorLayout></RequireAuth>} />
+        <Route path="/profesor/rutinas" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><RutinasPage /></ProfesorLayout></RequireAuth>} />
+        <Route path="/profesor/rutinas/nueva" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><NuevaRutinaPage /></ProfesorLayout></RequireAuth>} />
+        <Route path="/profesor/rutinas/:id" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><DetalleRutinaPage /></ProfesorLayout></RequireAuth>} />
+        
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>
     </BrowserRouter>
   )
 }
 
-export default App
+export default App;

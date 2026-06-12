@@ -9,6 +9,8 @@ function ConfiguracionLandingPage() {
   const [activeTab, setActiveTab] = useState('hero')
   const [mensaje, setMensaje] = useState({ texto: '', tipo: '' })
 
+  const [permisos, setPermisos] = useState([])
+
   // Estados para los campos del formulario
   const [tituloHero, setTituloHero] = useState('')
   const [tituloSize, setTituloSize] = useState('')
@@ -29,8 +31,6 @@ function ConfiguracionLandingPage() {
   const [heroPreview3, setHeroPreview3] = useState('/landing-hero-3.jpg')
 
   const useVectorLogo = !logoPreview || logoPreview.includes('logo-box-bravos-final.png')
-
-  // Usamos misma origin y proxy de Vite para evitar problemas de red/CORS
   const API_URL = ''
 
   // Cargar configuración inicial
@@ -51,7 +51,6 @@ function ConfiguracionLandingPage() {
         setTituloFont(data.tituloHeroFont || '')
         setTituloAlign(data.tituloHeroAlign || '')
         if (data.logoUrl) setLogoPreview(data.logoUrl)
-        // Ajustado para recibir array u objeto de imágenes si el backend las envía así
         if (data.heroImages) {
           const imgs = Array.isArray(data.heroImages) ? data.heroImages : Object.values(data.heroImages)
           setHeroPreview1(imgs[0] || '/landing-hero-1.jpg')
@@ -70,12 +69,26 @@ function ConfiguracionLandingPage() {
     }
   }
 
+  // 🟢 2. LEEMOS LOS PERMISOS AL MONTAR LA PANTALLA
   useEffect(() => {
     cargarConfiguracion()
+
+    const storedPermisos = localStorage.getItem("permisos")
+    if (storedPermisos) {
+      try {
+        setPermisos(JSON.parse(storedPermisos))
+      } catch (err) {
+        console.error('Error al cargar permisos en configuración:', err)
+      }
+    }
   }, [])
+
+  // 🟢 3. CREAMOS LA BANDERA DE CONTROL DE EDICIÓN
+  const puedeModificar = permisos.includes('configuracion:modificacion')
 
   // Manejo de Previews
   const handleFileChange = (e, tipo) => {
+    if (!puedeModificar) return // Por seguridad, si no puede modificar, frena el cambio de archivo
     const file = e.target.files[0]
     if (!file) return
 
@@ -97,13 +110,14 @@ function ConfiguracionLandingPage() {
   // Guardar cambios
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!puedeModificar) return // Freno de mano por si intentan saltearse el botón deshabilitado
+
     try {
       setGuardando(true)
       setMensaje({ texto: '', tipo: '' })
 
       const formData = new FormData()
       formData.append('tituloHero', tituloHero)
-      // Agregar estilos del título si fueron configurados
       if (tituloSize) formData.append('tituloHeroSize', tituloSize)
       if (tituloFont) formData.append('tituloHeroFont', tituloFont)
       if (tituloAlign) formData.append('tituloHeroAlign', tituloAlign)
@@ -121,7 +135,6 @@ function ConfiguracionLandingPage() {
         throw new Error('Error al guardar los datos en el servidor')
       }
 
-      // Tras guardar, pedir al backend la configuración persistida
       const nuevaConfigRes = await fetch(`${API_URL}/landing/config?t=${new Date().getTime()}`)
       if (nuevaConfigRes.ok) {
         const nuevaConfig = await nuevaConfigRes.json()
@@ -212,31 +225,37 @@ function ConfiguracionLandingPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-semibold tracking-wide text-zinc-300">Título Principal Landing</label>
+                
                 <input
                   type="text"
+                  disabled={!puedeModificar}
                   value={tituloHero}
                   onChange={(e) => setTituloHero(e.target.value)}
-                  className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white focus:border-accent focus:outline-none"
+                  className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white focus:border-accent focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-zinc-400">Tamaño (px)</label>
+                    {/* 🟢 AGREGA EL DISABLED */}
                     <input
                       type="number"
+                      disabled={!puedeModificar}
                       min={10}
                       max={200}
                       value={tituloSize}
                       onChange={(e) => setTituloSize(e.target.value)}
-                      className="w-24 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                      className="w-24 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white disabled:opacity-50"
                     />
                   </div>
 
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-zinc-400">Alineación</label>
+                    {/* 🟢 AGREGA EL DISABLED */}
                     <select
+                      disabled={!puedeModificar}
                       value={tituloAlign}
                       onChange={(e) => setTituloAlign(e.target.value)}
-                      className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                      className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white disabled:opacity-50"
                     >
                       <option value="left">Izquierda</option>
                       <option value="center">Centro</option>
@@ -246,12 +265,14 @@ function ConfiguracionLandingPage() {
 
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-zinc-400">Tipografía</label>
+                    {/* 🟢 AGREGA EL DISABLED */}
                     <input
                       type="text"
+                      disabled={!puedeModificar}
                       placeholder="Ej: Arial, 'Roboto', sans-serif"
                       value={tituloFont}
                       onChange={(e) => setTituloFont(e.target.value)}
-                      className="w-48 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white"
+                      className="w-48 rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-white disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -271,16 +292,20 @@ function ConfiguracionLandingPage() {
                       />
                     )}
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer bg-zinc-900 hover:bg-zinc-800 text-xs font-bold py-2.5 px-4 border border-zinc-800 rounded-md transition-colors">
-                    <Upload className="h-3.5 w-3.5" />
-                    Seleccionar Archivo
-                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'logo')} className="hidden" />
-                  </label>
+                  
+                  {puedeModificar ? (
+                    <label className="flex items-center gap-2 cursor-pointer bg-zinc-900 hover:bg-zinc-800 text-xs font-bold py-2.5 px-4 border border-zinc-800 rounded-md transition-colors">
+                      <Upload className="h-3.5 w-3.5" />
+                      Seleccionar Archivo
+                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'logo')} className="hidden" />
+                    </label>
+                  ) : (
+                    <span className="text-xs text-zinc-500 italic">Modificación deshabilitada</span>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Bloque de imágenes del carrusel, manteniendo tu estilo original */}
             <div className="space-y-4">
               <label className="text-sm font-semibold tracking-wide text-zinc-300">Imágenes del Carrusel (3 fotos)</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -292,11 +317,14 @@ function ConfiguracionLandingPage() {
                   <div key={index} className="relative aspect-video overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
                     <img src={item.preview} className="h-full w-full object-cover opacity-60" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
-                      <label className="flex items-center gap-2 cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-bold py-2.5 px-5 rounded-md transition-colors shadow-lg">
-                        <Upload className="h-4 w-4" />
-                        Foto {index + 1}
-                        <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, item.setter)} className="hidden" />
-                      </label>
+                      
+                      {puedeModificar && (
+                        <label className="flex items-center gap-2 cursor-pointer bg-accent hover:bg-accent/90 text-accent-foreground text-xs font-bold py-2.5 px-5 rounded-md transition-colors shadow-lg">
+                          <Upload className="h-4 w-4" />
+                          Foto {index + 1}
+                          <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, item.setter)} className="hidden" />
+                        </label>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -311,16 +339,19 @@ function ConfiguracionLandingPage() {
           </div>
         )}
 
-        <div className="flex justify-end pt-4 border-t border-zinc-900">
-          <Button
-            type="submit"
-            disabled={guardando}
-            className="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-5 flex items-center gap-2 shadow-lg shadow-green-950/20 disabled:opacity-50 transition-colors"
-          >
-            <Save className="h-4 w-4" />
-            {guardando ? 'GUARDANDO CAMBIOS...' : 'GUARDAR CONFIGURACIÓN'}
-          </Button>
-        </div>
+      
+        {puedeModificar && (
+          <div className="flex justify-end pt-4 border-t border-zinc-900">
+            <Button
+              type="submit"
+              disabled={guardando}
+              className="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-5 flex items-center gap-2 shadow-lg shadow-green-950/20 disabled:opacity-50 transition-colors"
+            >
+              <Save className="h-4 w-4" />
+              {guardando ? 'GUARDANDO CAMBIOS...' : 'GUARDAR CONFIGURACIÓN'}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   )

@@ -62,31 +62,43 @@ export default function LoginPage() {
         return
       }
 
-      // 2. Guardamos el token JWT en el LocalStorage
       if (data.data?.token) {
         localStorage.setItem("token", data.data.token)
       }
 
       localStorage.setItem("usuario", JSON.stringify(data.data.usuario))
+      
+      // Guardamos los permisos dinámicos en el LocalStorage
+      const listadoPermisos = data.data?.permisos || []
+      localStorage.setItem("permisos", JSON.stringify(listadoPermisos))
+
       if (data.data?.usuario?.avatarUrl) {
         localStorage.setItem("avatarUrl", data.data.usuario.avatarUrl)
       }
 
-      const usuario = data.data?.usuario;
-      const perfil = (usuario?.perfil || usuario?.rol || usuario?.tipo || "").toLowerCase()
-      const tienePanel = perfil === "admin" || perfil === "administrador" || perfil === "alumno"
+      // 2. ✨ EVALUACIÓN DE MUNDOS OPERATIVOS
+      // Si tiene permisos que NO empiezan con "alumno_", significa que maneja administración.
+      const tieneAdmin = listadoPermisos.some(p => !p.startsWith("alumno_") && p !== "")
+      // Si tiene permisos que empiezan con "alumno_", maneja el panel de atleta.
+      const tieneAlumno = listadoPermisos.some(p => p.startsWith("alumno_"))
 
-      // 3. ✨ Redirección estricta según el flujo de Bravos Gym
-      if (perfil === "admin" || perfil === "administrador") {
+      // 3. ✨ Redirección inteligente según el flujo de Bravos Gym (Opción B)
+      if (tieneAdmin && tieneAlumno) {
+        // ACCESO DUAL: Lo frena y lo manda a la pantalla de decisión
+        navigate("/seleccionar-panel", { replace: true })
+      } 
+      else if (tieneAdmin) {
+        // Solo es personal de gestión
         navigate("/admin", { replace: true })
       } 
-      else if (perfil === "alumno") {
+      else if (tieneAlumno) {
+        // Solo es un atleta regular
         navigate("/alumno", { replace: true })
       } 
-      // Si el usuario aún no tiene un perfil habilitado, se queda en el sitio público.
-      else if (!tienePanel) {
+      else {
+        // Si el usuario aún no tiene ningún permiso asignado
         navigate("/inicio", { replace: true })
-      } 
+      }
 
     } catch (error) {
       console.error("Error en el login:", error)

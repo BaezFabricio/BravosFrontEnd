@@ -13,7 +13,7 @@ import {
   Shield,
   ChevronDown,
   Bell,
-  Home, // 👈 Ícono para el botón de volver al inicio
+  Home, 
   User,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,13 +26,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+// 🟢 ASOCIAMOS CADA MENÚ CON SU PERMISO DE CONSULTA CORRESPONDIENTE
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Usuarios", href: "/admin/usuarios", icon: Users },
-  { name: "Clases", href: "/admin/clases", icon: Calendar },
-  { name: "Membresías", href: "/admin/membresias", icon: CreditCard },
-  { name: "Perfiles", href: "/admin/perfiles", icon: Shield },
-  { name: "Configuración", href: "/admin/configuracion", icon: Settings },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
+  { name: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
+  { name: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
+  { name: "Membresías", href: "/admin/membresias", icon: CreditCard, requiredPermission: "membresias:consulta" },
+  { name: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta" },
+  { name: "Configuración", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta" },
 ]
 
 export default function AdminLayout({ children }) {
@@ -43,6 +44,10 @@ export default function AdminLayout({ children }) {
     perfil: "admin",
   })
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("avatarUrl") || "")
+  
+  // 🟢 ESTADO PARA LEER LOS PERMISOS GUARDADOS EN EL LOGIN
+  const [permisos, setPermisos] = useState([])
+  
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
@@ -50,8 +55,18 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario")
     const storedAvatar = localStorage.getItem("avatarUrl")
+    const storedPermisos = localStorage.getItem("permisos") // 👈 Traemos los permisos
 
     if (storedAvatar) setAvatarUrl(storedAvatar)
+
+    // 🟢 CARGAMOS LOS PERMISOS EN EL ESTADO GLOBAL DEL LAYOUT
+    if (storedPermisos) {
+      try {
+        setPermisos(JSON.parse(storedPermisos))
+      } catch (e) {
+        console.error("Error al parsear permisos en el AdminLayout:", e)
+      }
+    }
 
     if (!storedUser) return
 
@@ -81,13 +96,10 @@ export default function AdminLayout({ children }) {
 
   const getIniciales = (name) => {
     if (!name) return "AD"
-
     const parts = name.trim().split(" ")
-
     if (parts.length > 1) {
       return (parts[0][0] + parts[1][0]).toUpperCase()
     }
-
     return name.substring(0, 2).toUpperCase()
   }
 
@@ -97,12 +109,12 @@ export default function AdminLayout({ children }) {
     localStorage.removeItem("token")
     localStorage.removeItem("usuario")
     localStorage.removeItem("avatarUrl")
+    localStorage.removeItem("permisos") // 👈 Limpiamos permisos al salir
     navigate("/login", { replace: true })
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Overlay para móviles */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -117,7 +129,6 @@ export default function AdminLayout({ children }) {
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Header del Sidebar (Logo + Nombre) */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
             <Link 
               to="/" 
@@ -141,9 +152,17 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
 
-          {/* Menú de navegación principal */}
+          {/* Menú de navegación principal protegido */}
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
+              // 🟢 COMPROBAMOS SI EL USUARIO TIENE EL PERMISO (Admite tanto 'consulta' como 'ver')
+              const tieneAcceso = 
+                permisos.includes(item.requiredPermission) || 
+                permisos.includes(item.requiredPermission.replace(':consulta', ':ver'));
+
+              // Si no tiene el permiso para este módulo, lo salteamos y no dibujamos nada
+              if (!tieneAcceso) return null;
+
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
                 <Link
@@ -163,7 +182,6 @@ export default function AdminLayout({ children }) {
             })}
           </nav>
 
-          {/* Footer del Sidebar (Info del Usuario Logueado) */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-10 w-10 border border-sidebar-border">
@@ -183,12 +201,10 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Contenedor Principal (Derecha) */}
+      {/* Contenedor Principal */}
       <div className="lg:pl-64">
-        {/* Barra de Navegación Superior (Header) */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-            {/* Botón Hamburguesa para Móviles */}
             <button
               className="lg:hidden text-foreground"
               onClick={() => setSidebarOpen(true)}
@@ -198,10 +214,7 @@ export default function AdminLayout({ children }) {
 
             <div className="flex-1 lg:flex-none" />
 
-            {/* Acciones de la derecha */}
             <div className="flex items-center gap-3">
-              
-              {/* 🚀 BOTÓN NUEVO: Volver a Inicio / Ver Landing Principal */}
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -212,7 +225,6 @@ export default function AdminLayout({ children }) {
                 Ver Sitio
               </Button>
 
-              {/* Botón de Notificaciones */}
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -220,7 +232,6 @@ export default function AdminLayout({ children }) {
                 </span>
               </Button>
 
-              {/* Menú Desplegable de Usuario */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
@@ -245,15 +256,21 @@ export default function AdminLayout({ children }) {
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
+                  
+                  {/* 🟢 PROTEGEMOS CONFIGURACIÓN TAMBIÉN EN EL DROPDOWN SUPERIOR */}
+                  {(permisos.includes('configuracion:consulta') || permisos.includes('configuracion:ver')) && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/configuracion">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Configuración
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/configuracion">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Configuración
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {/* Cerrar sesión también fuerza la limpieza volviendo a la raíz */}
                   <DropdownMenuItem asChild className="text-destructive">
                     <button type="button" onClick={handleLogout} className="w-full text-left">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -266,7 +283,6 @@ export default function AdminLayout({ children }) {
           </div>
         </header>
 
-        {/* Contenido Dinámico de las Vistas del Admin */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
     </div>
