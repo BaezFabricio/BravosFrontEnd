@@ -189,38 +189,7 @@ function App() {
         />
 
         {/* RUTAS DE CLASES - ADMIN */}
-        <Route
-          path="/admin/clases"
-          element={
-            <RequireAuth allowedRoles={["admin", "administrador"]}>
-              <AdminLayout>
-                <ClasesPage />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        <Route
-          path="/admin/clases/nueva"
-          element={
-            <RequireAuth allowedRoles={["admin", "administrador"]}>
-              <AdminLayout>
-                <NuevaClasePage />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
-
-        <Route
-          path="/admin/clases/:id/editar"
-          element={
-            <RequireAuth allowedRoles={["admin", "administrador"]}>
-              <AdminLayout>
-                <EditarClasePage />
-              </AdminLayout>
-            </RequireAuth>
-          }
-        />
+        
 
         <Route
           path="/admin/clases/turnos"
@@ -232,6 +201,40 @@ function App() {
             </RequireAuth>
           }
         />
+
+        <Route
+  path="/admin/clases"
+  element={
+    <RequireAuth allowedRoles={["admin", "administrador"]}>
+      <AdminLayout>
+        <ClasesPage />
+      </AdminLayout>
+    </RequireAuth>
+  }
+/>
+
+<Route
+  path="/admin/clases/nueva"
+  element={
+    <RequireAuth allowedRoles={["admin", "administrador"]}>
+      <AdminLayout>
+        <NuevaClasePage />
+      </AdminLayout>
+    </RequireAuth>
+  }
+/>
+
+
+<Route
+  path="/admin/clases/:id/editar"
+  element={
+    <RequireAuth allowedRoles={["admin", "administrador"]}>
+      <AdminLayout>
+        <EditarClasePage />
+      </AdminLayout>
+    </RequireAuth>
+  }
+/>
 
         {/* RUTAS DE ALUMNO */}
         <Route

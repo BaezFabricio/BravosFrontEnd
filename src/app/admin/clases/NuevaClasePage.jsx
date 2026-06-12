@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react"
 
@@ -8,6 +8,9 @@ export default function NuevaClasePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState(false)
+
+  const [profesores, setProfesores] = useState([])
+  const [loadingProfesores, setLoadingProfesores] = useState(true)
 
   const turnos = [
     { id: "1", nombre: "Mañana", horaInicio: "06:00", horaFin: "12:00" },
@@ -29,11 +32,44 @@ export default function NuevaClasePage() {
     turnoId: "1",
     horaInicio: "",
     horaFin: "",
-    instructor: "",
+    idProfesor: "",
     capacidadMaxima: "",
     diasSemana: [],
     descripcion: "",
   })
+
+  const obtenerProfesores = async () => {
+  try {
+    setLoadingProfesores(true)
+
+    const response = await fetch("http://localhost:3001/api/vv1/profesores")
+    const result = await response.json()
+
+    if (!result.success) {
+      throw new Error(result.message || "Error al obtener profesores")
+    }
+
+    setProfesores(result.data)
+
+    if (result.data.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        idProfesor: result.data[0].idProfesor.toString(),
+      }))
+    }
+  } catch (error) {
+    console.error("Error al obtener profesores:", error)
+    setErrors({
+      general: `Error al cargar profesores: ${error.message}`,
+    })
+  } finally {
+    setLoadingProfesores(false)
+  }
+}
+
+useEffect(() => {
+  obtenerProfesores()
+}, [])
 
   const validateForm = () => {
     const newErrors = {}
@@ -42,8 +78,8 @@ export default function NuevaClasePage() {
       newErrors.nombre = "El nombre es requerido"
     }
 
-    if (!formData.instructor.trim()) {
-      newErrors.instructor = "El instructor es requerido"
+    if (!formData.idProfesor.trim()) {
+      newErrors.idProfesor = "El profesor es requerido"
     }
 
     if (!formData.horaInicio) {
@@ -55,7 +91,15 @@ export default function NuevaClasePage() {
     }
 
     if (!formData.capacidadMaxima) {
-      newErrors.capacidadMaxima = "La capacidad máxima es requerida"
+      newErrors.capacidadMaxima = "La capacidad es requerida"
+    }
+
+    if (formData.capacidadMaxima && parseInt(formData.capacidadMaxima) <= 0) {
+      newErrors.capacidadMaxima = "La capacidad debe ser mayor a 0"
+    }
+
+    if (formData.capacidadMaxima && parseInt(formData.capacidadMaxima) > 20) {
+      newErrors.capacidadMaxima = "El cupo disponible no puede superar 20"
     }
 
     if (formData.diasSemana.length === 0) {
@@ -80,10 +124,6 @@ export default function NuevaClasePage() {
       }
     }
 
-    if (formData.capacidadMaxima && parseInt(formData.capacidadMaxima) <= 0) {
-      newErrors.capacidadMaxima = "La capacidad debe ser mayor a 0"
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -94,22 +134,45 @@ export default function NuevaClasePage() {
     if (!validateForm()) return
 
     setIsLoading(true)
+    setErrors({})
 
     try {
+      const turnoSeleccionado = turnos.find(
+        (turno) => turno.id === formData.turnoId
+      )
+
       const payload = {
-        nombre: formData.nombre,
-        turnoId: formData.turnoId,
+        nombreClase: formData.nombre,
+        tipoClase: "Grupal",
+        cupoMaximo: 20,
+        cupoDisponible: parseInt(formData.capacidadMaxima),
+        estado: "Activo",
+        idGimnasio: 1,
+        idProfesor: parseInt(formData.idProfesor),
+
+        diasSemana: formData.diasSemana,
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
-        instructor: formData.instructor,
-        capacidadMaxima: parseInt(formData.capacidadMaxima),
-        diasSemana: formData.diasSemana,
-        descripcion: formData.descripcion,
+        turno: turnoSeleccionado?.nombre || "",
       }
 
-      console.log("Enviando clase:", payload)
+      console.log("Enviando clase al backend:", payload)
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("http://localhost:3001/api/vv1/clases", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.message || "Error al crear la clase")
+      }
+
+      console.log("Clase creada:", result.data)
 
       setSuccess(true)
 
@@ -117,7 +180,10 @@ export default function NuevaClasePage() {
         navigate("/admin/clases")
       }, 1500)
     } catch (error) {
-      setErrors({ general: "Error al crear la clase. Intenta de nuevo." })
+      console.error("Error al crear clase:", error)
+      setErrors({
+        general: `Error al crear la clase: ${error.message}`,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -126,11 +192,8 @@ export default function NuevaClasePage() {
   const selectedTurno = turnos.find((t) => t.id === formData.turnoId)
 
   const cardClass = "rounded-xl border border-border bg-card p-0 shadow-sm"
-
   const cardHeaderClass = "border-b border-border bg-secondary px-6 py-4"
-
   const titleClass = "text-lg font-bold text-foreground"
-
   const labelClass = "text-sm font-semibold text-muted-foreground"
 
   const inputClass =
@@ -161,7 +224,7 @@ export default function NuevaClasePage() {
       </div>
 
       {/* Mensaje de éxito */}
-        {success && (
+      {success && (
         <div className="flex items-center gap-2 rounded-lg border border-success bg-popover p-4 text-success">
           <AlertCircle className="h-4 w-4" />
           <p className="text-sm font-medium text-foreground">
@@ -171,10 +234,12 @@ export default function NuevaClasePage() {
       )}
 
       {/* Mensaje de error */}
-        {errors.general && (
+      {errors.general && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive bg-popover p-4 text-destructive">
           <AlertCircle className="h-4 w-4" />
-          <p className="text-sm font-medium text-foreground">{errors.general}</p>
+          <p className="text-sm font-medium text-foreground">
+            {errors.general}
+          </p>
         </div>
       )}
 
@@ -205,21 +270,36 @@ export default function NuevaClasePage() {
             </div>
 
             <div>
-              <label className={labelClass}>Instructor *</label>
+              <label className={labelClass}>Profesor *</label>
 
-              <input
-                type="text"
-                value={formData.instructor}
+              <select
+                value={formData.idProfesor}
                 onChange={(e) =>
-                  setFormData({ ...formData, instructor: e.target.value })
+                  setFormData({ ...formData, idProfesor: e.target.value })
                 }
-                placeholder="Ej: Pablo Ruiz"
-                className={errors.instructor ? inputErrorClass : inputClass}
-              />
+                className={errors.idProfesor ? inputErrorClass : inputClass}
+                disabled={loadingProfesores}
+              > 
+              {loadingProfesores ? (
+                <option value="" className="bg-input text-foreground">
+                  Cargando profesores...
+                </option>
+              ) : (
+                profesores.map((profesor) => (
+                  <option
+                    key={profesor.idProfesor}
+                    value={profesor.idProfesor}
+                    className="bg-input text-foreground"
+                  >
+                    {profesor.nombrecompleto} - {profesor.especialidad}
+                  </option>
+                ))
+              )}
+              </select>
 
-              {errors.instructor && (
+              {errors.idProfesor && (
                 <p className="mt-1 text-xs text-red-400">
-                  {errors.instructor}
+                  {errors.idProfesor}
                 </p>
               )}
             </div>
@@ -334,11 +414,12 @@ export default function NuevaClasePage() {
           </div>
 
           <div className="p-6">
-            <label className={labelClass}>Capacidad Máxima *</label>
+            <label className={labelClass}>Cupos disponibles *</label>
 
             <input
               type="number"
               min="1"
+              max="20"
               value={formData.capacidadMaxima}
               onChange={(e) =>
                 setFormData({
@@ -346,9 +427,14 @@ export default function NuevaClasePage() {
                   capacidadMaxima: e.target.value,
                 })
               }
-              placeholder="Ej: 15"
+              placeholder="Ej: 14"
               className={errors.capacidadMaxima ? inputErrorClass : inputClass}
             />
+
+            <p className="mt-1 text-xs text-muted-foreground">
+              El cupo máximo permitido es 20. Este valor representa los cupos
+              disponibles iniciales.
+            </p>
 
             {errors.capacidadMaxima && (
               <p className="mt-1 text-xs text-red-400">
