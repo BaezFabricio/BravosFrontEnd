@@ -3,80 +3,80 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Bravos Gym - Black, Dark Green & Gold Theme */
-  --background: oklch(0.1 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0.01 145);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.12 0.01 145);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.5 0.12 145);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.2 0.02 145);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.18 0.01 145);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.62 0.17 145);
-  --accent-foreground: oklch(0.1 0 0);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.02 145);
-  --input: oklch(0.2 0.02 145);
-  --ring: oklch(0.5 0.12 145);
-  --chart-1: oklch(0.5 0.12 145);
-  --chart-2: oklch(0.7 0.15 90);
-  --chart-3: oklch(0.6 0.15 145);
-  --chart-4: oklch(0.65 0.08 85);
-  --chart-5: oklch(0.45 0.1 145);
+  /* Bravos Gym - palette (hex values) */
+  --background: #0b0b0b;
+  --foreground: #f2f2f2;
+  --card: #18201b;
+  --card-foreground: #f2f2f2;
+  --popover: #131916;
+  --popover-foreground: #f2f2f2;
+  --primary: #3f7d55;
+  --primary-foreground: #fafafa;
+  --secondary: #232d27;
+  --secondary-foreground: #f2f2f2;
+  --muted: #18201b;
+  --muted-foreground: #8f8f8f;
+  --accent: #53a86c;
+  --accent-foreground: #fafafa;
+  --destructive: #c84a4a;
+  --destructive-foreground: #fafafa;
+  --border: #313d35;
+  --input: #232d27;
+  --ring: #3f7d55;
+  --chart-1: #3f7d55;
+  --chart-2: #53a86c;
+  --chart-3: #4eb36c;
+  --chart-4: #8d9c55;
+  --chart-5: #313d35;
   --radius: 0.5rem;
-  --sidebar: oklch(0.08 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.5 0.12 145);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.18 0.02 145);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.2 0.02 145);
-  --sidebar-ring: oklch(0.5 0.12 145);
-  
+  --sidebar: #080808;
+  --sidebar-foreground: #f2f2f2;
+  --sidebar-primary: #3f7d55;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #232d27;
+  --sidebar-accent-foreground: #f2f2f2;
+  --sidebar-border: #313d35;
+  --sidebar-ring: #3f7d55;
+
   /* Custom Bravos colors */
-  --bravos-green: oklch(0.5 0.12 145);
-  --bravos-gold: oklch(0.62 0.17 145);
-  --bravos-olive: oklch(0.55 0.1 85);
-  --bravos-dark: oklch(0.08 0 0);
-  --success: oklch(0.55 0.15 145);
-  --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.62 0.17 145);
-  --warning-foreground: oklch(0.1 0 0);
+  --bravos-green: #3f7d55;
+  --bravos-gold: #53a86c;
+  --bravos-olive: #8d9c55;
+  --bravos-dark: #080808;
+  --success: #4eb36c;
+  --success-foreground: #fafafa;
+  --warning: #a8b64f;
+  --warning-foreground: #fafafa;
 }
 
 .dark {
-  --background: oklch(0.1 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0.01 145);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.12 0.01 145);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.5 0.12 145);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.2 0.02 145);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.18 0.01 145);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.58 0.15 145);
-  --accent-foreground: oklch(0.1 0 0);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.02 145);
-  --input: oklch(0.2 0.02 145);
-  --ring: oklch(0.5 0.12 145);
-  --sidebar: oklch(0.08 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.5 0.12 145);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.18 0.02 145);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.2 0.02 145);
-  --sidebar-ring: oklch(0.5 0.12 145);
+  --background: #0b0b0b;
+  --foreground: #f2f2f2;
+  --card: #18201b;
+  --card-foreground: #f2f2f2;
+  --popover: #131916;
+  --popover-foreground: #f2f2f2;
+  --primary: #3f7d55;
+  --primary-foreground: #fafafa;
+  --secondary: #232d27;
+  --secondary-foreground: #f2f2f2;
+  --muted: #18201b;
+  --muted-foreground: #8f8f8f;
+  --accent: #53a86c;
+  --accent-foreground: #fafafa;
+  --destructive: #c84a4a;
+  --destructive-foreground: #fafafa;
+  --border: #313d35;
+  --input: #232d27;
+  --ring: #3f7d55;
+  --sidebar: #080808;
+  --sidebar-foreground: #f2f2f2;
+  --sidebar-primary: #3f7d55;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #232d27;
+  --sidebar-accent-foreground: #f2f2f2;
+  --sidebar-border: #313d35;
+  --sidebar-ring: #3f7d55;
 }
 
 @theme inline {
@@ -132,22 +132,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-/* Override rápido: mapear clases "yellow" a nuestro verde de marca
-   Esto fuerza que cualquier clase generada que contenga "yellow-500"
-   use el color `--color-bravos-green`. Es una solución temporal
-   (evita rebuild inmediato), recomendable hacer `npm run build` luego.
-*/
+/* Override rápido: mapear clases "yellow" a nuestro verde de marca */
 
 [class*="text-yellow-500"] {
   color: var(--color-bravos-green) !important;
 }
 
-[class*="text-yellow-500/"], [class*="text-yellow-500\\/"] {
+[class*="text-yellow-500/"],
+[class*="text-yellow-500\\/"] {
   color: var(--color-bravos-green) !important;
 }
 
@@ -155,8 +153,13 @@
   background-color: var(--color-bravos-green) !important;
 }
 
-[class*="bg-yellow-500/"], [class*="bg-yellow-500\\/"] {
-  background-color: color-mix(in oklab, var(--color-bravos-green) 20%, transparent) !important;
+[class*="bg-yellow-500/"],
+[class*="bg-yellow-500\\/"] {
+  background-color: color-mix(
+    in oklab,
+    var(--color-bravos-green) 20%,
+    transparent
+  ) !important;
 }
 
 [class*="border-yellow-500"] {
@@ -164,8 +167,8 @@
 }
 
 /* Catch icon color utilities */
-[class*="text-yellow-500"] svg, [class*="text-yellow-500"] * {
+[class*="text-yellow-500"] svg,
+[class*="text-yellow-500"] * {
   color: var(--color-bravos-green) !important;
   fill: var(--color-bravos-green) !important;
 }
-
