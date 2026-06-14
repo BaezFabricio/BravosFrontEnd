@@ -30,7 +30,6 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Usuarios", href: "/admin/usuarios", icon: Users },
   { name: "Clases", href: "/admin/clases", icon: Calendar },
-  { name: "Membresías", href: "/admin/membresias", icon: CreditCard },
   { name: "Perfiles", href: "/admin/perfiles", icon: Shield },
   { name: "Configuración", href: "/admin/configuracion", icon: Settings },
 ]

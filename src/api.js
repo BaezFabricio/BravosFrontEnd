@@ -362,6 +362,91 @@ export const resetearContrasena = async (email, code, password) => {
   }
 }
 
+const buildApiRoute = (endpoint) => `http://localhost:3001/api/vv1${endpoint}`
+
+export const getAbonosUsuario = async (idUsuario) => {
+  const token = localStorage.getItem('token')
+
+  const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos`), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return []
+    }
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.message || 'Error al obtener abonos')
+  }
+
+  const data = await response.json().catch(() => ({}))
+  const result = data.data ?? data
+  return Array.isArray(result) ? result : []
+}
+
+export const crearAbonoUsuario = async (idUsuario, abono) => {
+  const token = localStorage.getItem('token')
+
+  const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(abono),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Error al crear abono')
+  }
+
+  return data
+}
+
+export const editarAbonoUsuario = async (idUsuario, idCredito, abono) => {
+  const token = localStorage.getItem('token')
+
+  const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos/${idCredito}`), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(abono),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Error al editar abono')
+  }
+
+  return data
+}
+
+export const cancelarAbonoUsuario = async (idUsuario, idCredito) => {
+  const token = localStorage.getItem('token')
+
+  const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos/${idCredito}`), {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Error al cancelar abono')
+  }
+
+  return data
+}
+
 // ============================================
 // FUNCIONES DE API - MEMBRESÍAS
 // ============================================
