@@ -10,34 +10,38 @@ import {
   Users,
   User,
 } from "lucide-react"
+// 🟢 1. IMPORTANTE: Traemos tu cliente configurado que ya inyecta los tokens automáticamente
+import apiClient from "@/api"
 
 export default function ClasesPage() {
   const [search, setSearch] = useState("")
   const [clases, setClases] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [permisos, setPermisos] = useState([])
 
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     clase: null,
   })
 
+  // 🟢 2. CORRECCIÓN DEL GET: Reemplazamos fetch por apiClient
   const obtenerClases = async () => {
     try {
       setLoading(true)
       setError("")
 
-      const response = await fetch("http://localhost:3001/api/vv1/clases")
-      const result = await response.json()
+      const response = await apiClient.get("/clases")
+      
+      // Axios maneja la respuesta parseada directo en .data
+      // Si usás successResponse en tu backend, los registros viajan en response.data.data
+      const listaOriginal = response.data?.data || response.data || []
 
-      if (!result.success) {
-        throw new Error(result.message || "Error al obtener las clases")
-      }
-
-      setClases(result.data)
+      setClases(listaOriginal)
     } catch (error) {
       console.error("Error al obtener clases:", error)
-      setError(`No se pudieron cargar las clases: ${error.message}`)
+      const msgError = error.response?.data?.message || error.message || "Error al obtener las clases"
+      setError(`No se pudieron cargar las clases: ${msgError}`)
     } finally {
       setLoading(false)
     }
@@ -45,6 +49,15 @@ export default function ClasesPage() {
 
   useEffect(() => {
     obtenerClases()
+
+    const storedPermisos = localStorage.getItem("permisos")
+    if (storedPermisos) {
+      try {
+        setPermisos(JSON.parse(storedPermisos))
+      } catch (err) {
+        console.error("Error al parsear permisos en ClasesPage:", err)
+      }
+    }
   }, [])
 
   const filteredClases = clases.filter((clase) =>
@@ -54,26 +67,22 @@ export default function ClasesPage() {
     clase.nombreProfesor?.toLowerCase().includes(search.toLowerCase())
   )
 
+  // 🟢 3. CORRECCIÓN DEL DELETE: Reemplazamos fetch por apiClient.delete
   const handleDelete = async (claseId) => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/vv1/clases/${claseId}`,
-        {
-          method: "DELETE",
-        }
-      )
+      const response = await apiClient.delete(`/clases/${claseId}`)
 
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.message || "Error al eliminar la clase")
+      // Evaluamos el éxito usando la estructura estándar de Axios y tu backend
+      if (response.data?.success || response.status === 200) {
+        setClases(clases.filter((clase) => clase.idClase !== claseId))
+        setDeleteDialog({ open: false, clase: null })
+      } else {
+        throw new Error(response.data?.message || "Error al eliminar la clase")
       }
-
-      setClases(clases.filter((clase) => clase.idClase !== claseId))
-      setDeleteDialog({ open: false, clase: null })
     } catch (error) {
       console.error("Error al eliminar clase:", error)
-      alert("No se pudo eliminar la clase")
+      const msgError = error.response?.data?.message || error.message
+      alert(`No se pudo eliminar la clase: ${msgError}`)
     }
   }
 
@@ -99,7 +108,7 @@ export default function ClasesPage() {
             Crea y gestiona las clases del gimnasio.
           </p>
         </div>
-
+        {permisos.includes("clases:alta") && (
         <Link
           to="/admin/clases/nueva"
           className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:brightness-95"
@@ -107,6 +116,7 @@ export default function ClasesPage() {
           <Plus className="mr-2 h-4 w-4" />
           Nueva Clase
         </Link>
+        )}
       </div>
 
       {/* Pestañas */}
@@ -264,20 +274,22 @@ export default function ClasesPage() {
                 </div>
 
                 {/* Acciones */}
+                {(permisos.includes("clases:modificacion") || permisos.includes("clases:baja")) && (
                 <div className="relative group">
                   <button className="rounded-lg p-2 hover:bg-muted">
                     <MoreVertical className="h-5 w-5 text-muted-foreground" />
                   </button>
 
                   <div className="absolute right-0 z-10 hidden w-36 rounded-lg border border-border bg-card shadow-md group-hover:block">
+                   {permisos.includes("clases:modificacion") && ( 
                     <Link
-                      to={`/admin/clases/${clase.idClase}/editar`}
+                      to={`/admin/clases/editar/${clase.idClase}`}
                       className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       <Edit className="h-4 w-4" />
                       Editar
                     </Link>
-
+                    )}
                     <button
                       onClick={() => setDeleteDialog({ open: true, clase })}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
@@ -287,6 +299,7 @@ export default function ClasesPage() {
                     </button>
                   </div>
                 </div>
+                )}  
               </div>
             </div>
           ))
@@ -312,7 +325,7 @@ export default function ClasesPage() {
               >
                 Cancelar
               </button>
-
+              {permisos.includes("clases:baja") && (
               <button
                 onClick={() =>
                   deleteDialog.clase && handleDelete(deleteDialog.clase.idClase)
@@ -321,6 +334,7 @@ export default function ClasesPage() {
               >
                 Eliminar
               </button>
+              )}
             </div>
           </div>
         </div>

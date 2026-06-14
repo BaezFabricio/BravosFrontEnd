@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,20 +17,7 @@ import {
   AlertDescription,
 } from "@/components/ui/alert"
 
-const reservasProximas = [
-  { id: "1", clase: "Funcional WOD", fecha: "Hoy, 10 Mar", hora: "18:00", coach: "Pablo Ruiz", estado: "proxima" },
-  { id: "2", clase: "Funcional", fecha: "Manana, 11 Mar", hora: "09:30", coach: "Maria Gomez", estado: "proxima" },
-  { id: "3", clase: "Open Box", fecha: "Miercoles, 12 Mar", hora: "11:00", coach: "Diego Torres", estado: "proxima" },
-]
-
-const historialReservas = [
-  { id: "4", clase: "Funcional WOD", fecha: "08 Mar 2024", hora: "08:00", coach: "Pablo Ruiz", estado: "completada" },
-  { id: "5", clase: "Funcional", fecha: "06 Mar 2024", hora: "09:30", coach: "Maria Gomez", estado: "completada" },
-  { id: "6", clase: "Funcional WOD", fecha: "05 Mar 2024", hora: "18:00", coach: "Pablo Ruiz", estado: "inasistencia" },
-  { id: "7", clase: "Open Box", fecha: "03 Mar 2024", hora: "11:00", coach: "Diego Torres", estado: "completada" },
-  { id: "8", clase: "Funcional WOD", fecha: "01 Mar 2024", hora: "08:00", coach: "Pablo Ruiz", estado: "cancelada" },
-  { id: "9", clase: "Funcional", fecha: "28 Feb 2024", hora: "09:30", coach: "Maria Gomez", estado: "completada" },
-]
+import apiClient from "@/api"
 
 const estadoConfig = {
   proxima: { label: "Próxima", className: "bg-primary/10 text-primary border-primary/20", icon: Calendar },
@@ -40,26 +27,72 @@ const estadoConfig = {
 }
 
 export default function ReservasPage() {
-  const [proximas, setProximas] = useState(reservasProximas)
-  const [cancelDialog, setCancelDialog] = useState({
-    open: false,
-    reserva: null,
-  })
-  const [isLoading, setIsLoading] = useState(false)
+  const [proximas, setProximas] = useState([])
+  const [historial, setHistorial] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [cancelDialog, setCancelDialog] = useState({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })
+  const [isLoadingCancel, setIsLoadingCancel] = useState(false)
 
+  // 1. 🟢 FETCH: Trae el listado completo de reservas del alumno
+  const cargarReservas = async () => {
+    try {
+      setLoading(true)
+      const response = await apiClient.get('/reservas/mis-reservas')
+      
+      // Como usás successResponse en el backend, la lista real viaja en response.data.data
+      const listaOriginal = response.data?.data || [];
+      
+      // 🔄 MAPEO: Traducimos lo que viene de la base de datos al formato que espera tu UI
+      const listaMapeada = listaOriginal.map(r => ({
+        idReserva: r.idReserva,
+        clase: r.nombreClase,               // 🟢 'nombreClase' de SQL pasa a 'clase'
+        estado: r.estadoReserva || 'proxima', // 🟢 'estadoReserva' de SQL pasa a 'estado'
+        fecha: r.fechaReserva ? r.fechaReserva.substring(0, 10) : "", 
+        hora: r.horaInicio ? r.horaInicio.substring(0, 5) : "00:00",
+        coach: r.nombreProfesor|| "Staff Bravos"
+      }))
+      
+      // Separamos en base al estado mapeado
+      setProximas(listaMapeada.filter(r => r.estado === 'proxima'))
+      setHistorial(listaMapeada.filter(r => r.estado !== 'proxima'))
+    } catch (error) {
+      console.error("No se pudo recuperar el historial de reservas:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    cargarReservas()
+  }, [])
+
+  // 2. 🟢 CANCELACIÓN: Envía el PATCH de anulación al backend
   const handleCancelar = async () => {
-    if (!cancelDialog.reserva) return
+    if (!cancelDialog.idReserva) return
     
-    setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    
-    setProximas(proximas.filter((r) => r.id !== cancelDialog.reserva?.id))
-    setIsLoading(false)
-    setCancelDialog({ open: false, reserva: null })
+    setIsLoadingCancel(true)
+    try {
+      const response = await apiClient.patch(`/reservas/${cancelDialog.idReserva}/cancelar`)
+      if (response.data?.success) {
+        await cargarReservas()
+      }
+    } catch (error) {
+      console.error("Error al cancelar la reserva:", error)
+    } finally {
+      setIsLoadingCancel(false)
+      setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })
+    }
+  }
+
+  const formatFechaFront = (fechaStr) => {
+    if (!fechaStr) return ""
+    const [anio, mes, dia] = fechaStr.split('-')
+    const date = new Date(anio, mes - 1, dia)
+    return date.toLocaleDateString("es-AR", { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   const ReservaCard = ({ reserva, showCancelButton = false }) => {
-    const config = estadoConfig[reserva.estado]
+    const config = estadoConfig[reserva.estado] || estadoConfig.cancelada
     const Icon = config.icon
 
     return (
@@ -77,26 +110,30 @@ export default function ReservasPage() {
               <div className="space-y-1 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{reserva.fecha}</span>
+                  <span>{formatFechaFront(reserva.fecha)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>{reserva.hora}</span>
+                  <span>{reserva.hora} hs</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span>{reserva.coach}</span>
+                  <span>Coach: {reserva.coach}</span>
                 </div>
               </div>
             </div>
             {showCancelButton && (
               <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive border-destructive/50 hover:bg-destructive/10"
-                onClick={() => setCancelDialog({ open: true, reserva })}
+                variant="destructive" // 🟢 Cambiado a variante destructiva sólida por defecto
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors" // 🟢 Rojo bien vivo, texto firme y más relleno (padding)
+                onClick={() => setCancelDialog({ 
+                  open: true, 
+                  idReserva: reserva.idReserva,
+                  claseNombre: reserva.clase, 
+                  fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
+                })}
               >
-                <X className="mr-1 h-4 w-4" />
+                <X className="mr-1.5 h-4 w-4 stroke-[3]" /> {/* 🟢 Ícono un cachito más separado y con trazo más grueso */}
                 Cancelar
               </Button>
             )}
@@ -116,68 +153,68 @@ export default function ReservasPage() {
       <Tabs defaultValue="proximas" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-secondary">
           <TabsTrigger value="proximas">Próximas ({proximas.length})</TabsTrigger>
-          <TabsTrigger value="historial">Historial</TabsTrigger>
+          <TabsTrigger value="historial">Historial ({historial.length})</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="proximas" className="mt-6">
-          {proximas.length === 0 ? (
-            <Card className="bg-card border-border">
-              <CardContent className="p-8 text-center">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold text-foreground mb-2">No tienes reservas próximas</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Reserva una clase para comenzar a entrenar
-                </p>
-                <Button className="bg-primary hover:bg-primary/90">
-                  Reservar Clase
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              <Alert className="bg-green-500/10 border-green-500/20">
-                <AlertTriangle className="h-4 w-4 text-green-500" />
-                <AlertDescription className="text-green-500/80">
-                  Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {proximas.map((reserva) => (
-                  <ReservaCard key={reserva.id} reserva={reserva} showCancelButton />
-                ))}
-              </div>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="historial" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {historialReservas.map((reserva) => (
-              <ReservaCard key={reserva.id} reserva={reserva} />
-            ))}
+        {loading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        </TabsContent>
+        ) : (
+          <>
+            <TabsContent value="proximas" className="mt-6">
+              {proximas.length === 0 ? (
+                <Card className="bg-card border-border">
+                  <CardContent className="p-8 text-center">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold text-foreground mb-2">No tienes reservas próximas</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Reserva una clase para comenzar a entrenar</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <Alert className="bg-green-500/10 border-green-500/20">
+                    <AlertTriangle className="h-4 w-4 text-green-500" />
+                    <AlertDescription className="text-green-500/80">
+                      Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {proximas.map((reserva) => (
+                      <ReservaCard key={reserva.idReserva} reserva={reserva} showCancelButton />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="historial" className="mt-6">
+              {historial.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">No registras reservas anteriores.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {historial.map((reserva) => (
+                    <ReservaCard key={reserva.idReserva} reserva={reserva} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </>
+        )}
       </Tabs>
 
       <Dialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog({ ...cancelDialog, open })}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Cancelar Reserva</DialogTitle>
-            <DialogDescription>
-              ¿Estás seguro de cancelar esta reserva?
-            </DialogDescription>
+            <DialogDescription>¿Estás seguro de cancelar esta reserva?</DialogDescription>
           </DialogHeader>
           
-          {cancelDialog.reserva && (
-            <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-              <h4 className="font-semibold text-foreground">{cancelDialog.reserva.clase}</h4>
-              <p className="text-sm text-muted-foreground mt-1">
-                {cancelDialog.reserva.fecha} a las {cancelDialog.reserva.hora}
-              </p>
-              <p className="text-sm text-muted-foreground">Coach: {cancelDialog.reserva.coach}</p>
-            </div>
-          )}
+          <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+            <h4 className="font-semibold text-foreground">{cancelDialog.claseNombre}</h4>
+            <p className="text-sm text-muted-foreground mt-1">{cancelDialog.fechaStr} hs</p>
+          </div>
 
           <Alert className="bg-green-500/10 border-green-500/20">
             <AlertTriangle className="h-4 w-4 text-green-500" />
@@ -187,15 +224,10 @@ export default function ReservasPage() {
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialog({ open: false, reserva: null })}>
-              Volver
-            </Button>
-            <Button variant="destructive" onClick={handleCancelar} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Cancelando...
-                </>
+            <Button variant="outline" onClick={() => setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })}>Volver</Button>
+            <Button variant="destructive" onClick={handleCancelar} disabled={isLoadingCancel}>
+              {isLoadingCancel ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cancelando...</>
               ) : (
                 "Cancelar Reserva"
               )}

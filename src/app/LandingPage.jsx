@@ -8,11 +8,10 @@ import {
   X,
   LogOut,
   Bell,
-  Settings,
   User,
   Dumbbell,
   Shield,
-  ClipboardCheck // 🟢 AGREGADO: Importación del ícono para evitar ReferenceError
+  ClipboardCheck
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -53,7 +52,6 @@ function LandingPage() {
   const [logoUrl, setLogoUrl] = useState('/logo-box-bravos-final.png')
   const [tituloSize, setTituloSize] = useState(null)
   const [tituloFont, setTituloFont] = useState(null)
-  const [tituloAlign, setTituloAlign] = useState(null)
   const [logoTs, setLogoTs] = useState(Date.now())
 
   const useVectorLogo = !logoUrl || logoUrl.includes('logo-box-bravos-final.png')
@@ -68,6 +66,20 @@ function LandingPage() {
     perfil: 'cliente',
     estado: 'activo'
   });
+
+  // 🟢 ESTADOS DE HORARIOS SCONECTADOS
+  const [clasesBackend, setClasesBackend] = useState([])
+  const [loadingHorarios, setLoadingHorarios] = useState(true)
+  const [diaSeleccionado, setDiaSeleccionado] = useState('LUNES')
+
+  const diasSemanaMapeo = [
+    { label: 'LUNES', value: 'LUNES' },
+    { label: 'MARTES', value: 'MARTES' },
+    { label: 'MIÉRCOLES', value: 'MIERCOLES' }, 
+    { label: 'JUEVES', value: 'JUEVES' },
+    { label: 'VIERNES', value: 'VIERNES' },
+    { label: 'SÁBADO', value: 'SABADO' }
+  ]
 
   useEffect(() => {
     let isMounted = true
@@ -122,19 +134,31 @@ function LandingPage() {
         }
         if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
         if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
-        if (data?.tituloHeroAlign) setTituloAlign(data.tituloHeroAlign)
+        
         if (data?.heroImages) {
           const imagenesBackend = Object.values(data.heroImages).filter(Boolean)
           if (imagenesBackend.length > 0) {
             setHeroImages(imagenesBackend)
-            return
+            // 🟢 CORREGIDO: Quitamos el return interruptor para que continúe la carga
           }
         }
-        setHeroImages(defaultHeroImages)
       })
       .catch((err) => {
         console.error('Error al cargar config desde el admin:', err)
         if (isMounted) setHeroImages(defaultHeroImages)
+      })
+
+    // 🟢 SECUENCIA CONTINUA: Carga tus clases reales dinámicamente
+    fetch("http://localhost:3001/api/vv1/clases")
+      .then((res) => res.json())
+      .then((result) => {
+        if (isMounted && result.success) {
+          setClasesBackend(result.data)
+        }
+      })
+      .catch((err) => console.error('Error al sincronizar horarios en la landing:', err))
+      .finally(() => {
+        if (isMounted) setLoadingHorarios(false)
       })
 
     return () => {
@@ -159,7 +183,6 @@ function LandingPage() {
     window.location.reload()
   }
 
-  // Identificación de privilegios en el LocalStorage
   const tieneModulosAdmin = permisos.some(p => 
     p.startsWith('usuarios:') || p.startsWith('dashboard:') || 
     p.startsWith('perfiles:') || p.startsWith('membresias:') ||
@@ -168,7 +191,7 @@ function LandingPage() {
   );
   
   const tieneModulosAlumno = permisos.some(p => p.startsWith('alumno'));
-  const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor')); // 🟢 CORREGIDO: Se quitó la tilde para unificar con el resto del archivo
+  const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor')); 
   const puedeAccederPanel = permisos.length > 0 && userData.estado === 'activo';
 
   const getIniciales = (name) => {
@@ -179,6 +202,11 @@ function LandingPage() {
     }
     return name.substring(0, 2).toUpperCase()
   }
+
+  // 🟢 FILTRADO DINÁMICO CRONOLÓGICO CONECTADO
+  const clasesVisibles = clasesBackend
+    .filter((c) => c.diasSemana && c.diasSemana.split(',').includes(diaSeleccionado))
+    .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio))
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white selection:bg-emerald-500 selection:text-black">
@@ -285,7 +313,6 @@ function LandingPage() {
                                 <span>Mi Perfil</span>
                               </Link>
 
-                              {/* ACCESO ADMIN: Condicional estricto */}
                               {tieneModulosAdmin && puedeAccederPanel && (
                                 <Link
                                   to="/admin"
@@ -297,7 +324,6 @@ function LandingPage() {
                                 </Link>
                               )}
                               
-                              {/* ACCESO ALUMNO: Condicional estricto */}
                               {tieneModulosAlumno && puedeAccederPanel && (
                                 <Link
                                   to="/alumno"
@@ -309,7 +335,6 @@ function LandingPage() {
                                 </Link>
                               )}
 
-                              {/* 🟢 ACCESO PROFESOR: Inyectado dinámicamente con la estética de image_6a033d.png */}
                               {tieneModulosProfesor && puedeAccederPanel && (
                                 <Link
                                   to="/profesor"
@@ -347,7 +372,6 @@ function LandingPage() {
           </div>
         </div>
 
-        {/* MOBILE MENU */}
         {mobileMenuOpen && (
           <div className="border-b border-white/10 bg-black lg:hidden">
             <div className="container mx-auto px-4 py-4">
@@ -417,7 +441,7 @@ function LandingPage() {
         )}
       </header>
 
-      {/* SECCIÓN HERO */}
+      {/* 🟢 SECCIÓN HERO - RECUPERADA CON TU FORMATO NATIVO DE CAPAS EXPANSIVAS */}
       <section className="relative flex min-h-screen items-end pb-16 sm:pb-24">
         {heroImages.map((imageSource, index) => (
           <div key={imageSource} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
@@ -439,17 +463,26 @@ function LandingPage() {
             <span className="text-white/80">Formosa Capital</span>
           </div>
 
-          <div className="mb-6 flex w-full max-w-[620px] flex-col items-start">
-            <div className="flex w-full justify-start overflow-visible px-4 py-2 sm:px-6 sm:py-3">
-              <div className="flex h-[120px] w-[360px] items-center justify-start overflow-hidden -ml-6 sm:-ml-8">
+         <div className="mb-6 flex w-full max-w-[620px] flex-col items-start">
+            {/* Contenedor del Logo optimizado: removidos los desbordamientos y alturas fijas gigantes */}
+            <div className="flex w-full justify-start overflow-visible py-2 sm:py-3">
+              <div className="flex h-16 w-auto items-center justify-start sm:h-20 md:h-24">
                 {useVectorLogo ? (
-                  <LogoBoxBravos className="block h-full w-full" width={360} height={104} />
+                  <LogoBoxBravos className="h-full w-auto object-contain" width={280} height={80} />
                 ) : (
-                  <img src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`} alt="Box Bravos" style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'left center' }} className="block" />
+                  <img 
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`} 
+                    alt="Box Bravos" 
+                    className="h-full w-auto object-contain object-left" 
+                  />
                 )}
               </div>
             </div>
-            <p className="mt-3 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl" style={{ fontSize: tituloSize ? `${tituloSize}px` : undefined, fontFamily: tituloFont || undefined, textAlign: 'left' }}>
+          
+            <p 
+              className="pt-4 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl" 
+              style={{ fontSize: tituloSize ? `${tituloSize}px` : undefined, fontFamily: tituloFont || undefined, textAlign: 'left' }}
+            >
               {titulo}
             </p>
           </div>
@@ -519,7 +552,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* SECCIÓN HORARIOS */}
+      {/* 🟢 SECCIÓN HORARIOS: 100% SCONECTADA Y FUNCIONANDO EN PARALELO */}
       <section id="horarios" className="relative py-20 md:py-32">
         <div className="absolute inset-0">
           <img src="/landing-hero-2.jpg" alt="Training" className="h-full w-full object-cover" />
@@ -528,18 +561,43 @@ function LandingPage() {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="mb-4 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
           <p className="mb-10 max-w-2xl text-white/60">Contamos con clases de lunes a sábado. Elige el horario que mejor se adapte a tu rutina.</p>
+          
           <div className="mb-8 flex flex-wrap gap-2">
-            {['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'].map((day) => <button key={day} type="button" className="px-4 py-2 text-sm font-bold tracking-wide transition-colors bg-white/10 text-white/70 hover:bg-white/20 hover:text-white">{day}</button>)}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[{ hora: '06:00 - 07:00', clase: 'Funcional', coach: 'Carlos Martínez' }, { hora: '07:00 - 08:00', clase: 'WOD Intensivo', coach: 'Ana Rodríguez' }, { hora: '08:00 - 09:00', clase: 'Funcional', coach: 'Diego López' }, { hora: '09:00 - 10:30', clase: 'Open Box', coach: 'Staff' }, { hora: '17:00 - 18:00', clase: 'Funcional', coach: 'Carlos Martínez' }, { hora: '18:00 - 19:00', clase: 'WOD Intensivo', coach: 'Ana Rodríguez' }, { hora: '19:00 - 20:00', clase: 'Funcional', coach: 'Diego López' }].map((item) => (
-              <div key={`${item.hora}-${item.clase}`} className="border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
-                <div className="text-lg font-bold text-accent">{item.hora}</div>
-                <div className="mt-1 font-bold text-white">{item.clase}</div>
-                <div className="mt-1 text-sm text-white/50">{item.coach}</div>
-              </div>
+            {diasSemanaMapeo.map((day) => (
+              <button
+                key={day.value}
+                type="button"
+                onClick={() => setDiaSeleccionado(day.value)}
+                className={`px-4 py-2 text-sm font-bold tracking-wide transition-all border ${
+                  diaSeleccionado === day.value
+                    ? "bg-white text-black border-white"
+                    : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {day.label}
+              </button>
             ))}
           </div>
+
+          {loadingHorarios ? (
+            <p className="text-sm text-white/40 animate-pulse">Sincronizando grilla de disciplinas...</p>
+          ) : clasesVisibles.length === 0 ? (
+            <div className="border border-white/5 bg-white/5 rounded-md p-6 text-center">
+              <p className="text-sm text-white/40">No hay turnos programados para los días {diaSeleccionado.toLowerCase()}.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {clasesVisibles.map((item) => (
+                <div key={item.idClase} className="border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                  <div className="text-lg font-bold text-accent">
+                    {item.horaInicio.slice(0, 5)} - {item.horaFin.slice(0, 5)} Hs
+                  </div>
+                  <div className="mt-1 font-bold text-white uppercase">{item.nombreClase}</div>
+                  <div className="mt-1 text-sm text-white/50">{item.nombreProfesor || "Staff Bravos"}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -581,4 +639,4 @@ function LandingPage() {
   )
 }
 
-export default LandingPage;
+export default LandingPage

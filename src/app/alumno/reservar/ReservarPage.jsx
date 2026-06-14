@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Calendar, Clock, User, ChevronLeft, ChevronRight, AlertCircle, Check, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Clock, User, ChevronLeft, ChevronRight, AlertCircle, Check, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,31 +17,28 @@ import {
   AlertTitle,
 } from "@/components/ui/alert"
 
-const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+import apiClient from "@/api"
 
-const generarClases = () => [
-  { id: "1", nombre: "Funcional WOD", hora: "07:00", duracion: "60 min", coach: "Pablo Ruiz", cuposDisponibles: 5, cuposTotales: 15, reservado: false },
-  { id: "2", nombre: "Funcional WOD", hora: "08:00", duracion: "60 min", coach: "Pablo Ruiz", cuposDisponibles: 3, cuposTotales: 15, reservado: false },
-  { id: "3", nombre: "Funcional", hora: "09:30", duracion: "45 min", coach: "Maria Gomez", cuposDisponibles: 8, cuposTotales: 12, reservado: false },
-  { id: "4", nombre: "Open Box", hora: "11:00", duracion: "90 min", coach: "Diego Torres", cuposDisponibles: 10, cuposTotales: 10, reservado: false },
-  { id: "5", nombre: "Funcional WOD", hora: "17:00", duracion: "60 min", coach: "Pablo Ruiz", cuposDisponibles: 2, cuposTotales: 15, reservado: false },
-  { id: "6", nombre: "Funcional WOD", hora: "18:00", duracion: "60 min", coach: "Pablo Ruiz", cuposDisponibles: 0, cuposTotales: 15, reservado: true },
-  { id: "7", nombre: "Funcional", hora: "19:30", duracion: "45 min", coach: "Maria Gomez", cuposDisponibles: 6, cuposTotales: 12, reservado: false },
-  { id: "8", nombre: "Funcional WOD", hora: "20:00", duracion: "60 min", coach: "Diego Torres", cuposDisponibles: 0, cuposTotales: 15, reservado: false },
-]
+const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+const mapaDiasBD = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIERCOLES", 4: "JUEVES", 5: "VIERNES", 6: "SABADO" }
 
 export default function ReservarClasePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
-  const [clases, setClases] = useState(generarClases())
+  const [clasesOriginales, setClasesOriginales] = useState([]) // Almacena todas las clases del backend
+  const [clasesFiltradas, setClasesFiltradas] = useState([]) // Clases del día seleccionado
   const [selectedClass, setSelectedClass] = useState(null)
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
   
-  const creditosDisponibles = 12
+  // Extraemos los créditos dinámicos de la sesión del usuario guardada en localStorage
+  const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
+  const creditosDisponibles = storedUser?.creditos || 0
 
   const formatDate = (date) => {
-    return date.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString("es-AR", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -65,24 +62,93 @@ export default function ReservarClasePage() {
 
   const weekDates = getDatesOfWeek()
 
+  // 1. 🟢 FETCH: Trae las clases de la base de datos
+  useEffect(() => {
+    const fetchClases = async () => {
+      try {
+        setPageLoading(true)
+        const response = await apiClient.get('/clases/disponibles');
+        const rawClases = response.data?.data || response.data || []
+        setClasesOriginales(rawClases)
+      } catch (error) {
+        console.error("Error al recuperar las clases del gimnasio:", error)
+      } finally {
+        setPageLoading(false)
+      }
+    }
+    fetchClases()
+  }, [])
+
+
+  useEffect(() => {
+  const diaIndex = selectedDate.getDay()
+  const nombreDiaBuscado = mapaDiasBD[diaIndex] 
+
+  console.log("DÍA SELECCIONADO EN EL CALENDARIO:", nombreDiaBuscado);
+  console.log("DATOS REALES QUE LLEGAN:", clasesOriginales);
+
+  const filtradas = clasesOriginales.filter(clase => {
+    
+    const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : "";
+    const diaBuscado = nombreDiaBuscado ? nombreDiaBuscado.toUpperCase().trim() : "";
+    
+    return diaClase === diaBuscado && clase.estado === 'Activo';
+  }).map(clase => ({
+    id: clase.idHorario,
+    nombre: clase.nombreClase,
+    hora: clase.horaInicio ? clase.horaInicio.substring(0, 5) : '00:00',
+    duracion: clase.horaFin ? `${calcularDuracion(clase.horaInicio, clase.horaFin)} min` : '60 min',
+    coach: clase.nombreProfesor || "Staff Bravos",
+    cuposDisponibles: clase.cupoDisponible ?? 0,
+    cuposTotales: clase.cupoMaximo ?? 15,
+    reservado: false 
+  }))
+
+  setClasesFiltradas(filtradas)
+}, [selectedDate, clasesOriginales])
+
+  const calcularDuracion = (inicio, fin) => {
+    if (!inicio || !fin) return 60
+    const [h1, m1] = inicio.split(':').map(Number)
+    const [h2, m2] = fin.split(':').map(Number)
+    return (h2 * 60 + m2) - (h1 * 60 + m1)
+  }
+
+  // 3. 🟢 TRANSMISIÓN: Envía la reserva nativa al backend
   const handleReservar = async () => {
     if (!selectedClass) return
     
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    
-    setClases(clases.map((c) =>
-      c.id === selectedClass.id
-        ? { ...c, reservado: true, cuposDisponibles: c.cuposDisponibles - 1 }
-        : c
-    ))
-    
-    setIsLoading(false)
-    setConfirmDialog(false)
-    setSuccessMessage(`¡Reserva confirmada para ${selectedClass.nombre} a las ${selectedClass.hora}!`)
-    setSelectedClass(null)
-    
-    setTimeout(() => setSuccessMessage(null), 5000)
+    setErrorMessage(null)
+
+    try {
+      const fechaFormateada = selectedDate.toISOString().split('T')[0] // Formato YYYY-MM-DD
+      
+      const response = await apiClient.post('/reservas', {
+        idHorario: selectedClass.id,
+        fechaReserva: fechaFormateada
+      })
+
+      if (response.data?.success) {
+        setSuccessMessage(`¡Reserva confirmada para ${selectedClass.nombre} a las ${selectedClass.hora}!`)
+        
+        // Descontamos visualmente el cupo en el cliente
+        setClasesFiltradas(clasesFiltradas.map((c) =>
+          c.id === selectedClass.id ? { ...c, cuposDisponibles: c.cuposDisponibles - 1 } : c
+        ))
+
+        // TODO Opcional: Actualizar los créditos en el localStorage si los manejás en vivo
+        localStorage.setItem("usuario", JSON.stringify({ ...storedUser, creditos: creditosDisponibles - 1 }))
+      }
+    } catch (error) {
+      console.error("Error al procesar reserva:", error)
+      setErrorMessage(error.response?.data?.message || "No se pudo completar la reserva en este momento.")
+    } finally {
+      setIsLoading(false)
+      setConfirmDialog(false)
+      setSelectedClass(null)
+      setTimeout(() => { setSuccessMessage(null); setErrorMessage(null); }, 5000)
+    }
   }
 
   return (
@@ -113,6 +179,14 @@ export default function ReservarClasePage() {
           <Check className="h-4 w-4 text-green-500" />
           <AlertTitle className="text-green-500">Reserva Exitosa</AlertTitle>
           <AlertDescription className="text-green-500/80">{successMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {errorMessage && (
+        <Alert className="bg-destructive/10 border-destructive/20">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertTitle className="text-destructive">Error de Reserva</AlertTitle>
+          <AlertDescription className="text-destructive/80">{errorMessage}</AlertDescription>
         </Alert>
       )}
 
@@ -174,88 +248,79 @@ export default function ReservarClasePage() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-foreground">Clases Disponibles</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {clases.map((clase) => (
-            <Card
-              key={clase.id}
-              className={`bg-card border-border transition-all ${
-                clase.reservado
-                  ? "border-primary/50 bg-primary/5"
-                  : clase.cuposDisponibles === 0
-                  ? "opacity-60"
-                  : "hover:border-primary/30"
-              }`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-foreground">{clase.nombre}</h3>
-                      {clase.reservado && (
-                        <Badge className="bg-primary text-primary-foreground">Reservado</Badge>
-                      )}
+        
+        {pageLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : clasesFiltradas.length === 0 ? (
+          <p className="text-sm text-muted-foreground p-4 bg-muted/20 rounded-lg border border-dashed border-border text-center">
+            No hay clases agendadas o activas para los días {mapaDiasBD[selectedDate.getDay()].toLowerCase()}.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {clasesFiltradas.map((clase) => (
+              <Card
+                key={clase.id}
+                className={`bg-card border-border transition-all ${
+                  clase.cuposDisponibles === 0 ? "opacity-60" : "hover:border-primary/30"
+                }`}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-foreground">{clase.nombre}</h3>
+                      </div>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span>{clase.hora} - {clase.duracion}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          <span>{clase.coach}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>{clase.hora} - {clase.duracion}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>{clase.coach}</span>
-                      </div>
+                    <div className="text-right">
+                      <Badge
+                        variant="outline"
+                        className={clase.cuposDisponibles === 0 ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-green-500/10 text-green-500 border-green-500/20"}
+                      >
+                        {clase.cuposDisponibles}/{clase.cuposTotales} cupos
+                      </Badge>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <Badge
-                      variant="outline"
-                      className={
-                        clase.cuposDisponibles === 0
-                          ? "bg-red-500/10 text-red-500 border-red-500/20"
-                            : clase.cuposDisponibles <= 3
-                              ? "bg-green-500/10 text-green-500 border-green-500/20"
-                          : "bg-green-500/10 text-green-500 border-green-500/20"
-                      }
-                    >
-                      {clase.cuposDisponibles}/{clase.cuposTotales} cupos
-                    </Badge>
+                  <div className="mt-4">
+                    {clase.cuposDisponibles === 0 ? (
+                      <Button variant="outline" className="w-full" disabled>
+                        Sin cupos disponibles
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full bg-primary hover:bg-primary/90"
+                        onClick={() => {
+                          setSelectedClass(clase)
+                          setConfirmDialog(true)
+                        }}
+                      >
+                        Reservar Clase
+                      </Button>
+                    )}
                   </div>
-                </div>
-                <div className="mt-4">
-                  {clase.reservado ? (
-                    <Button variant="outline" className="w-full" disabled>
-                      <Check className="mr-2 h-4 w-4" />
-                      Ya reservado
-                    </Button>
-                  ) : clase.cuposDisponibles === 0 ? (
-                    <Button variant="outline" className="w-full" disabled>
-                      Sin cupos disponibles
-                    </Button>
-                  ) : (
-                    <Button
-                      className="w-full bg-primary hover:bg-primary/90"
-                      onClick={() => {
-                        setSelectedClass(clase)
-                        setConfirmDialog(true)
-                      }}
-                    >
-                      Reservar Clase
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Confirmar Reserva</DialogTitle>
-            <DialogDescription>
-              ¿Confirmas la reserva de esta clase?
-            </DialogDescription>
+            <DialogDescription>¿Confirmas la reserva de esta clase?</DialogDescription>
           </DialogHeader>
           
           {selectedClass && (
@@ -276,15 +341,10 @@ export default function ReservarClasePage() {
           </Alert>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDialog(false)}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => setConfirmDialog(false)}>Cancelar</Button>
             <Button onClick={handleReservar} disabled={isLoading} className="bg-primary hover:bg-primary/90">
               {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Reservando...
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Reservando...</>
               ) : (
                 "Confirmar Reserva"
               )}

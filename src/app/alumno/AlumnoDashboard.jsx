@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { 
   Calendar, 
@@ -18,14 +18,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
-
-const userStats = {
-  nombre: "María",
-  creditos: 12,
-  creditosUsados: 8,
-  racha: 5,
-  totalClases: 47,
-}
+// 🟢 Importación corregida apuntando a tu cliente centralizado de Axios
+import apiClient from "@/api" 
 
 const todayWOD = {
   nombre: "FRAN",
@@ -39,41 +33,6 @@ const todayWOD = {
   nivel: "RX",
 }
 
-const proximasClases = [
-  { 
-    id: "1", 
-    nombre: "Funcional WOD", 
-    hora: "18:00", 
-    coach: "Pablo Ruiz",
-    cupos: 3,
-    totalCupos: 15,
-    duracion: "60 min"
-  },
-  { 
-    id: "2", 
-    nombre: "Funcional", 
-    hora: "19:00", 
-    coach: "María Gómez",
-    cupos: 8,
-    totalCupos: 12,
-    duracion: "45 min"
-  },
-  { 
-    id: "3", 
-    nombre: "Open Box", 
-    hora: "20:00", 
-    coach: "Diego Torres",
-    cupos: 10,
-    totalCupos: 10,
-    duracion: "90 min"
-  },
-]
-
-const misReservas = [
-  { id: "1", clase: "Funcional WOD", fecha: "Hoy", hora: "18:00", coach: "Pablo Ruiz" },
-  { id: "2", clase: "Funcional", fecha: "Manana", hora: "09:30", coach: "Maria Gomez" },
-]
-
 const logros = [
   { nombre: "Primera Clase", icono: Trophy, completado: true },
   { nombre: "Racha 5 días", icono: Flame, completado: true },
@@ -83,9 +42,95 @@ const logros = [
 
 export default function AlumnoDashboard() {
   const [wodExpanded, setWodExpanded] = useState(false)
+  
+  // 🟢 ESTADOS REALES DE LA BASE DE DATOS
+  const [reservasReales, setReservasReales] = useState([])
+  const [clasesHoy, setClasesHoy] = useState([])
+  const [nombreUsuario, setNombreUsuario] = useState("FABRICIO") 
+  const [loadingReservas, setLoadingReservas] = useState(true)
+  const [loadingClases, setLoadingClases] = useState(true)
+
+  // Datos estáticos temporales (para las tarjetas que delegamos para más adelante)
+  const userStats = {
+    creditos: 12,
+    creditosUsados: 8,
+    racha: 5,
+    totalClases: 47,
+  }
+
+  // 🟢 EFECTO 1: TRAER LAS RESERVAS DEL ALUMNO
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await apiClient.get("/reservas/mis-reservas")
+        const listaReservas = response.data?.data || response.data || []
+        setReservasReales(listaReservas)
+        setNombreUsuario("FABRICIO LUIS BAEZ")
+      } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error)
+      } finally {
+        setLoadingReservas(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  // 🟢 EFECTO 2: TRAER LAS CLASES OFRECIDAS HOY EN EL BOX
+ useEffect(() => {
+    const fetchClasesHoy = async () => {
+      try {
+        const response = await apiClient.get("/clases/disponibles")
+        const allClases = response.data?.data || response.data || []
+        
+        
+        const numeroDiaJs = new Date().getDay()
+        
+        // Mapeamos al formato en español que usás en tu base de datos
+        const mapeoDias = [
+          "Domingo",
+          "Lunes",
+          "Martes",
+          "Miércoles",
+          "Jueves",
+          "Viernes",
+          "Sábado"
+        ]
+        const diaActualTexto = mapeoDias[numeroDiaJs] // Ej: "Domingo"
+
+        // 2. Filtramos para quedarnos únicamente con las clases que incluyan el día de hoy
+        const clasesFiltradasPorDia = allClases.filter(clase => {
+          if (!clase.diasSemana) return false
+          
+          // Limpiamos espacios y acentos para evitar fallos de coincidencia
+          const diasNormalizados = clase.diasSemana
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          const hoyNormalizado = diaActualTexto
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+
+          return diasNormalizados.includes(hoyNormalizado)
+        })
+        
+        // 3. Pasamos al estado solo las clases del día real
+        setClasesHoy(clasesFiltradasPorDia.slice(0, 3)) 
+      } catch (error) {
+        console.error("Error al cargar las clases de hoy:", error)
+      } finally {
+        setLoadingClases(false)
+      }
+    }
+
+    fetchClasesHoy()
+  }, [])
+
+  // Filtramos las reservas con estado 'proxima' para los contadores y lista derecha
+  const proximasReservadas = reservasReales.filter(r => r.estadoReserva === 'proxima')
 
   return (
     <div className="space-y-6">
+      {/* SECCIÓN DEL BANNER PRINCIPAL */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-black via-black/95 to-primary/20 border border-border">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-[url('/logo.jpg')] bg-center bg-no-repeat bg-contain opacity-10" />
@@ -102,7 +147,8 @@ export default function AlumnoDashboard() {
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-foreground tracking-tight">
-                  {`¡VAMOS, ${userStats.nombre.toUpperCase()}!`}
+                  {/* 🟢 SALUDO PERSONALIZADO CON NOMBRE REAL */}
+                  {`¡VAMOS, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
                 <p className="text-lg text-muted-foreground mt-1">
                   Cada WOD es una oportunidad para ser mejor
@@ -142,6 +188,7 @@ export default function AlumnoDashboard() {
         </div>
       </div>
 
+      {/* SECCIÓN WOD DEL DÍA */}
       <Card className="bg-card border-border overflow-hidden">
         <div className="bg-gradient-to-r from-primary/20 to-transparent p-1">
           <div className="bg-card p-6">
@@ -196,6 +243,7 @@ export default function AlumnoDashboard() {
         </div>
       </Card>
 
+      {/* BOTONES DE ACCESO RÁPIDO */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/alumno/reservar" className="group">
           <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
@@ -216,7 +264,8 @@ export default function AlumnoDashboard() {
                 <Clock className="h-7 w-7 text-accent" />
               </div>
               <h3 className="font-bold text-foreground">Mis Clases</h3>
-              <p className="text-sm text-muted-foreground mt-1">{misReservas.length} reservadas</p>
+              {/* 🟢 CONTADOR DE RESERVAS ACTIVAS REALES */}
+              <p className="text-sm text-muted-foreground mt-1">{proximasReservadas.length} reservadas</p>
             </CardContent>
           </Card>
         </Link>
@@ -246,7 +295,10 @@ export default function AlumnoDashboard() {
         </Link>
       </div>
 
+      {/* SECCIÓN DOBLE: CLASES DISPONIBLES VS MIS RESERVAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* LADO IZQUIERDO: CLASES DE HOY (OFERTA DEL BOX) */}
         <Card className="bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -265,39 +317,54 @@ export default function AlumnoDashboard() {
             </div>
 
             <div className="space-y-3">
-              {proximasClases.map((clase) => (
-                <div
-                  key={clase.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-black/30 border border-border hover:border-primary/30 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-center min-w-[60px]">
-                      <p className="text-2xl font-black text-foreground">{clase.hora.split(":")[0]}</p>
-                      <p className="text-xs text-muted-foreground">{`:${clase.hora.split(":")[1]}`}</p>
+              {loadingClases ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Cargando grilla horaria...</p>
+              ) : clasesHoy.length > 0 ? (
+                clasesHoy.map((clase) => (
+                  <div
+                    key={clase.idHorario || clase.id}
+                    className="flex items-center justify-between p-4 rounded-xl bg-black/30 border border-border hover:border-primary/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-center min-w-[60px]">
+                        <p className="text-2xl font-black text-foreground">
+                          {clase.horaInicio ? clase.horaInicio.split(":")[0] : "00"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {clase.horaInicio ? `:${clase.horaInicio.split(":")[1]}` : ":00"}
+                        </p>
+                      </div>
+                      <div className="border-l border-border pl-4">
+                        <p className="font-bold text-foreground">{clase.nombreClase || clase.nombre}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {clase.nombreProfesor || "Staff Bravos"} · {clase.duracion || "60 min"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="border-l border-border pl-4">
-                      <p className="font-bold text-foreground">{clase.nombre}</p>
-                      <p className="text-sm text-muted-foreground">{clase.coach} · {clase.duracion}</p>
+                    <div className="flex items-center gap-3">
+                      <Badge 
+                        variant="outline" 
+                        className={(clase.cuposDisponibles || clase.cupos) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}
+                      >
+                        {clase.cuposDisponibles ?? clase.cupos} cupos
+                      </Badge>
+                      <Link to="/alumno/reservar">
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold">
+                          <Zap className="h-3 w-3 mr-1" />
+                          Reservar
+                        </Button>
+                      </Link>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge 
-                      variant="outline" 
-                      className={clase.cupos <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}
-                    >
-                      {clase.cupos} cupos
-                    </Badge>
-                    <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Reservar
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No hay más clases programadas para hoy.</p>
+              )}
             </div>
           </div>
         </Card>
 
+        {/* LADO DERECHO: MIS RESERVAS (AGENDA REAL DEL ALUMNO DESDE LA BD) */}
         <Card className="bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -315,21 +382,25 @@ export default function AlumnoDashboard() {
               </Link>
             </div>
 
-            {misReservas.length > 0 ? (
+            {loadingReservas ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Cargando tu agenda...</p>
+            ) : proximasReservadas.length > 0 ? (
               <div className="space-y-3">
-                {misReservas.map((reserva) => (
+                {proximasReservadas.slice(0, 3).map((reserva) => (
                   <div
-                    key={reserva.id}
+                    key={reserva.idReserva}
                     className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/20"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                        <span className="text-lg font-black text-primary">{reserva.hora.split(":")[0]}</span>
+                        <span className="text-lg font-black text-primary">
+                          {reserva.horaInicio ? reserva.horaInicio.substring(0, 2) : "00"}
+                        </span>
                       </div>
                       <div>
-                        <p className="font-bold text-foreground">{reserva.clase}</p>
+                        <p className="font-bold text-foreground">{reserva.nombreClase || reserva.clase}</p>
                         <p className="text-sm text-muted-foreground">
-                          {reserva.fecha} · {reserva.hora} · {reserva.coach}
+                          {reserva.fechaReserva ? reserva.fechaReserva.substring(0, 10) : "Hoy"} · {reserva.horaInicio ? reserva.horaInicio.substring(0, 5) : "00:00"} · {reserva.nombreProfesor || "Staff Bravos"}
                         </p>
                       </div>
                     </div>
@@ -373,6 +444,7 @@ export default function AlumnoDashboard() {
         </Card>
       </div>
 
+      {/* TARJETA DE PROGRESO MENSUAL ESTÁTICA (IGNORADA TEMPORALMENTE) */}
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

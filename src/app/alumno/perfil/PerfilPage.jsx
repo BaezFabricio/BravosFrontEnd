@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Navigate, useNavigate } from "react-router-dom"
 import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -106,7 +106,7 @@ export default function PerfilPage() {
             estado: (usuario.estado || 'inactivo').toLowerCase(),
             membresia: usuario.membresia || null,
             vencimientoMembresia: usuario.vencimiento || usuario.vencimientoMembresia || '',
-            fechaRegistro: findValue(usuario, ['fechaRegistro', 'fecha_registro', 'createdAt', 'created_at', 'created', 'registered_at']) || '',
+            fechaRegistro: findValue(usuario, ['fecha_registro', 'fechaRegistro', 'miembroDesde', 'createdAt', 'created_at']) || '',  
             creditos: usuario.creditos || 0,
           })
 
@@ -213,7 +213,7 @@ export default function PerfilPage() {
   const membership = membershipConfig[userData.membresia] || null
 
   const handleGoHome = () => {
-    navigate("/inicio")
+    navigate("/");
   }
 
   
@@ -236,7 +236,7 @@ export default function PerfilPage() {
           <CardContent>
             <div className="flex items-center gap-6 mb-6">
               <Avatar className="h-20 w-20 border border-border bg-background">
-                <AvatarImage src={avatarUrl} alt={userData.nombre} />
+                <AvatarImage src={avatarUrl && avatarUrl.trim() !== "" ? avatarUrl : null} alt={userData.nombre} />
                 <AvatarFallback className="bg-primary text-2xl font-bold text-primary-foreground">
                   {getIniciales(nombreVisible)}
                 </AvatarFallback>

@@ -103,7 +103,26 @@ export default function EditarClasePage() {
     }
   }
 
-  useEffect(() => {
+ useEffect(() => {
+  const storedPermisos = localStorage.getItem("permisos")
+  let tieneAcceso = false
+
+  if (storedPermisos) {
+    try {
+      const lista = JSON.parse(storedPermisos)
+      if (lista.includes("clases:modificacion")) {
+        tieneAcceso = true
+      }
+    } catch (err) {
+      console.error("Error validando permisos de edición:", err)
+    }
+  }
+
+  // 🔴 SI NO TIENE EL TILDE, LO REBOTA AUTOMÁTICAMENTE A SU PANEL
+  if (!tieneAcceso) {
+    navigate("/admin/clases")
+    return
+  }
     obtenerProfesores()
     obtenerClase()
   }, [id])
@@ -184,7 +203,7 @@ export default function EditarClasePage() {
         cupoMaximo: 20,
         cupoDisponible: parseInt(formData.capacidadMaxima),
         estado: formData.estado,
-        idGimnasio: 1,
+        idGimnasio: null,
         idProfesor: parseInt(formData.idProfesor),
 
         diasSemana: formData.diasSemana,
@@ -330,7 +349,8 @@ export default function EditarClasePage() {
                       value={profesor.idProfesor}
                       className="bg-input text-foreground"
                     >
-                      {profesor.nombrecompleto} - {profesor.especialidad}
+                    
+                      {profesor.nombreProfesor || "Staff Bravos"}
                     </option>
                   ))
                 )}
