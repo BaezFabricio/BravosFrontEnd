@@ -41,17 +41,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
+import { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
-  vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  vigente: { label: "Activa", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
@@ -119,14 +119,27 @@ export default function UsuariosPage() {
       const idPerfilReal = user.idPerfil !== undefined ? user.idPerfil : normalized.idPerfil;
       const idReal = user.idUsuario || normalized.idUsuario || user.id || normalized.id;
 
+      // 🟢 TRATAMIENTO DE MEMBRESÍA: Evita strings vacíos o roturas por mayúsculas
+      let membresiaBackend = String(user.membresia || normalized.membresia || "").toLowerCase().trim();
+
+      // Homologamos términos del backend al tipado del objeto de configuración local
+      if (membresiaBackend === "activa" || membresiaBackend === "activo") {
+        membresiaBackend = "vigente";
+      }
+
+      // Si viene nula o no coincide con los badges visuales, deducimos según el estado base del alumno
+      if (!membershipConfig[membresiaBackend]) {
+        membresiaBackend = (user.estado === "activo" || normalized.estado === "activo") ? "vigente" : "vencida";
+      }
+
       return {
         ...normalized,
         ...user, // Inyectamos las propiedades crudas encima
         idUsuario: idReal,
         idPerfil: idPerfilReal,
-        nombrePerfil: nombrePerfilReal, // 👈 Forzamos que se guarde el texto real que viene de la query
+        nombrePerfil: nombrePerfilReal, // Forzamos que se guarde el texto real que viene de la query
         estado: statusConfig[user.estado || normalized.estado] ? (user.estado || normalized.estado) : "activo",
-        membresia: membershipConfig[user.membresia || normalized.membresia] ? (user.membresia || normalized.membresia) : "vencida"
+        membresia: membresiaBackend
       }
     })
     .filter((user) => {
@@ -191,7 +204,7 @@ export default function UsuariosPage() {
           <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
         
-        {/* 🟢 PROTECCIÓN DEL BOTÓN NUEVO USUARIO (Requiere usuarios:alta) */}
+        {/* 🟢 PROTECCIÓN DEL BOTÓN NUEVO USUARIO (Requieres usuarios:alta) */}
         {permisos.includes("usuarios:alta") && (
           <div className="flex items-center gap-2">
             <Button asChild className="bg-primary hover:bg-primary/90">
@@ -244,7 +257,7 @@ export default function UsuariosPage() {
               </SelectContent>
             </Select>
             
-            {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR (Disponible si puede consultar) */}
+            {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
             {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
               <div className="flex items-center gap-1">
                 <Button variant="outline" className="border-border">
@@ -285,7 +298,7 @@ export default function UsuariosPage() {
                 </thead>
                 <tbody>
                   {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
+                    <tr key={user.idUsuario || user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
                       <td className="p-4">
                         <div>
                           <p className="font-medium text-foreground">{user.nombre}</p>
@@ -325,7 +338,7 @@ export default function UsuariosPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             
-                            {/* 🟢 ACCIÓN: VER DETALLE (Requiere consulta o ver) */}
+                            {/* 🟢 ACCIÓN: VER DETALLE */}
                             {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
                               <DropdownMenuItem asChild>
                                <Link to={`/admin/usuarios/${user.idUsuario || user.id}`}>
@@ -335,7 +348,7 @@ export default function UsuariosPage() {
                               </DropdownMenuItem>
                             )}
 
-                            {/* 🟢 ACCIÓN: EDICIÓN (Requiere modificacion) */}
+                            {/* 🟢 ACCIÓN: EDICIÓN */}
                             {permisos.includes("usuarios:modificacion") && (
                               <DropdownMenuItem asChild>
                                 <Link to={`/admin/usuarios/${user.idUsuario || user.id}/editar`}>
@@ -345,14 +358,14 @@ export default function UsuariosPage() {
                               </DropdownMenuItem>
                             )}
                             
-                            {/* 🟢 ACCIONES DE CAMBIO DE ESTADO (Requieren modificacion) */}
+                            {/* 🟢 ACCIONES DE CAMBIO DE ESTADO */}
                             {permisos.includes("usuarios:modificacion") && (
                               <>
                                 <DropdownMenuSeparator />
                                 {user.estado === "activo" && (
                                   <DropdownMenuItem
                                     onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                                    className="text-green-500"
+                                    className="text-yellow-500"
                                   >
                                     <UserX className="mr-2 h-4 w-4" />
                                     Suspender
@@ -371,18 +384,18 @@ export default function UsuariosPage() {
                               </>
                             )}
 
-                            {/* 🟢 ACCIÓN: DAR DE BAJA (Requiere baja) */}
+                            {/* 🟢 ACCIÓN: DAR DE BAJA */}
                             {permisos.includes("usuarios:baja") && user.estado !== "inactivo" && (
                               <DropdownMenuItem
                                 onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
-                                className="text-green-500"
+                                className="text-gray-500"
                               >
                                 <UserX className="mr-2 h-4 w-4" />
                                 Dar de Baja
                               </DropdownMenuItem>
                             )}
 
-                            {/* 🟢 ACCIÓN: ELIMINAR PERMANENTE (Requiere baja) */}
+                            {/* 🟢 ACCIÓN: ELIMINAR PERMANENTE */}
                             {permisos.includes("usuarios:baja") && (
                               <>
                                 <DropdownMenuSeparator />
@@ -440,7 +453,7 @@ export default function UsuariosPage() {
                       : confirmDialog.action === "activate"
                         ? "activo"
                         : "inactivo"
-                  handleStatusChange(confirmDialog.user.id, newStatus)
+                  handleStatusChange(confirmDialog.user.idUsuario || confirmDialog.user.id, newStatus)
                 }
               }}
             >
@@ -470,7 +483,7 @@ export default function UsuariosPage() {
               variant="destructive"
               onClick={() => {
                 if (deleteDialog.user) {
-                  handleDeleteUser(deleteDialog.user.id)
+                  handleDeleteUser(deleteDialog.user.idUsuario || deleteDialog.user.id)
                 }
               }}
               disabled={isDeleting}

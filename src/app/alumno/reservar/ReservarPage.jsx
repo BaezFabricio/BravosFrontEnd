@@ -24,8 +24,8 @@ const mapaDiasBD = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIERCOLES", 4: "
 
 export default function ReservarClasePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
-  const [clasesOriginales, setClasesOriginales] = useState([]) // Almacena todas las clases del backend
-  const [clasesFiltradas, setClasesFiltradas] = useState([]) // Clases del día seleccionado
+  const [clasesOriginales, setClasesOriginales] = useState([]) 
+  const [clasesFiltradas, setClasesFiltradas] = useState([]) 
   const [selectedClass, setSelectedClass] = useState(null)
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -33,9 +33,11 @@ export default function ReservarClasePage() {
   const [successMessage, setSuccessMessage] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
   
-  // Extraemos los créditos dinámicos de la sesión del usuario guardada en localStorage
+  // 🟢 Créditos dinámicos en tiempo real
+  const [creditosReales, setCreditosReales] = useState(0)
+  const [loadingCreditos, setLoadingCreditos] = useState(true)
+
   const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
-  const creditosDisponibles = storedUser?.creditos || 0
 
   const formatDate = (date) => {
     return date.toLocaleDateString("es-AR", {
@@ -62,50 +64,56 @@ export default function ReservarClasePage() {
 
   const weekDates = getDatesOfWeek()
 
-  // 1. 🟢 FETCH: Trae las clases de la base de datos
+  // Sincroniza clases y pases calculados al iniciar la vista
   useEffect(() => {
-    const fetchClases = async () => {
+    const fetchDatosIniciales = async () => {
       try {
         setPageLoading(true)
-        const response = await apiClient.get('/clases/disponibles');
-        const rawClases = response.data?.data || response.data || []
+        setLoadingCreditos(true)
+
+        // 1. Obtener listado de horarios/clases activas
+        const responseClases = await apiClient.get('/clases/disponibles');
+        const rawClases = responseClases.data?.data || responseClases.data || []
         setClasesOriginales(rawClases)
+
+        // 2. Obtener los créditos reales calculados por el backend
+        if (storedUser.idUsuario) {
+          const responseUser = await apiClient.get(`/usuarios/${storedUser.idUsuario}`)
+          const datosUsuario = responseUser.data?.data || responseUser.data
+          setCreditosReales(datosUsuario?.creditos || 0)
+        }
       } catch (error) {
-        console.error("Error al recuperar las clases del gimnasio:", error)
+        console.error("Error de red al inicializar la interfaz:", error)
       } finally {
         setPageLoading(false)
+        setLoadingCreditos(false)
       }
     }
-    fetchClases()
+    fetchDatosIniciales()
   }, [])
 
-
+  // Filtrado reactivo por fecha seleccionada en el slider
   useEffect(() => {
-  const diaIndex = selectedDate.getDay()
-  const nombreDiaBuscado = mapaDiasBD[diaIndex] 
+    const diaIndex = selectedDate.getDay()
+    const nombreDiaBuscado = mapaDiasBD[diaIndex] 
 
-  console.log("DÍA SELECCIONADO EN EL CALENDARIO:", nombreDiaBuscado);
-  console.log("DATOS REALES QUE LLEGAN:", clasesOriginales);
+    const filtradas = clasesOriginales.filter(clase => {
+      const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : "";
+      const diaBuscado = nombreDiaBuscado ? nombreDiaBuscado.toUpperCase().trim() : "";
+      return diaClase === diaBuscado && clase.estado === 'Activo';
+    }).map(clase => ({
+      id: clase.idHorario,
+      nombre: clase.nombreClase,
+      hora: clase.horaInicio ? clase.horaInicio.substring(0, 5) : '00:00',
+      duracion: clase.horaFin ? `${calcularDuracion(clase.horaInicio, clase.horaFin)} min` : '60 min',
+      coach: clase.nombreProfesor || "Staff Bravos",
+      cuposDisponibles: clase.cupoDisponible ?? 0,
+      cuposTotales: clase.cupoMaximo ?? 15,
+      reservado: false 
+    }))
 
-  const filtradas = clasesOriginales.filter(clase => {
-    
-    const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : "";
-    const diaBuscado = nombreDiaBuscado ? nombreDiaBuscado.toUpperCase().trim() : "";
-    
-    return diaClase === diaBuscado && clase.estado === 'Activo';
-  }).map(clase => ({
-    id: clase.idHorario,
-    nombre: clase.nombreClase,
-    hora: clase.horaInicio ? clase.horaInicio.substring(0, 5) : '00:00',
-    duracion: clase.horaFin ? `${calcularDuracion(clase.horaInicio, clase.horaFin)} min` : '60 min',
-    coach: clase.nombreProfesor || "Staff Bravos",
-    cuposDisponibles: clase.cupoDisponible ?? 0,
-    cuposTotales: clase.cupoMaximo ?? 15,
-    reservado: false 
-  }))
-
-  setClasesFiltradas(filtradas)
-}, [selectedDate, clasesOriginales])
+    setClasesFiltradas(filtradas)
+  }, [selectedDate, clasesOriginales])
 
   const calcularDuracion = (inicio, fin) => {
     if (!inicio || !fin) return 60
@@ -114,15 +122,22 @@ export default function ReservarClasePage() {
     return (h2 * 60 + m2) - (h1 * 60 + m1)
   }
 
-  // 3. 🟢 TRANSMISIÓN: Envía la reserva nativa al backend
+  // Envía la petición estructurada al backend e impacta la UI local
   const handleReservar = async () => {
     if (!selectedClass) return
+    
+    // 🛡️ Guardia reactiva en el cliente por seguridad
+    if (creditosReales <= 0) {
+      setErrorMessage("No tenés créditos disponibles para completar la acción.")
+      setConfirmDialog(false)
+      return
+    }
     
     setIsLoading(true)
     setErrorMessage(null)
 
     try {
-      const fechaFormateada = selectedDate.toISOString().split('T')[0] // Formato YYYY-MM-DD
+      const fechaFormateada = selectedDate.toISOString().split('T')[0] 
       
       const response = await apiClient.post('/reservas', {
         idHorario: selectedClass.id,
@@ -132,22 +147,26 @@ export default function ReservarClasePage() {
       if (response.data?.success) {
         setSuccessMessage(`¡Reserva confirmada para ${selectedClass.nombre} a las ${selectedClass.hora}!`)
         
-        // Descontamos visualmente el cupo en el cliente
+        // Modificación en vivo del layout de cupos
         setClasesFiltradas(clasesFiltradas.map((c) =>
           c.id === selectedClass.id ? { ...c, cuposDisponibles: c.cuposDisponibles - 1 } : c
         ))
 
-        // TODO Opcional: Actualizar los créditos en el localStorage si los manejás en vivo
-        localStorage.setItem("usuario", JSON.stringify({ ...storedUser, creditos: creditosDisponibles - 1 }))
+        // Descontar pase del estado local de forma inmediata
+        const nuevoSaldo = creditosReales - 1;
+        setCreditosReales(nuevoSaldo)
+
+        // Guardar la persistencia en el almacenamiento local para sincronía entre páginas
+        localStorage.setItem("usuario", JSON.stringify({ ...storedUser, creditos: nuevoSaldo }))
       }
     } catch (error) {
-      console.error("Error al procesar reserva:", error)
-      setErrorMessage(error.response?.data?.message || "No se pudo completar la reserva en este momento.")
+      console.error("Error devuelto por el servidor:", error)
+      setErrorMessage(error.response?.data?.message || "Ocurrió un error inesperado al procesar la reserva.")
     } finally {
       setIsLoading(false)
       setConfirmDialog(false)
       setSelectedClass(null)
-      setTimeout(() => { setSuccessMessage(null); setErrorMessage(null); }, 5000)
+      setTimeout(() => { setSuccessMessage(null); setErrorMessage(null); }, 6000)
     }
   }
 
@@ -158,12 +177,15 @@ export default function ReservarClasePage() {
         <p className="text-muted-foreground">Selecciona una clase para reservar</p>
       </div>
 
+      {/* TARJETA DINÁMICA DE CRÉDITOS */}
       <Card className="bg-card border-border">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <span className="text-lg font-bold text-primary">{creditosDisponibles}</span>
+                <span className="text-lg font-bold text-primary">
+                  {loadingCreditos ? "..." : creditosReales}
+                </span>
               </div>
               <div>
                 <p className="font-medium text-foreground">Créditos Disponibles</p>
@@ -190,6 +212,7 @@ export default function ReservarClasePage() {
         </Alert>
       )}
 
+      {/* CALENDARIO SEMANAL */}
       <Card className="bg-card border-border">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-semibold capitalize">
@@ -246,8 +269,9 @@ export default function ReservarClasePage() {
         </CardContent>
       </Card>
 
+      {/* GRILLA DE CLASES */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Clases Disponibles</h2>
+        <h2 className="text-lg font-semibold text-foreground">Clases Disponible</h2>
         
         {pageLoading ? (
           <div className="flex items-center justify-center p-8">
@@ -263,7 +287,7 @@ export default function ReservarClasePage() {
               <Card
                 key={clase.id}
                 className={`bg-card border-border transition-all ${
-                  clase.cuposDisponibles === 0 ? "opacity-60" : "hover:border-primary/30"
+                  clase.cuposDisponibles === 0 || creditosReales === 0 ? "opacity-60" : "hover:border-primary/30"
                 }`}
               >
                 <CardContent className="p-4">
@@ -297,6 +321,11 @@ export default function ReservarClasePage() {
                       <Button variant="outline" className="w-full" disabled>
                         Sin cupos disponibles
                       </Button>
+                    ) : creditosReales === 0 ? (
+                      /* 🚫 ACCIÓN INHABILITADA POR FALTA DE CRÉDITOS REALES */
+                      <Button variant="destructive" className="w-full opacity-70 cursor-not-allowed" disabled>
+                        Sin créditos disponibles
+                      </Button>
                     ) : (
                       <Button
                         className="w-full bg-primary hover:bg-primary/90"
@@ -316,6 +345,7 @@ export default function ReservarClasePage() {
         )}
       </div>
 
+      {/* DIÁLOGO DE CONFIRMACIÓN */}
       <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -336,13 +366,17 @@ export default function ReservarClasePage() {
           <Alert className="bg-green-500/10 border-green-500/20">
             <AlertCircle className="h-4 w-4 text-green-500" />
             <AlertDescription className="text-green-500/80">
-              Se descontará 1 crédito de tu cuenta. Si no asistes, el crédito también será descontado.
+              Se descontará 1 crédito de tu cuenta. Si cancelas tarde (menos de 2 horas antes de la clase), el crédito se perderá de igual forma.
             </AlertDescription>
           </Alert>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDialog(false)}>Cancelar</Button>
-            <Button onClick={handleReservar} disabled={isLoading} className="bg-primary hover:bg-primary/90">
+            <Button 
+              onClick={handleReservar} 
+              disabled={isLoading || creditosReales === 0} 
+              className="bg-primary hover:bg-primary/90"
+            >
               {isLoading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Reservando...</>
               ) : (

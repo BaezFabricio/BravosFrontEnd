@@ -6,7 +6,6 @@ import RegistroPage from './app/registro/RegistroPage.jsx'
 import RecuperarContrasenaPage from './app/recuperar-contraseña/RecuperarContrasenaPage.jsx'
 import AdminLayout from './app/admin/layout.jsx'
 import AdminDashboard from './app/admin/AdminDashboard.jsx'
-import MembresiasPage from './app/admin/membresias/MembresiasPage.jsx'
 import PerfilesPage from './app/admin/perfiles/PerfilesPage.jsx'
 import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
 import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
@@ -129,7 +128,6 @@ function App() {
 
         {/* RUTAS DE ADMINISTRADOR */}
         <Route path="/admin" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
-        <Route path="/admin/membresias" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><MembresiasPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />

@@ -31,7 +31,6 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
   { name: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
   { name: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
-  { name: "Membresías", href: "/admin/membresias", icon: CreditCard, requiredPermission: "membresias:consulta" },
   { name: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta" },
   { name: "Configuración", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta" },
 ]

@@ -43,29 +43,46 @@ const logros = [
 export default function AlumnoDashboard() {
   const [wodExpanded, setWodExpanded] = useState(false)
   
-  // 🟢 ESTADOS REALES DE LA BASE DE DATOS
+  // 🟢 ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
   const [reservasReales, setReservasReales] = useState([])
   const [clasesHoy, setClasesHoy] = useState([])
-  const [nombreUsuario, setNombreUsuario] = useState("FABRICIO") 
+  const [nombreUsuario, setNombreUsuario] = useState("ATLETA") // 🟢 Cambiado a fallback genérico
+  const [creditosReales, setCreditosReales] = useState(0)      // 🟢 Estado para créditos reales
   const [loadingReservas, setLoadingReservas] = useState(true)
   const [loadingClases, setLoadingClases] = useState(true)
 
   // Datos estáticos temporales (para las tarjetas que delegamos para más adelante)
   const userStats = {
-    creditos: 12,
     creditosUsados: 8,
     racha: 5,
     totalClases: 47,
   }
 
-  // 🟢 EFECTO 1: TRAER LAS RESERVAS DEL ALUMNO
+  // 🟢 EFECTO 1: LEER SESIÓN, TRAER CRÉDITOS Y RESERVAS DEL ALUMNO
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await apiClient.get("/reservas/mis-reservas")
-        const listaReservas = response.data?.data || response.data || []
+        // 1. Levantamos la sesión del usuario logueado en este navegador
+        const sesion = JSON.parse(localStorage.getItem("usuario") || localStorage.getItem("user") || "{}")
+        
+        if (sesion.nombrecompleto || sesion.nombre) {
+          setNombreUsuario(sesion.nombrecompleto || sesion.nombre)
+        }
+
+        // 2. Traemos sus reservas
+        const responseReservas = await apiClient.get("/reservas/mis-reservas")
+        const listaReservas = responseReservas.data?.data || responseReservas.data || []
         setReservasReales(listaReservas)
-        setNombreUsuario("FABRICIO LUIS BAEZ")
+
+        // 3. Si hay ID de usuario válido, traemos sus créditos calculados en tiempo real
+        if (sesion.idUsuario) {
+          const responseUser = await apiClient.get(`/usuarios/${sesion.idUsuario}`)
+          const datosUsuario = responseUser.data?.data || responseUser.data
+          if (datosUsuario) {
+            // Seteamos los créditos calculados por tu query con SUM(creditosCisponibles)
+            setCreditosReales(datosUsuario.creditos || 0)
+          }
+        }
       } catch (error) {
         console.error("Error al cargar datos del dashboard:", error)
       } finally {
@@ -77,12 +94,11 @@ export default function AlumnoDashboard() {
   }, [])
 
   // 🟢 EFECTO 2: TRAER LAS CLASES OFRECIDAS HOY EN EL BOX
- useEffect(() => {
+  useEffect(() => {
     const fetchClasesHoy = async () => {
       try {
         const response = await apiClient.get("/clases/disponibles")
         const allClases = response.data?.data || response.data || []
-        
         
         const numeroDiaJs = new Date().getDay()
         
@@ -98,11 +114,10 @@ export default function AlumnoDashboard() {
         ]
         const diaActualTexto = mapeoDias[numeroDiaJs] // Ej: "Domingo"
 
-        // 2. Filtramos para quedarnos únicamente con las clases que incluyan el día de hoy
+        // Filtramos para quedarnos únicamente con las clases que incluyan el día de hoy
         const clasesFiltradasPorDia = allClases.filter(clase => {
           if (!clase.diasSemana) return false
           
-          // Limpiamos espacios y acentos para evitar fallos de coincidencia
           const diasNormalizados = clase.diasSemana
             .toLowerCase()
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -113,7 +128,6 @@ export default function AlumnoDashboard() {
           return diasNormalizados.includes(hoyNormalizado)
         })
         
-        // 3. Pasamos al estado solo las clases del día real
         setClasesHoy(clasesFiltradasPorDia.slice(0, 3)) 
       } catch (error) {
         console.error("Error al cargar las clases de hoy:", error)
@@ -147,7 +161,7 @@ export default function AlumnoDashboard() {
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-foreground tracking-tight">
-                  {/* 🟢 SALUDO PERSONALIZADO CON NOMBRE REAL */}
+                  {/* 🟢 SALUDO DINÁMICO ASOCIADO AL USUARIO LOGUEADO */}
                   {`¡VAMOS, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
                 <p className="text-lg text-muted-foreground mt-1">
@@ -173,7 +187,8 @@ export default function AlumnoDashboard() {
                 <div className="absolute top-2 right-2">
                   <HelpTooltip content="Creditos disponibles para reservar clases. Cada clase consume 1 credito." iconClassName="h-3 w-3" />
                 </div>
-                <p className="text-3xl font-black text-primary">{userStats.creditos}</p>
+                {/* 🟢 NÚMERO DE CRÉDITOS REALES DIRECTO DE LA BASE DE DATOS */}
+                <p className="text-3xl font-black text-primary">{loadingReservas ? "..." : creditosReales}</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Creditos</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
@@ -264,7 +279,6 @@ export default function AlumnoDashboard() {
                 <Clock className="h-7 w-7 text-accent" />
               </div>
               <h3 className="font-bold text-foreground">Mis Clases</h3>
-              {/* 🟢 CONTADOR DE RESERVAS ACTIVAS REALES */}
               <p className="text-sm text-muted-foreground mt-1">{proximasReservadas.length} reservadas</p>
             </CardContent>
           </Card>
@@ -277,7 +291,8 @@ export default function AlumnoDashboard() {
                 <CreditCard className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-bold text-foreground">Créditos</h3>
-              <p className="text-sm text-muted-foreground mt-1">{userStats.creditos} disponibles</p>
+              {/* 🟢 REEMPLAZADO CON EL ESTADO DE CRÉDITOS REALES */}
+              <p className="text-sm text-muted-foreground mt-1">{loadingReservas ? "..." : creditosReales} disponibles</p>
             </CardContent>
           </Card>
         </Link>
@@ -364,7 +379,7 @@ export default function AlumnoDashboard() {
           </div>
         </Card>
 
-        {/* LADO DERECHO: MIS RESERVAS (AGENDA REAL DEL ALUMNO DESDE LA BD) */}
+        {/* LADO DERECHO: MIS RESERVAS */}
         <Card className="bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -444,7 +459,7 @@ export default function AlumnoDashboard() {
         </Card>
       </div>
 
-      {/* TARJETA DE PROGRESO MENSUAL ESTÁTICA (IGNORADA TEMPORALMENTE) */}
+      {/* TARJETA DE PROGRESO MENSUAL */}
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -455,20 +470,23 @@ export default function AlumnoDashboard() {
               <div>
                 <h3 className="font-bold text-foreground">PROGRESO MENSUAL</h3>
                 <p className="text-sm text-muted-foreground">
-                  Has completado {userStats.creditosUsados} de {userStats.creditos + userStats.creditosUsados} clases este mes
+                  {/* 🟢 SE REEMPLAZÓ EL ELEMENTO FIJO CON CREDITOSREALES */}
+                  Has completado {userStats.creditosUsados} de {creditosReales + userStats.creditosUsados} clases este mes
                 </p>
                 <div className="mt-3 w-64 h-3 bg-black/30 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
                     style={{
-                      width: `${(userStats.creditosUsados / (userStats.creditos + userStats.creditosUsados)) * 100}%`,
+                      width: `${(userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100}%`,
                     }}
                   />
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-4xl font-black text-primary">{Math.round((userStats.creditosUsados / (userStats.creditos + userStats.creditosUsados)) * 100)}%</p>
+              <p className="text-4xl font-black text-primary">
+                {Math.round((userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100)}%
+              </p>
               <p className="text-sm text-muted-foreground">completado</p>
             </div>
           </div>
