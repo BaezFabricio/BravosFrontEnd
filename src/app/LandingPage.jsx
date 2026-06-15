@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
+import { ModeToggle } from "@/components/ModeToggle";
 
 const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
@@ -147,13 +148,15 @@ function LandingPage() {
         console.error('Error al cargar config desde el admin:', err)
         if (isMounted) setHeroImages(defaultHeroImages)
       })
-
-    // 🟢 SECUENCIA CONTINUA: Carga tus clases reales dinámicamente
-    fetch("http://localhost:3001/api/vv1/clases")
+    fetch("http://localhost:3001/api/vv1/clases/disponibles")
       .then((res) => res.json())
       .then((result) => {
-        if (isMounted && result.success) {
-          setClasesBackend(result.data)
+        if (isMounted) {
+
+          // Buscamos el array inspeccionando si viene en .data, .clases o directo en el objeto
+          const datosReales = result.data || result.clases || (Array.isArray(result) ? result : []);
+          
+          setClasesBackend(datosReales);
         }
       })
       .catch((err) => console.error('Error al sincronizar horarios en la landing:', err))
@@ -205,8 +208,14 @@ function LandingPage() {
 
   // 🟢 FILTRADO DINÁMICO CRONOLÓGICO CONECTADO
   const clasesVisibles = clasesBackend
-    .filter((c) => c.diasSemana && c.diasSemana.split(',').includes(diaSeleccionado))
-    .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio))
+    .filter((c) => {
+  
+      const diaBaseDatos = c.dia ? c.dia.toUpperCase().trim() : "";
+      const diaBoton = diaSeleccionado ? diaSeleccionado.toUpperCase().trim() : "";
+      return diaBaseDatos === diaBoton;
+    })
+    
+    .sort((a, b) => (a.horaInicio || "").localeCompare(b.horaInicio || ""));
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white selection:bg-emerald-500 selection:text-black">
@@ -258,6 +267,9 @@ function LandingPage() {
               </nav>
 
               <div className="hidden items-center gap-3 lg:flex">
+
+                <ModeToggle />
+                
                 {!isLoggedIn ? (
                   <>
                     <Link to="/login">
@@ -588,12 +600,18 @@ function LandingPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {clasesVisibles.map((item) => (
-                <div key={item.idClase} className="border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                <div key={item.idHorario} className="border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
                   <div className="text-lg font-bold text-accent">
-                    {item.horaInicio.slice(0, 5)} - {item.horaFin.slice(0, 5)} Hs
+                    {item.horaInicio ? item.horaInicio.slice(0, 5) : "00:00"} - {item.horaFin ? item.horaFin.slice(0, 5) : "00:00"} Hs
                   </div>
-                  <div className="mt-1 font-bold text-white uppercase">{item.nombreClase}</div>
-                  <div className="mt-1 text-sm text-white/50">{item.nombreProfesor || "Staff Bravos"}</div>
+                  <div className="mt-1 font-bold text-white uppercase">{item.nombreClase || "Clase"}</div>
+                  
+                  {/* 🟢 Renderiza únicamente el nombre del profesor puro si existe en la base de datos */}
+                  {item.nombreProfesor && (
+                    <div className="mt-1 text-sm text-white/50">
+                      {item.nombreProfesor}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -630,8 +648,8 @@ function LandingPage() {
       <footer className="border-t border-white/10 bg-black py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <span className="text-lg font-black tracking-tight text-accent">CROSSFIT BRAVOS</span>
-            <p className="text-sm text-white/40">2026 CrossFit Bravos. Todos los derechos reservados.</p>
+            <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
+            <p className="text-sm text-white/40">2026 Bravos Box. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

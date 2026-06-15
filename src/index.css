@@ -4,10 +4,10 @@
 
 :root {
   /* Bravos Gym - palette (hex values) */
-  --background: #0b0b0b;
-  --foreground: #f2f2f2;
-  --card: #18201b;
-  --card-foreground: #f2f2f2;
+  --background: #f2f2f2;
+  --foreground: #0b0b0b;
+  --card: #ffffff;
+  --card-foreground: #0b0b0b;
   --popover: #131916;
   --popover-foreground: #f2f2f2;
   --primary: #3f7d55;
@@ -134,9 +134,11 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground; /* Esto está perfecto */
   }
+  
 }
+
 
 /* Override rápido: mapear clases "yellow" a nuestro verde de marca */
 

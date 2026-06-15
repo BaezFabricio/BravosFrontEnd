@@ -6,80 +6,57 @@ import {
   Clock, 
   ChevronRight, 
   Flame,
-  Dumbbell,
-  Timer,
   Trophy,
   Users,
-  TrendingUp,
-  Play,
-  Zap
+  TrendingUp
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
-// 🟢 Importación corregida apuntando a tu cliente centralizado de Axios
 import apiClient from "@/api" 
-
-const todayWOD = {
-  nombre: "FRAN",
-  tipo: "FOR TIME",
-  descripcion: "21-15-9",
-  ejercicios: [
-    { nombre: "Thrusters", peso: "43/30 kg" },
-    { nombre: "Pull-ups", peso: "" },
-  ],
-  tiempoCap: "10 min",
-  nivel: "RX",
-}
 
 const logros = [
   { nombre: "Primera Clase", icono: Trophy, completado: true },
   { nombre: "Racha 5 días", icono: Flame, completado: true },
-  { nombre: "10 WODs RX", icono: Dumbbell, completado: false },
+  { nombre: "10 WODs RX", icono: Trophy, completado: false },
   { nombre: "Primer PR", icono: TrendingUp, completado: true },
 ]
 
 export default function AlumnoDashboard() {
-  const [wodExpanded, setWodExpanded] = useState(false)
-  
-  // 🟢 ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
+  // ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
   const [reservasReales, setReservasReales] = useState([])
   const [clasesHoy, setClasesHoy] = useState([])
-  const [nombreUsuario, setNombreUsuario] = useState("ATLETA") // 🟢 Cambiado a fallback genérico
-  const [creditosReales, setCreditosReales] = useState(0)      // 🟢 Estado para créditos reales
+  const [nombreUsuario, setNombreUsuario] = useState("ATLETA") 
+  const [creditosReales, setCreditosReales] = useState(0)      
   const [loadingReservas, setLoadingReservas] = useState(true)
   const [loadingClases, setLoadingClases] = useState(true)
 
-  // Datos estáticos temporales (para las tarjetas que delegamos para más adelante)
+  // Datos estáticos temporales para las tarjetas de progreso
   const userStats = {
     creditosUsados: 8,
     racha: 5,
     totalClases: 47,
   }
 
-  // 🟢 EFECTO 1: LEER SESIÓN, TRAER CRÉDITOS Y RESERVAS DEL ALUMNO
+  // EFECTO 1: LEER SESIÓN, TRAER CRÉDITOS Y RESERVAS DEL ALUMNO
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // 1. Levantamos la sesión del usuario logueado en este navegador
         const sesion = JSON.parse(localStorage.getItem("usuario") || localStorage.getItem("user") || "{}")
         
         if (sesion.nombrecompleto || sesion.nombre) {
           setNombreUsuario(sesion.nombrecompleto || sesion.nombre)
         }
 
-        // 2. Traemos sus reservas
         const responseReservas = await apiClient.get("/reservas/mis-reservas")
         const listaReservas = responseReservas.data?.data || responseReservas.data || []
         setReservasReales(listaReservas)
 
-        // 3. Si hay ID de usuario válido, traemos sus créditos calculados en tiempo real
         if (sesion.idUsuario) {
           const responseUser = await apiClient.get(`/usuarios/${sesion.idUsuario}`)
           const datosUsuario = responseUser.data?.data || responseUser.data
           if (datosUsuario) {
-            // Seteamos los créditos calculados por tu query con SUM(creditosCisponibles)
             setCreditosReales(datosUsuario.creditos || 0)
           }
         }
@@ -93,42 +70,43 @@ export default function AlumnoDashboard() {
     fetchDashboardData()
   }, [])
 
-  // 🟢 EFECTO 2: TRAER LAS CLASES OFRECIDAS HOY EN EL BOX
+  // EFECTO 2: TRAER LAS CLASES OFRECIDAS HOY EN EL BOX
   useEffect(() => {
     const fetchClasesHoy = async () => {
       try {
+        setLoadingClases(true)
         const response = await apiClient.get("/clases/disponibles")
         const allClases = response.data?.data || response.data || []
         
+        // Obtenemos el día de la semana real del cliente
         const numeroDiaJs = new Date().getDay()
         
-        // Mapeamos al formato en español que usás en tu base de datos
-        const mapeoDias = [
-          "Domingo",
-          "Lunes",
-          "Martes",
-          "Miércoles",
-          "Jueves",
-          "Viernes",
-          "Sábado"
-        ]
-        const diaActualTexto = mapeoDias[numeroDiaJs] // Ej: "Domingo"
+        // Mapeo exacto para contrastar con los strings en mayúscula de tu MariaDB
+        const mapaDiasBD = { 
+          0: "DOMINGO", 
+          1: "LUNES", 
+          2: "MARTES", 
+          3: "MIERCOLES", 
+          4: "JUEVES", 
+          5: "VIERNES", 
+          6: "SABADO" 
+        }
+        
+        const diaBuscado = mapaDiasBD[numeroDiaJs] // Ej: "LUNES"
 
-        // Filtramos para quedarnos únicamente con las clases que incluyan el día de hoy
+        // Filtranos usando la columna real 'clase.dia' que viene de tu base de datos
         const clasesFiltradasPorDia = allClases.filter(clase => {
-          if (!clase.diasSemana) return false
-          
-          const diasNormalizados = clase.diasSemana
-            .toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          const hoyNormalizado = diaActualTexto
-            .toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-
-          return diasNormalizados.includes(hoyNormalizado)
+          // Evaluamos 'clase.dia' (la misma propiedad que usamos en ReservarClasePage)
+          const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : ""
+          return diaClase === diaBuscado && clase.estado === 'Activo'
         })
         
-        setClasesHoy(clasesFiltradasPorDia.slice(0, 3)) 
+        // Ordenamos las clases de hoy por hora de inicio para que salgan en orden de grilla
+        const clasesOrdenadas = clasesFiltradasPorDia.sort((a, b) => {
+          return (a.horaInicio || "").localeCompare(b.horaInicio || "")
+        })
+
+        setClasesHoy(clasesOrdenadas.slice(0, 3)) 
       } catch (error) {
         console.error("Error al cargar las clases de hoy:", error)
       } finally {
@@ -139,7 +117,6 @@ export default function AlumnoDashboard() {
     fetchClasesHoy()
   }, [])
 
-  // Filtramos las reservas con estado 'proxima' para los contadores y lista derecha
   const proximasReservadas = reservasReales.filter(r => r.estadoReserva === 'proxima')
 
   return (
@@ -157,15 +134,14 @@ export default function AlumnoDashboard() {
                   <Flame className="w-3 h-3 mr-1" />
                   {userStats.racha} dias de racha
                 </Badge>
-                <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio. Manten tu racha para desbloquear logros especiales!" />
+                <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio." />
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-foreground tracking-tight">
-                  {/* 🟢 SALUDO DINÁMICO ASOCIADO AL USUARIO LOGUEADO */}
                   {`¡VAMOS, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
                 <p className="text-lg text-muted-foreground mt-1">
-                  Cada WOD es una oportunidad para ser mejor
+                  Cada entrenamiento es una oportunidad para ser mejor
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -175,25 +151,20 @@ export default function AlumnoDashboard() {
                     RESERVAR CLASE
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="border-accent text-accent hover:bg-accent/10">
-                  <Play className="mr-2 h-5 w-5" />
-                  VER WOD DE HOY
-                </Button>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Creditos disponibles para reservar clases. Cada clase consume 1 credito." iconClassName="h-3 w-3" />
+                  <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" />
                 </div>
-                {/* 🟢 NÚMERO DE CRÉDITOS REALES DIRECTO DE LA BASE DE DATOS */}
                 <p className="text-3xl font-black text-primary">{loadingReservas ? "..." : creditosReales}</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Creditos</p>
               </div>
               <div className="bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Total de clases que has tomado desde que te registraste en Bravos." iconClassName="h-3 w-3" />
+                  <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" />
                 </div>
                 <p className="text-3xl font-black text-accent">{userStats.totalClases}</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Clases</p>
@@ -202,61 +173,6 @@ export default function AlumnoDashboard() {
           </div>
         </div>
       </div>
-
-      {/* SECCIÓN WOD DEL DÍA */}
-      <Card className="bg-card border-border overflow-hidden">
-        <div className="bg-gradient-to-r from-primary/20 to-transparent p-1">
-          <div className="bg-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Dumbbell className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-foreground tracking-tight">WOD DEL DIA</h2>
-                    <HelpTooltip content="El WOD (Workout of the Day) es el entrenamiento programado para hoy. Incluye los ejercicios, repeticiones y tiempo limite." />
-                  </div>
-                  <p className="text-sm text-muted-foreground">Workout of the Day</p>
-                </div>
-              </div>
-              <Badge className="bg-accent/20 text-accent border-accent/30 font-bold">
-                {todayWOD.nivel}
-              </Badge>
-            </div>
-
-            <div 
-              className="bg-black/30 rounded-xl p-6 border border-border cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => setWodExpanded(!wodExpanded)}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-xs font-bold text-primary uppercase tracking-widest">{todayWOD.tipo}</span>
-                  <h3 className="text-3xl font-black text-foreground mt-1">{`"${todayWOD.nombre}"`}</h3>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Timer className="h-4 w-4" />
-                  <span className="text-sm font-medium">CAP: {todayWOD.tiempoCap}</span>
-                </div>
-              </div>
-
-              <p className="text-4xl font-black text-primary mb-4">{todayWOD.descripcion}</p>
-
-              <div className="space-y-2">
-                {todayWOD.ejercicios.map((ejercicio, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Zap className="h-4 w-4 text-accent" />
-                    <span className="text-foreground font-medium">{ejercicio.nombre}</span>
-                    {ejercicio.peso && (
-                      <span className="text-muted-foreground text-sm">({ejercicio.peso})</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
 
       {/* BOTONES DE ACCESO RÁPIDO */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -291,7 +207,6 @@ export default function AlumnoDashboard() {
                 <CreditCard className="h-7 w-7 text-primary" />
               </div>
               <h3 className="font-bold text-foreground">Créditos</h3>
-              {/* 🟢 REEMPLAZADO CON EL ESTADO DE CRÉDITOS REALES */}
               <p className="text-sm text-muted-foreground mt-1">{loadingReservas ? "..." : creditosReales} disponibles</p>
             </CardContent>
           </Card>
@@ -313,7 +228,7 @@ export default function AlumnoDashboard() {
       {/* SECCIÓN DOBLE: CLASES DISPONIBLES VS MIS RESERVAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* LADO IZQUIERDO: CLASES DE HOY (OFERTA DEL BOX) */}
+        {/* LADO IZQUIERDO: CLASES DE HOY */}
         <Card className="bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
@@ -359,13 +274,12 @@ export default function AlumnoDashboard() {
                     <div className="flex items-center gap-3">
                       <Badge 
                         variant="outline" 
-                        className={(clase.cuposDisponibles || clase.cupos) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}
+                        className={(clase.cupoDisponible ?? clase.cupos ?? 0) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}
                       >
-                        {clase.cuposDisponibles ?? clase.cupos} cupos
+                        {clase.cupoDisponible ?? clase.cupos ?? 0} cupos
                       </Badge>
                       <Link to="/alumno/reservar">
                         <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold">
-                          <Zap className="h-3 w-3 mr-1" />
                           Reservar
                         </Button>
                       </Link>
@@ -415,7 +329,7 @@ export default function AlumnoDashboard() {
                       <div>
                         <p className="font-bold text-foreground">{reserva.nombreClase || reserva.clase}</p>
                         <p className="text-sm text-muted-foreground">
-                          {reserva.fechaReserva ? reserva.fechaReserva.substring(0, 10) : "Hoy"} · {reserva.horaInicio ? reserva.horaInicio.substring(0, 5) : "00:00"} · {reserva.nombreProfesor || "Staff Bravos"}
+                          {reserva.fechaReserva ? reserva.fechaReserva.substring(0, 10) : "Hoy"} · {reserva.horaInicio ? reserva.horaInicio.substring(0, 5) : "00:00"}
                         </p>
                       </div>
                     </div>
@@ -470,7 +384,6 @@ export default function AlumnoDashboard() {
               <div>
                 <h3 className="font-bold text-foreground">PROGRESO MENSUAL</h3>
                 <p className="text-sm text-muted-foreground">
-                  {/* 🟢 SE REEMPLAZÓ EL ELEMENTO FIJO CON CREDITOSREALES */}
                   Has completado {userStats.creditosUsados} de {creditosReales + userStats.creditosUsados} clases este mes
                 </p>
                 <div className="mt-3 w-64 h-3 bg-black/30 rounded-full overflow-hidden">
