@@ -143,7 +143,7 @@ function RegistroPage() {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute inset-0 bg-background/80 dark:bg-black/80" />
 
         <div className="relative z-10 w-full max-w-md">
           <div className="space-y-6 rounded-2xl border border-border bg-card/95 p-8 text-center shadow-2xl backdrop-blur-sm">

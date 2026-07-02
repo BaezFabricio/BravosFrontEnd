@@ -174,3 +174,24 @@
   color: var(--color-bravos-green) !important;
   fill: var(--color-bravos-green) !important;
 }
+
+@layer base {
+  /* Estilo base para el calendario */
+  .rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: var(--primary);
+    --rdp-background-color: var(--accent);
+    margin: 0;
+  }
+
+  .rdp-day_selected, 
+  .rdp-day_selected:hover {
+    background-color: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+  }
+
+  .rdp-day_today {
+    color: var(--bravos-green) !important;
+    font-weight: bold;
+  }
+}

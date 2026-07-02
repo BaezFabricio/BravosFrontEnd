@@ -620,29 +620,37 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN CONTACTO */}
-      <section id="contacto" className="bg-zinc-950 py-20 md:py-32">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl"><span className="text-accent">ENCONTRANOS</span></h2>
-          <div className="grid gap-12 md:grid-cols-2">
-            <div className="flex items-start gap-4">
-              <MapPin className="mt-1 h-6 w-6 flex-shrink-0 text-accent" />
-              <div>
-                <h3 className="text-lg font-bold text-white">DIRECCIÓN</h3>
-                <p className="mt-1 text-white/60">Eva Perón 552</p>
-                <p className="text-white/60">Formosa Capital, Argentina</p>
-              </div>
-            </div>
-            <div className="relative aspect-video overflow-hidden rounded-lg bg-white/5 md:aspect-auto">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="mx-auto mb-4 h-12 w-12 text-accent" />
-                  <p className="text-white/60">Mapa interactivo</p>
-                </div>
-              </div>
-            </div>
-          </div>
+      <section className="py-12 bg-background text-foreground">
+  <div className="max-w-6xl mx-auto px-6">
+    <h2 className="text-3xl font-bold text-bravos-green mb-8 uppercase">Encontranos</h2>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+      {/* Columna de Texto */}
+      <div className="flex items-start gap-4">
+        <MapPin className="h-8 w-8 text-bravos-green shrink-0" />
+        <div>
+          <h3 className="font-bold text-lg mb-1">DIRECCIÓN</h3>
+          <p className="text-muted-foreground">Eva Perón 552</p>
+          <p className="text-muted-foreground">Formosa Capital, Argentina</p>
         </div>
-      </section>
+      </div>
+
+      {/* Columna de Mapa */}
+      <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-lg">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000"
+          width="100%"
+          height="100%"
+          style={{ filter: 'grayscale(0.8) invert(1) contrast(0.9)' }}
+          allowFullScreen=""
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Mapa de ubicación"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* FOOTER */}
       <footer className="border-t border-white/10 bg-black py-8">

@@ -103,6 +103,28 @@ export default function PerfilesPage() {
       const datos = await response.json()
       const arrayReal = datos && Array.isArray(datos.data) ? datos.data : (Array.isArray(datos) ? datos : null);
 
+      // Intentamos recuperar usuarios para calcular conteos por perfil
+      let usuariosArray = []
+      try {
+        const resUsuarios = await fetch("http://localhost:3001/api/vv1/usuarios", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        const datosUsuarios = await resUsuarios.json()
+        usuariosArray = Array.isArray(datosUsuarios.data) ? datosUsuarios.data : (Array.isArray(datosUsuarios) ? datosUsuarios : [])
+      } catch (e) {
+        console.warn("No se pudo cargar la lista de usuarios para contabilizar perfiles:", e)
+      }
+
+      // Construimos un mapa idPerfil => cantidad
+      const mapaConteos = {}
+      usuariosArray.forEach(u => {
+        const idPerfilUser = u.idPerfil ?? u.id_perfil ?? u.perfil ?? u.rol ?? u.tipo ?? null
+        if (idPerfilUser !== null && idPerfilUser !== undefined) {
+          const key = String(idPerfilUser)
+          mapaConteos[key] = (mapaConteos[key] || 0) + 1
+        }
+      })
+
       if (arrayReal) {
         const perfilesTraduccion = arrayReal.map(perfil => {
           const modulosCompletos = crearModulosVacios()
@@ -121,12 +143,33 @@ export default function PerfilesPage() {
               }
             })
           }
+          // Determinar cantidad de usuarios asignados a este perfil (soporta varias formas de respuesta)
+          // Primero intentamos leer un conteo incluido en el objeto perfil
+          let usuariosCount = (() => {
+            if (Array.isArray(perfil.usuarios)) return perfil.usuarios.length
+            if (Array.isArray(perfil.usuariosList)) return perfil.usuariosList.length
+            if (typeof perfil.usuarios === 'number') return perfil.usuarios
+            if (typeof perfil.usuariosCount === 'number') return perfil.usuariosCount
+            if (typeof perfil.cantidadUsuarios === 'number') return perfil.cantidadUsuarios
+            if (typeof perfil.totalUsuarios === 'number') return perfil.totalUsuarios
+            const maybeNumber = Number(perfil.usuarios || perfil.usuariosCount || perfil.cantidadUsuarios || perfil.totalUsuarios)
+            if (!Number.isNaN(maybeNumber)) return maybeNumber
+            return null
+          })()
+
+          // Si no viene en la respuesta, buscamos en el mapa calculado desde /usuarios
+          if (usuariosCount === null) {
+            const key = String(perfil.idPerfil ?? perfil.id_perfil ?? perfil.id ?? perfil.idPerfil)
+            usuariosCount = mapaConteos[key] || 0
+          }
+
           return {
             ...perfil,
-            id_perfil: perfil.idPerfil,       
-            nombre: perfil.nombrePerfil || perfil.nombre,     
-            descripcion: perfil.descripcion, 
-            modulos: modulosCompletos
+            id_perfil: perfil.idPerfil,
+            nombre: perfil.nombrePerfil || perfil.nombre,
+            descripcion: perfil.descripcion,
+            modulos: modulosCompletos,
+            usuarios: usuariosCount,
           }
         });
         setPerfiles(perfilesTraduccion);
@@ -404,7 +447,13 @@ export default function PerfilesPage() {
 
               <CardContent className="pt-0 flex-1">
                 <div className="text-xs text-muted-foreground mb-3">
-                  {Object.keys(perfil.modulos || {}).length} módulos asignados
+                  {Object.values(perfil.modulos || {}).filter((modulo) => {
+                    if (modulo.activo) return true
+                    if (modulo.permisos) {
+                      return Object.values(modulo.permisos).some(Boolean)
+                    }
+                    return false
+                  }).length} módulos asignados
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {perfil.modulos && Object.keys(perfil.modulos).map((moduloName) => {

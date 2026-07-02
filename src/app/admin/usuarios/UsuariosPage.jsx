@@ -336,7 +336,7 @@ export default function UsuariosPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-64">
                             
                             {/* 🟢 ACCIÓN: VER DETALLE */}
                             {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
@@ -365,9 +365,9 @@ export default function UsuariosPage() {
                                 {user.estado === "activo" && (
                                   <DropdownMenuItem
                                     onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                                    className="text-yellow-500"
+                                    className="text-yellow-500 px-4 py-2"
                                   >
-                                    <UserX className="mr-2 h-4 w-4" />
+                                    <UserX className="mr-3 h-5 w-5" />
                                     Suspender
                                   </DropdownMenuItem>
                                 )}
@@ -375,9 +375,9 @@ export default function UsuariosPage() {
                                 {user.estado === "suspendido" && (
                                   <DropdownMenuItem
                                     onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
-                                    className="text-green-500"
+                                    className="text-green-500 px-4 py-2"
                                   >
-                                    <UserCheck className="mr-2 h-4 w-4" />
+                                    <UserCheck className="mr-3 h-5 w-5" />
                                     Activar
                                   </DropdownMenuItem>
                                 )}
@@ -388,9 +388,9 @@ export default function UsuariosPage() {
                             {permisos.includes("usuarios:baja") && user.estado !== "inactivo" && (
                               <DropdownMenuItem
                                 onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
-                                className="text-gray-500"
+                                className="text-gray-500 px-4 py-2"
                               >
-                                <UserX className="mr-2 h-4 w-4" />
+                                <UserX className="mr-3 h-5 w-5" />
                                 Dar de Baja
                               </DropdownMenuItem>
                             )}
@@ -401,9 +401,9 @@ export default function UsuariosPage() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() => setDeleteDialog({ open: true, user })}
-                                  className="text-destructive"
+                                  className="text-destructive px-4 py-2"
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <Trash2 className="mr-3 h-5 w-5" />
                                   Eliminar Permanente
                                 </DropdownMenuItem>
                               </>

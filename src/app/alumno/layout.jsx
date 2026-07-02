@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -12,17 +12,14 @@ import {
   ChevronDown,
   Bell,
   ShieldAlert,
+  Home,
+  Shield,
+  Dumbbell,
+  ClipboardCheck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-// 🟢 Importamos el cliente para consultar los abonos en tiempo real
+import { ModeToggle } from "@/components/ModeToggle"
 import apiClient from "@/api"
 
 const navigation = [
@@ -35,6 +32,9 @@ const navigation = [
 
 export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+  
   const [userData, setUserData] = useState({
     idUsuario: null,
     nombrecompleto: "Usuario Bravos",
@@ -43,7 +43,6 @@ export default function AlumnoLayout({ children }) {
   })
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("avatarUrl") || "")
   
-  // 🟢 ESTADOS PARA EL CONTROL DE ACCESO COMERCIAL
   const [tieneAbonoActivo, setTieneAbonoActivo] = useState(true)
   const [validandoAcceso, setValidandoAcceso] = useState(true)
 
@@ -77,12 +76,10 @@ export default function AlumnoLayout({ children }) {
         perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || "alumno",
       })
 
-      // 🟢 CONTROL DE ACCESO: Consultamos los abonos reales vinculados al ID del usuario
       if (idUserReal) {
         apiClient.get(`/usuarios/${idUserReal}/abonos`)
           .then((response) => {
             const abonos = response.data?.data || response.data || []
-            // Validamos si posee al menos un abono activo en su historial
             const activo = abonos.some(abono => abono.estado === 'ACTIVO')
             setTieneAbonoActivo(activo)
           })
@@ -102,12 +99,17 @@ export default function AlumnoLayout({ children }) {
       setValidandoAcceso(false)
     }
 
-    const handleAvatarUpdated = (event) => {
-      setAvatarUrl(event.detail || "")
-    }
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
 
+    const handleAvatarUpdated = (event) => setAvatarUrl(event.detail || "")
     window.addEventListener("avatar-updated", handleAvatarUpdated)
-    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
+    return () => {
+      window.removeEventListener("avatar-updated", handleAvatarUpdated)
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
   }, [])
 
   const getIniciales = (name) => {
@@ -125,10 +127,9 @@ export default function AlumnoLayout({ children }) {
   return (
     <div className="min-h-screen bg-background">
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-background/50 dark:bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* SIDEBAR NAVEGACIÓN */}
       <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
@@ -175,46 +176,73 @@ export default function AlumnoLayout({ children }) {
         </div>
       </aside>
 
-      {/* CONTENEDOR PRINCIPAL */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
             <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-6 w-6" />
             </button>
-            <div className="flex-1 lg:flex-none" />
+            <div className="flex-1" />
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon"><Bell className="h-5 w-5" /></Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 border border-border">
-                      <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
-                      <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">{getIniciales(userData.nombrecompleto)}</AvatarFallback>
-                    </Avatar>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{userData.nombrecompleto}</p>
-                    <p className="text-xs text-muted-foreground">{userData.correo}</p>
+              <ModeToggle />
+              <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
+                <Home className="h-4 w-4" /> Ver Sitio
+              </Button>
+
+              <button className="relative p-2 rounded-full hover:bg-zinc-900 transition-colors">
+                <Bell className="h-5 w-5 text-zinc-400" />
+                
+                {/* Este es el círculo que debe quedar superpuesto */}
+                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white ring-2 ring-background">
+                  3
+                </span>
+              </button>
+              
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none transition-transform hover:scale-105 active:scale-95">
+                  <Avatar className="h-9 w-9 border border-border">
+                    <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
+                    <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">{getIniciales(userData.nombrecompleto)}</AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-64 rounded-md border border-zinc-800 bg-[#0c0c0e] shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="border-b border-zinc-800 p-4">
+                      <p className="text-sm font-bold text-white capitalize">{userData.nombrecompleto}</p>
+                      <p className="text-xs text-zinc-400 truncate mt-0.5">{userData.correo}</p>
+                    </div>
+                    <div className="p-1">
+                      <Link to="/alumno/perfil" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                        <User className="h-4 w-4 text-zinc-400" /> Mi Perfil
+                      </Link>
+                      <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                        <Shield className="h-4 w-4 text-zinc-400" /> Panel de Control
+                      </Link>
+                      <Link to="/alumno" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                        <Dumbbell className="h-4 w-4 text-zinc-400" /> Panel de Alumno
+                      </Link>
+                      <Link to="/profesor" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                        <ClipboardCheck className="h-4 w-4 text-zinc-400" /> Panel de Profesor
+                      </Link>
+                      <button onClick={handleLogout} className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-950/20 border-t border-zinc-800/60 mt-1">
+                        <LogOut className="h-4 w-4 text-red-500" /> Cerrar Sesión
+                      </button>
+                    </div>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="mr-2 h-4 w-4" />Cerrar Sesión</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* 🟢 RENDERIZADO CONDICIONAL DE CONTROL DE ACCESO */}
         <main className="p-4 lg:p-6">
           {validandoAcceso ? (
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-sm text-muted-foreground animate-pulse">Sincronizando credenciales de acceso con Bravos Box...</p>
             </div>
-          ) : !tieneAbonoActivo ? (
+          ) : !tieneAbonoActivo && pathname !== '/alumno/perfil' ? (
             /* 🛑 CORTE DE FLUJO: Pantalla de bloqueo si no tiene créditos o pagos activos */
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 bg-card border border-border rounded-2xl max-w-2xl mx-auto mt-8 shadow-xl">
               <div className="p-4 mb-4 text-destructive bg-destructive/10 rounded-full animate-bounce">
@@ -224,7 +252,7 @@ export default function AlumnoLayout({ children }) {
               <p className="text-muted-foreground max-w-md text-sm leading-relaxed mb-6">
                 Detectamos que tu usuario no registra un pase de abono activo con créditos disponibles en el sistema.
               </p>
-              <div className="p-4 rounded-xl bg-black/40 border border-border text-left w-full text-xs text-muted-foreground space-y-2 mb-6">
+              <div className="p-4 rounded-xl bg-background/40 dark:bg-black/40 border border-border text-left w-full text-xs text-muted-foreground space-y-2 mb-6">
                 <p>• <strong>Para regularizar:</strong> Deberás presentarte en la recepción del Box.</p>
                 <p>• <strong>Administración:</strong> Podrán darte de alta cargando el abono y registrando tu pago en la cuenta corriente.</p>
               </div>

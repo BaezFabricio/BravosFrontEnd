@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,16 +20,42 @@ export default function NuevoUsuarioPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [successMessage, setSuccessMessage] = useState("Usuario creado exitosamente. Redirigiendo...")
+  const [perfiles, setPerfiles] = useState([])
+  const [loadingPerfiles, setLoadingPerfiles] = useState(true)
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
     email: "",
     telefono: "",
-    perfil: "alumno",
+    perfil: "",
     password: "",
-    creditos: "12",
   })
   const [errors, setErrors] = useState({})
+
+  // Cargar perfiles al montar el componente
+  useEffect(() => {
+    const cargarPerfiles = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        const response = await fetch("http://localhost:3001/api/vv1/perfiles", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        const datos = await response.json()
+        if (datos.success && Array.isArray(datos.data)) {
+          setPerfiles(datos.data)
+          // Seleccionar automáticamente el primer perfil si existe
+          if (datos.data.length > 0) {
+            setFormData(prev => ({ ...prev, perfil: String(datos.data[0].idPerfil) }))
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar perfiles:", error)
+      } finally {
+        setLoadingPerfiles(false)
+      }
+    }
+    cargarPerfiles()
+  }, [])
 
   const normalizarTelefono = (telefono = "") => telefono.replace(/\D/g, "")
 
@@ -92,9 +118,8 @@ export default function NuevoUsuarioPage() {
         dni: formData.dni.trim(),
         email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono.trim(),
-        perfil: formData.perfil,
+        perfil: formData.perfil, // Ahora es idPerfil (número como string)
         password: formData.password,
-        creditos: parseInt(formData.creditos),
         estado: "activo",
         membresia: "vencida",
       })
@@ -272,29 +297,20 @@ export default function NuevoUsuarioPage() {
                 <Select
                   value={formData.perfil}
                   onValueChange={(value) => setFormData({ ...formData, perfil: value })}
+                  disabled={loadingPerfiles || perfiles.length === 0}
                 >
                   <SelectTrigger className={`bg-secondary border-border ${errors.perfil ? "border-destructive" : ""}`}>
-                    <SelectValue placeholder="Selecciona un perfil" />
+                    <SelectValue placeholder={loadingPerfiles ? "Cargando perfiles..." : "Selecciona un perfil"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="alumno">Alumno</SelectItem>
-                    <SelectItem value="profesor">Profesor</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
+                    {perfiles.map((perfil) => (
+                      <SelectItem key={perfil.idPerfil} value={String(perfil.idPerfil)}>
+                        {perfil.nombrePerfil}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.perfil && <p className="text-sm text-destructive">{errors.perfil}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="creditos">Créditos Iniciales</Label>
-                <Input
-                  id="creditos"
-                  type="number"
-                  min="0"
-                  className="bg-secondary border-border"
-                  value={formData.creditos}
-                  onChange={(e) => setFormData({ ...formData, creditos: e.target.value })}
-                />
               </div>
 
               <div className="space-y-2">

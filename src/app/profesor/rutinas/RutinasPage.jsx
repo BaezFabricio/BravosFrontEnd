@@ -55,10 +55,7 @@ export default function RutinasPage() {
             <p className="text-muted-foreground">Entrenamientos y ejercicios planificados</p>
           </div>
           <Link to="/profesor/rutinas/nueva">
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nueva Rutina
-            </Button>
+
           </Link>
         </div>
       </div>

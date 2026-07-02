@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import {
@@ -11,6 +11,8 @@ import {
   Menu,
   X,
   Shield,
+  ClipboardCheck,
+  Dumbbell,
   ChevronDown,
   Bell,
   Home, 
@@ -18,15 +20,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { ModeToggle } from "@/components/ModeToggle"
 
-// 🟢 ASOCIAMOS CADA MENÚ CON SU PERMISO DE CONSULTA CORRESPONDIENTE
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
   { name: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
@@ -37,37 +32,38 @@ const navigation = [
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [userData, setUserData] = useState({
     nombrecompleto: "Administrador",
     correo: "admin@bravos.com",
     perfil: "admin",
   })
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem("avatarUrl") || "")
-  
-  // 🟢 ESTADO PARA LEER LOS PERMISOS GUARDADOS EN EL LOGIN
   const [permisos, setPermisos] = useState([])
   
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
+  const menuRef = useRef(null)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario")
     const storedAvatar = localStorage.getItem("avatarUrl")
-    const storedPermisos = localStorage.getItem("permisos") // 👈 Traemos los permisos
+    const storedPermisos = JSON.parse(localStorage.getItem('permisos') || '[]');
 
-    if (storedAvatar) setAvatarUrl(storedAvatar)
-
-    // 🟢 CARGAMOS LOS PERMISOS EN EL ESTADO GLOBAL DEL LAYOUT
-    if (storedPermisos) {
-      try {
-        setPermisos(JSON.parse(storedPermisos))
-      } catch (e) {
-        console.error("Error al parsear permisos en el AdminLayout:", e)
-      }
+    const opcionesPermitidas = navigation.filter(item => storedPermisos.includes(item.requiredPermission));
+    
+    if (pathname === '/admin' && !storedPermisos.includes('dashboard:consulta') && opcionesPermitidas.length > 0) {
+        navigate(opcionesPermitidas[0].href, { replace: true });
     }
 
-    if (!storedUser) return
+    if (storedAvatar) setAvatarUrl(storedAvatar)
+    setPermisos(storedPermisos)
+
+    if (!storedUser) {
+      navigate("/login")
+      return
+    }
 
     try {
       const parsedUser = JSON.parse(storedUser)
@@ -89,9 +85,17 @@ export default function AdminLayout({ children }) {
       setAvatarUrl(event.detail || "")
     }
 
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenuOpen(false);
+    };
+
     window.addEventListener("avatar-updated", handleAvatarUpdated)
-    return () => window.removeEventListener("avatar-updated", handleAvatarUpdated)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      window.removeEventListener("avatar-updated", handleAvatarUpdated)
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [pathname, navigate])
 
   const getIniciales = (name) => {
     if (!name) return "AD"
@@ -108,20 +112,20 @@ export default function AdminLayout({ children }) {
     localStorage.removeItem("token")
     localStorage.removeItem("usuario")
     localStorage.removeItem("avatarUrl")
-    localStorage.removeItem("permisos") // 👈 Limpiamos permisos al salir
+    localStorage.removeItem("permisos")
     navigate("/login", { replace: true })
   }
 
   return (
+    
     <div className="min-h-screen bg-background">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-background/50 dark:bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar Lateral */}
       <aside
         className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -151,15 +155,14 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
 
-          {/* Menú de navegación principal protegido */}
+          
+
           <nav className="flex-1 p-4 space-y-1">
             {navigation.map((item) => {
-              // 🟢 COMPROBAMOS SI EL USUARIO TIENE EL PERMISO (Admite tanto 'consulta' como 'ver')
               const tieneAcceso = 
                 permisos.includes(item.requiredPermission) || 
                 permisos.includes(item.requiredPermission.replace(':consulta', ':ver'));
 
-              // Si no tiene el permiso para este módulo, lo salteamos y no dibujamos nada
               if (!tieneAcceso) return null;
 
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -181,6 +184,8 @@ export default function AdminLayout({ children }) {
             })}
           </nav>
 
+          
+
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
               <Avatar className="h-10 w-10 border border-sidebar-border">
@@ -200,89 +205,76 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Contenedor Principal */}
+      
+      
+
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-            <button
-              className="lg:hidden text-foreground"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-
-            <div className="flex-1 lg:flex-none" />
-
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="gap-2 text-muted-foreground hover:text-foreground hidden sm:flex"
-                onClick={() => window.location.href = '/'}
-              >
-                <Home className="h-4 w-4" />
-                Ver Sitio
+          <div className="flex items-center justify-between h-16 px-4">
+            <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu /></button>
+            <div className="flex-1" />
+            
+            <div className="flex items-center gap-4">
+              <ModeToggle />
+              <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
+                <Home className="h-4 w-4" /> Ver Sitio
               </Button>
 
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+              <button className="relative p-2 rounded-full hover:bg-zinc-900 transition-colors">
+                <Bell className="h-5 w-5 text-zinc-400" />
+                
+                {/* Este es el círculo que debe quedar superpuesto */}
+                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white ring-2 ring-background">
                   3
                 </span>
-              </Button>
+              </button>
+              
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none">
+                  <Avatar className="h-9 w-9 border border-green-600 bg-green-700">
+                    <AvatarImage src={avatarUrl} />
+                    <AvatarFallback className="bg-green-700 text-white text-xs">{avatarFallback}</AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 border border-border">
-                      <AvatarImage src={avatarUrl} alt={userData.nombrecompleto} />
-                      <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground">
-                        {avatarFallback}
-                      </AvatarFallback>
-                    </Avatar>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{userData.nombrecompleto}</p>
-                    <p className="text-xs text-muted-foreground">{userData.correo}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/perfil">
-                      <User className="mr-2 h-4 w-4" />
-                      Mi Perfil
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  {/* 🟢 PROTEGEMOS CONFIGURACIÓN TAMBIÉN EN EL DROPDOWN SUPERIOR */}
-                  {(permisos.includes('configuracion:consulta') || permisos.includes('configuracion:ver')) && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin/configuracion">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Configuración
+                
+
+                
+
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 mt-3 w-64 rounded-md border border-zinc-800 bg-[#0c0c0e] shadow-2xl z-50 overflow-hidden">
+                      <div className="border-b border-zinc-800 p-4">
+                        <p className="text-sm font-bold text-white capitalize">{userData.nombrecompleto}</p>
+                        <p className="text-xs text-zinc-400 truncate mt-0.5">{userData.correo}</p>
+                      </div>
+                      <div className="p-1">
+                        <Link to="/admin/perfil" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                          <User className="h-4 w-4 text-zinc-400" /> Mi Perfil
                         </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="text-destructive">
-                    <button type="button" onClick={handleLogout} className="w-full text-left">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Cerrar Sesión
-                    </button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                        <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                          <Shield className="h-4 w-4 text-zinc-400" /> Panel de Control
+                        </Link>
+                        <Link to="/alumno" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                          <Dumbbell className="h-4 w-4 text-zinc-400" /> Panel de Alumno
+                        </Link>
+                        <Link to="/profesor" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
+                          <ClipboardCheck className="h-4 w-4 text-zinc-400" /> Panel de Profesor
+                        </Link>
+                        <button onClick={handleLogout} className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-950/20 border-t border-zinc-800/60">
+                          <LogOut className="h-4 w-4 text-red-500" /> Cerrar Sesión
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </header>
-
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   )

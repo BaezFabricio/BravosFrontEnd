@@ -526,12 +526,6 @@ export default function DetalleUsuarioPage() {
       {/* MENÚ DE PESTAÑAS */}
       <div className="flex gap-2 border-b border-border pb-px">
         <button
-          className={`px-4 py-2 font-semibold text-xs tracking-wider uppercase border-b-2 transition-colors ${vistaActiva === "reservas" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-          onClick={() => setVistaActiva("reservas")}
-        >
-          Historial Reservas
-        </button>
-        <button
           className={`px-4 py-2 font-semibold text-xs tracking-wider uppercase border-b-2 transition-colors ${vistaActiva === "abonos" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
           onClick={() => setVistaActiva("abonos")}
         >
@@ -673,8 +667,7 @@ export default function DetalleUsuarioPage() {
           <CardHeader className="p-0 border-b border-border">
             <div className="grid grid-cols-3 text-center border-b border-border font-medium text-xs uppercase">
               <button onClick={() => setCobrarCCDialog(true)} className="p-3 bg-[#1e293b] text-teal-400 hover:bg-[#334155] border-r border-border font-semibold tracking-wider transition-colors">Cobrar Cuenta Corriente</button>
-              <button onClick={() => cargarAbonos()} className="p-3 bg-[#1e293b] text-foreground/80 hover:bg-[#334155] border-r border-border font-semibold tracking-wider transition-colors">Recalcular CC</button>
-              <button onClick={() => setAjusteCCDialog(true)} className="p-3 bg-[#1e293b] text-amber-500 hover:bg-[#334155] font-semibold tracking-wider transition-colors">Ajuste C.Corriente</button>
+
             </div>
           </CardHeader>
           <CardContent className="p-0">

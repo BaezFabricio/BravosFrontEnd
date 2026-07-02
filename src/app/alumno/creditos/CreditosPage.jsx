@@ -5,11 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// 🟢 Conexión directa a tu cliente de Axios configurado
+//  Conexión directa a tu cliente de Axios configurado
 import apiClient from "@/api"
 
 export default function CreditosPage() {
-  // 🟢 ESTADOS DINÁMICOS PARA CONECTAR EL BACKEND
+  //  ESTADOS DINÁMICOS PARA CONECTAR EL BACKEND
   const [datos, setDatos] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -20,7 +20,7 @@ export default function CreditosPage() {
         setLoading(true)
         setError(null)
         
-        // 🚀 CORREGIDO: URL limpia, sin errores de tipeo y apuntando al endpoint correcto de reservas
+        //  URL limpia, sin errores de tipeo y apuntando al endpoint correcto de reservas
         const response = await apiClient.get("/reservas/mis-creditos-movimientos")
         setDatos(response.data?.data || response.data)
       } catch (err) {
@@ -34,7 +34,7 @@ export default function CreditosPage() {
     fetchCreditosYMovimientos()
   }, [])
 
-  // 🟢 Formateador de fechas nativo para no romper la estética (ej: 15 de Junio, 2026)
+  //  Formateador de fechas nativo para no romper la estética (ej: 15 de Junio, 2026)
   const formatearFechaLarga = (fechaString) => {
     if (!fechaString) return "Sin fecha"
     const fecha = new Date(fechaString)

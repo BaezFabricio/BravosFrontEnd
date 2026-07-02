@@ -42,20 +42,19 @@ export default function EditarUsuarioPage() {
         }
 
         // 2. Traemos los datos del usuario por ID
-        const responseData = await getUsuarioById(id)
-        console.log("Datos del backend en edición:", responseData)
-        
-        const usuarioReal = responseData.data || {}
-        const idPerfilDetectado = usuarioReal.idPerfil || responseData.idPerfil || usuarioReal.id_perfil || responseData.id_perfil || "";
+        const usuarioReal = await getUsuarioById(id)
+        console.log("Datos del backend en edición:", usuarioReal)
+
+        const idPerfilDetectado = usuarioReal.idPerfil || usuarioReal.id_perfil || usuarioReal.perfil || usuarioReal.rol || usuarioReal.tipo || "";
 
         // 3. RELLENADO DE INPUTS CORRECTO
         setFormData({
-          nombre: usuarioReal.nombrecompleto || "",
-          dni: usuarioReal.dni || "",
-          email: usuarioReal.correo || "",
-          telefono: usuarioReal.telefono || "",
+          nombre: usuarioReal.nombre || usuarioReal.nombrecompleto || usuarioReal.fullName || "",
+          dni: usuarioReal.dni || usuarioReal.documento || "",
+          email: usuarioReal.email || usuarioReal.correo || usuarioReal.username || "",
+          telefono: usuarioReal.telefono || usuarioReal.celular || usuarioReal.phone || "",
           idPerfil: String(idPerfilDetectado), 
-          estado: usuarioReal.estado || responseData.estado || "activo",
+          estado: usuarioReal.estado || "activo",
         })
 
       } catch (error) {

@@ -8,8 +8,8 @@ import { ThemeProvider } from './components/theme-provider'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* 2. Envolvemos toda la aplicación */}
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-  <App />
-</ThemeProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )

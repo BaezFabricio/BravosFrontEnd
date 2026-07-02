@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home } from "lucide-react"
+import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home, Eye, EyeOff } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,15 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 import apiClient from "@/api"
 
@@ -51,6 +60,13 @@ export default function PerfilPage() {
   const [avatarError, setAvatarError] = useState("")
   const [userData, setUserData] = useState(defaultUserData)
   const [loading, setLoading] = useState(true)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
+  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordSuccess, setPasswordSuccess] = useState("")
+  const [abonoData, setAbonoData] = useState({ vencimiento: null, creditos: 0 });
 
   useEffect(() => {
     const handleAvatarUpdated = (event) => {
@@ -71,6 +87,23 @@ export default function PerfilPage() {
         })
         const data = response.data?.data || response.data
         const usuario = data?.usuario || data
+
+        if (usuario?.idUsuario) {
+          apiClient.get(`/usuarios/${usuario.idUsuario}/abonos`)
+            .then((res) => {
+              const abonos = res.data?.data || res.data || []
+              const activo = abonos.find(a => a.estado === 'ACTIVO')
+              if (activo) {
+                const creditosValue = activo.turnos !== undefined ? activo.turnos : 0
+                setAbonoData({ 
+                  vencimiento: activo.vencimiento, 
+                  creditos: creditosValue
+                })
+              }
+            })
+            .catch(err => console.error("Error cargando abonos:", err))
+        }
+  
         if (mounted && usuario) {
           // Helper: buscar recursivamente posibles nombres de campo en la respuesta
           const findValue = (obj, names) => {
@@ -104,8 +137,8 @@ export default function PerfilPage() {
             telefono: findValue(usuario, ['telefono', 'phone', 'celular', 'mobile', 'cel']) || '',
             perfil: (usuario.perfil || usuario.nombrePerfil || usuario.rol || 'usuario').toLowerCase(),
             estado: (usuario.estado || 'inactivo').toLowerCase(),
-            membresia: usuario.membresia || null,
-            vencimientoMembresia: usuario.vencimiento || usuario.vencimientoMembresia || '',
+            membresia: usuario.estado === 'activo' ? 'vigente' : usuario.estado,
+            vencimientoMembresia: usuario.vencimiento || usuario.fecha_vencimiento || usuario.vencimientoMembresia || '',
             fechaRegistro: findValue(usuario, ['fecha_registro', 'fechaRegistro', 'miembroDesde', 'createdAt', 'created_at']) || '',  
             creditos: usuario.creditos || 0,
           })
@@ -216,7 +249,64 @@ export default function PerfilPage() {
     navigate("/");
   }
 
-  
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setPasswordError("")
+    setPasswordSuccess("")
+
+    // Validaciones
+    if (!passwordForm.currentPassword) {
+      setPasswordError("Ingresa tu contraseña actual")
+      return
+    }
+    if (!passwordForm.newPassword) {
+      setPasswordError("Ingresa tu nueva contraseña")
+      return
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError("La nueva contraseña debe tener al menos 6 caracteres")
+      return
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("Las contraseñas no coinciden")
+      return
+    }
+
+    setPasswordLoading(true)
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("http://localhost:3001/api/vv1/auth/cambiar-contrasena", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          contrasenaActual: passwordForm.currentPassword,
+          contrasenaNueva: passwordForm.newPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setPasswordError(data.message || "No se pudo cambiar la contraseña")
+        return
+      }
+
+      setPasswordSuccess("Contraseña cambiada exitosamente")
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
+      setTimeout(() => {
+        setShowChangePassword(false)
+        setPasswordSuccess("")
+      }, 2000)
+    } catch (error) {
+      console.error("Error:", error)
+      setPasswordError("Error al cambiar la contraseña")
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -226,7 +316,8 @@ export default function PerfilPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="bg-card border-border lg:col-span-2">
+        {/* COLUMNA IZQUIERDA: Información Personal */}
+        <Card className="bg-card border-border lg:col-span-2 h-fit">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
@@ -253,7 +344,6 @@ export default function PerfilPage() {
                 {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               </label>
-              <p className="text-xs text-muted-foreground">Se guarda en la base de datos si el backend responde bien.</p>
             </div>
 
             {avatarError && (
@@ -264,39 +354,51 @@ export default function PerfilPage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  DNI
-                </p>
+                <p className="text-sm text-muted-foreground flex items-center gap-2"><CreditCard className="h-4 w-4" /> DNI</p>
                 <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—')}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Correo Electrónico
-                </p>
+                <p className="text-sm text-muted-foreground flex items-center gap-2"><Mail className="h-4 w-4" /> Correo Electrónico</p>
                 <p className="font-medium text-foreground">{correoVisible}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Teléfono
-                </p>
+                <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-4 w-4" /> Teléfono</p>
                 <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—')}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Miembro desde
-                </p>
+                <p className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Miembro desde</p>
                 <p className="font-medium text-foreground">{userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—'}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Mostrar estado de cuenta solo si el usuario es alumno o tiene membresía */}
+        {/* COLUMNA DERECHA: MÉTRICAS Y ESTADO */}
         <div className="space-y-6">
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Métricas de Ficha</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Usuario</span>
+                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${status.className}`}>{status.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Membresía</span>
+                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${membership?.className || 'bg-gray-500/10 text-gray-500'}`}>
+                  {membership?.label || "—"}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Perfil Calculado</span>
+                <span className="font-medium text-foreground capitalize bg-secondary/60 px-2 py-0.5 rounded text-xs">
+                  {userData.perfil || "Alumno"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {(userData.perfil === 'alumno' || userData.membresia) && (
             <Card className="bg-card border-border">
               <CardHeader>
@@ -307,24 +409,23 @@ export default function PerfilPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Estado Usuario</span>
-                  <Badge variant="outline" className={status.className}>
-                    {status.label}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Membresía</span>
-                  <Badge variant="outline" className={membership?.className || 'bg-gray-500/10 text-gray-500'}>
-                    {membership?.label || (userData.membresia ? userData.membresia : '—')}
+                  <span className="text-muted-foreground">Membresía</span>
+                  <Badge 
+                    variant="outline" 
+                    className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${
+                      membershipConfig[userData.membresia]?.className || 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                    }`}
+                  >
+                    {membershipConfig[userData.membresia]?.label || (userData.membresia || "—")}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Vencimiento</span>
-                  <span className="text-sm font-medium text-foreground">{userData.vencimientoMembresia || '—'}</span>
+                  <span className="text-sm font-medium text-foreground">{abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Créditos</span>
-                  <span className="text-lg font-bold text-primary">{userData.creditos || 0}</span>
+                  <span className="text-lg font-bold text-primary">{abonoData.creditos || 0}</span>
                 </div>
               </CardContent>
             </Card>
@@ -337,7 +438,7 @@ export default function PerfilPage() {
           <Shield className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary">Tu membresía está al día</AlertTitle>
           <AlertDescription className="text-primary/80">
-            Tu próximo pago vence el {userData.vencimientoMembresia}. Recuerda que si no pagas antes del día 10, tu cuenta será suspendida automáticamente.
+            Tu próximo pago vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Recuerda que si no pagas antes del día 10, tu cuenta será suspendida automáticamente.
           </AlertDescription>
         </Alert>
       )}
@@ -356,8 +457,7 @@ export default function PerfilPage() {
         <CardContent className="p-6">
           <h3 className="font-semibold text-foreground mb-4">Acciones</h3>
             <div className="flex flex-wrap gap-4">
-            <Button variant="outline">Cambiar Contraseña</Button>
-            <Button variant="outline">Actualizar Datos</Button>
+            <Button variant="outline" onClick={() => setShowChangePassword(true)}>Cambiar Contraseña</Button>
             <Button variant="outline" onClick={handleGoHome} className="gap-2">
               <Home className="h-4 w-4" />
               Volver al inicio
@@ -366,7 +466,99 @@ export default function PerfilPage() {
         </CardContent>
       </Card>
 
-      
+      <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cambiar Contraseña</DialogTitle>
+            <DialogDescription>Ingresa tu contraseña actual y elige una nueva</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Contraseña Actual</Label>
+              <div className="relative">
+                <Input
+                  id="current-password"
+                  type={showPasswords.current ? "text" : "password"}
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  placeholder="Ingresa tu contraseña actual"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva Contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showPasswords.new ? "text" : "password"}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  placeholder="Mínimo 6 caracteres"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showPasswords.confirm ? "text" : "password"}
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  placeholder="Confirma tu nueva contraseña"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {passwordError && (
+              <Alert className="bg-destructive/10 border-destructive/20">
+                <AlertDescription className="text-destructive">{passwordError}</AlertDescription>
+              </Alert>
+            )}
+
+            {passwordSuccess && (
+              <Alert className="bg-green-500/10 border-green-500/20">
+                <AlertDescription className="text-green-500">{passwordSuccess}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <Button type="button" variant="outline" onClick={() => setShowChangePassword(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={passwordLoading}>
+                {passwordLoading ? "Cambiando..." : "Cambiar Contraseña"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

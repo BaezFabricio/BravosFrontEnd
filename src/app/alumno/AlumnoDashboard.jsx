@@ -155,14 +155,14 @@ export default function AlumnoDashboard() {
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
+              <div className="bg-background/50 dark:bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
                   <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" />
                 </div>
                 <p className="text-3xl font-black text-primary">{loadingReservas ? "..." : creditosReales}</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Creditos</p>
               </div>
-              <div className="bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
+              <div className="bg-background/50 dark:bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
                   <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" />
                 </div>

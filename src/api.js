@@ -91,12 +91,21 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Si el backend nos rebota por token inválido o vencido, limpiamos y mandamos a loguear
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+
+    if (error.response?.status === 401) {
+      console.warn("Sesión expirada o token inválido, redirigiendo al login...");
+      localStorage.clear();
+      window.location.href = '/login';
     }
-    return Promise.reject(error)
+    
+    
+    if (error.response?.status === 403) {
+      console.warn("Acceso denegado: No tienes permiso para esta acción.");
+      
+      return Promise.reject(error);
+    }
+    
+    return Promise.reject(error);
   }
 )
 
@@ -127,7 +136,8 @@ export const getUsuarios = async () => {
 export const getUsuarioById = async (id) => {
   try {
     const response = await apiClient.get(`/usuarios/${id}`)
-    return normalizarUsuario(response.data.usuario || response.data?.data?.usuario || response.data)
+    const usuario = response.data?.data || response.data?.usuario || response.data
+    return normalizarUsuario(usuario)
   } catch (error) {
     console.error(`Error al obtener usuario ${id}:`, error)
     throw error
@@ -494,5 +504,14 @@ export const actualizarCreditosUsuario = async (id, creditos) => {
     throw error
   }
 }
+
+
+// ============================================
+// FUNCIONES DE API - MEMBRESÍAS
+// ====
+
+export const getClasesProfesor = (idProfesor) => {
+    return apiClient.get(`/profesores/${idProfesor}/clases`);
+};
 
 export default apiClient

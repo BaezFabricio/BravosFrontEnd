@@ -15,6 +15,11 @@ export default function AdminDashboard() {
   const [clasesHoy, setClasesHoy] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
+  const permisos = JSON.parse(localStorage.getItem('permisos') || '[]');
+
+  if (!permisos.includes('dashboard:consulta')) {
+    return null; 
+  }
 
   useEffect(() => {
     const fetchDashboardStats = async () => {

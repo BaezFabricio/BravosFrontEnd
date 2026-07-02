@@ -11,31 +11,55 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }) {
-  const [theme, setTheme] = React.useState(
-    () => localStorage.getItem(storageKey) || defaultTheme
-  )
+  const [theme, setTheme] = React.useState(() => {
+    if (typeof window === "undefined") return defaultTheme
+    return localStorage.getItem(storageKey) || defaultTheme
+  })
 
   React.useEffect(() => {
     const root = window.document.documentElement
-    root.classList.remove("light", "dark")
+    const applyTheme = (targetTheme) => {
+      root.classList.remove("light", "dark")
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-      root.classList.add(systemTheme)
-      return
+      if (targetTheme === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
+          ? "dark"
+          : "light"
+        root.classList.add(systemTheme)
+        return
+      }
+
+      root.classList.add(targetTheme)
     }
 
-    root.classList.add(theme)
+    applyTheme(theme)
+
+    if (theme === "system") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
+      const handleChange = () => applyTheme("system")
+
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleChange)
+      } else {
+        mediaQuery.addListener(handleChange)
+      }
+
+      return () => {
+        if (mediaQuery.removeEventListener) {
+          mediaQuery.removeEventListener("change", handleChange)
+        } else {
+          mediaQuery.removeListener(handleChange)
+        }
+      }
+    }
   }, [theme])
 
   const value = {
     theme,
-    setTheme: (theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    setTheme: (newTheme) => {
+      localStorage.setItem(storageKey, newTheme)
+      setTheme(newTheme)
     },
   }
 

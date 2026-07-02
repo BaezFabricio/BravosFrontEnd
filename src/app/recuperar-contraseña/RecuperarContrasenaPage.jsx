@@ -109,7 +109,7 @@ export default function RecuperarContrasenaPage() {
       }}
     >
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/80" />
+      <div className="absolute inset-0 bg-background/80 dark:bg-black/80" />
       
       {/* Card */}
       <div className="relative z-10 w-full max-w-md">
