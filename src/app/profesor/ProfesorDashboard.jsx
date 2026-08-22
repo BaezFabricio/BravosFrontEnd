@@ -9,25 +9,44 @@ export default function ProfesorDashboard() {
   const [fecha, setFecha] = useState(new Date())
   const [actividades, setActividades] = useState([])
   const [actividad, setActividad] = useState("")
+  const [horarios, setHorarios] = useState([])
+  const [horarioSeleccionado, setHorarioSeleccionado] = useState("")
   const [alumnos, setAlumnos] = useState([])
   const [checkedIn, setCheckedIn] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // Lógica de carga de clases
+  // Carga de clases del profesor desde el token (no depende del idProfesor en localStorage)
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("usuario"));
-    const idProfesor = user?.idProfesor || 1;
-    apiClient.get(`/profesores/${idProfesor}/clases`)
-      .then(res => setActividades(Array.isArray(res.data) ? res.data : []))
+    apiClient.get('/profesores/mis-clases')
+      .then(res => setActividades(res.data?.data || []))
       .catch(err => console.error("Error al cargar clases:", err));
   }, []);
 
-  // Lógica para marcar asistencia
-  async function marcarAsistencia(idAlumno, estado) {
-    const fechaISO = fecha.toISOString().split("T")[0];
+  // Al elegir una actividad, cargamos sus horarios reales
+  useEffect(() => {
+    const cargarHorarios = async () => {
+      setHorarioSeleccionado("")
+      setHorarios([])
+      setCheckedIn(false)
+      setAlumnos([])
+
+      if (!actividad) return
+
+      try {
+        const resHorarios = await apiClient.get(`/profesores/clases/${actividad}/horarios`)
+        setHorarios(resHorarios.data?.data || [])
+      } catch (err) {
+        console.error("Error al cargar horarios:", err)
+      }
+    }
+    cargarHorarios()
+  }, [actividad]);
+
+  // Lógica para marcar asistencia (se guarda por idReserva, que es la FK real de la tabla asistencia)
+  async function marcarAsistencia(idReserva, estado) {
     try {
-      await apiClient.put(`/profesores/asistencias/${idAlumno}`, { estado, fecha: fechaISO });
-      setAlumnos(prev => prev.map(a => a.id === idAlumno ? { ...a, asistencia: estado } : a));
+      await apiClient.put(`/profesores/asistencias/${idReserva}`, { estado });
+      setAlumnos(prev => prev.map(a => a.idReserva === idReserva ? { ...a, asistencia: estado } : a));
     } catch (err) {
       console.error("Error al guardar asistencia:", err);
       alert("No se pudo guardar la asistencia");
@@ -37,11 +56,14 @@ export default function ProfesorDashboard() {
   // Lógica de Check-In
   async function handleCheckIn() {
     if (!actividad) { alert("Selecciona una actividad"); return; }
-    
+    if (!horarioSeleccionado) { alert("Selecciona un horario"); return; }
+
     setLoading(true);
     const fechaISO = fecha.toISOString().split("T")[0];
     try {
-      const response = await apiClient.get(`/profesores/clases/${actividad}/alumnos?fecha=${fechaISO}`);
+      const response = await apiClient.get(
+        `/profesores/clases/${actividad}/alumnos?fecha=${fechaISO}&idHorario=${horarioSeleccionado}`
+      );
       const datosAlumnos = response.data.data || response.data;
       setAlumnos(Array.isArray(datosAlumnos) ? datosAlumnos : []);
       setCheckedIn(true);
@@ -100,9 +122,19 @@ export default function ProfesorDashboard() {
           {/* HORARIO */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-muted-foreground uppercase">Horario</label>
-            <Button variant="outline" className="w-[220px] bg-transparent border-border justify-start text-muted-foreground">
-              <Clock className="mr-2 h-4 w-4" /> Seleccionar...
-            </Button>
+            <Select value={horarioSeleccionado} onValueChange={setHorarioSeleccionado} disabled={!actividad || horarios.length === 0}>
+              <SelectTrigger className="w-[220px] bg-transparent border-border text-white">
+                <Clock className="mr-2 h-4 w-4" />
+                <SelectValue placeholder={actividad ? "Seleccionar..." : "Elegí una actividad"} />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f0f0f] border-border">
+                {horarios.map((h) => (
+                  <SelectItem key={h.idHorario} value={String(h.idHorario)}>
+                    {h.dia} {h.horaInicio?.slice(0, 5)}-{h.horaFin?.slice(0, 5)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Button onClick={handleCheckIn} disabled={loading} className="bg-white text-black hover:bg-gray-200 ml-auto">
@@ -129,11 +161,11 @@ export default function ProfesorDashboard() {
               </thead>
               <tbody>
                 {alumnos.map((a) => (
-                  <tr key={a.id} className="border-b border-border/50 hover:bg-muted/5 transition-colors">
+                  <tr key={a.idReserva} className="border-b border-border/50 hover:bg-muted/5 transition-colors">
                     <td className="p-4 font-medium text-white">{a.nombrecompleto}</td>
                     <td className="p-4 flex gap-2">
-                      <Button onClick={() => marcarAsistencia(a.id, 'presente')} variant={a.asistencia === 'presente' ? 'default' : 'outline'}>Presente</Button>
-                      <Button onClick={() => marcarAsistencia(a.id, 'ausente')} variant={a.asistencia === 'ausente' ? 'destructive' : 'outline'}>Ausente</Button>
+                      <Button onClick={() => marcarAsistencia(a.idReserva, 'presente')} variant={a.asistencia === 'presente' ? 'default' : 'outline'}>Presente</Button>
+                      <Button onClick={() => marcarAsistencia(a.idReserva, 'ausente')} variant={a.asistencia === 'ausente' ? 'destructive' : 'outline'}>Ausente</Button>
                     </td>
                   </tr>
                 ))}

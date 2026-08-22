@@ -15,8 +15,9 @@ import {
   Dumbbell,
   ChevronDown,
   Bell,
-  Home, 
+  Home,
   User,
+  BarChart3,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,6 +27,8 @@ const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
   { name: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
   { name: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
+  { name: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta" },
+  { name: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta" },
   { name: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta" },
   { name: "Configuración", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta" },
 ]

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
 
 export default function NuevaClasePage() {
   const navigate = useNavigate()
@@ -11,6 +11,7 @@ export default function NuevaClasePage() {
 
   const [profesores, setProfesores] = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
+  const [planes, setPlanes] = useState([])
 
   const turnos = [
     { id: "1", nombre: "Mañana", horaInicio: "06:00", horaFin: "12:00" },
@@ -29,18 +30,34 @@ export default function NuevaClasePage() {
 
   const [formData, setFormData] = useState({
     nombre: "",
+    idPlan: "",
     turnoId: "1",
     horaInicio: "",
     horaFin: "",
     idProfesor: "",
     capacidadMaxima: "15",
     diasSemana: [],
-    categoria: "WOD",
-    intensidad: "Media",
+    categoria: "",
+    intensidad: "",
     descripcion: "",
-    objetivos: "",
-    videoUrl: ""
+    ejercicios: [{ nombre: "", videoUrl: "" }]
   })
+
+  const actualizarEjercicio = (index, campo, valor) => {
+    setFormData((prev) => {
+      const ejercicios = [...prev.ejercicios]
+      ejercicios[index] = { ...ejercicios[index], [campo]: valor }
+      return { ...prev, ejercicios }
+    })
+  }
+
+  const agregarEjercicio = () => {
+    setFormData((prev) => ({ ...prev, ejercicios: [...prev.ejercicios, { nombre: "", videoUrl: "" }] }))
+  }
+
+  const quitarEjercicio = (index) => {
+    setFormData((prev) => ({ ...prev, ejercicios: prev.ejercicios.filter((_, i) => i !== index) }))
+  }
 
   useEffect(() => {
     const storedPermisos = localStorage.getItem("permisos")
@@ -103,6 +120,14 @@ export default function NuevaClasePage() {
     }
 
     obtenerProfesores()
+
+    const token = localStorage.getItem("token")
+    fetch("http://localhost:3001/api/vv1/planes", {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    })
+      .then(r => r.json())
+      .then(r => setPlanes(r.data || []))
+      .catch(err => console.error("Error al cargar planes:", err))
   }, [navigate])
 
   const validateForm = () => {
@@ -183,11 +208,13 @@ export default function NuevaClasePage() {
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
         turno: turnoSeleccionado?.nombre || "",
-        categoria: formData.categoria,
-        intensidad: formData.intensidad,
-        descripcion: formData.descripcion,
-        objetivos: formData.objetivos,
-        videoUrl: formData.videoUrl || null
+        idPlan: formData.idPlan ? parseInt(formData.idPlan) : null,
+        rutina: {
+          categoria: formData.categoria,
+          nivel: formData.intensidad,
+          descripcion: formData.descripcion,
+          ejercicios: formData.ejercicios.filter((ej) => ej.nombre.trim() !== ""),
+        },
       }
 
       const response = await fetch("http://localhost:3001/api/vv1/clases", {
@@ -287,36 +314,49 @@ export default function NuevaClasePage() {
                   disabled={loadingProfesores}
                 >
                   {loadingProfesores ? (
-                    <option value="">Validando staff autorizado...</option>
+                    <option value="">Cargando profesores...</option>
                   ) : profesores.length === 0 ? (
-                    <option value="">No hay usuarios con permiso de Profesor</option>
+                    <option value="">No hay profesores disponibles</option>
                   ) : (
-                    profesores.map((p) => {
-                      const idValido = p.idUsuario || p.idProfesor;
-                      const nombreValido = p.nombrecompleto || p.nombreProfesor || p.nombre;
-                      return (
-                        <option key={idValido} value={idValido} className="bg-input text-foreground">
-                          {nombreValido}
-                        </option>
-                      )
-                    })
+                    profesores.map((p) => (
+                      <option key={p.idProfesor} value={p.idProfesor} className="bg-input text-foreground">
+                        {p.nombreProfesor}
+                      </option>
+                    ))
                   )}
                 </select>
                 {errors.idProfesor && <p className="mt-1 text-xs text-red-400">{errors.idProfesor}</p>}
               </div>
 
               <div>
-                <label className={labelClass}>Capacidad / Cupo Máximo *</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.capacidadMaxima}
-                  onChange={(e) => setFormData({ ...formData, capacidadMaxima: e.target.value })}
-                  className={errors.capacidadMaxima ? inputErrorClass : inputClass}
-                />
-                {errors.capacidadMaxima && <p className="mt-1 text-xs text-red-400">{errors.capacidadMaxima}</p>}
+                <label className={labelClass}>Plan de Membresía</label>
+                <select
+                  value={formData.idPlan}
+                  onChange={(e) => setFormData({ ...formData, idPlan: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">Sin restricción de plan</option>
+                  {planes.map((plan) => (
+                    <option key={plan.idPlan} value={plan.idPlan} className="bg-input text-foreground">
+                      {plan.nombre}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">Solo alumnos con este plan podrán reservar</p>
               </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Capacidad / Cupo Máximo *</label>
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={formData.capacidadMaxima}
+                onChange={(e) => setFormData({ ...formData, capacidadMaxima: e.target.value })}
+                className={errors.capacidadMaxima ? inputErrorClass : inputClass}
+              />
+              {errors.capacidadMaxima && <p className="mt-1 text-xs text-red-400">{errors.capacidadMaxima}</p>}
             </div>
           </div>
         </section>
@@ -329,30 +369,24 @@ export default function NuevaClasePage() {
           <div className="space-y-4 p-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className={labelClass}>Categoría Crossfit</label>
-                <select
+                <label className={labelClass}>Categoría / Tipo de clase</label>
+                <input
+                  type="text"
                   value={formData.categoria}
                   onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                  placeholder="Ej: WOD, Funcional, Halterofilia..."
                   className={inputClass}
-                >
-                  <option value="WOD" className="bg-input text-foreground">WOD (Workout of the Day)</option>
-                  <option value="Funcional" className="bg-input text-foreground">Entrenamiento Funcional</option>
-                  <option value="Iniciantes" className="bg-input text-foreground">Iniciantes / Fundamentos</option>
-                  <option value="Open Box" className="bg-input text-foreground">Open Box Libre</option>
-                </select>
+                />
               </div>
-
               <div>
-                <label className={labelClass}>Nivel de Intensidad</label>
-                <select
+                <label className={labelClass}>Nivel / Intensidad</label>
+                <input
+                  type="text"
                   value={formData.intensidad}
                   onChange={(e) => setFormData({ ...formData, intensidad: e.target.value })}
+                  placeholder="Ej: Principiante, RX, Scaled..."
                   className={inputClass}
-                >
-                  <option value="Baja" className="bg-input text-foreground">Baja (Recuperación / Técnica)</option>
-                  <option value="Media" className="bg-input text-foreground">Media (Estándar)</option>
-                  <option value="Alta" className="bg-input text-foreground">Alta (Avanzados / RX)</option>
-                </select>
+                />
               </div>
             </div>
 
@@ -366,27 +400,48 @@ export default function NuevaClasePage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass}>Objetivos del Entrenamiento</label>
-                <input
-                  type="text"
-                  value={formData.objetivos}
-                  onChange={(e) => setFormData({ ...formData, objetivos: e.target.value })}
-                  placeholder="Ej: Resistencia cardiovascular, Fuerza core"
-                  className={inputClass}
-                />
+            <div>
+              <div className="flex items-center justify-between">
+                <label className={labelClass}>Ejercicios de la Rutina</label>
+                <button
+                  type="button"
+                  onClick={agregarEjercicio}
+                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Agregar ejercicio
+                </button>
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Cada ejercicio puede tener su propio video de demostración. Los alumnos y el profesor los van a ver en la rutina de esta clase.
+              </p>
 
-              <div>
-                <label className={labelClass}>Video Guía / Demostración (URL)</label>
-                <input
-                  type="url"
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  placeholder="Ej: https://youtube.com/watch?v=..."
-                  className={inputClass}
-                />
+              <div className="mt-3 space-y-3">
+                {formData.ejercicios.map((ejercicio, index) => (
+                  <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] items-start rounded-lg border border-border bg-secondary/40 p-3">
+                    <input
+                      type="text"
+                      value={ejercicio.nombre}
+                      onChange={(e) => actualizarEjercicio(index, "nombre", e.target.value)}
+                      placeholder="Ej: Sentadilla con salto"
+                      className={inputClass + " mt-0"}
+                    />
+                    <input
+                      type="url"
+                      value={ejercicio.videoUrl}
+                      onChange={(e) => actualizarEjercicio(index, "videoUrl", e.target.value)}
+                      placeholder="Video demostrativo (URL, opcional)"
+                      className={inputClass + " mt-0"}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => quitarEjercicio(index)}
+                      disabled={formData.ejercicios.length === 1}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

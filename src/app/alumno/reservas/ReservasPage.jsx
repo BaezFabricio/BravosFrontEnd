@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react"
+import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, PlayCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,11 +45,12 @@ export default function ReservasPage() {
       // 🔄 MAPEO: Traducimos lo que viene de la base de datos al formato que espera tu UI
       const listaMapeada = listaOriginal.map(r => ({
         idReserva: r.idReserva,
-        clase: r.nombreClase,               // 🟢 'nombreClase' de SQL pasa a 'clase'
-        estado: r.estadoReserva || 'proxima', // 🟢 'estadoReserva' de SQL pasa a 'estado'
-        fecha: r.fechaReserva ? r.fechaReserva.substring(0, 10) : "", 
+        idClase: r.idClase,
+        clase: r.nombreClase,
+        estado: r.estadoReserva || 'proxima',
+        fecha: r.fechaReserva ? r.fechaReserva.substring(0, 10) : "",
         hora: r.horaInicio ? r.horaInicio.substring(0, 5) : "00:00",
-        coach: r.nombreProfesor|| "Staff Bravos"
+        coach: r.nombreProfesor || "Staff Bravos"
       }))
       
       // Separamos en base al estado mapeado
@@ -94,10 +95,28 @@ export default function ReservasPage() {
   const ReservaCard = ({ reserva, showCancelButton = false }) => {
     const config = estadoConfig[reserva.estado] || estadoConfig.cancelada
     const Icon = config.icon
+    const [rutinaOpen, setRutinaOpen] = useState(false)
+    const [rutina, setRutina] = useState(null)
+    const [loadingRutina, setLoadingRutina] = useState(false)
+
+    const toggleRutina = async () => {
+      if (!rutinaOpen && rutina === null && reserva.idClase) {
+        setLoadingRutina(true)
+        try {
+          const res = await apiClient.get(`/profesores/clases/${reserva.idClase}/rutina`)
+          setRutina(res.data?.data || false)
+        } catch {
+          setRutina(false)
+        } finally {
+          setLoadingRutina(false)
+        }
+      }
+      setRutinaOpen(prev => !prev)
+    }
 
     return (
       <Card className="bg-card border-border">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -124,20 +143,70 @@ export default function ReservasPage() {
             </div>
             {showCancelButton && (
               <Button
-                variant="destructive" // 🟢 Cambiado a variante destructiva sólida por defecto
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors" // 🟢 Rojo bien vivo, texto firme y más relleno (padding)
-                onClick={() => setCancelDialog({ 
-                  open: true, 
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors"
+                onClick={() => setCancelDialog({
+                  open: true,
                   idReserva: reserva.idReserva,
-                  claseNombre: reserva.clase, 
+                  claseNombre: reserva.clase,
                   fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
                 })}
               >
-                <X className="mr-1.5 h-4 w-4 stroke-[3]" /> {/* 🟢 Ícono un cachito más separado y con trazo más grueso */}
+                <X className="mr-1.5 h-4 w-4 stroke-[3]" />
                 Cancelar
               </Button>
             )}
           </div>
+
+          {/* Rutina de la clase — solo en próximas */}
+          {showCancelButton && reserva.idClase && (
+            <div className="border-t border-border pt-3">
+              <button
+                onClick={toggleRutina}
+                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                {loadingRutina
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Dumbbell className="h-4 w-4" />
+                }
+                Ver rutina de la clase
+                {rutinaOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+
+              {rutinaOpen && (
+                <div className="mt-3 space-y-2">
+                  {rutina === false && (
+                    <p className="text-sm text-muted-foreground">Esta clase todavía no tiene una rutina asignada.</p>
+                  )}
+                  {rutina && (
+                    <div className="rounded-lg bg-secondary/40 p-3 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {rutina.categoria && <Badge variant="default" className="text-xs">{rutina.categoria}</Badge>}
+                        {rutina.nivel && <Badge variant="outline" className="text-xs">{rutina.nivel}</Badge>}
+                      </div>
+                      {rutina.descripcion && (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{rutina.descripcion}</p>
+                      )}
+                      {rutina.ejercicios?.length > 0 && (
+                        <div className="space-y-1 pt-1">
+                          {rutina.ejercicios.map((ej, idx) => (
+                            <div key={ej.idEjercicio} className="flex items-center justify-between rounded bg-background/60 px-3 py-2">
+                              <span className="text-sm">{idx + 1}. {ej.nombre}</span>
+                              {ej.videoUrl && (
+                                <a href={ej.videoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline shrink-0 ml-2">
+                                  <PlayCircle className="h-3.5 w-3.5" /> Video
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     )

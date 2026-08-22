@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-import {
+import apiClient, {
   cambiarEstadoUsuario,
   eliminarUsuario,
   getUsuarioById,
@@ -42,11 +42,6 @@ const reservas = [
   { id: "3", clase: "Funcional WOD", fecha: "2024-03-05", hora: "18:00", coach: "Pablo Ruiz" },
   { id: "4", clase: "Open Box", fecha: "2024-03-03", hora: "11:00", coach: "Diego Torres" },
 ]
-
-const planesAbono = {
-  "CLASE CROSSFIT": { precio: 36000, creditos: 20, duracion: 30 },
-  "PLANIFICACIÓN ATLETA": { precio: 43000, creditos: 30, duracion: 30 },
-}
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
@@ -89,6 +84,19 @@ export default function DetalleUsuarioPage() {
   const [metodoPago, setMetodoPago] = useState("Efectivo")
   const [abonos, setAbonos] = useState([])
   const [cargandoAbonos, setCargandoAbonos] = useState(false)
+
+  // Planes reales (antes hardcodeados) para el selector de "tipo de abono"
+  const [planesDisponibles, setPlanesDisponibles] = useState([])
+  const planesAbono = planesDisponibles.reduce((acc, plan) => {
+    acc[plan.nombre] = { precio: plan.precio, creditos: plan.cantidadCreditos, duracion: 30 }
+    return acc
+  }, {})
+
+  useEffect(() => {
+    apiClient.get("/planes")
+      .then((res) => setPlanesDisponibles(res.data?.data || []))
+      .catch((err) => console.error("Error al cargar planes:", err))
+  }, [])
 
   const [cobrarCCDialog, setCobrarCCDialog] = useState(false)
   const [ajusteCCDialog, setAjusteCCDialog] = useState(false)
@@ -741,8 +749,9 @@ export default function DetalleUsuarioPage() {
                     <div className="flex gap-2 flex-1">
                       <select value={tipoAbono} onChange={(e) => setTipoAbono(e.target.value)} className="flex-1 bg-[#2c2c2e] border border-border rounded p-2 text-foreground font-medium outline-none text-xs focus:border-muted-foreground">
                         <option value="" disabled hidden>Seleccione un abono...</option>
-                        <option value="CLASE CROSSFIT">CLASE CROSSFIT</option>
-                        <option value="PLANIFICACIÓN ATLETA">PLANIFICACIÓN ATLETA</option>
+                        {planesDisponibles.map((plan) => (
+                          <option key={plan.idPlan} value={plan.nombre}>{plan.nombre}</option>
+                        ))}
                       </select>
                       <input type="number" defaultValue="1" className="w-14 bg-[#2c2c2e] border border-border rounded p-2 text-center text-foreground font-medium outline-none text-xs" />
                     </div>

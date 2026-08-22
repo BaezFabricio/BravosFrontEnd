@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
 
 export default function EditarClasePage() {
   const { id } = useParams()
@@ -13,6 +13,7 @@ export default function EditarClasePage() {
 
   const [profesores, setProfesores] = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
+  const [planes, setPlanes] = useState([])
 
   const turnos = [
     { id: "1", nombre: "Mañana", horaInicio: "06:00", horaFin: "12:00" },
@@ -31,6 +32,7 @@ export default function EditarClasePage() {
 
   const [formData, setFormData] = useState({
     nombre: "",
+    idPlan: "",
     turnoId: "1",
     horaInicio: "",
     horaFin: "",
@@ -39,13 +41,36 @@ export default function EditarClasePage() {
     diasSemana: [],
     descripcion: "",
     estado: "Activo",
+    categoria: "",
+    intensidad: "",
+    descripcionRutina: "",
+    ejercicios: [{ nombre: "", videoUrl: "" }],
   })
+
+  const actualizarEjercicio = (index, campo, valor) => {
+    setFormData((prev) => {
+      const ejercicios = [...prev.ejercicios]
+      ejercicios[index] = { ...ejercicios[index], [campo]: valor }
+      return { ...prev, ejercicios }
+    })
+  }
+
+  const agregarEjercicio = () => {
+    setFormData((prev) => ({ ...prev, ejercicios: [...prev.ejercicios, { nombre: "", videoUrl: "" }] }))
+  }
+
+  const quitarEjercicio = (index) => {
+    setFormData((prev) => ({ ...prev, ejercicios: prev.ejercicios.filter((_, i) => i !== index) }))
+  }
 
   const obtenerProfesores = async () => {
     try {
       setLoadingProfesores(true)
+      const token = localStorage.getItem("token")
 
-      const response = await fetch("http://localhost:3001/api/vv1/profesores")
+      const response = await fetch("http://localhost:3001/api/vv1/profesores", {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      })
       const result = await response.json()
 
       if (!result.success) {
@@ -66,8 +91,11 @@ export default function EditarClasePage() {
   const obtenerClase = async () => {
     try {
       setLoadingData(true)
+      const token = localStorage.getItem("token")
 
-      const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`)
+      const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      })
       const result = await response.json()
 
       if (!result.success) {
@@ -82,16 +110,22 @@ export default function EditarClasePage() {
 
       setFormData({
         nombre: clase.nombreClase || "",
+        idPlan: clase.idPlan ? clase.idPlan.toString() : "",
         turnoId: turnoEncontrado ? turnoEncontrado.id : "1",
         horaInicio: clase.horaInicio ? clase.horaInicio.substring(0, 5) : "",
         horaFin: clase.horaFin ? clase.horaFin.substring(0, 5) : "",
         idProfesor: clase.idProfesor ? clase.idProfesor.toString() : "",
-        capacidadMaxima: clase.cupoDisponible
-          ? clase.cupoDisponible.toString()
-          : "",
+        capacidadMaxima: clase.cupoDisponible ? clase.cupoDisponible.toString() : "",
         diasSemana: clase.diasSemana ? clase.diasSemana.split(",") : [],
         descripcion: "",
         estado: clase.estado || "Activo",
+        categoria: clase.rutina?.categoria || "",
+        intensidad: clase.rutina?.nivel || "",
+        descripcionRutina: clase.rutina?.descripcion || "",
+        ejercicios:
+          clase.rutina?.ejercicios && clase.rutina.ejercicios.length > 0
+            ? clase.rutina.ejercicios.map((ej) => ({ nombre: ej.nombre, videoUrl: ej.videoUrl || "" }))
+            : [{ nombre: "", videoUrl: "" }],
       })
     } catch (error) {
       console.error("Error al obtener clase:", error)
@@ -125,6 +159,14 @@ export default function EditarClasePage() {
   }
     obtenerProfesores()
     obtenerClase()
+
+    const token = localStorage.getItem("token")
+    fetch("http://localhost:3001/api/vv1/planes", {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    })
+      .then(r => r.json())
+      .then(r => setPlanes(r.data || []))
+      .catch(err => console.error("Error al cargar planes:", err))
   }, [id])
 
   const validateForm = () => {
@@ -210,14 +252,22 @@ export default function EditarClasePage() {
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
         turno: turnoSeleccionado?.nombre || "",
+        idPlan: formData.idPlan ? parseInt(formData.idPlan) : null,
+        rutina: {
+          categoria: formData.categoria,
+          nivel: formData.intensidad,
+          descripcion: formData.descripcionRutina,
+          ejercicios: formData.ejercicios.filter((ej) => ej.nombre.trim() !== ""),
+        },
       }
 
-      console.log("Editando clase:", payload)
+      const token = localStorage.getItem("token")
 
       const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
       })
@@ -329,38 +379,44 @@ export default function EditarClasePage() {
               )}
             </div>
 
-            <div>
-              <label className={labelClass}>Profesor *</label>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelClass}>Profesor *</label>
+                <select
+                  value={formData.idProfesor}
+                  onChange={(e) => setFormData({ ...formData, idProfesor: e.target.value })}
+                  className={errors.idProfesor ? inputErrorClass : inputClass}
+                  disabled={loadingProfesores}
+                >
+                  {loadingProfesores ? (
+                    <option value="">Cargando profesores...</option>
+                  ) : (
+                    profesores.map((profesor) => (
+                      <option key={profesor.idProfesor} value={profesor.idProfesor} className="bg-input text-foreground">
+                        {profesor.nombreProfesor || "Staff Bravos"}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {errors.idProfesor && <p className="mt-1 text-xs text-red-400">{errors.idProfesor}</p>}
+              </div>
 
-              <select
-                value={formData.idProfesor}
-                onChange={(e) =>
-                  setFormData({ ...formData, idProfesor: e.target.value })
-                }
-                className={errors.idProfesor ? inputErrorClass : inputClass}
-                disabled={loadingProfesores}
-              >
-                {loadingProfesores ? (
-                  <option value="">Cargando profesores...</option>
-                ) : (
-                  profesores.map((profesor) => (
-                    <option
-                      key={profesor.idProfesor}
-                      value={profesor.idProfesor}
-                      className="bg-input text-foreground"
-                    >
-                    
-                      {profesor.nombreProfesor || "Staff Bravos"}
+              <div>
+                <label className={labelClass}>Plan de Membresía</label>
+                <select
+                  value={formData.idPlan}
+                  onChange={(e) => setFormData({ ...formData, idPlan: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">Sin restricción de plan</option>
+                  {planes.map((plan) => (
+                    <option key={plan.idPlan} value={plan.idPlan} className="bg-input text-foreground">
+                      {plan.nombre}
                     </option>
-                  ))
-                )}
-              </select>
-
-              {errors.idProfesor && (
-                <p className="mt-1 text-xs text-red-400">
-                  {errors.idProfesor}
-                </p>
-              )}
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">Solo alumnos con este plan podrán reservar</p>
+              </div>
             </div>
 
             <div>
@@ -394,6 +450,91 @@ export default function EditarClasePage() {
                 placeholder="Breve descripción de la clase"
                 className={inputClass}
               />
+            </div>
+          </div>
+        </section>
+
+        <section className={cardClass}>
+          <div className={cardHeaderClass}>
+            <h2 className={titleClass}>Planificación y Contenido Multimedia</h2>
+          </div>
+          <div className="space-y-4 p-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelClass}>Categoría / Tipo de clase</label>
+                <input
+                  type="text"
+                  value={formData.categoria}
+                  onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                  placeholder="Ej: WOD, Funcional, Halterofilia..."
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Nivel / Intensidad</label>
+                <input
+                  type="text"
+                  value={formData.intensidad}
+                  onChange={(e) => setFormData({ ...formData, intensidad: e.target.value })}
+                  placeholder="Ej: Principiante, RX, Scaled..."
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Descripción de la Disciplina</label>
+              <textarea
+                value={formData.descripcionRutina}
+                onChange={(e) => setFormData({ ...formData, descripcionRutina: e.target.value })}
+                placeholder="Explicá brevemente en qué consiste la clase para orientar a los alumnos..."
+                className={`${inputClass} min-h-[80px] resize-none`}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <label className={labelClass}>Ejercicios de la Rutina</label>
+                <button
+                  type="button"
+                  onClick={agregarEjercicio}
+                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Agregar ejercicio
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Cada ejercicio puede tener su propio video de demostración.
+              </p>
+
+              <div className="mt-3 space-y-3">
+                {formData.ejercicios.map((ejercicio, index) => (
+                  <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] items-start rounded-lg border border-border bg-secondary/40 p-3">
+                    <input
+                      type="text"
+                      value={ejercicio.nombre}
+                      onChange={(e) => actualizarEjercicio(index, "nombre", e.target.value)}
+                      placeholder="Ej: Sentadilla con salto"
+                      className={inputClass + " mt-0"}
+                    />
+                    <input
+                      type="url"
+                      value={ejercicio.videoUrl}
+                      onChange={(e) => actualizarEjercicio(index, "videoUrl", e.target.value)}
+                      placeholder="Video demostrativo (URL, opcional)"
+                      className={inputClass + " mt-0"}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => quitarEjercicio(index)}
+                      disabled={formData.ejercicios.length === 1}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
