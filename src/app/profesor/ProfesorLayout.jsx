@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react"
+import UserMenu from "@/components/UserMenu"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -20,12 +21,13 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import HamburgerButton from "@/components/HamburgerButton"
+import NotificacionesBell from "@/components/NotificacionesBell"
 
 const navigation = [
-  { name: "Asistencia", href: "/profesor", icon: ClipboardCheck },
-  { name: "Mis Rutinas", href: "/profesor/rutinas", icon: FileText },
-  { name: "Perfil", href: "/profesor/perfil", icon: User },
+  { name: "Asistencia", mobileLabel: "Asistencia", href: "/profesor", icon: ClipboardCheck },
+  { name: "Mis Rutinas", mobileLabel: "Rutinas", href: "/profesor/rutinas", icon: FileText },
+  { name: "Perfil", mobileLabel: "Perfil", href: "/profesor/perfil", icon: User },
 ]
 
 export default function ProfesorLayout({ children }) {
@@ -51,9 +53,22 @@ export default function ProfesorLayout({ children }) {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setUserMenuOpen(false);
     };
+    const handleAvatarUpdated = (e) => setAvatarUrl(e.detail || "");
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("avatar-updated", handleAvatarUpdated);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("avatar-updated", handleAvatarUpdated);
+    };
   }, []);
+
+  useEffect(() => {
+    const checkBreakpoint = () => setSidebarOpen(window.innerWidth >= 1024)
+    checkBreakpoint()
+    window.addEventListener("resize", checkBreakpoint)
+    return () => window.removeEventListener("resize", checkBreakpoint)
+  }, [])
 
   const handleLogout = () => {
     localStorage.clear();
@@ -64,26 +79,44 @@ export default function ProfesorLayout({ children }) {
     <div className="min-h-screen bg-background">
       {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
-          <div className="flex items-center p-4 border-b border-sidebar-border">
-            <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-lg mr-3" />
-            <span className="font-bold text-accent">BRAVOS</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
+            <div className="flex items-center gap-3">
+              <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-lg" />
+              <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
+            </div>
+            <button className="lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
+              <X className="h-6 w-6" />
+            </button>
           </div>
-          <nav className="flex-1 p-4 space-y-1">
-            {navigation.map((item) => (
-              <Link key={item.name} to={item.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ${pathname === item.href ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent"}`} onClick={() => setSidebarOpen(false)}>
-                <item.icon className="h-5 w-5" /> {item.name}
-              </Link>
-            ))}
+          <nav className="flex-1 px-3 py-4 space-y-0.5">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                    isActive
+                      ? "border-l-2 border-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-400"
+                      : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  }`}
+                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+                >
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-400" : ""}`} />
+                  {item.name}
+                </Link>
+              )
+            })}
           </nav>
         </div>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
-            <button className="lg:hidden" onClick={() => setSidebarOpen(true)}><Menu /></button>
+            <HamburgerButton isOpen={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)} />
             <div className="flex-1" />
             
             <div className="flex items-center gap-4"> {/* Ajustamos el gap aquí */}
@@ -92,7 +125,7 @@ export default function ProfesorLayout({ children }) {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="hidden sm:flex items-center justify-center gap-2 px-3 py-0 h-9 hover:bg-zinc-900 transition-all" 
+                className="hidden sm:flex items-center justify-center gap-2 px-3 py-0 h-9 hover:bg-muted transition-all" 
                 onClick={() => window.location.href = '/'}
               >
                 <div className="flex items-center gap-2">
@@ -101,57 +134,56 @@ export default function ProfesorLayout({ children }) {
                 </div>
               </Button>
 
-              {/* Campanita Alineada */}
-              <button className="relative p-2 rounded-full hover:bg-zinc-900 transition-colors">
-                <Bell className="h-5 w-5 text-zinc-400" />
-                <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white ring-2 ring-background">
-                  3
-                </span>
-              </button>
+              <NotificacionesBell />
               
               {/* GLOBITO IDÉNTICO AL LANDING */}
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none">
-                  <Avatar className="h-9 w-9 border border-green-600 bg-green-700">
-                    <AvatarImage src={avatarUrl} />
-                    <AvatarFallback className="bg-green-700 text-white text-xs">{usuario.iniciales}</AvatarFallback>
-                  </Avatar>
+                  <div className="h-9 w-9 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt={usuario.nombre} className="h-full w-full object-cover" />
+                      : usuario.iniciales
+                    }
+                  </div>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
 
-                {userMenuOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                    <div className="absolute right-0 mt-3 w-64 rounded-md border border-zinc-800 bg-[#0c0c0e] shadow-2xl z-50 overflow-hidden">
-                      <div className="border-b border-zinc-800 p-4">
-                        <p className="text-sm font-bold text-white capitalize">{usuario.nombre}</p>
-                        <p className="text-xs text-zinc-400 truncate mt-0.5">{usuario.email}</p>
-                      </div>
-                      <div className="p-1">
-                        <Link to="/profesor/perfil" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
-                          <User className="h-4 w-4 text-zinc-400" /> Mi Perfil
-                        </Link>
-                        <Link to="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
-                          <Shield className="h-4 w-4 text-zinc-400" /> Panel de Control
-                        </Link>
-                        <Link to="/alumno" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
-                          <Dumbbell className="h-4 w-4 text-zinc-400" /> Panel de Alumno
-                        </Link>
-                        <Link to="/profesor" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors">
-                          <ClipboardCheck className="h-4 w-4 text-zinc-400" /> Panel de Profesor
-                        </Link>
-                        <button onClick={handleLogout} className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-950/20 border-t border-zinc-800/60">
-                          <LogOut className="h-4 w-4 text-red-500" /> Cerrar Sesión
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
+                <UserMenu
+                  userData={{ nombrecompleto: usuario.nombre, correo: usuario.email }}
+                  avatarUrl={avatarUrl}
+                  userMenuOpen={userMenuOpen}
+                  setUserMenuOpen={setUserMenuOpen}
+                  handleLogout={handleLogout}
+                  tieneModulosAdmin={true}
+                  tieneModulosAlumno={true}
+                  tieneModulosProfesor={true}
+                  puedeAccederPanel={true}
+                />
               </div>
             </div>
           </div>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
+
+        {/* Mobile Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
+          <div className="flex items-center justify-around">
+            {navigation.map(item => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-400" : "text-sidebar-foreground/50"}`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   )

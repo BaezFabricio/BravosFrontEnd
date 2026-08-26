@@ -4,24 +4,24 @@
 
 :root {
   /* Bravos Gym - paleta oliva vívido (mismo espíritu militar, más saturado y vivo) */
-  --background: #f4f3ee;
-  --foreground: #20221a;
-  --card: #ffffff;
-  --card-foreground: #20221a;
-  --popover: #ffffff;
-  --popover-foreground: #20221a;
+  --background: #e9e7e1;
+  --foreground: #0c0d09;
+  --card: #f0efe9;
+  --card-foreground: #0c0d09;
+  --popover: #f0efe9;
+  --popover-foreground: #0c0d09;
   --primary: #6f8a1f;
-  --primary-foreground: #f4f3ee;
-  --secondary: #e3e1d5;
-  --secondary-foreground: #20221a;
-  --muted: #eceae0;
-  --muted-foreground: #6b6d61;
+  --primary-foreground: #f0efe9;
+  --secondary: #dedad0;
+  --secondary-foreground: #0c0d09;
+  --muted: #e2e0d8;
+  --muted-foreground: #5e6056;
   --accent: #5fbf3f;
   --accent-foreground: #12130f;
   --destructive: #a3352d;
-  --destructive-foreground: #f4f3ee;
-  --border: #d8d6cb;
-  --input: #ffffff;
+  --destructive-foreground: #f0efe9;
+  --border: #cac8be;
+  --input: #f0efe9;
   --ring: #6f8a1f;
   --chart-1: #6f8a1f;
   --chart-2: #9bc23e;
@@ -50,37 +50,37 @@
 }
 
 .dark {
-  --background: #0e0f0b;
+  --background: #0a0a0a;
   --foreground: #f0f0ec;
-  --card: #1c1f17;
+  --card: #0f0f0f;
   --card-foreground: #f0f0ec;
-  --popover: #1c1f17;
+  --popover: #0f0f0f;
   --popover-foreground: #f0f0ec;
   --primary: #9bc23e;
-  --primary-foreground: #161a06;
-  --secondary: #23261b;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1a1a1a;
   --secondary-foreground: #f0f0ec;
-  --muted: #181a13;
-  --muted-foreground: #9a9c8e;
-  --accent: #5fbf3f;
-  --accent-foreground: #12130f;
+  --muted: #111111;
+  --muted-foreground: #888888;
+  --accent: #a3e635;
+  --accent-foreground: #0a0a0a;
   --destructive: #c85a4a;
   --destructive-foreground: #f0f0ec;
-  --border: #2e3226;
-  --input: #23261b;
+  --border: #222222;
+  --input: #1a1a1a;
   --ring: #9bc23e;
-  --sidebar: #0a0b08;
+  --sidebar: #0d0d0d;
   --sidebar-foreground: #f0f0ec;
   --sidebar-primary: #9bc23e;
-  --sidebar-primary-foreground: #161a06;
-  --sidebar-accent: #23261b;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #f0f0ec;
-  --sidebar-border: #2e3226;
+  --sidebar-border: #1e1e1e;
   --sidebar-ring: #9bc23e;
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Inter Fallback', sans-serif;
+  --font-sans: 'Barlow', system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -133,10 +133,16 @@
     @apply border-border outline-ring/50;
   }
 
-  body {
-    @apply bg-background text-foreground; /* Esto está perfecto */
+  html, body {
+    @apply bg-background text-foreground;
+    font-family: 'Barlow', system-ui, sans-serif !important;
   }
-  
+
+  h1, h2, h3 {
+    font-family: 'Barlow Condensed', system-ui, sans-serif !important;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
 }
 
 
@@ -195,3 +201,23 @@
     font-weight: bold;
   }
 }
+
+/* ── Page transition animations ── */
+@keyframes slideFromLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideFromRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.anim-from-left  { animation: slideFromLeft  0.55s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-from-right { animation: slideFromRight 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-fade-up    { animation: fadeUp         0.4s  cubic-bezier(0.16,1,0.3,1) both; }
+.anim-delay-100  { animation-delay: 0.08s; }
+.anim-delay-150  { animation-delay: 0.13s; }

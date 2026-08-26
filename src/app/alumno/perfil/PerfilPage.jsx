@@ -10,6 +10,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
+import { toast } from '@/lib/notificar'
 import {
   Dialog,
   DialogContent,
@@ -64,8 +65,6 @@ export default function PerfilPage() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [passwordLoading, setPasswordLoading] = useState(false)
-  const [passwordError, setPasswordError] = useState("")
-  const [passwordSuccess, setPasswordSuccess] = useState("")
   const [abonoData, setAbonoData] = useState({ vencimiento: null, creditos: 0 });
 
   useEffect(() => {
@@ -243,7 +242,20 @@ export default function PerfilPage() {
   }
 
   const status = statusConfig[userData.estado] || statusConfig.inactivo
-  const membership = membershipConfig[userData.membresia] || null
+
+  // Calcular estado real de membresía en base a la fecha de vencimiento del abono
+  const membershipStatus = (() => {
+    if (!abonoData.vencimiento) return userData.membresia
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    const venc = new Date(abonoData.vencimiento)
+    venc.setHours(0, 0, 0, 0)
+    const dias = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24))
+    if (dias < 0) return 'vencida'
+    if (dias <= 7) return 'por_vencer'
+    return 'vigente'
+  })()
+  const membership = membershipConfig[membershipStatus] || null
 
   const handleGoHome = () => {
     navigate("/");
@@ -251,24 +263,22 @@ export default function PerfilPage() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
-    setPasswordError("")
-    setPasswordSuccess("")
 
     // Validaciones
     if (!passwordForm.currentPassword) {
-      setPasswordError("Ingresa tu contraseña actual")
+      toast.error("Ingresa tu contraseña actual")
       return
     }
     if (!passwordForm.newPassword) {
-      setPasswordError("Ingresa tu nueva contraseña")
+      toast.error("Ingresa tu nueva contraseña")
       return
     }
     if (passwordForm.newPassword.length < 6) {
-      setPasswordError("La nueva contraseña debe tener al menos 6 caracteres")
+      toast.error("La nueva contraseña debe tener al menos 6 caracteres")
       return
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError("Las contraseñas no coinciden")
+      toast.error("Las contraseñas no coinciden")
       return
     }
 
@@ -290,182 +300,189 @@ export default function PerfilPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setPasswordError(data.message || "No se pudo cambiar la contraseña")
+        toast.error(data.message || "No se pudo cambiar la contraseña")
         return
       }
 
-      setPasswordSuccess("Contraseña cambiada exitosamente")
+      toast.success("Contraseña cambiada exitosamente")
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
-      setTimeout(() => {
-        setShowChangePassword(false)
-        setPasswordSuccess("")
-      }, 2000)
+      setShowChangePassword(false)
     } catch (error) {
       console.error("Error:", error)
-      setPasswordError("Error al cambiar la contraseña")
+      toast.error("Error al cambiar la contraseña")
     } finally {
       setPasswordLoading(false)
     }
   }
 
+  const membershipBadgeStyle = {
+    vigente:   'bg-lime-400/10 text-lime-400 border border-lime-400/20',
+    por_vencer:'bg-yellow-400/10 text-yellow-400 border border-yellow-400/20',
+    vencida:   'bg-red-500/10 text-red-400 border border-red-500/20',
+  }
+  const statusBadgeStyle = {
+    activo:    'bg-lime-400/10 text-lime-400 border border-lime-400/20',
+    suspendido:'bg-red-500/10 text-red-400 border border-red-500/20',
+    inactivo:  'bg-foreground/5 text-muted-foreground border border-border',
+  }
+
   return (
     <div className="space-y-6">
+
+      {/* Título */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Mi Perfil</h1>
-        <p className="text-muted-foreground">Consulta tu información personal y estado de membresía</p>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Mi Perfil</h1>
+        <p className="text-sm text-foreground/40 mt-1">Información personal y estado de membresía</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* COLUMNA IZQUIERDA: Información Personal */}
-        <Card className="bg-card border-border lg:col-span-2 h-fit">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Información Personal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-6 mb-6">
-              <Avatar className="h-20 w-20 border border-border bg-background">
-                <AvatarImage src={avatarUrl && avatarUrl.trim() !== "" ? avatarUrl : null} alt={userData.nombre} />
-                <AvatarFallback className="bg-primary text-2xl font-bold text-primary-foreground">
-                  {getIniciales(nombreVisible)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="text-xl font-bold text-foreground">{nombreVisible}</h3>
-                <p className="text-muted-foreground">{perfilVisible}</p>
+      {/* Alertas de membresía */}
+      {membershipStatus === "por_vencer" && (
+        <div className="flex items-start gap-3 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-yellow-400">Membresía por vencer</p>
+            <p className="text-xs text-foreground/50 mt-0.5">Vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Acercate al box para renovar.</p>
+          </div>
+        </div>
+      )}
+      {membershipStatus === "vencida" && (
+        <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-red-400">Membresía vencida</p>
+            <p className="text-xs text-foreground/50 mt-0.5">Venció el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Renovate para seguir reservando.</p>
+          </div>
+        </div>
+      )}
+      {userData.estado === "suspendido" && (
+        <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-red-400">Cuenta suspendida</p>
+            <p className="text-xs text-foreground/50 mt-0.5">Regularizá tu membresía para volver a reservar clases.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Columna izquierda — datos personales */}
+        <div className="lg:col-span-2 space-y-4">
+
+          {/* Card avatar + nombre */}
+          <div className="border border-border bg-card p-5">
+            <div className="flex items-center gap-5">
+              <div className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-lime-400/40 bg-lime-400 flex items-center justify-center text-black font-black text-2xl select-none">
+                {avatarUrl && avatarUrl.trim()
+                  ? <img src={avatarUrl} alt={nombreVisible} className="h-full w-full object-cover" />
+                  : getIniciales(nombreVisible)
+                }
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-lime-400">{perfilVisible}</span>
+                <h2 className="text-xl font-black uppercase text-foreground leading-tight truncate mt-0.5">{nombreVisible}</h2>
+                <p className="text-xs text-foreground/40 truncate">{correoVisible}</p>
+                <label className="mt-3 inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors">
+                  <Camera className="h-3.5 w-3.5" />
+                  {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                </label>
               </div>
             </div>
-
-            <div className="mb-6 flex items-center gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50">
-                <Camera className="h-4 w-4" />
-                {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-              </label>
-            </div>
-
             {avatarError && (
-              <p className="mb-4 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {avatarError}
-              </p>
+              <p className="mt-3 text-xs text-red-400 border border-red-500/20 bg-red-500/5 px-3 py-2">{avatarError}</p>
             )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><CreditCard className="h-4 w-4" /> DNI</p>
-                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—')}</p>
+          </div>
+
+          {/* Card datos */}
+          <div className="border border-border bg-card">
+            <div className="border-b border-border px-5 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">
+              {[
+                { icon: CreditCard, label: 'DNI', value: (isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—') },
+                { icon: Mail, label: 'Correo', value: correoVisible },
+                { icon: Phone, label: 'Teléfono', value: (isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—') },
+                { icon: Calendar, label: 'Miembro desde', value: userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—' },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="px-5 py-4">
+                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                    <Icon className="h-3 w-3" />{label}
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Acciones */}
+          <div className="border border-border bg-card px-5 py-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Acciones</p>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => setShowChangePassword(true)}
+                className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
+                Cambiar Contraseña
+              </button>
+              <button onClick={handleGoHome}
+                className="flex items-center gap-2 border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
+                <Home className="h-3.5 w-3.5" />Volver al inicio
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Columna derecha — métricas */}
+        <div className="space-y-4">
+
+          {/* Estado cuenta */}
+          <div className="border border-border bg-card">
+            <div className="border-b border-border px-5 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado de Cuenta</p>
+            </div>
+            <div className="divide-y divide-border">
+              {[
+                { label: 'Usuario', badge: status.label, style: statusBadgeStyle[userData.estado] || statusBadgeStyle.inactivo },
+                { label: 'Membresía', badge: membership?.label || '—', style: membershipBadgeStyle[membershipStatus] || 'text-muted-foreground border border-border' },
+                { label: 'Perfil', badge: userData.perfil || 'Alumno', style: 'text-foreground/60 border border-border' },
+              ].map(({ label, badge, style }) => (
+                <div key={label} className="flex items-center justify-between px-5 py-3">
+                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">{label}</p>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 ${style}`}>{badge}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Créditos / vencimiento */}
+          {abonoData.vencimiento && (
+            <div className="border border-border bg-card">
+              <div className="border-b border-border px-5 py-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresía Activa</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><Mail className="h-4 w-4" /> Correo Electrónico</p>
-                <p className="font-medium text-foreground">{correoVisible}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-4 w-4" /> Teléfono</p>
-                <p className="font-medium text-foreground">{(isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—')}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> Miembro desde</p>
-                <p className="font-medium text-foreground">{userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—'}</p>
+              <div className="divide-y divide-border">
+                <div className="flex items-center justify-between px-5 py-3">
+                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">Vencimiento</p>
+                  <p className="text-xs font-bold text-foreground">{new Date(abonoData.vencimiento).toLocaleDateString()}</p>
+                </div>
+                <div className="flex items-center justify-between px-5 py-4">
+                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">Créditos</p>
+                  <p className="text-3xl font-black text-lime-400 leading-none">{abonoData.creditos || 0}</p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* COLUMNA DERECHA: MÉTRICAS Y ESTADO */}
-        <div className="space-y-6">
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Métricas de Ficha</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Usuario</span>
-                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${status.className}`}>{status.label}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Membresía</span>
-                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${membership?.className || 'bg-gray-500/10 text-gray-500'}`}>
-                  {membership?.label || "—"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Perfil Calculado</span>
-                <span className="font-medium text-foreground capitalize bg-secondary/60 px-2 py-0.5 rounded text-xs">
-                  {userData.perfil || "Alumno"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {(userData.perfil === 'alumno' || userData.membresia) && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  Estado de Cuenta
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Membresía</span>
-                  <Badge 
-                    variant="outline" 
-                    className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${
-                      membershipConfig[userData.membresia]?.className || 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                    }`}
-                  >
-                    {membershipConfig[userData.membresia]?.label || (userData.membresia || "—")}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Vencimiento</span>
-                  <span className="text-sm font-medium text-foreground">{abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Créditos</span>
-                  <span className="text-lg font-bold text-primary">{abonoData.creditos || 0}</span>
-                </div>
-              </CardContent>
-            </Card>
+          {membershipStatus === "vigente" && (
+            <div className="border border-lime-400/20 bg-lime-400/5 px-4 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-lime-400">Al día</p>
+              <p className="text-xs text-foreground/40 mt-1">Próximo vencimiento: {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</p>
+            </div>
           )}
         </div>
       </div>
 
-      {userData.membresia === "vigente" && (
-        <Alert className="bg-primary/10 border-primary/20">
-          <Shield className="h-4 w-4 text-primary" />
-          <AlertTitle className="text-primary">Tu membresía está al día</AlertTitle>
-          <AlertDescription className="text-primary/80">
-            Tu próximo pago vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Recuerda que si no pagas antes del día 10, tu cuenta será suspendida automáticamente.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {userData.estado === "suspendido" && (
-        <Alert className="bg-green-500/10 border-green-500/20">
-          <AlertTriangle className="h-4 w-4 text-green-500" />
-          <AlertTitle className="text-green-500">Cuenta Suspendida</AlertTitle>
-          <AlertDescription className="text-green-500/80">
-            Tu cuenta está suspendida por falta de pago. Regulariza tu membresía para volver a reservar clases y usar tus créditos.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <Card className="bg-card border-border">
-        <CardContent className="p-6">
-          <h3 className="font-semibold text-foreground mb-4">Acciones</h3>
-            <div className="flex flex-wrap gap-4">
-            <Button variant="outline" onClick={() => setShowChangePassword(true)}>Cambiar Contraseña</Button>
-            <Button variant="outline" onClick={handleGoHome} className="gap-2">
-              <Home className="h-4 w-4" />
-              Volver al inicio
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Modal cambiar contraseña */}
       <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -476,85 +493,39 @@ export default function PerfilPage() {
             <div className="space-y-2">
               <Label htmlFor="current-password">Contraseña Actual</Label>
               <div className="relative">
-                <Input
-                  id="current-password"
-                  type={showPasswords.current ? "text" : "password"}
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  placeholder="Ingresa tu contraseña actual"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="current-password" type={showPasswords.current ? "text" : "password"} value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} placeholder="Ingresa tu contraseña actual" className="pr-10" />
+                <button type="button" onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="new-password">Nueva Contraseña</Label>
               <div className="relative">
-                <Input
-                  id="new-password"
-                  type={showPasswords.new ? "text" : "password"}
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  placeholder="Mínimo 6 caracteres"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="new-password" type={showPasswords.new ? "text" : "password"} value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} placeholder="Mínimo 6 caracteres" className="pr-10" />
+                <button type="button" onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
               <div className="relative">
-                <Input
-                  id="confirm-password"
-                  type={showPasswords.confirm ? "text" : "password"}
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                  placeholder="Confirma tu nueva contraseña"
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="confirm-password" type={showPasswords.confirm ? "text" : "password"} value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} placeholder="Confirma tu nueva contraseña" className="pr-10" />
+                <button type="button" onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-
-            {passwordError && (
-              <Alert className="bg-destructive/10 border-destructive/20">
-                <AlertDescription className="text-destructive">{passwordError}</AlertDescription>
-              </Alert>
-            )}
-
-            {passwordSuccess && (
-              <Alert className="bg-green-500/10 border-green-500/20">
-                <AlertDescription className="text-green-500">{passwordSuccess}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="flex gap-3 justify-end">
-              <Button type="button" variant="outline" onClick={() => setShowChangePassword(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={passwordLoading}>
-                {passwordLoading ? "Cambiando..." : "Cambiar Contraseña"}
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowChangePassword(false)}>Cancelar</Button>
+              <Button type="submit" disabled={passwordLoading}>{passwordLoading ? "Cambiando..." : "Cambiar Contraseña"}</Button>
             </div>
           </form>
         </DialogContent>

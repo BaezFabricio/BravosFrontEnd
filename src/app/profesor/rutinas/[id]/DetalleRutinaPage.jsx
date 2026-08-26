@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Loader2, PlayCircle, Dumbbell } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Clock, Users, Loader2, Dumbbell } from 'lucide-react'
 import apiClient from '@/api'
+import VideoPlayer from '@/components/VideoPlayer'
 
 export default function DetalleRutinaPage() {
   const { id } = useParams()
@@ -25,7 +23,7 @@ export default function DetalleRutinaPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -34,16 +32,14 @@ export default function DetalleRutinaPage() {
     return (
       <div className="space-y-4">
         <Link to="/profesor/rutinas">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+          <button type="button" className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
             Volver
-          </Button>
+          </button>
         </Link>
-        <Card className="border-destructive/50">
-          <CardContent className="py-8 text-center">
-            <p className="text-destructive">{error || 'Rutina no encontrada.'}</p>
-          </CardContent>
-        </Card>
+        <div className="border border-red-500/20 bg-card p-8 text-center">
+          <p className="text-red-400">{error || 'Rutina no encontrada.'}</p>
+        </div>
       </div>
     )
   }
@@ -51,75 +47,79 @@ export default function DetalleRutinaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/profesor/rutinas" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4">
+        <Link to="/profesor/rutinas" className="inline-flex items-center text-sm text-foreground/40 hover:text-foreground transition-colors mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Volver a Mis Rutinas
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">{rutina.nombre}</h1>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">{rutina.nombre}</h1>
         {rutina.nombreClase && (
-          <p className="text-muted-foreground mt-1">Clase: <span className="text-foreground font-medium">{rutina.nombreClase}</span></p>
+          <p className="text-sm text-foreground/40 mt-1">Clase: <span className="text-foreground font-semibold">{rutina.nombreClase}</span></p>
         )}
       </div>
 
-      <Card className="border-border">
-        <CardHeader>
-          <div className="flex flex-wrap gap-2">
-            {rutina.categoria && <Badge variant="default">{rutina.categoria}</Badge>}
-            {rutina.nivel && <Badge variant="outline">{rutina.nivel}</Badge>}
-            {rutina.duracion && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {rutina.duracion}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="border border-border bg-card">
+        <div className="border-b border-border px-5 py-3 flex flex-wrap gap-2 items-center">
+          {rutina.categoria && (
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-400 border border-lime-400/20">
+              {rutina.categoria}
+            </span>
+          )}
+          {rutina.nivel && (
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
+              {rutina.nivel}
+            </span>
+          )}
+          {rutina.duracion && (
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border flex items-center gap-1">
+              <Clock className="h-3 w-3" /> {rutina.duracion}
+            </span>
+          )}
+        </div>
+        <div className="p-5 space-y-6">
           {rutina.descripcion && (
             <div className="space-y-1">
-              <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Descripción</h3>
-              <p className="text-foreground whitespace-pre-wrap">{rutina.descripcion}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
+              <p className="text-sm text-foreground/70 whitespace-pre-wrap">{rutina.descripcion}</p>
             </div>
           )}
 
           {rutina.ejercicios?.length > 0 && (
-            <div className="space-y-3 border-t border-border pt-4">
+            <div className="space-y-3 border-t border-border pt-5">
               <div className="flex items-center gap-2">
-                <Dumbbell className="h-4 w-4 text-primary" />
-                <h3 className="font-medium">Ejercicios</h3>
+                <Dumbbell className="h-4 w-4 text-muted-foreground" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ejercicios</p>
               </div>
               <div className="space-y-2">
                 {rutina.ejercicios.map((ej, idx) => (
-                  <div key={ej.idEjercicio} className="flex items-center justify-between rounded-lg bg-secondary/50 p-3">
+                  <div key={ej.idEjercicio} className="border border-border bg-white/2 p-3 space-y-2">
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground font-mono w-5">{idx + 1}.</span>
-                      <span className="text-sm font-medium">{ej.nombre}</span>
+                      <span className="text-sm font-semibold text-foreground">{ej.nombre}</span>
                     </div>
-                    {ej.videoUrl && (
-                      <a href={ej.videoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline shrink-0">
-                        <PlayCircle className="h-4 w-4" /> Ver video
-                      </a>
-                    )}
+                    <VideoPlayer url={ej.videoUrl} label="Ver video" />
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {(rutina.alumnos?.length > 0) && (
-            <div className="space-y-3 border-t border-border pt-4">
+          {rutina.alumnos?.length > 0 && (
+            <div className="space-y-3 border-t border-border pt-5">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                <h3 className="font-medium">Alumnos asignados</h3>
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumnos asignados</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {rutina.alumnos.map((alumno) => (
-                  <Badge key={alumno.idAlumno} variant="secondary">{alumno.nombrecompleto}</Badge>
+                  <span key={alumno.idAlumno} className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
+                    {alumno.nombrecompleto}
+                  </span>
                 ))}
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

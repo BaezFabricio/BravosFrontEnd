@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Clock, User, ChevronLeft, ChevronRight, AlertCircle, Check, Loader2 } from "lucide-react"
+import { Clock, User, ChevronLeft, ChevronRight, Loader2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,11 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from '@/lib/notificar'
 
 import apiClient from "@/api"
 
@@ -30,8 +27,6 @@ export default function ReservarClasePage() {
   const [confirmDialog, setConfirmDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
-  const [successMessage, setSuccessMessage] = useState(null)
-  const [errorMessage, setErrorMessage] = useState(null)
   
   // 🟢 Créditos dinámicos en tiempo real
   const [creditosReales, setCreditosReales] = useState(0)
@@ -76,11 +71,20 @@ export default function ReservarClasePage() {
         const rawClases = responseClases.data?.data || responseClases.data || []
         setClasesOriginales(rawClases)
 
-        // 2. Obtener los créditos reales calculados por el backend
+        // 2. Obtener créditos del abono activo no vencido
         if (storedUser.idUsuario) {
-          const responseUser = await apiClient.get(`/usuarios/${storedUser.idUsuario}`)
-          const datosUsuario = responseUser.data?.data || responseUser.data
-          setCreditosReales(datosUsuario?.creditos || 0)
+          const responseAbonos = await apiClient.get(`/usuarios/${storedUser.idUsuario}/abonos`)
+          const abonos = responseAbonos.data?.data || responseAbonos.data || []
+          const hoy = new Date()
+          hoy.setHours(0, 0, 0, 0)
+          const abonoActivo = abonos.find(a => {
+            if (a.estado !== 'ACTIVO') return false
+            if (!a.vencimiento) return true
+            const venc = new Date(a.vencimiento)
+            venc.setHours(0, 0, 0, 0)
+            return venc >= hoy
+          })
+          setCreditosReales(abonoActivo?.disponibles ?? 0)
         }
       } catch (error) {
         console.error("Error de red al inicializar la interfaz:", error)
@@ -128,13 +132,12 @@ export default function ReservarClasePage() {
     
     // 🛡️ Guardia reactiva en el cliente por seguridad
     if (creditosReales <= 0) {
-      setErrorMessage("No tenés créditos disponibles para completar la acción.")
+      toast.error("Sin créditos disponibles", { description: "No tenés créditos disponibles para completar la acción." })
       setConfirmDialog(false)
       return
     }
-    
+
     setIsLoading(true)
-    setErrorMessage(null)
 
     try {
       const fechaFormateada = selectedDate.toISOString().split('T')[0] 
@@ -145,7 +148,7 @@ export default function ReservarClasePage() {
       })
 
       if (response.data?.success) {
-        setSuccessMessage(`¡Reserva confirmada para ${selectedClass.nombre} a las ${selectedClass.hora}!`)
+        toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}` })
         
         // Modificación en vivo del layout de cupos
         setClasesFiltradas(clasesFiltradas.map((c) =>
@@ -161,12 +164,11 @@ export default function ReservarClasePage() {
       }
     } catch (error) {
       console.error("Error devuelto por el servidor:", error)
-      setErrorMessage(error.response?.data?.message || "Ocurrió un error inesperado al procesar la reserva.")
+      toast.error("Error de Reserva", { description: error.response?.data?.message || "Ocurrió un error inesperado al procesar la reserva." })
     } finally {
       setIsLoading(false)
       setConfirmDialog(false)
       setSelectedClass(null)
-      setTimeout(() => { setSuccessMessage(null); setErrorMessage(null); }, 6000)
     }
   }
 
@@ -196,29 +198,14 @@ export default function ReservarClasePage() {
         </CardContent>
       </Card>
 
-      {successMessage && (
-        <Alert className="bg-green-500/10 border-green-500/20">
-          <Check className="h-4 w-4 text-green-500" />
-          <AlertTitle className="text-green-500">Reserva Exitosa</AlertTitle>
-          <AlertDescription className="text-green-500/80">{successMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {errorMessage && (
-        <Alert className="bg-destructive/10 border-destructive/20">
-          <AlertCircle className="h-4 w-4 text-destructive" />
-          <AlertTitle className="text-destructive">Error de Reserva</AlertTitle>
-          <AlertDescription className="text-destructive/80">{errorMessage}</AlertDescription>
-        </Alert>
-      )}
 
       {/* CALENDARIO SEMANAL */}
       <Card className="bg-card border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold capitalize">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 gap-2">
+          <CardTitle className="text-base sm:text-lg font-semibold capitalize leading-tight">
             {formatDate(selectedDate)}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
               size="icon"
@@ -244,7 +231,7 @@ export default function ReservarClasePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-2 mb-6">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-6">
             {weekDates.map((date, index) => {
               const isSelected = date.toDateString() === selectedDate.toDateString()
               const isToday = date.toDateString() === new Date().toDateString()
@@ -252,7 +239,7 @@ export default function ReservarClasePage() {
                 <button
                   key={index}
                   onClick={() => setSelectedDate(date)}
-                  className={`p-3 rounded-lg text-center transition-colors ${
+                  className={`p-1.5 sm:p-3 rounded-lg text-center transition-colors ${
                     isSelected
                       ? "bg-primary text-primary-foreground"
                       : isToday
@@ -260,8 +247,8 @@ export default function ReservarClasePage() {
                       : "bg-secondary hover:bg-secondary/80 text-foreground"
                   }`}
                 >
-                  <p className="text-xs font-medium">{diasSemana[index]}</p>
-                  <p className="text-lg font-bold">{date.getDate()}</p>
+                  <p className="text-[9px] sm:text-xs font-medium">{diasSemana[index]}</p>
+                  <p className="text-sm sm:text-lg font-bold">{date.getDate()}</p>
                 </button>
               )
             })}

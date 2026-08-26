@@ -3,8 +3,10 @@ import { Link } from "react-router-dom"
 import { Mail, Loader2, ArrowLeft, CheckCircle2, KeyRound, Eye, EyeOff, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { enviarCodigoRecuperacion, verificarCodigoRecuperacion, resetearContrasena } from "@/api"
+
+const STEPS = ["email", "code", "newPassword", "success"]
+const STEP_LABELS = ["Correo", "Código", "Contraseña"]
 
 export default function RecuperarContrasenaPage() {
   const [step, setStep] = useState("email")
@@ -17,48 +19,35 @@ export default function RecuperarContrasenaPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState({})
 
+  const stepIndex = STEPS.indexOf(step)
+
   const handleEmailSubmit = async (e) => {
     e.preventDefault()
-    if (!email) {
-      setErrors({ email: "El correo electrónico es requerido" })
-      return
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setErrors({ email: "Ingresa un correo electrónico válido" })
-      return
-    }
-    
+    if (!email) { setErrors({ email: "El correo es requerido" }); return }
+    if (!/\S+@\S+\.\S+/.test(email)) { setErrors({ email: "Correo inválido" }); return }
     setErrors({})
     setIsLoading(true)
-    
     try {
       await enviarCodigoRecuperacion(email)
-      setIsLoading(false)
       setStep("code")
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || "Error al enviar código"
-      setErrors({ email: msg })
+      setErrors({ email: err?.response?.data?.message || "Error al enviar código" })
+    } finally {
       setIsLoading(false)
     }
   }
 
   const handleCodeSubmit = async (e) => {
     e.preventDefault()
-    if (!code || code.length !== 6) {
-      setErrors({ code: "Ingresa el código de 6 dígitos" })
-      return
-    }
-    
+    if (!code || code.length !== 6) { setErrors({ code: "Ingresá el código de 6 dígitos" }); return }
     setErrors({})
     setIsLoading(true)
-    
     try {
       await verificarCodigoRecuperacion(email, code)
-      setIsLoading(false)
       setStep("newPassword")
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || "Código inválido"
-      setErrors({ code: msg })
+      setErrors({ code: err?.response?.data?.message || "Código inválido" })
+    } finally {
       setIsLoading(false)
     }
   }
@@ -66,258 +55,227 @@ export default function RecuperarContrasenaPage() {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault()
     const newErrors = {}
-    
-    if (!password) {
-      newErrors.password = "La contraseña es requerida"
-    } else if (password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres"
-    }
-    
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Confirma tu contraseña"
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden"
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-    
+    if (!password) newErrors.password = "La contraseña es requerida"
+    else if (password.length < 8) newErrors.password = "Mínimo 8 caracteres"
+    if (!confirmPassword) newErrors.confirmPassword = "Confirmá tu contraseña"
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Las contraseñas no coinciden"
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setErrors({})
     setIsLoading(true)
-    
     try {
-        await resetearContrasena(email, code, password)
-        setIsLoading(false)
-        setStep("success")
+      await resetearContrasena(email, code, password)
+      setStep("success")
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || "Error de conexión. Intenta de nuevo."
-      setErrors({ password: msg })
+      setErrors({ password: err?.response?.data?.message || "Error al cambiar contraseña" })
+    } finally {
       setIsLoading(false)
     }
   }
 
+  const inputClass = (err) =>
+    `h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 transition-colors ${err ? "border-destructive" : ""}`
+
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4 relative"
-      style={{
-        backgroundImage: "url('/logo.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-background/80 dark:bg-black/80" />
-      
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-md">
-        <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0c0d09] relative">
+      {/* Watermark logo */}
+      <div
+        className="absolute inset-0 opacity-[0.05] pointer-events-none"
+        style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: "50%", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}
+      />
+      {/* Línea decorativa izquierda */}
+      <div className="absolute top-0 left-8 w-px h-full bg-gradient-to-b from-transparent via-lime-400/30 to-transparent hidden lg:block" />
+
+      <div className="relative z-10 w-full max-w-sm anim-from-right">
+
+        {/* Logo */}
+        <div className="flex items-center gap-3 mb-8 anim-fade-up">
+          <img src="/logo.jpg" alt="Bravos" className="h-9 w-9 rounded-xl" />
+          <div>
+            <p className="text-xs font-bold tracking-[0.3em] text-lime-400 uppercase leading-none">Bravos</p>
+            <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
+          </div>
+        </div>
+
+        {/* Stepper — solo cuando no es success */}
+        {step !== "success" && (
+          <div className="flex items-center gap-2 mb-8 anim-fade-up anim-delay-100">
+            {STEP_LABELS.map((label, i) => {
+              const active = i === stepIndex
+              const done = i < stepIndex
+              return (
+                <div key={label} className="flex items-center gap-2 flex-1">
+                  <div className={`flex items-center gap-1.5 ${i > 0 ? '' : ''}`}>
+                    <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-black transition-all
+                      ${done ? 'bg-lime-400 text-black' : active ? 'bg-lime-400/20 border border-lime-400 text-lime-400' : 'bg-white/5 border border-white/10 text-white/20'}`}>
+                      {done ? '✓' : i + 1}
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider hidden sm:block transition-colors
+                      ${done ? 'text-lime-400' : active ? 'text-white/70' : 'text-white/20'}`}>
+                      {label}
+                    </span>
+                  </div>
+                  {i < STEP_LABELS.length - 1 && (
+                    <div className={`flex-1 h-px transition-colors ${done ? 'bg-lime-400/60' : 'bg-white/10'}`} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Card */}
+        <div className="rounded-2xl border border-white/10 bg-background p-7 shadow-2xl">
+
+          {/* STEP: email */}
           {step === "email" && (
-            <>
-              <div className="text-center mb-6">
-                <h1 className="text-3xl font-bold text-primary mb-2">BRAVOS GYM</h1>
-                <h2 className="text-xl font-semibold text-foreground">
-                  Recuperar Contraseña
-                </h2>
-                <p className="mt-2 text-muted-foreground text-sm">
-                  Ingresa tu correo electrónico para recibir un código de verificación
-                </p>
+            <div key="email" className="anim-fade-up space-y-5">
+              <div>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">Recuperar acceso</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Te enviamos un código a tu correo</p>
               </div>
 
-              <form onSubmit={handleEmailSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-foreground">Correo Electrónico</Label>
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Correo Electrónico
+                  </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="tu@email.com"
-                      className={`pl-10 h-12 bg-secondary border-border focus:border-primary ${errors.email ? "border-destructive" : ""}`}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="email" type="email" placeholder="tu@email.com" autoComplete="email"
+                      className={`pl-10 ${inputClass(errors.email)}`}
+                      value={email} onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
-                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    "Enviar Código"
-                  )}
+                <Button type="submit" disabled={isLoading}
+                  className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm active:scale-[0.98] transition-all">
+                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</> : "Enviar código"}
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <Link to="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Volver al inicio de sesión
-                </Link>
-              </div>
-            </>
+              <Link to="/login" className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Volver al inicio de sesión
+              </Link>
+            </div>
           )}
 
+          {/* STEP: code */}
           {step === "code" && (
-            <>
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                  <KeyRound className="w-8 h-8 text-primary" />
+            <div key="code" className="anim-fade-up space-y-5">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <KeyRound className="h-5 w-5 text-lime-400" />
                 </div>
-                <h2 className="text-xl font-semibold text-foreground">
-                  Ingresa el Código
-                </h2>
-                <p className="mt-2 text-muted-foreground text-sm">
-                  Enviamos un código de 6 dígitos a{" "}
-                  <span className="text-primary">{email}</span>
-                </p>
+                <div>
+                  <h2 className="text-2xl font-black text-foreground tracking-tight">Ingresá el código</h2>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    Lo enviamos a <span className="text-lime-400 font-medium">{email}</span>
+                  </p>
+                </div>
               </div>
 
-              <form onSubmit={handleCodeSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="code" className="text-foreground">Código de Verificación</Label>
+              <form onSubmit={handleCodeSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="code" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Código de 6 dígitos
+                  </label>
                   <Input
-                    id="code"
-                    type="text"
-                    placeholder="000000"
-                    maxLength={6}
-                    className={`h-12 bg-secondary border-border focus:border-primary text-center text-2xl tracking-widest font-mono ${errors.code ? "border-destructive" : ""}`}
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    id="code" type="text" placeholder="000000" maxLength={6}
+                    className={`h-14 text-center text-3xl tracking-[0.4em] font-mono bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.code ? "border-destructive" : ""}`}
+                    value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   />
-                  {errors.code && <p className="text-sm text-destructive text-center">{errors.code}</p>}
+                  {errors.code && <p className="text-xs text-destructive text-center">{errors.code}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Verificando...
-                    </>
-                  ) : (
-                    "Verificar Código"
-                  )}
+                <Button type="submit" disabled={isLoading}
+                  className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm active:scale-[0.98] transition-all">
+                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verificando...</> : "Verificar código"}
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => setStep("email")}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  ¿No recibiste el código? Reenviar
-                </button>
-              </div>
-            </>
+              <button onClick={() => setStep("email")} className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Cambiar correo
+              </button>
+            </div>
           )}
 
+          {/* STEP: newPassword */}
           {step === "newPassword" && (
-            <>
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-semibold text-foreground">
-                  Nueva Contraseña
-                </h2>
-                <p className="mt-2 text-muted-foreground text-sm">
-                  Ingresa tu nueva contraseña
-                </p>
+            <div key="newPassword" className="anim-fade-up space-y-5">
+              <div>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">Nueva contraseña</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Elegí una contraseña segura de al menos 8 caracteres</p>
               </div>
 
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-foreground">Nueva Contraseña</Label>
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Nueva Contraseña
+                  </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 8 caracteres"
-                      className={`pl-10 pr-10 h-12 bg-secondary border-border focus:border-primary ${errors.password ? "border-destructive" : ""}`}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      id="password" type={showPassword ? "text" : "password"} placeholder="Mínimo 8 caracteres"
+                      autoComplete="new-password"
+                      className={`pl-10 pr-10 ${inputClass(errors.password)}`}
+                      value={password} onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-foreground">Confirmar Contraseña</Label>
+                <div className="space-y-1.5">
+                  <label htmlFor="confirmPassword" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Confirmar Contraseña
+                  </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Repite tu contraseña"
-                      className={`pl-10 pr-10 h-12 bg-secondary border-border focus:border-primary ${errors.confirmPassword ? "border-destructive" : ""}`}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Repetí tu contraseña"
+                      autoComplete="new-password"
+                      className={`pl-10 pr-10 ${inputClass(errors.confirmPassword)}`}
+                      value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    "Cambiar Contraseña"
-                  )}
+                <Button type="submit" disabled={isLoading}
+                  className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm active:scale-[0.98] transition-all">
+                  {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : "Cambiar contraseña"}
                 </Button>
               </form>
-            </>
+            </div>
           )}
 
+          {/* STEP: success */}
           {step === "success" && (
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-primary" />
+            <div key="success" className="anim-fade-up text-center space-y-5 py-2">
+              <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
+                <CheckCircle2 className="h-10 w-10 text-lime-400" />
               </div>
-              
-              <h2 className="text-xl font-semibold text-foreground">
-                Contraseña Actualizada
-              </h2>
-              
-              <p className="text-muted-foreground text-sm">
-                Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.
-              </p>
-              
-              <Link to="/login">
-                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
-                  Ir a Iniciar Sesión
+
+              <div>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">¡Listo!</h2>
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                  Tu contraseña fue cambiada exitosamente. Ya podés iniciar sesión.
+                </p>
+              </div>
+
+              <Link to="/login" className="block">
+                <Button className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm">
+                  Ir al inicio de sesión
                 </Button>
               </Link>
             </div>

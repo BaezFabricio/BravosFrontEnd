@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react"
 import { Plus, Edit2, Trash2, Loader2, CreditCard } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -14,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import apiClient from "@/api"
+import { toast } from '@/lib/notificar'
 
 const FORM_VACIO = {
   nombre: "",
@@ -32,7 +30,6 @@ export default function PlanesPage() {
   const [planEditando, setPlanEditando] = useState(null)
   const [formData, setFormData] = useState(FORM_VACIO)
   const [guardando, setGuardando] = useState(false)
-  const [formError, setFormError] = useState("")
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, plan: null })
   const [eliminando, setEliminando] = useState(false)
@@ -61,7 +58,6 @@ export default function PlanesPage() {
   const abrirNuevo = () => {
     setPlanEditando(null)
     setFormData(FORM_VACIO)
-    setFormError("")
     setDialogOpen(true)
   }
 
@@ -74,18 +70,16 @@ export default function PlanesPage() {
       cantidadCreditos: plan.cantidadCreditos,
       tipo: plan.tipo || "ClaseCross",
     })
-    setFormError("")
     setDialogOpen(true)
   }
 
   const guardarPlan = async () => {
     if (!formData.nombre || formData.precio === "" || formData.cantidadCreditos === "") {
-      setFormError("Nombre, precio y cantidad de créditos son obligatorios.")
+      toast.error("Nombre, precio y cantidad de créditos son obligatorios.")
       return
     }
 
     setGuardando(true)
-    setFormError("")
 
     try {
       const payload = {
@@ -102,11 +96,12 @@ export default function PlanesPage() {
         await apiClient.post("/planes", payload)
       }
 
+      toast.success(planEditando ? "Plan actualizado exitosamente" : "Plan creado exitosamente")
       setDialogOpen(false)
       await cargarPlanes()
     } catch (err) {
       console.error("Error al guardar plan:", err)
-      setFormError(err.response?.data?.message || "No se pudo guardar el plan.")
+      toast.error("No se pudo guardar el plan", { description: err.response?.data?.message })
     } finally {
       setGuardando(false)
     }
@@ -117,11 +112,12 @@ export default function PlanesPage() {
     setEliminando(true)
     try {
       await apiClient.delete(`/planes/${deleteDialog.plan.idPlan}`)
+      toast.success("Plan eliminado exitosamente")
       setDeleteDialog({ open: false, plan: null })
       await cargarPlanes()
     } catch (err) {
       console.error("Error al eliminar plan:", err)
-      setError(err.response?.data?.message || "No se pudo eliminar el plan.")
+      toast.error("No se pudo eliminar el plan", { description: err.response?.data?.message })
       setDeleteDialog({ open: false, plan: null })
     } finally {
       setEliminando(false)
@@ -133,85 +129,89 @@ export default function PlanesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Planes y Membresías</h1>
-          <p className="text-muted-foreground">Gestioná los planes de abono disponibles para los alumnos</p>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Planes y Membresías</h1>
+          <p className="text-sm text-foreground/40 mt-1">Gestioná los planes de abono disponibles para los alumnos</p>
         </div>
-        <Button onClick={abrirNuevo} className="bg-primary hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" />
+        <button
+          onClick={abrirNuevo}
+          className="sm:self-start bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
           Nuevo Plan
-        </Button>
+        </button>
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+        <div className="p-3 border border-red-500/20 bg-red-500/5 text-red-400 text-sm">
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {planes.map((plan) => (
-            <Card key={plan.idPlan} className="border-border">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{plan.nombre}</CardTitle>
-                    <Badge variant="outline" className="mt-2 text-xs">
-                      {plan.tipo === "PlanificacionAtleta" ? "Planificación Atleta" : "Clase CrossFit"}
-                    </Badge>
-                  </div>
+            <div key={plan.idPlan} className="border border-border bg-card">
+              <div className="border-b border-border px-5 py-3 flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</p>
+                  <p className="font-black text-foreground text-sm mt-0.5">{plan.nombre}</p>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border shrink-0">
+                  {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
+                </span>
+              </div>
+              <div className="p-5 space-y-3">
                 {plan.descripcion && (
-                  <p className="text-sm text-muted-foreground">{plan.descripcion}</p>
+                  <p className="text-sm text-foreground/40">{plan.descripcion}</p>
                 )}
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Precio</span>
-                  <span className="font-bold text-foreground">{formatearPrecio(plan.precio)}</span>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Precio</p>
+                  <span className="font-black text-foreground">{formatearPrecio(plan.precio)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Créditos</span>
-                  <span className="font-medium text-foreground">{plan.cantidadCreditos}</span>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Créditos</p>
+                  <span className="font-semibold text-foreground">{plan.cantidadCreditos}</span>
                 </div>
 
                 <div className="flex gap-2 pt-2 border-t border-border">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => abrirEditar(plan)}>
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive border-destructive/50 hover:bg-destructive/10"
-                    onClick={() => setDeleteDialog({ open: true, plan })}
+                  <button
+                    onClick={() => abrirEditar(plan)}
+                    className="flex-1 border border-border px-3 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <Edit2 className="h-3.5 w-3.5" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => setDeleteDialog({ open: true, plan })}
+                    className="border border-red-500/20 px-3 py-2 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {!loading && !error && planes.length === 0 && (
-        <Card className="border-border">
-          <CardContent className="py-12 text-center">
-            <CreditCard className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">Todavía no hay planes cargados.</p>
-            <Button onClick={abrirNuevo} className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Crear Primer Plan
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="border border-border bg-card p-12 text-center">
+          <CreditCard className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+          <p className="text-foreground/40 mb-4">Todavía no hay planes cargados.</p>
+          <button
+            onClick={abrirNuevo}
+            className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors inline-flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Crear Primer Plan
+          </button>
+        </div>
       )}
 
       {/* Dialog crear/editar */}
@@ -222,12 +222,6 @@ export default function PlanesPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {formError && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-                {formError}
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="nombre">Nombre *</Label>
               <Input
@@ -286,12 +280,20 @@ export default function PlanesPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <button
+              type="button"
+              onClick={() => setDialogOpen(false)}
+              className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
               Cancelar
-            </Button>
-            <Button onClick={guardarPlan} disabled={guardando} className="bg-primary hover:bg-primary/90">
+            </button>
+            <button
+              onClick={guardarPlan}
+              disabled={guardando}
+              className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               {guardando ? "Guardando..." : "Guardar"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -306,12 +308,20 @@ export default function PlanesPage() {
             ¿Seguro que querés eliminar el plan <strong>{deleteDialog.plan?.nombre}</strong>? Esta acción no se puede deshacer.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, plan: null })}>
+            <button
+              type="button"
+              onClick={() => setDeleteDialog({ open: false, plan: null })}
+              className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
               Cancelar
-            </Button>
-            <Button variant="destructive" onClick={confirmarEliminar} disabled={eliminando}>
+            </button>
+            <button
+              onClick={confirmarEliminar}
+              disabled={eliminando}
+              className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               {eliminando ? "Eliminando..." : "Eliminar"}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

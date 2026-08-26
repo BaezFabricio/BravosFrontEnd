@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff } from "lucide-react"
+import { toast } from '@/lib/notificar'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -18,8 +17,6 @@ export default function NuevoUsuarioPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("Usuario creado exitosamente. Redirigiendo...")
   const [perfiles, setPerfiles] = useState([])
   const [loadingPerfiles, setLoadingPerfiles] = useState(true)
   const [formData, setFormData] = useState({
@@ -106,9 +103,7 @@ export default function NuevoUsuarioPage() {
               ? "DNI"
               : "teléfono"
 
-        setErrors({
-          general: `Ya existe un usuario con ese ${campoDuplicado}. Usá otro dato o editá el usuario existente.`,
-        })
+        toast.error(`Ya existe un usuario con ese ${campoDuplicado}`, { description: "Usá otro dato o editá el usuario existente." })
         return
       }
 
@@ -138,22 +133,17 @@ export default function NuevoUsuarioPage() {
             idUsuario: idUsuarioCreado,
             nuevoCorreo: formData.email,
           })
-          setSuccessMessage("Usuario creado y correo de verificación enviado. Redirigiendo...")
+          toast.success("Usuario creado y correo de verificación enviado")
         } catch (verificationError) {
           console.error("El usuario se creó, pero falló el envío de verificación:", verificationError)
-          setSuccessMessage("Usuario creado, pero no se pudo enviar el correo de verificación. Redirigiendo...")
+          toast.success("Usuario creado", { description: "No se pudo enviar el correo de verificación." })
         }
       } else {
-        setSuccessMessage("Usuario creado. No se pudo determinar el ID para enviar verificación. Redirigiendo...")
+        toast.success("Usuario creado")
       }
 
-      setIsSuccess(true)
       setErrors({})
-
-      // Redirigir después de 1.5 segundos
-      setTimeout(() => {
-        navigate("/admin/usuarios")
-      }, 1500)
+      navigate("/admin/usuarios")
     } catch (err) {
       const statusCode = err.response?.status
       const backendMessage = err.response?.data?.message
@@ -183,7 +173,7 @@ export default function NuevoUsuarioPage() {
         console.error("Error al crear usuario:", err)
       }
 
-      setErrors({ general: errorMessage })
+      toast.error("Error al crear el usuario", { description: errorMessage })
     } finally {
       setIsLoading(false)
     }
@@ -191,39 +181,25 @@ export default function NuevoUsuarioPage() {
 
   return (
     <div className="space-y-6">
-      {isSuccess && (
-        <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500">
-          <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          <p>{successMessage}</p>
-        </div>
-      )}
-
-      {errors.general && (
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <p>{errors.general}</p>
-        </div>
-      )}
-
       <div className="flex items-center gap-4">
         <Link to="/admin/usuarios">
-          <Button variant="ghost" size="icon">
+          <button type="button" className="border border-border p-2 text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
             <ArrowLeft className="h-5 w-5" />
-          </Button>
+          </button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Nuevo Usuario</h1>
-          <p className="text-muted-foreground">Crea un nuevo usuario en el sistema</p>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Nuevo Usuario</h1>
+          <p className="text-sm text-foreground/40 mt-1">Crea un nuevo usuario en el sistema</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Información Personal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="border border-border bg-card">
+            <div className="border-b border-border px-5 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+            </div>
+            <div className="p-5 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="nombre">Nombre Completo</Label>
                 <div className="relative">
@@ -236,7 +212,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   />
                 </div>
-                {errors.nombre && <p className="text-sm text-destructive">{errors.nombre}</p>}
+                {errors.nombre && <p className="text-sm text-red-400">{errors.nombre}</p>}
               </div>
 
               <div className="space-y-2">
@@ -251,7 +227,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
                   />
                 </div>
-                {errors.dni && <p className="text-sm text-destructive">{errors.dni}</p>}
+                {errors.dni && <p className="text-sm text-red-400">{errors.dni}</p>}
               </div>
 
               <div className="space-y-2">
@@ -267,7 +243,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-400">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -282,16 +258,16 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   />
                 </div>
-                {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
+                {errors.telefono && <p className="text-sm text-red-400">{errors.telefono}</p>}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Configuración de Cuenta</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="border border-border bg-card">
+            <div className="border-b border-border px-5 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Configuración de Cuenta</p>
+            </div>
+            <div className="p-5 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="perfil">Perfil</Label>
                 <Select
@@ -310,7 +286,7 @@ export default function NuevoUsuarioPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.perfil && <p className="text-sm text-destructive">{errors.perfil}</p>}
+                {errors.perfil && <p className="text-sm text-red-400">{errors.perfil}</p>}
               </div>
 
               <div className="space-y-2">
@@ -333,29 +309,35 @@ export default function NuevoUsuarioPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                {errors.password && <p className="text-sm text-red-400">{errors.password}</p>}
                 <p className="text-xs text-muted-foreground">
                   El usuario deberá cambiar esta contraseña en su primer inicio de sesión.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end gap-4 mt-6">
           <Link to="/admin/usuarios">
-            <Button variant="outline" type="button">Cancelar</Button>
+            <button type="button" className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
+              Cancelar
+            </button>
           </Link>
-          <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Guardando...
               </>
             ) : (
               "Crear Usuario"
             )}
-          </Button>
+          </button>
         </div>
       </form>
     </div>

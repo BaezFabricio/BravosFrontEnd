@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft } from 'lucide-react'
-
+import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { HelpTooltip } from '@/components/ui/help-tooltip'
 import { Input } from '@/components/ui/input'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
+import { toast } from '@/lib/notificar'
+
+const STEPS = [
+  { icon: Dumbbell, text: "Accedé a todas las clases del Box" },
+  { icon: Star,    text: "Gestioná tus créditos y pagos" },
+  { icon: Trophy,  text: "Seguí tu progreso semana a semana" },
+]
 
 function RegistroPage() {
   const navigate = useNavigate()
@@ -13,176 +18,124 @@ function RegistroPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  
-  // 🎯 Estados nuevos para controlar la corrección del mail
+
   const [usuarioId, setUsuarioId] = useState(null)
   const [isEditingEmail, setIsEditingEmail] = useState(false)
   const [newEmailInput, setNewEmailInput] = useState('')
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
 
   const [formData, setFormData] = useState({
-    nombre: '',
-    dni: '',
-    email: '',
-    telefono: '',
-    password: '',
-    confirmPassword: '',
+    nombre: '', dni: '', email: '', telefono: '', password: '', confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
 
+  const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }))
+
   const validateForm = () => {
-    const newErrors = {}
-
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre completo es requerido'
-    }
-
-    if (!formData.dni.trim()) {
-      newErrors.dni = 'El DNI es requerido'
-    } else if (!/^\d{7,8}$/.test(formData.dni)) {
-      newErrors.dni = 'Ingresa un DNI válido (7-8 dígitos)'
-    }
-
-    if (!formData.email) {
-      newErrors.email = 'El correo electrónico es requerido'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Ingresa un correo electrónico válido'
-    }
-
-    if (!formData.telefono.trim()) {
-      newErrors.telefono = 'El teléfono es requerido'
-    } else if (!/^\d{10,15}$/.test(formData.telefono.replace(/\D/g, ''))) {
-      newErrors.telefono = 'Ingresa un número de teléfono válido'
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'La contraseña es requerida'
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'La contraseña debe tener al menos 8 caracteres'
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Confirma tu contraseña'
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden'
-    }
-
-    return newErrors
+    const e = {}
+    if (!formData.nombre.trim()) e.nombre = 'El nombre es requerido'
+    if (!formData.dni.trim()) e.dni = 'El DNI es requerido'
+    else if (!/^\d{7,8}$/.test(formData.dni)) e.dni = 'DNI inválido (7-8 dígitos)'
+    if (!formData.email) e.email = 'El correo es requerido'
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Correo inválido'
+    if (!formData.telefono.trim()) e.telefono = 'El teléfono es requerido'
+    else if (!/^\d{10,15}$/.test(formData.telefono.replace(/\D/g, ''))) e.telefono = 'Teléfono inválido'
+    if (!formData.password) e.password = 'La contraseña es requerida'
+    else if (formData.password.length < 8) e.password = 'Mínimo 8 caracteres'
+    if (!formData.confirmPassword) e.confirmPassword = 'Confirmá tu contraseña'
+    else if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Las contraseñas no coinciden'
+    return e
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     const newErrors = validateForm()
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
     setErrors({})
     setIsLoading(true)
-
     try {
       const response = await registroUsuario({
-        nombrecompleto: formData.nombre, 
+        nombrecompleto: formData.nombre,
         dni: formData.dni,
-        correo: formData.email,          
+        correo: formData.email,
         telefono: formData.telefono,
-        username: formData.email,        
+        username: formData.email,
         password: formData.password,
       })
-
-      // Guardamos el ID que nos devuelve el backend por si se equivocó de mail
-      const idAsignado = response?.data?.usuario?.idUsuario || response?.usuario?.idUsuario || response?.idUsuario;
-      setUsuarioId(idAsignado);
-
+      const idAsignado = response?.data?.usuario?.idUsuario || response?.usuario?.idUsuario || response?.idUsuario
+      setUsuarioId(idAsignado)
       setIsSuccess(true)
     } catch (err) {
       console.error('Error al registrar:', err)
-      const errorMessage = err.response?.data?.message || 'Error de conexión. Intenta de nuevo.'
-      setErrors({ general: errorMessage })
+      toast.error("Error al registrar", { description: err.response?.data?.message || 'Error de conexión. Intenta de nuevo.' })
     } finally {
       setIsLoading(false)
     }
   }
 
-  // 🔄 Función para corregir el email en caliente
   const handleUpdateEmail = async () => {
     if (!newEmailInput || !/\S+@\S+\.\S+/.test(newEmailInput)) {
-      alert('Por favor, ingresa un correo válido.')
+      toast.error("Ingresá un correo válido.")
       return
     }
-
     setIsUpdatingEmail(true)
     try {
-      await reenviarVerificacionCuenta({
-        idUsuario: usuarioId,
-        nuevoCorreo: newEmailInput,
-      })
-
-      setFormData({ ...formData, email: newEmailInput })
+      await reenviarVerificacionCuenta({ idUsuario: usuarioId, nuevoCorreo: newEmailInput })
+      setFormData(prev => ({ ...prev, email: newEmailInput }))
       setIsEditingEmail(false)
-      alert('¡Correo modificado y nuevo código enviado con éxito!')
+      toast.success("Correo modificado y nuevo código enviado")
     } catch (err) {
-      console.error(err)
-      alert(err.response?.data?.message || 'No se pudo actualizar el correo.')
+      toast.error(err.response?.data?.message || "No se pudo actualizar el correo.")
     } finally {
       setIsUpdatingEmail(false)
     }
   }
 
-  // PANTALLA DONDE INDICA QUE SE ENVIÓ EL GMAIL (Muestra el botón de editar)
+  // ── Pantalla de éxito ──
   if (isSuccess) {
     return (
-      <div
-        className="relative flex min-h-screen items-center justify-center p-4"
-        style={{
-          backgroundImage: "url('/logo-box-bravos-final.png')",
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="absolute inset-0 bg-background/80 dark:bg-black/80" />
-
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#0c0d09]">
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '50%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
+        />
         <div className="relative z-10 w-full max-w-md">
-          <div className="space-y-6 rounded-2xl border border-border bg-card/95 p-8 text-center shadow-2xl backdrop-blur-sm">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/20">
-              <CheckCircle2 className="h-10 w-10 text-primary" />
+          <div className="rounded-2xl border border-lime-400/20 bg-background p-8 shadow-2xl text-center space-y-5">
+            <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
+              <CheckCircle2 className="h-10 w-10 text-lime-400" />
             </div>
 
-            <h2 className="text-2xl font-bold text-foreground">Registro Exitoso</h2>
+            <div>
+              <h2 className="text-2xl font-black text-foreground tracking-tight">¡Cuenta creada!</h2>
+              <p className="text-muted-foreground text-sm mt-1">Verificá tu correo para activarla</p>
+            </div>
 
-            <div className="space-y-2">
-              <p className="text-muted-foreground">
-                Hemos enviado un correo de verificación a:
-              </p>
-              
-              {/* 🛠️ ACÁ ESTÁ EL SALVAVIDAS QUE MODIFICA EL MAIL */}
+            <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Enviamos el link a</p>
               {!isEditingEmail ? (
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <span className="font-medium text-primary text-lg">{formData.email}</span>
-                  <button 
-                    onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email); }}
+                <div className="space-y-1">
+                  <p className="font-bold text-lime-400 text-base">{formData.email}</p>
+                  <button
+                    onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}
                     className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
                   >
-                    ¿Te equivocaste de correo? Modificar email
+                    ¿Te equivocaste? Cambiar correo
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2 max-w-xs mx-auto mt-2">
-                  <Input 
-                    type="email" 
-                    value={newEmailInput} 
+                <div className="flex flex-col gap-2 mt-1">
+                  <Input
+                    type="email"
+                    value={newEmailInput}
                     onChange={(e) => setNewEmailInput(e.target.value)}
-                    className="h-9 text-center bg-secondary"
-                    placeholder="Escribe tu correo correcto"
+                    className="h-9 text-center bg-background text-sm"
+                    placeholder="tu@correo.com"
                   />
                   <div className="flex gap-2 justify-center">
                     <Button size="sm" variant="outline" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}>
                       Cancelar
                     </Button>
-                    <Button size="sm" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>
+                    <Button size="sm" className="bg-lime-400 text-black hover:bg-lime-300 font-bold" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>
                       {isUpdatingEmail ? 'Guardando...' : 'Confirmar y Reenviar'}
                     </Button>
                   </div>
@@ -190,15 +143,13 @@ function RegistroPage() {
               )}
             </div>
 
-            <div className="rounded-lg border border-border bg-secondary/50 p-4">
-              <p className="text-sm text-muted-foreground">
-                Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta.
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
+            </p>
 
-            <Link to="/login">
-              <Button className="h-12 w-full bg-primary font-semibold text-primary-foreground hover:bg-primary/90">
-                Volver al Inicio de Sesión
+            <Link to="/login" className="block">
+              <Button className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm">
+                Ir al inicio de sesión
               </Button>
             </Link>
           </div>
@@ -207,203 +158,227 @@ function RegistroPage() {
     )
   }
 
+  // ── Formulario ──
   return (
-    <div className="bg-background relative flex min-h-screen items-center justify-center p-4">
-      <div
-        className="absolute inset-0 flex items-center justify-center opacity-10"
-        style={{
-          backgroundImage: "url('/logo-box-bravos-final.png')",
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-[#0c0d09]">
 
-      <div className="relative z-10 w-full max-w-md">
-        <div className="max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card/95 p-8 shadow-2xl backdrop-blur-sm">
-          <button
-            onClick={() => navigate(-1)}
-            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver atrás
-          </button>
-          <div className="mb-6 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-primary">BRAVOS GYM</h1>
-            <h2 className="text-xl font-semibold text-foreground">Crear Cuenta</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Completa tus datos para registrarte</p>
+      {/* Panel izquierdo — branding */}
+      <div className="relative hidden lg:flex lg:w-5/12 flex-col justify-between p-12 overflow-hidden flex-shrink-0 anim-from-left">
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '60%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-lime-400/10 via-transparent to-transparent" />
+        <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-lime-400/40 to-transparent" />
+
+        <div className="relative z-10 flex items-center gap-4">
+          <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
+          <div>
+            <p className="text-xs font-bold tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
+            <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
+          </div>
+        </div>
+
+        <div className="relative z-10 space-y-6">
+          <div>
+            <h1 className="text-5xl font-black text-white leading-none tracking-tight">
+              UNITE AL<br />
+              <span className="text-lime-400">BOX</span>
+            </h1>
+            <p className="mt-4 text-white/50 text-base leading-relaxed max-w-xs">
+              Creá tu cuenta y empezá a gestionar tus clases, créditos y progreso desde el día uno.
+            </p>
           </div>
 
-          {errors.general && (
-            <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-center text-sm text-destructive">
-              {errors.general}
-            </div>
-          )}
+          <div className="space-y-3">
+            {STEPS.map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-4 w-4 text-lime-400" />
+                </div>
+                <span className="text-sm text-white/60 font-medium">{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="nombre" className="text-sm font-medium text-foreground">
-                  Nombre Completo
-                </label>
-                <HelpTooltip content="Ingresa tu nombre y apellido completo tal como aparece en tu documento de identidad." />
-              </div>
-              <div className="relative">
-                <User className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="nombre"
-                  type="text"
-                  placeholder="Juan Pérez"
-                  className={`h-11 bg-secondary pl-10 ${errors.nombre ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.nombre}
-                  onChange={(event) => setFormData({ ...formData, nombre: event.target.value })}
-                />
-              </div>
-              {errors.nombre && <p className="text-sm text-destructive">{errors.nombre}</p>}
-            </div>
+        <div className="relative z-10">
+          <p className="text-[11px] text-white/20 tracking-widest uppercase">© 2026 Bravos Box</p>
+        </div>
+      </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="dni" className="text-sm font-medium text-foreground">
-                  DNI
-                </label>
-                <HelpTooltip content="Ingresa tu numero de documento sin puntos ni guiones. Solo los 7 u 8 digitos." />
-              </div>
-              <div className="relative">
-                <CreditCard className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="dni"
-                  type="text"
-                  placeholder="12345678"
-                  className={`h-11 bg-secondary pl-10 ${errors.dni ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.dni}
-                  onChange={(event) => setFormData({ ...formData, dni: event.target.value })}
-                />
-              </div>
-              {errors.dni && <p className="text-sm text-destructive">{errors.dni}</p>}
-            </div>
+      {/* Panel derecho — formulario */}
+      <div className="flex-1 flex flex-col bg-background min-h-screen lg:min-h-0 anim-from-right">
+        {/* Header mobile */}
+        <div className="flex items-center justify-between p-5 lg:hidden border-b border-border">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.jpg" alt="Bravos" className="h-7 w-7 rounded-lg" />
+            <span className="text-sm font-black tracking-widest text-foreground">BRAVOS</span>
+          </div>
+          <div className="w-16" />
+        </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="email" className="text-sm font-medium text-foreground">
-                  Correo Electronico
-                </label>
-                <HelpTooltip content="Usaremos este correo para enviarte notificaciones sobre tus clases, pagos y novedades del gimnasio." />
-              </div>
-              <div className="relative">
-                <Mail className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  className={`h-11 bg-secondary pl-10 ${errors.email ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.email}
-                  onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-                />
-              </div>
-              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-            </div>
+        {/* Formulario scrolleable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex items-start justify-center p-6 lg:p-12 min-h-full">
+            <div className="w-full max-w-sm py-2">
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="telefono" className="text-sm font-medium text-foreground">
-                  Telefono
-                </label>
-                <HelpTooltip content="Numero de celular con codigo de area. Lo usaremos para contactarte por WhatsApp si es necesario." />
-              </div>
-              <div className="relative">
-                <Phone className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="telefono"
-                  type="tel"
-                  placeholder="+54 11 1234 5678"
-                  className={`h-11 bg-secondary pl-10 ${errors.telefono ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.telefono}
-                  onChange={(event) => setFormData({ ...formData, telefono: event.target.value })}
-                />
-              </div>
-              {errors.telefono && <p className="text-sm text-destructive">{errors.telefono}</p>}
-            </div>
+              {/* Volver — solo desktop */}
+              <button
+                onClick={() => navigate(-1)}
+                className="hidden lg:flex mb-8 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al sitio
+              </button>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="password" className="text-sm font-medium text-foreground">
-                  Contrasena
-                </label>
-                <HelpTooltip content="Crea una contrasena segura de al menos 8 caracteres. Te recomendamos usar letras, numeros y simbolos." />
+              <div className="mb-7 anim-fade-up anim-delay-150">
+                <h2 className="text-3xl font-black text-foreground tracking-tight">Crear cuenta</h2>
+                <p className="mt-1 text-muted-foreground text-sm">Completá tus datos para registrarte</p>
               </div>
-              <div className="relative">
-                <Lock className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Mínimo 8 caracteres"
-                  className={`h-11 bg-secondary pl-10 pr-10 ${errors.password ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.password}
-                  onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Nombre */}
+                <div className="space-y-1.5">
+                  <label htmlFor="nombre" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Nombre Completo
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="nombre" type="text" placeholder="Juan Pérez"
+                      autoComplete="name"
+                      className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.nombre ? 'border-destructive' : ''}`}
+                      value={formData.nombre} onChange={set('nombre')}
+                    />
+                  </div>
+                  {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
+                </div>
+
+                {/* DNI + Teléfono en fila */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="dni" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">DNI</label>
+                    <div className="relative">
+                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="dni" type="text" placeholder="12345678"
+                        className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.dni ? 'border-destructive' : ''}`}
+                        value={formData.dni} onChange={set('dni')}
+                      />
+                    </div>
+                    {errors.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="telefono" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">Teléfono</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="telefono" type="tel" placeholder="1123456789"
+                        autoComplete="tel"
+                        className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.telefono ? 'border-destructive' : ''}`}
+                        value={formData.telefono} onChange={set('telefono')}
+                      />
+                    </div>
+                    {errors.telefono && <p className="text-xs text-destructive">{errors.telefono}</p>}
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Correo Electrónico
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email" type="email" placeholder="tu@email.com"
+                      autoComplete="email"
+                      className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.email ? 'border-destructive' : ''}`}
+                      value={formData.email} onChange={set('email')}
+                    />
+                  </div>
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                </div>
+
+                {/* Contraseña */}
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres"
+                      autoComplete="new-password"
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.password ? 'border-destructive' : ''}`}
+                      value={formData.password} onChange={set('password')}
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                </div>
+
+                {/* Confirmar contraseña */}
+                <div className="space-y-1.5">
+                  <label htmlFor="confirmPassword" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
+                    Confirmar Contraseña
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña"
+                      autoComplete="new-password"
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                      value={formData.confirmPassword} onChange={set('confirmPassword')}
+                    />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 mt-1 bg-lime-400 hover:bg-lime-300 text-black font-black tracking-wider uppercase text-sm transition-all active:scale-[0.98]"
+                  disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-            </div>
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando cuenta...</>
+                  ) : 'Crear mi cuenta'}
+                </Button>
+              </form>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                  Confirmar Contrasena
-                </label>
-                <HelpTooltip content="Vuelve a escribir tu contrasena para confirmar que la ingresaste correctamente." />
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-3 text-xs text-muted-foreground">¿Ya tenés cuenta?</span>
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="text-muted-foreground absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Repite tu contraseña"
-                  className={`h-11 bg-secondary pl-10 pr-10 ${errors.confirmPassword ? 'border-destructive' : 'border-border'} focus:border-primary`}
-                  value={formData.confirmPassword}
-                  onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
-            </div>
 
-            <Button
-              type="submit"
-              className="mt-2 h-12 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Registrando...
-                </>
-              ) : (
-                'Crear Cuenta'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              ¿Ya tienes una cuenta?{' '}
-              <Link to="/login" className="font-medium text-primary transition-colors hover:text-primary/80">
+              <Link
+                to="/login"
+                className="flex items-center justify-center w-full h-11 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              >
                 Iniciar sesión
               </Link>
-            </p>
+            </div>
           </div>
         </div>
       </div>

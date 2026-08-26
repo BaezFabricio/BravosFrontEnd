@@ -11,7 +11,7 @@ function Calendar({ className, ...props }) {
         caption: "flex justify-center pt-1 relative items-center text-sm font-bold",
         table: "w-full border-collapse",
         head_row: "flex w-full justify-between mt-2",
-        head_cell: "text-zinc-500 font-bold text-[0.8rem] uppercase w-9 text-center",
+        head_cell: "text-muted-foreground font-bold text-[0.8rem] uppercase w-9 text-center",
         row: "flex w-full mt-2 justify-between",
         // Aquí está el secreto: definimos un tamaño fijo (h-9 w-9) y centrado
         cell: "h-9 w-9 text-center p-0 relative flex items-center justify-center",

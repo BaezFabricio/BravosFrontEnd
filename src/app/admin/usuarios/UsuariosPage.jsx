@@ -14,11 +14,8 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +38,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
+import { toast } from '@/lib/notificar'
+
+const getIniciales = (name) => {
+  if (!name) return "??"
+  const parts = name.trim().split(" ")
+  return parts.length > 1
+    ? (parts[0][0] + parts[1][0]).toUpperCase()
+    : name.substring(0, 2).toUpperCase()
+}
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
@@ -167,7 +174,7 @@ export default function UsuariosPage() {
       setUsers(users.map((u) => (u.id === userId ? { ...u, estado: newStatus } : u)))
     } catch (err) {
       console.error("Error al cambiar estado:", err)
-      setError("Error al cambiar el estado del usuario")
+      toast.error("Error al cambiar el estado del usuario")
     }
     setConfirmDialog({ open: false, user: null, action: "" })
   }
@@ -176,10 +183,11 @@ export default function UsuariosPage() {
     setIsDeleting(true)
     try {
       await eliminarUsuario(userId)
-      setUsers(users.filter((u) => u.id !== userId))
+      setUsers(prev => prev.filter((u) => (u.idUsuario || u.id) !== userId))
+      toast.success("Usuario eliminado correctamente")
     } catch (err) {
       console.error("Error al eliminar usuario:", err)
-      setError("Error al eliminar el usuario")
+      toast.error("Error al eliminar el usuario", { description: err?.response?.data?.message || err.message })
     } finally {
       setIsDeleting(false)
       setDeleteDialog({ open: false, user: null })
@@ -197,144 +205,153 @@ export default function UsuariosPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
-            <HelpTooltip content="Aquí puedes ver, crear, editar, suspender o eliminar usuarios del sistema. Usa los filtros para encontrar usuarios específicos." />
-          </div>
-          <p className="text-muted-foreground">Administra los usuarios del sistema</p>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Gestión de Usuarios</h1>
+          <p className="text-sm text-foreground/40 mt-1">Administra los usuarios del sistema</p>
         </div>
-        
+
         {/* 🟢 PROTECCIÓN DEL BOTÓN NUEVO USUARIO (Requieres usuarios:alta) */}
         {permisos.includes("usuarios:alta") && (
-          <div className="flex items-center gap-2">
-            <Button asChild className="bg-primary hover:bg-primary/90">
-              <Link to="/admin/usuarios/nuevo">
-                <Plus className="mr-2 h-4 w-4" />
-                Nuevo Usuario
-              </Link>
-            </Button>
-            <HelpTooltip content="Crear un nuevo usuario en el sistema con todos sus datos personales y asignarle un perfil." iconClassName="h-3 w-3" />
-          </div>
+          <Link
+            to="/admin/usuarios/nuevo"
+            className="inline-flex items-center bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Usuario
+          </Link>
         )}
       </div>
 
-      <Card className="bg-card border-border">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nombre, DNI o email..."
-                className="pl-9 bg-secondary border-border"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <HelpTooltip content="Escribe el nombre, DNI o email del usuario que buscas. La búsqueda se actualiza automáticamente." />
-              </div>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="activo">Activo</SelectItem>
-                <SelectItem value="suspendido">Suspendido</SelectItem>
-                <SelectItem value="inactivo">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
-                <SelectValue placeholder="Perfil" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los perfiles</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-                <SelectItem value="profesor">Profesor</SelectItem>
-                <SelectItem value="alumno">Alumno</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
-            {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-              <div className="flex items-center gap-1">
-                <Button variant="outline" className="border-border">
-                  <Download className="mr-2 h-4 w-4" />
-                  Exportar
-                </Button>
-                <HelpTooltip content="Descarga un archivo Excel con todos los usuarios filtrados actualmente." />
-              </div>
-            )}
+      <div className="border border-border bg-card p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, DNI o email..."
+              className="pl-9 bg-secondary border-border"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-        </CardContent>
-      </Card>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="activo">Activo</SelectItem>
+              <SelectItem value="suspendido">Suspendido</SelectItem>
+              <SelectItem value="inactivo">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-secondary border-border">
+              <SelectValue placeholder="Perfil" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los perfiles</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+              <SelectItem value="profesor">Profesor</SelectItem>
+              <SelectItem value="alumno">Alumno</SelectItem>
+            </SelectContent>
+          </Select>
 
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Usuarios ({filteredUsers.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+          {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
+          {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
+            <button className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Exportar
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="border border-border bg-card">
+        <div className="border-b border-border px-5 py-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuarios ({filteredUsers.length})</p>
+        </div>
+        <div>
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
-              <p className="text-muted-foreground">Cargando usuarios...</p>
+              <p className="text-foreground/40">Cargando usuarios...</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border bg-secondary/50">
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Usuario</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">DNI</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Teléfono</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Perfil</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground">Estado</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Membresía</th>
-                    <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden lg:table-cell">Créditos</th>
-                    <th className="text-right p-4 text-sm font-medium text-muted-foreground">Acciones</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">DNI</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Teléfono</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Perfil</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Membresía</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Créditos</th>
+                    <th className="text-right px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
-                    <tr key={user.idUsuario || user.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                      <td className="p-4">
-                        <div>
-                          <p className="font-medium text-foreground">{user.nombre}</p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
+                            {user.avatarUrl
+                              ? <img src={user.avatarUrl} alt={user.nombre} className="h-full w-full object-cover" />
+                              : getIniciales(user.nombre)
+                            }
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-foreground">{user.nombre}</p>
+                            <p className="text-xs text-foreground/40">{user.email}</p>
+                          </div>
                         </div>
                       </td>
-                      <td className="p-4 hidden md:table-cell">
-                        <span className="text-foreground">{user.dni}</span>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className="text-sm text-foreground">{user.dni}</span>
                       </td>
-                      <td className="p-4 hidden lg:table-cell">
-                        <span className="text-foreground">{user.telefono}</span>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <span className="text-sm text-foreground">{user.telefono}</span>
                       </td>
-                      <td className="p-4">
-                        <span className="text-foreground font-medium">
+                      <td className="px-4 py-3">
+                        <span className="text-sm font-semibold text-foreground">
                           {user.nombrePerfil || user.perfil || "Sin Perfil"}
                         </span>
                       </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={statusConfig[user.estado]?.className || statusConfig.activo.className}>
-                          {statusConfig[user.estado]?.label || statusConfig.activo.label}
-                        </Badge>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const cfg = statusConfig[user.estado] || statusConfig.activo
+                          const isActivo = user.estado === "activo"
+                          const isSuspendido = user.estado === "suspendido"
+                          return (
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${isActivo ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+                              {cfg.label}
+                            </span>
+                          )
+                        })()}
                       </td>
-                      <td className="p-4 hidden sm:table-cell">
-                        <Badge variant="outline" className={membershipConfig[user.membresia]?.className || membershipConfig.vencida.className}>
-                          {membershipConfig[user.membresia]?.label || membershipConfig.vencida.label}
-                        </Badge>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        {(() => {
+                          const cfg = membershipConfig[user.membresia] || membershipConfig.vencida
+                          const isVigente = user.membresia === "vigente" || user.membresia === "activa"
+                          const isPorVencer = user.membresia === "por_vencer"
+                          return (
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${isVigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                              {cfg.label}
+                            </span>
+                          )
+                        })()}
                       </td>
-                      <td className="p-4 hidden lg:table-cell">
-                        <span className="font-medium text-foreground">{user.creditos}</span>
+                      <td className="px-4 py-3 hidden lg:table-cell">
+                        <span className="font-semibold text-sm text-foreground">{user.creditos}</span>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="px-4 py-3 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <button className="p-2 text-foreground/40 hover:text-foreground transition-colors">
                               <MoreHorizontal className="h-4 w-4" />
-                            </Button>
+                            </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-64">
                             
@@ -418,8 +435,8 @@ export default function UsuariosPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Diálogos de Confirmación de Estado */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>

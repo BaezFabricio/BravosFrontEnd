@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 //  Conexión directa a tu cliente de Axios configurado
 import apiClient from "@/api"
+import { GymLoader } from "@/components/GymLoader"
 
 export default function CreditosPage() {
   //  ESTADOS DINÁMICOS PARA CONECTAR EL BACKEND
@@ -56,28 +57,30 @@ export default function CreditosPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <GymLoader text="Cargando tus créditos..." />
       </div>
     )
   }
 
   // 2. Estado de error controlado en pantalla
-  if (error || !datos) {
+  if (error) {
     return (
       <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error de Sincronización</AlertTitle>
-        <AlertDescription>{error || "Error al conectar con el servidor."}</AlertDescription>
+        <AlertDescription>{error}</AlertDescription>
       </Alert>
     )
   }
 
+  if (!datos) return null
+
   const { abono, movimientos } = datos
 
-  // 🟢 MATEMÁTICA REAL: Calculamos el progreso basándonos en tu columna 'creditosCisponibles'
-  const totalCreditos = abono.totalCreditos || 0
-  const disponibles = abono.creditosCisponibles || 0
-  const usadosMes = abono.creditosUtilizados || 0
+  const sinAbono = !abono || abono.nombrePlan === 'Sin plan activo'
+  const totalCreditos = abono?.totalCreditos || 0
+  const disponibles = abono?.creditosCisponibles || 0
+  const usadosMes = abono?.creditosUtilizados || 0
   
   // Evitamos división por cero si el plan no tiene créditos cargados
   const porcentajeUsado = totalCreditos > 0 ? (usadosMes / totalCreditos) * 100 : 0
@@ -88,6 +91,14 @@ export default function CreditosPage() {
         <h1 className="text-2xl font-bold text-foreground">Mis Créditos</h1>
         <p className="text-muted-foreground">Consulta el estado de tus créditos y movimientos</p>
       </div>
+
+      {sinAbono && (
+        <Alert className="bg-destructive/10 border-destructive/20">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertTitle className="text-destructive">Sin membresía vigente</AlertTitle>
+          <AlertDescription>No tenés un abono activo en este momento. Contactá al gimnasio para renovar tu plan.</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* TARJETA PRINCIPAL CON LA BARRA DE PROGRESO */}
@@ -195,7 +206,7 @@ export default function CreditosPage() {
                       const esInformativoCero = mov.creditos === "0";
 
                       return (
-                        <tr key={index} className="border-b border-border hover:bg-black/10 transition-colors">
+                        <tr key={index} className="border-b border-border hover:bg-foreground/5 transition-colors">
                           
                           <td className="p-4 text-muted-foreground font-medium">
                             {formatearFechaCorta(mov.fecha)}
@@ -219,8 +230,13 @@ export default function CreditosPage() {
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Fuera de término
                               </Badge>
+                            ) : mov.estado === 'No asistió' ? (
+                              <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20 font-medium">
+                                <XCircle className="mr-1 h-3 w-3" />
+                                No asistió
+                              </Badge>
                             ) : mov.estado === 'Próxima' ? (
-                              <Badge variant="outline" className="bg-zinc-500/10 text-zinc-400 border-zinc-500/20 font-medium">
+                              <Badge variant="outline" className="bg-zinc-500/10 text-muted-foreground border-zinc-500/20 font-medium">
                                 Próxima
                               </Badge>
                             ) : (
@@ -237,7 +253,7 @@ export default function CreditosPage() {
                               ? "text-green-500" 
                               : esInformativoCero 
                               ? "text-red-400" 
-                              : "text-zinc-400"
+                              : "text-muted-foreground"
                           }`}>
                             {mov.creditos}
                           </td>

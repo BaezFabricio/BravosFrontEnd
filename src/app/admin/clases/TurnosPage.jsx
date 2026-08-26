@@ -27,7 +27,7 @@ export default function TurnosPage() {
   const formatearHora = (hora) => (hora ? hora.slice(0, 5) : "-")
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link
           to="/admin/clases"

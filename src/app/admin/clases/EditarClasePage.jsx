@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
+import { ArrowLeft, Loader2, Plus, Trash2, Upload } from "lucide-react"
+import { toast } from '@/lib/notificar'
+import apiClient from "@/api"
 
 export default function EditarClasePage() {
   const { id } = useParams()
@@ -9,7 +11,6 @@ export default function EditarClasePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [errors, setErrors] = useState({})
-  const [success, setSuccess] = useState(false)
 
   const [profesores, setProfesores] = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
@@ -63,6 +64,27 @@ export default function EditarClasePage() {
     setFormData((prev) => ({ ...prev, ejercicios: prev.ejercicios.filter((_, i) => i !== index) }))
   }
 
+  const [uploadingIndex, setUploadingIndex] = useState(null)
+  const fileInputRefs = useRef([])
+
+  const handleVideoUpload = async (index, file) => {
+    if (!file) return
+    setUploadingIndex(index)
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('video', file)
+      const res = await apiClient.post('/ejercicios/upload-video', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      actualizarEjercicio(index, 'videoUrl', res.data?.data?.url || '')
+      toast.success('Video subido correctamente')
+    } catch (err) {
+      toast.error('Error al subir el video', { description: err.response?.data?.message })
+    } finally {
+      setUploadingIndex(null)
+    }
+  }
+
   const obtenerProfesores = async () => {
     try {
       setLoadingProfesores(true)
@@ -80,9 +102,7 @@ export default function EditarClasePage() {
       setProfesores(result.data)
     } catch (error) {
       console.error("Error al obtener profesores:", error)
-      setErrors({
-        general: `Error al cargar profesores: ${error.message}`,
-      })
+      toast.error("Error al cargar profesores", { description: error.message })
     } finally {
       setLoadingProfesores(false)
     }
@@ -129,9 +149,7 @@ export default function EditarClasePage() {
       })
     } catch (error) {
       console.error("Error al obtener clase:", error)
-      setErrors({
-        general: `Error al cargar la clase: ${error.message}`,
-      })
+      toast.error("Error al cargar la clase", { description: error.message })
     } finally {
       setLoadingData(false)
     }
@@ -278,16 +296,11 @@ export default function EditarClasePage() {
         throw new Error(result.message || "Error al editar la clase")
       }
 
-      setSuccess(true)
-
-      setTimeout(() => {
-        navigate("/admin/clases")
-      }, 1500)
+      toast.success("Clase editada exitosamente")
+      navigate("/admin/clases")
     } catch (error) {
       console.error("Error al editar clase:", error)
-      setErrors({
-        general: `Error al editar la clase: ${error.message}`,
-      })
+      toast.error("Error al editar la clase", { description: error.message })
     } finally {
       setIsLoading(false)
     }
@@ -295,10 +308,10 @@ export default function EditarClasePage() {
 
   const selectedTurno = turnos.find((t) => t.id === formData.turnoId)
 
-  const cardClass = "rounded-xl border border-border bg-card p-0 shadow-sm"
-  const cardHeaderClass = "border-b border-border bg-secondary px-6 py-4"
-  const titleClass = "text-lg font-bold text-foreground"
-  const labelClass = "text-sm font-semibold text-muted-foreground"
+  const cardClass = "border border-border bg-card overflow-hidden"
+  const cardHeaderClass = "border-b border-border px-5 py-3"
+  const titleClass = "text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+  const labelClass = "text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 block"
 
   const inputClass =
     "mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
@@ -308,8 +321,8 @@ export default function EditarClasePage() {
 
   if (loadingData) {
     return (
-      <div className="space-y-6 p-6">
-        <div className="rounded-xl border border-border bg-card p-6 text-center text-muted-foreground">
+      <div className="space-y-6">
+        <div className="border border-border bg-card p-6 text-center text-foreground/40">
           Cargando datos de la clase...
         </div>
       </div>
@@ -317,42 +330,20 @@ export default function EditarClasePage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link
           to="/admin/clases"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-secondary"
+          className="border border-border p-2 text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
 
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Editar Clase
-          </h1>
-          <p className="text-muted-foreground">
-            Modifica los datos de la clase seleccionada.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Editar Clase</h1>
+          <p className="text-sm text-foreground/40 mt-1">Modifica los datos de la clase seleccionada.</p>
         </div>
       </div>
-
-      {success && (
-        <div className="flex items-center gap-2 rounded-lg border border-success bg-popover p-4 text-success">
-          <AlertCircle className="h-4 w-4" />
-          <p className="text-sm font-medium text-foreground">
-            Clase editada exitosamente. Redirigiendo...
-          </p>
-        </div>
-      )}
-
-      {errors.general && (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive bg-popover p-4 text-destructive">
-          <AlertCircle className="h-4 w-4" />
-          <p className="text-sm font-medium text-foreground">
-            {errors.general}
-          </p>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <section className={cardClass}>
@@ -388,15 +379,14 @@ export default function EditarClasePage() {
                   className={errors.idProfesor ? inputErrorClass : inputClass}
                   disabled={loadingProfesores}
                 >
-                  {loadingProfesores ? (
-                    <option value="">Cargando profesores...</option>
-                  ) : (
-                    profesores.map((profesor) => (
-                      <option key={profesor.idProfesor} value={profesor.idProfesor} className="bg-input text-foreground">
-                        {profesor.nombreProfesor || "Staff Bravos"}
-                      </option>
-                    ))
-                  )}
+                  <option value="">
+                    {loadingProfesores ? "Cargando profesores..." : "Seleccionar profesor..."}
+                  </option>
+                  {!loadingProfesores && profesores.map((profesor) => (
+                    <option key={profesor.idProfesor} value={profesor.idProfesor} className="bg-input text-foreground">
+                      {profesor.nombreProfesor}
+                    </option>
+                  ))}
                 </select>
                 {errors.idProfesor && <p className="mt-1 text-xs text-red-400">{errors.idProfesor}</p>}
               </div>
@@ -509,29 +499,55 @@ export default function EditarClasePage() {
 
               <div className="mt-3 space-y-3">
                 {formData.ejercicios.map((ejercicio, index) => (
-                  <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] items-start rounded-lg border border-border bg-secondary/40 p-3">
-                    <input
-                      type="text"
-                      value={ejercicio.nombre}
-                      onChange={(e) => actualizarEjercicio(index, "nombre", e.target.value)}
-                      placeholder="Ej: Sentadilla con salto"
-                      className={inputClass + " mt-0"}
-                    />
-                    <input
-                      type="url"
-                      value={ejercicio.videoUrl}
-                      onChange={(e) => actualizarEjercicio(index, "videoUrl", e.target.value)}
-                      placeholder="Video demostrativo (URL, opcional)"
-                      className={inputClass + " mt-0"}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => quitarEjercicio(index)}
-                      disabled={formData.ejercicios.length === 1}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  <div key={index} className="rounded-lg border border-border bg-secondary/40 p-3 space-y-2">
+                    <div className="flex gap-2 items-start">
+                      <input
+                        type="text"
+                        value={ejercicio.nombre}
+                        onChange={(e) => actualizarEjercicio(index, "nombre", e.target.value)}
+                        placeholder="Ej: Sentadilla con salto"
+                        className={inputClass + " mt-0 flex-1"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => quitarEjercicio(index)}
+                        disabled={formData.ejercicios.length === 1}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={ejercicio.videoUrl}
+                        onChange={(e) => actualizarEjercicio(index, "videoUrl", e.target.value)}
+                        placeholder="URL de YouTube (opcional)"
+                        className={inputClass + " mt-0 flex-1"}
+                      />
+                      <span className="text-xs text-muted-foreground shrink-0">o</span>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime,video/avi"
+                        className="hidden"
+                        ref={el => fileInputRefs.current[index] = el}
+                        onChange={(e) => handleVideoUpload(index, e.target.files[0])}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs.current[index]?.click()}
+                        disabled={uploadingIndex === index}
+                        className="flex items-center gap-1 shrink-0 px-3 h-10 rounded-lg border border-border text-sm text-muted-foreground hover:bg-secondary disabled:opacity-50"
+                      >
+                        {uploadingIndex === index
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Upload className="h-4 w-4" />}
+                        {uploadingIndex === index ? "Subiendo..." : "Subir"}
+                      </button>
+                    </div>
+                    {ejercicio.videoUrl && !ejercicio.videoUrl.startsWith('http') && (
+                      <p className="text-xs text-green-500">✓ Archivo subido: {ejercicio.videoUrl.split('/').pop()}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -710,7 +726,7 @@ export default function EditarClasePage() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
             to="/admin/clases"
-            className="flex-1 rounded-lg border border-border bg-card px-4 py-2 text-center text-sm font-semibold text-foreground hover:bg-secondary"
+            className="flex-1 border border-border px-4 py-2 text-center text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
           >
             Cancelar
           </Link>
@@ -718,7 +734,7 @@ export default function EditarClasePage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex flex-1 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center justify-center bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
           >
             {isLoading ? (
               <>

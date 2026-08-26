@@ -16,8 +16,6 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import {
   Dialog,
@@ -27,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
+import { GymLoader } from "@/components/GymLoader"
 import apiClient, {
   cambiarEstadoUsuario,
   eliminarUsuario,
@@ -35,13 +34,8 @@ import apiClient, {
   crearAbonoUsuario,
   cancelarAbonoUsuario,
 } from "@/api"
+import { toast } from '@/lib/notificar'
 
-const reservas = [
-  { id: "1", clase: "Funcional WOD", fecha: "2024-03-10", hora: "08:00", coach: "Pablo Ruiz" },
-  { id: "2", clase: "Funcional", fecha: "2024-03-08", hora: "09:30", coach: "Maria Gomez" },
-  { id: "3", clase: "Funcional WOD", fecha: "2024-03-05", hora: "18:00", coach: "Pablo Ruiz" },
-  { id: "4", clase: "Open Box", fecha: "2024-03-03", hora: "11:00", coach: "Diego Torres" },
-]
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
@@ -78,6 +72,8 @@ export default function DetalleUsuarioPage() {
   const [error, setError] = useState("")
   
   const [vistaActiva, setVistaActiva] = useState("reservas")
+  const [reservasReales, setReservasReales] = useState([])
+  const [cargandoReservas, setCargandoReservas] = useState(false)
 
   const [abonoDialog, setAbonoDialog] = useState({ open: false, tipo: "", abono: null })
   const [tipoAbono, setTipoAbono] = useState("")
@@ -138,7 +134,7 @@ export default function DetalleUsuarioPage() {
       }
     } catch (error) {
       console.error("Error al cargar abonos:", error)
-      setError("No se pudieron cargar los abonos del usuario.")
+      toast.error("No se pudieron cargar los abonos del usuario.")
       setAbonos([])
     } finally {
       setCargandoAbonos(false)
@@ -147,6 +143,22 @@ export default function DetalleUsuarioPage() {
 
   useEffect(() => {
     if (id) cargarAbonos()
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    const cargarReservas = async () => {
+      try {
+        setCargandoReservas(true)
+        const res = await apiClient.get(`/reservas/admin/usuario/${id}`)
+        setReservasReales(res.data?.data || res.data || [])
+      } catch (err) {
+        console.error("Error al cargar reservas del usuario:", err)
+      } finally {
+        setCargandoReservas(false)
+      }
+    }
+    cargarReservas()
   }, [id])
 
   const abrirAbonoDialog = (tipo, abono = null) => {
@@ -228,7 +240,7 @@ export default function DetalleUsuarioPage() {
         
         if (!idAbonoReal) {
           console.error("❌ ERROR CRÍTICO: No se encontró ningún identificador en:", abonoDialog.abono);
-          setError("No se pudo identificar el ID del abono para proceder a la cancelación.");
+          toast.error("No se pudo identificar el ID del abono para proceder a la cancelación.");
           setIsActionLoading(false);
           return;
         }
@@ -254,7 +266,7 @@ export default function DetalleUsuarioPage() {
         const idAbonoReal = abonoDialog.abono.idAbono || abonoDialog.abono.id_abono || abonoDialog.abono.id;
 
         if (!idAbonoReal) {
-          setError("No se pudo identificar el ID del abono.");
+          toast.error("No se pudo identificar el ID del abono.");
           setIsActionLoading(false);
           return;
         }
@@ -308,7 +320,7 @@ export default function DetalleUsuarioPage() {
       cerrarAbonoDialog();
     } catch (error) {
       console.error("Error al gestionar abono:", error);
-      setError("No se pudo procesar la solicitud del abono.");
+      toast.error("No se pudo procesar la solicitud del abono.");
     } finally {
       setIsActionLoading(false);
     }
@@ -355,7 +367,7 @@ export default function DetalleUsuarioPage() {
       setUser((currentUser) => ({ ...currentUser, estado: newStatus }))
     } catch (statusError) {
       console.error("Error al actualizar estado:", statusError)
-      setError("No se pudo actualizar el estado del usuario.")
+      toast.error("No se pudo actualizar el estado del usuario.")
     } finally {
       setIsActionLoading(false)
       setStatusDialog({ open: false, action: "" })
@@ -369,7 +381,7 @@ export default function DetalleUsuarioPage() {
       navigate("/admin/usuarios")
     } catch (deleteError) {
       console.error("Error al eliminar usuario:", deleteError)
-      setError("No se pudo eliminar el usuario.")
+      toast.error("No se pudo eliminar el usuario.")
     } finally {
       setIsActionLoading(false)
       setDeleteDialog(false)
@@ -378,9 +390,8 @@ export default function DetalleUsuarioPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 p-4 bg-card border border-border rounded-lg">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        <p className="text-muted-foreground">Sincronizando ficha del usuario...</p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <GymLoader text="Sincronizando ficha del usuario..." />
       </div>
     )
   }
@@ -394,153 +405,163 @@ export default function DetalleUsuarioPage() {
     )
   }
 
+  // Iniciales para el avatar
+  const getIniciales = (nombre) => {
+    if (!nombre) return "??"
+    const p = nombre.trim().split(" ")
+    return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : nombre.slice(0, 2).toUpperCase()
+  }
+
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">{error}</div>
-      )}
 
-      {/* PANEL SUPERIOR */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card p-4 border border-border rounded-xl shadow-sm">
-        <div className="flex items-center gap-3">
+      {/* BREADCRUMB + ACCIONES */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2">
           <Link to="/admin/usuarios">
-            <Button variant="ghost" size="icon" className="hover:bg-secondary rounded-lg">
-              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-            </Button>
+            <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+            </button>
           </Link>
-          <div>
-            <h1 className="text-xl font-medium tracking-tight text-foreground uppercase">{user?.nombre}</h1>
-            <p className="text-xs text-muted-foreground">ID Gestión de Usuario Base</p>
-          </div>
+          <span className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Usuarios</span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-xs text-foreground/60 uppercase tracking-widest font-semibold">Ficha</span>
         </div>
-
         <div className="flex flex-wrap gap-2">
           <Link to={`/admin/usuarios/${id}/editar`}>
-            <Button variant="outline" size="sm" className="font-medium text-xs h-9">
-              <Pencil className="mr-1.5 h-3.5 w-3.5 text-primary" /> Editar Perfil
-            </Button>
+            <button type="button" className="border border-border px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-1.5">
+              <Pencil className="h-3.5 w-3.5" /> Editar
+            </button>
           </Link>
-
           {user?.estado === "activo" ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-amber-500 border-amber-500/30 hover:bg-amber-500/10 font-medium text-xs h-9"
-              onClick={() => setStatusDialog({ open: true, action: "suspend" })}
-            >
-              <UserX className="mr-1.5 h-3.5 w-3.5" /> Suspender
-            </Button>
+            <button type="button" className="border border-yellow-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-yellow-400 hover:bg-yellow-400/5 transition-colors flex items-center gap-1.5"
+              onClick={() => setStatusDialog({ open: true, action: "suspend" })}>
+              <UserX className="h-3.5 w-3.5" /> Suspender
+            </button>
           ) : user?.estado !== "inactivo" ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-green-500 border-green-500/30 hover:bg-green-500/10 font-medium text-xs h-9"
-              onClick={() => setStatusDialog({ open: true, action: "activate" })}
-            >
-              <UserCheck className="mr-1.5 h-3.5 w-3.5" /> Activar
-            </Button>
+            <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5"
+              onClick={() => setStatusDialog({ open: true, action: "activate" })}>
+              <UserCheck className="h-3.5 w-3.5" /> Activar
+            </button>
           ) : null}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive border-destructive/30 hover:bg-destructive/10 font-medium text-xs h-9"
-            onClick={() => setDeleteDialog(true)}
-          >
-            <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Eliminar
-          </Button>
+          <button type="button" className="border border-red-500/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors flex items-center gap-1.5"
+            onClick={() => setDeleteDialog(true)}>
+            <Trash2 className="h-3.5 w-3.5" /> Eliminar
+          </button>
         </div>
       </div>
 
-      {/* SECCIÓN DE DATOS PERSONALES */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="bg-card border-border lg:col-span-2 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-sm font-semibold tracking-wider text-muted-foreground uppercase flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" /> Información Personal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* FICHA HERO */}
+      <div className="border border-border bg-card">
+        {/* Nombre + avatar + badges en una sola fila */}
+        <div className="flex items-center gap-5 px-5 py-5 border-b border-border">
+          <div className="h-14 w-14 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-lg select-none overflow-hidden">
+            {user?.avatarUrl
+              ? <img src={user.avatarUrl} alt={user.nombre} className="h-full w-full object-cover" />
+              : getIniciales(user?.nombre)
+            }
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground leading-none">{user?.nombre}</h1>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : user?.estado === "suspendido" ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+                {status.label}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border capitalize">
+                {user?.perfil || "Alumno"}
+              </span>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créditos</p>
+            <p className="text-4xl font-black text-lime-400 leading-none mt-1">{user?.creditos ?? 0}</p>
+          </div>
+        </div>
+
+        {/* Grid de datos */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-border">
+          {[
+            { label: 'DNI', value: user?.dni, icon: CreditCard },
+            { label: 'Correo', value: user?.email, icon: Mail },
+            { label: 'Teléfono', value: user?.telefono || '—', icon: Phone },
+            { label: 'Registro', value: formatearFecha(user?.fechaRegistro), icon: Calendar },
+            { label: 'Último acceso', value: formatearFecha(user?.ultimoAcceso), icon: Calendar },
+            { label: 'Membresía', value: membership.label, isStatus: true, vigente: user?.membresia === "vigente" || user?.membresia === "activa" },
+          ].map(({ label, value, icon: Icon, isStatus, vigente }, i) => (
+            <div key={label} className={`px-4 py-3 ${i >= 3 ? 'border-t border-border' : ''} lg:border-t-0`}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
+              {isStatus
+                ? <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${vigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>{value}</span>
+                : <p className="text-sm font-semibold text-foreground truncate">{value}</p>
+              }
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SECCIÓN DE DATOS PERSONALES — bloque ficticio para mantener el resto igual */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{display:'none'}}>
+        <div className="border border-border bg-card lg:col-span-2">
+          <div className="border-b border-border px-5 py-3 flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+          </div>
+          <div className="p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
               <div>
-                <p className="text-xs text-muted-foreground">Nombre Completo</p>
-                <p className="font-medium text-foreground mt-0.5">{user?.nombre}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Nombre Completo</p>
+                <p className="font-semibold text-foreground">{user?.nombre}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">DNI</p>
-                <p className="font-medium text-foreground mt-0.5 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">DNI</p>
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
                   <CreditCard className="h-3.5 w-3.5 text-muted-foreground" /> {user?.dni}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Correo Electrónico</p>
-                <p className="font-medium text-foreground mt-0.5 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Correo Electrónico</p>
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground" /> {user?.email}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Teléfono</p>
-                <p className="font-medium text-foreground mt-0.5 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Teléfono</p>
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
                   <Phone className="h-3.5 w-3.5 text-muted-foreground" /> {user?.telefono || "Sin registrar"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Fecha de Registro</p>
-                <p className="font-medium text-foreground mt-0.5 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Fecha de Registro</p>
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> {formatearFecha(user?.fechaRegistro)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Último Acceso</p>
-                <p className="font-medium text-foreground mt-0.5">{formatearFecha(user?.ultimoAcceso)}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Último Acceso</p>
+                <p className="font-semibold text-foreground">{formatearFecha(user?.ultimoAcceso)}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-4">
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="pb-3"><CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Métricas de Ficha</CardTitle></CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Usuario</span>
-                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${status.className}`}>{status.label}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Membresía</span>
-                <Badge variant="outline" className={`font-medium px-2.5 py-0.5 rounded-full text-xs ${membership.className}`}>{membership.label}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Perfil Calculado</span>
-                <span className="font-medium text-foreground capitalize bg-secondary/60 px-2 py-0.5 rounded text-xs">{user?.perfil || "Alumno"}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border shadow-sm">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Créditos de Reserva</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Disponibles en cuenta</p>
-              </div>
-              <div className="bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 text-center min-w-[70px]">
-                <p className="text-2xl font-semibold text-primary">{user?.creditos ?? 0}</p>
-              </div>
-            </CardContent>
-          </Card>
+          </div>
         </div>
+
       </div>
 
       {/* MENÚ DE PESTAÑAS */}
       <div className="flex gap-2 border-b border-border pb-px">
         <button
-          className={`px-4 py-2 font-semibold text-xs tracking-wider uppercase border-b-2 transition-colors ${vistaActiva === "abonos" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === "reservas" ? "border-lime-400 text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
+          onClick={() => setVistaActiva("reservas")}
+        >
+          Historial Reservas
+        </button>
+        <button
+          className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === "abonos" ? "border-lime-400 text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
           onClick={() => setVistaActiva("abonos")}
         >
           Control Abonos
         </button>
         <button
-          className={`px-4 py-2 font-semibold text-xs tracking-wider uppercase border-b-2 transition-colors ${vistaActiva === "pagos" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+          className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === "pagos" ? "border-lime-400 text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
           onClick={() => setVistaActiva("pagos")}
         >
           Pagos Contables
@@ -549,184 +570,191 @@ export default function DetalleUsuarioPage() {
 
       {/* HISTORIAL RESERVAS */}
       {vistaActiva === "reservas" && (
-        <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/30 text-muted-foreground font-medium text-xs tracking-wider uppercase">
-                    <th className="text-left p-4">Clase</th>
-                    <th className="text-left p-4">Fecha</th>
-                    <th className="text-left p-4">Hora</th>
-                    <th className="text-left p-4">Coach Asignado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {reservas.map((reserva) => (
-                    <tr key={reserva.id} className="hover:bg-secondary/20 transition-colors">
-                      <td className="p-4 font-medium text-foreground">{reserva.clase}</td>
-                      <td className="p-4 text-muted-foreground">{formatearFecha(reserva.fecha)}</td>
-                      <td className="p-4 font-medium text-foreground">{reserva.hora} hs</td>
-                      <td className="p-4 text-muted-foreground">{reserva.coach}</td>
+        <div className="border border-border bg-card">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clase</th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Hora</th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Coach Asignado</th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {cargandoReservas ? (
+                  <tr><td colSpan={5} className="p-8 text-center text-foreground/40 animate-pulse text-xs">Cargando historial de reservas...</td></tr>
+                ) : reservasReales.length === 0 ? (
+                  <tr><td colSpan={5} className="p-8 text-center text-foreground/40 text-xs">No se registran reservas para este usuario.</td></tr>
+                ) : reservasReales.map((r) => {
+                  const estadoBadge = {
+                    proxima: { label: 'Próxima', cls: 'bg-foreground/5 text-foreground/50 border-border' },
+                    completada: { label: 'Asistió', cls: 'bg-lime-400/10 text-lime-400 border-lime-400/20' },
+                    cancelada: { label: 'Cancelada', cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
+                    inasistencia: { label: 'No asistió', cls: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' },
+                  }[r.estadoReserva] || { label: r.estadoReserva, cls: 'bg-foreground/5 text-foreground/50 border-border' }
+                  return (
+                    <tr key={r.idReserva} className="hover:bg-foreground/3 transition-colors">
+                      <td className="px-4 py-3 font-semibold text-foreground">{r.nombreClase}</td>
+                      <td className="px-4 py-3 text-foreground/40">{formatearFecha(r.fechaReserva)}</td>
+                      <td className="px-4 py-3 font-semibold text-foreground">{r.horaInicio ? r.horaInicio.slice(0,5) : '-'} hs</td>
+                      <td className="px-4 py-3 text-foreground/40">{r.nombreProfesor || '-'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${estadoBadge.cls}`}>
+                          {estadoBadge.label}
+                        </span>
+                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* CONTROL ABONOS */}
       {vistaActiva === "abonos" && (
-        <Card className="bg-card border-border shadow-sm">
-          <CardHeader className="py-4 border-b border-border">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-sm font-semibold text-foreground tracking-tight uppercase">Historial de Abonos Adquiridos</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">Visualización dinámica de créditos y transacciones</p>
-              </div>
-              <Button onClick={() => abrirAbonoDialog("cargar")} size="sm" className="bg-green-600 hover:bg-green-700 text-white font-medium text-xs"><Plus className="mr-1 h-4 w-4" /> Cargar Abono</Button>
+        <div className="border border-border bg-card">
+          <div className="border-b border-border px-5 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Historial de Abonos Adquiridos</p>
+              <p className="text-xs text-foreground/40 mt-0.5">Visualización dinámica de créditos y transacciones</p>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[1000px]">
-                <thead>
-                  <tr className="bg-secondary/30 text-muted-foreground font-medium text-xs tracking-wider uppercase border-b border-border">
-                    <th className="p-4 text-left w-12">#</th>
-                    <th className="p-4 text-left">Creado</th>
-                    <th className="p-4 text-left">Inicio</th>
-                    <th className="p-4 text-left">Vencimiento</th>
-                    <th className="p-4 text-left">Plan / Item</th>
-                    <th className="p-4 text-center">Turnos</th>
-                    <th className="p-4 text-center">Ajuste</th>
-                    <th className="p-4 text-center">Usados</th>
-                    <th className="p-4 text-center">Disponibles</th>
-                    <th className="p-4 text-center">Estado</th>
-                    <th className="p-4 text-center w-28">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {cargandoAbonos ? (
-                    <tr><td colSpan="11" className="p-8 text-center text-muted-foreground animate-pulse">Sincronizando grilla de abonos...</td></tr>
-                  ) : abonos.length > 0 ? (
-                    abonos.map((abono) => (
-                      <tr key={abono.id} className="hover:bg-secondary/20 transition-colors">
-                        <td className="p-4 font-mono text-xs text-muted-foreground">{abono.id}</td>
-                        <td className="p-4 text-muted-foreground">{formatearFecha(abono.creado)}</td>
-                        <td className="p-4 font-medium text-foreground">{formatearFecha(abono.inicio)}</td>
-                        <td className="p-4 font-medium text-foreground">{formatearFecha(abono.vencimiento)}</td>
-                        <td className="p-4 font-medium text-foreground">{abono.abono}</td>
-                        <td className="p-4 text-center text-muted-foreground">{abono.turnos}</td>
-                        <td className="p-4 text-center font-mono text-xs text-muted-foreground">{abono.ajuste || 0}</td>
-                        <td className="p-4 text-center text-muted-foreground">{abono.usados || 0}</td>
-                        <td className="p-4 text-center font-semibold text-green-500">{abono.disponibles}</td>
-                        <td className="p-4 text-center">
-                          <Badge variant="outline" className={`font-medium text-[10px] rounded px-2 py-0.5 tracking-wider ${abono.estado === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
-                            {abono.estado}
-                          </Badge>
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md" 
-                                onClick={() => {
-                                  // Aseguramos que el ID real viaje dentro del abono que va al formulario
-                                  const idRealParaEditar = abono.idAbono || abono.id_abono || abono.id;
-                                  abrirAbonoDialog("editar", { ...abono, id: idRealParaEditar });
-                                }}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                            {abono.estado !== 'CANCELADO' && (
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md" 
-                                onClick={() => {
-                                  // 🚀 CAPTURA DIRECTA: Forzamos el ID real de la fila antes de abrir el modal
-                                  const idRealParaCancelar = abono.idAbono || abono.id_abono || abono.id;
-                                  abrirAbonoDialog("cancelar", { ...abono, id: idRealParaCancelar });
-                                }}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr><td colSpan="11" className="p-8 text-center text-muted-foreground text-xs">No se registran abonos vigentes ni históricos cargados.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+            <button onClick={() => abrirAbonoDialog("cargar")} className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2">
+              <Plus className="h-4 w-4" /> Cargar Abono
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1000px]">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground w-12">#</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Creado</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Inicio</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vencimiento</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan / Item</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Turnos</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ajuste</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usados</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Disponibles</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground w-28">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {cargandoAbonos ? (
+                  <tr><td colSpan="11" className="p-8 text-center text-foreground/40 animate-pulse">Sincronizando grilla de abonos...</td></tr>
+                ) : abonos.length > 0 ? (
+                  abonos.map((abono) => (
+                    <tr key={abono.id} className="hover:bg-foreground/3 transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{abono.id}</td>
+                      <td className="px-4 py-3 text-foreground/40">{formatearFecha(abono.creado)}</td>
+                      <td className="px-4 py-3 font-semibold text-foreground">{formatearFecha(abono.inicio)}</td>
+                      <td className="px-4 py-3 font-semibold text-foreground">{formatearFecha(abono.vencimiento)}</td>
+                      <td className="px-4 py-3 font-semibold text-foreground">{abono.abono}</td>
+                      <td className="px-4 py-3 text-center text-foreground/40">{abono.turnos}</td>
+                      <td className="px-4 py-3 text-center font-mono text-xs text-foreground/40">{abono.ajuste || 0}</td>
+                      <td className="px-4 py-3 text-center text-foreground/40">{abono.usados || 0}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-lime-400">{abono.disponibles}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${abono.estado === 'CANCELADO' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-lime-400/10 text-lime-400 border-lime-400/20'}`}>
+                          {abono.estado}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            className="p-1.5 text-foreground/40 hover:text-foreground transition-colors"
+                            onClick={() => {
+                              // Aseguramos que el ID real viaje dentro del abono que va al formulario
+                              const idRealParaEditar = abono.idAbono || abono.id_abono || abono.id;
+                              abrirAbonoDialog("editar", { ...abono, id: idRealParaEditar });
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          {abono.estado !== 'CANCELADO' && (
+                            <button
+                              className="p-1.5 text-foreground/40 hover:text-red-400 transition-colors"
+                              onClick={() => {
+                                // 🚀 CAPTURA DIRECTA: Forzamos el ID real de la fila antes de abrir el modal
+                                const idRealParaCancelar = abono.idAbono || abono.id_abono || abono.id;
+                                abrirAbonoDialog("cancelar", { ...abono, id: idRealParaCancelar });
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr><td colSpan="11" className="p-8 text-center text-foreground/40 text-xs">No se registran abonos vigentes ni históricos cargados.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* PAGOS CONTABLES */}
       {vistaActiva === "pagos" && (
-        <Card className="bg-card border-border shadow-sm">
-          <CardHeader className="p-0 border-b border-border">
-            <div className="grid grid-cols-3 text-center border-b border-border font-medium text-xs uppercase">
-              <button onClick={() => setCobrarCCDialog(true)} className="p-3 bg-[#1e293b] text-teal-400 hover:bg-[#334155] border-r border-border font-semibold tracking-wider transition-colors">Cobrar Cuenta Corriente</button>
-
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[1000px]">
-                <thead>
-                  <tr className="bg-secondary/30 text-muted-foreground font-medium text-xs tracking-wider uppercase border-b border-border">
-                    <th className="p-4 text-left">Venta #</th>
-                    <th className="p-4 text-left">Fecha</th>
-                    <th className="p-4 text-left">Tipo</th>
-                    <th className="p-4 text-left">Operador</th>
-                    <th className="p-4 text-left">Item</th>
-                    <th className="p-4 text-right">P. Venta</th>
-                    <th className="p-4 text-right">Efectivo</th>
-                    <th className="p-4 text-right">Otros</th>
-                    <th className="p-4 text-right">C. Corriente</th>
-                    <th className="p-4 text-center">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border font-medium">
-                    {abonos.length > 0 ? (
-                      abonos.map((abono) => {
-                        const esTarjeta = abono.ajuste > 0; 
-                        return (
-                          <tr key={`pago-${abono.id}`} className="hover:bg-secondary/20 transition-colors text-xs text-foreground/90">
-                            <td className="p-4 font-mono text-muted-foreground">{1300000 + Number(abono.id)}</td>
-                            <td className="p-4 text-muted-foreground">{formatearFecha(abono.creado)}</td>
-                            <td className="p-4">Abono</td>
-                            <td className="p-4 text-muted-foreground uppercase">{abono.operadorReal || "-"}</td>
-                            <td className="p-4">-</td>
-                            <td className="p-4 font-semibold text-foreground">{abono.abono}</td>
-                            <td className="p-4 text-right font-mono">${(abono.turnos * 1800).toLocaleString("es-AR")}</td>
-                            <td className="p-4 text-right font-mono text-green-500">${!esTarjeta ? (abono.turnos * 1800).toLocaleString("es-AR") : 0}</td>
-                            <td className="p-4 text-right font-mono text-teal-400">${esTarjeta ? (abono.turnos * 1800).toLocaleString("es-AR") : 0}</td>
-                            <td className="p-4 text-right font-mono text-red-400">$0</td>
-                            <td className="p-4 text-center">
-                              <Badge variant="outline" className={`font-medium text-[10px] rounded px-2 py-0.5 uppercase tracking-wider ${abono.estado === 'CANCELADO' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-500 border-green-500/20'}`}>
-                                {abono.estado}
-                              </Badge>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr><td colSpan="11" className="p-8 text-center text-muted-foreground text-xs">No se registran transacciones contables.</td></tr>
-                    )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border border-border bg-card">
+          <div className="border-b border-border">
+            <button onClick={() => setCobrarCCDialog(true)} className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-teal-400 hover:text-teal-300 transition-colors border-r border-border">
+              Cobrar Cuenta Corriente
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1000px]">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Venta #</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tipo</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Operador</th>
+                  <th className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Item</th>
+                  <th className="px-4 py-2.5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">P. Venta</th>
+                  <th className="px-4 py-2.5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Efectivo</th>
+                  <th className="px-4 py-2.5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Otros</th>
+                  <th className="px-4 py-2.5 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">C. Corriente</th>
+                  <th className="px-4 py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border font-medium">
+                {abonos.length > 0 ? (
+                  abonos.map((abono) => {
+                    const esTarjeta = abono.ajuste > 0;
+                    return (
+                      <tr key={`pago-${abono.id}`} className="hover:bg-foreground/3 transition-colors text-xs">
+                        <td className="px-4 py-3 font-mono text-foreground/40">{1300000 + Number(abono.id)}</td>
+                        <td className="px-4 py-3 text-foreground/40">{formatearFecha(abono.creado)}</td>
+                        <td className="px-4 py-3 text-foreground">Abono</td>
+                        <td className="px-4 py-3 text-foreground/40 uppercase">{abono.operadorReal || "-"}</td>
+                        <td className="px-4 py-3 text-foreground">-</td>
+                        <td className="px-4 py-3 font-semibold text-foreground">{abono.abono}</td>
+                        <td className="px-4 py-3 text-right font-mono text-foreground">${(abono.turnos * 1800).toLocaleString("es-AR")}</td>
+                        <td className="px-4 py-3 text-right font-mono text-lime-400">${!esTarjeta ? (abono.turnos * 1800).toLocaleString("es-AR") : 0}</td>
+                        <td className="px-4 py-3 text-right font-mono text-teal-400">${esTarjeta ? (abono.turnos * 1800).toLocaleString("es-AR") : 0}</td>
+                        <td className="px-4 py-3 text-right font-mono text-red-400">$0</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${abono.estado === 'CANCELADO' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-lime-400/10 text-lime-400 border-lime-400/20'}`}>
+                            {abono.estado}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr><td colSpan="11" className="p-8 text-center text-foreground/40 text-xs">No se registran transacciones contables.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* MODAL GESTIÓN DE ABONO */}
@@ -836,7 +864,7 @@ export default function DetalleUsuarioPage() {
 
           <DialogFooter className="mt-6 border-t border-border pt-4 flex sm:justify-end gap-3 shrink-0">
             <Button variant="outline" size="sm" onClick={cerrarAbonoDialog} className="font-medium text-xs bg-transparent border-border hover:bg-secondary text-foreground px-5 h-9 rounded uppercase">Cerrar</Button>
-            <Button onClick={handleConfirmarAbono} size="sm" disabled={isActionLoading} className={`font-medium text-xs px-5 h-9 rounded uppercase tracking-wider transition-colors shadow-sm text-white ${abonoDialog.tipo === "cancelar" ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"}`}>
+            <Button onClick={handleConfirmarAbono} size="sm" disabled={isActionLoading} className={`font-medium text-xs px-5 h-9 rounded uppercase tracking-wider transition-colors shadow-sm text-foreground ${abonoDialog.tipo === "cancelar" ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"}`}>
               {isActionLoading && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
               {abonoDialog.tipo === "cargar" && "CARGAR ABONO"}
               {abonoDialog.tipo === "editar" && "Guardar Cambios"}
@@ -854,7 +882,7 @@ export default function DetalleUsuarioPage() {
             <div className="flex items-center"><span className="text-xs font-semibold uppercase text-muted-foreground w-36 shrink-0">Importe Efectivo:</span><input type="number" value={formCobrarCC.efectivo} onChange={(e) => setFormCobrarCC(prev => ({ ...prev, efectivo: Number(e.target.value) }))} className="flex-1 bg-[#2c2c2e] border border-border rounded p-2 text-foreground font-mono text-xs outline-none" /></div>
             <div className="flex items-center"><select value={formCobrarCC.tipoTarjeta} onChange={(e) => setFormCobrarCC(prev => ({ ...prev, tipoTarjeta: e.target.value }))} className="text-xs font-semibold uppercase text-foreground bg-[#2c2c2e] border border-border rounded p-2 w-36 shrink-0 mr-4 outline-none"><option>Tarjeta</option></select><input type="number" value={formCobrarCC.tarjeta} onChange={(e) => setFormCobrarCC(prev => ({ ...prev, tarjeta: Number(e.target.value) }))} className="flex-1 bg-[#2c2c2e] border border-border rounded p-2 text-foreground font-mono text-xs outline-none" /></div>
           </div>
-          <DialogFooter className="border-t border-border/60 pt-4 gap-2"><Button variant="outline" size="sm" onClick={() => setCobrarCCDialog(false)} className="uppercase text-xs px-4 h-9">Cerrar</Button><Button onClick={handleCobrarCC} size="sm" className="bg-green-600 hover:bg-green-700 text-white uppercase text-xs px-4 h-9 font-medium tracking-wide">Cargar Abono</Button></DialogFooter>
+          <DialogFooter className="border-t border-border/60 pt-4 gap-2"><Button variant="outline" size="sm" onClick={() => setCobrarCCDialog(false)} className="uppercase text-xs px-4 h-9">Cerrar</Button><Button onClick={handleCobrarCC} size="sm" className="bg-green-600 hover:bg-green-700 text-foreground uppercase text-xs px-4 h-9 font-medium tracking-wide">Cargar Abono</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -866,7 +894,7 @@ export default function DetalleUsuarioPage() {
             <div className="flex items-center"><span className="text-xs font-semibold uppercase text-muted-foreground w-32 shrink-0">Importe Ajuste:</span><input type="number" value={formAjusteCC.importe} onChange={(e) => setFormAjusteCC(prev => ({ ...prev, importe: Number(e.target.value) }))} className="flex-1 bg-[#2c2c2e] border border-border rounded p-2 text-foreground font-mono text-xs outline-none" /></div>
             <div className="flex items-start"><span className="text-xs font-semibold uppercase text-muted-foreground w-32 shrink-0 mt-2">Aclaración:</span><textarea value={formAjusteCC.aclaracion} onChange={(e) => setFormAjusteCC(prev => ({ ...prev, aclaracion: e.target.value }))} placeholder="Indique el motivo del ajuste contable..." className="flex-1 bg-[#2c2c2e] border border-border rounded p-2 text-xs text-foreground outline-none h-20 resize-none" /></div>
           </div>
-          <DialogFooter className="border-t border-border/60 pt-4 gap-2"><Button variant="outline" size="sm" onClick={() => setAjusteCCDialog(false)} className="uppercase text-xs px-4 h-9">Cerrar</Button><Button onClick={handleAjustarCC} size="sm" className="bg-green-600 hover:bg-green-700 text-white uppercase text-xs px-4 h-9 font-medium tracking-wide">Cargar Abono</Button></DialogFooter>
+          <DialogFooter className="border-t border-border/60 pt-4 gap-2"><Button variant="outline" size="sm" onClick={() => setAjusteCCDialog(false)} className="uppercase text-xs px-4 h-9">Cerrar</Button><Button onClick={handleAjustarCC} size="sm" className="bg-green-600 hover:bg-green-700 text-foreground uppercase text-xs px-4 h-9 font-medium tracking-wide">Cargar Abono</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 

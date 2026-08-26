@@ -7,17 +7,22 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
   User,
   Dumbbell,
   Shield,
-  ClipboardCheck
+  ClipboardCheck,
+  Clock,
+  Phone,
+  Mail,
+  AtSign
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
-import { ModeToggle } from "@/components/ModeToggle";
+import { ModeToggle } from "@/components/ModeToggle"
+import { GymLoader } from '@/components/GymLoader'
+import UserMenu from '@/components/UserMenu'
+import NotificacionesBell from '@/components/NotificacionesBell'
 
 const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
@@ -55,8 +60,32 @@ function LandingPage() {
   const [tituloFont, setTituloFont] = useState(null)
   const [logoTs, setLogoTs] = useState(Date.now())
 
+  // Nosotros
+  const [tituloNosotros, setTituloNosotros] = useState('')
+  const [descripcionNosotros, setDescripcionNosotros] = useState('')
+  const [mision, setMision] = useState('')
+  const [imagenNosotros, setImagenNosotros] = useState('/gym-interior.jpg')
+
+  // Clases cards
+  const [claseCards, setClaseCards] = useState([
+    { titulo: 'FUNCIONAL', descripcion: 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.', duration: '60 MIN', level: 'TODOS', image: '/hero-crossfit.jpg' },
+    { titulo: 'WOD INTENSIVO', descripcion: 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.', duration: '45 MIN', level: 'INT/AVZ', image: '/wod-training.jpg' },
+    { titulo: 'OPEN BOX', descripcion: 'Espacio libre para entrenar a tu ritmo con acceso a todo el equipamiento.', duration: '90 MIN', level: 'TODOS', image: '/gym-interior.jpg' },
+  ])
+
+  // Contacto
+  const [direccion, setDireccion] = useState('Eva Perón 552')
+  const [telefono, setTelefono] = useState('')
+  const [emailContacto, setEmailContacto] = useState('')
+  const [instagram, setInstagram] = useState('')
+  const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
+  const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
+  const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
+  const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
+
   const useVectorLogo = !logoUrl || logoUrl.includes('logo-box-bravos-final.png')
 
+  const [pageLoading, setPageLoading] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('avatarUrl') || '')
   
@@ -135,18 +164,45 @@ function LandingPage() {
         }
         if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
         if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
-        
+
         if (data?.heroImages) {
           const imagenesBackend = Object.values(data.heroImages).filter(Boolean)
           if (imagenesBackend.length > 0) {
             setHeroImages(imagenesBackend)
-            // 🟢 CORREGIDO: Quitamos el return interruptor para que continúe la carga
           }
         }
+
+        // Nosotros
+        if (data?.tituloNosotros) setTituloNosotros(data.tituloNosotros)
+        if (data?.descripcionNosotros) setDescripcionNosotros(data.descripcionNosotros)
+        if (data?.mision) setMision(data.mision)
+
+        // Nosotros imagen
+        if (data?.imagenNosotros) setImagenNosotros(data.imagenNosotros)
+
+        // Clases cards
+        setClaseCards([
+          { titulo: data?.claseCard1Titulo || 'FUNCIONAL', descripcion: data?.claseCard1Descripcion || 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.', duration: '60 MIN', level: 'TODOS', image: data?.imagenClase1 || '/hero-crossfit.jpg' },
+          { titulo: data?.claseCard2Titulo || 'WOD INTENSIVO', descripcion: data?.claseCard2Descripcion || 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.', duration: '45 MIN', level: 'INT/AVZ', image: data?.imagenClase2 || '/wod-training.jpg' },
+          { titulo: data?.claseCard3Titulo || 'OPEN BOX', descripcion: data?.claseCard3Descripcion || 'Espacio libre para entrenar a tu ritmo con acceso a todo el equipamiento.', duration: '90 MIN', level: 'TODOS', image: data?.imagenClase3 || '/gym-interior.jpg' },
+        ])
+
+        // Contacto
+        if (data?.direccion) setDireccion(data.direccion)
+        if (data?.telefono) setTelefono(data.telefono)
+        if (data?.email) setEmailContacto(data.email)
+        if (data?.instagram) setInstagram(data.instagram)
+        if (data?.horario_semana) setHorarioSemana(data.horario_semana)
+        if (data?.horario_sabado) setHorarioSabado(data.horario_sabado)
+        if (data?.horario_domingo) setHorarioDomingo(data.horario_domingo)
+        if (data?.mapaUrl) setMapaUrl(data.mapaUrl)
       })
       .catch((err) => {
         console.error('Error al cargar config desde el admin:', err)
         if (isMounted) setHeroImages(defaultHeroImages)
+      })
+      .finally(() => {
+        if (isMounted) setPageLoading(false)
       })
     fetch("http://localhost:3001/api/vv1/clases/disponibles")
       .then((res) => res.json())
@@ -217,13 +273,21 @@ function LandingPage() {
     
     .sort((a, b) => (a.horaInicio || "").localeCompare(b.horaInicio || ""));
 
+  if (pageLoading) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
+        <GymLoader text="Cargando..." />
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-black text-white selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen overflow-x-hidden bg-black text-foreground selection:bg-emerald-500 selection:text-black">
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="border-b border-white/10 bg-black/90 backdrop-blur-md">
+        <div className="bg-black/95 backdrop-blur-md border-b-2 border-lime-400/80">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
-              
+
               <Link to="/" className="flex items-center">
                 {useVectorLogo ? (
                   <LogoBoxBravos className="block h-auto w-auto max-h-[60px] max-w-[180px]" width={180} height={52} />
@@ -236,9 +300,10 @@ function LandingPage() {
                 )}
               </Link>
 
-              <nav className="hidden items-center gap-1 lg:flex">
-                <Link to="/" className="px-4 py-2 text-sm font-semibold tracking-wide text-white/80 transition-colors hover:text-white">
+              <nav className="hidden items-center gap-0 lg:flex">
+                <Link to="/" className="group relative px-4 py-5 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-white">
                   INICIO
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
                 </Link>
 
                 {navigation.filter(item => item.name !== 'INICIO').map((item) => (
@@ -248,15 +313,16 @@ function LandingPage() {
                     onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <a href={item.href} className="flex items-center gap-1 px-4 py-2 text-sm font-semibold tracking-wide text-white/80 transition-colors hover:text-white">
+                    <a href={item.href} className="group relative flex items-center gap-1 px-4 py-5 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-white">
                       {item.name}
-                      {item.hasDropdown && <ChevronDown className="h-4 w-4" />}
+                      {item.hasDropdown && <ChevronDown className="h-3.5 w-3.5" />}
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
                     </a>
 
                     {item.hasDropdown && activeDropdown === item.name && (
-                      <div className="absolute top-full left-0 w-48 border border-white/10 bg-black shadow-xl">
+                      <div className="absolute top-full left-0 w-48 border border-lime-400/20 border-t-2 border-t-lime-400 bg-black shadow-xl shadow-black/50">
                         {item.items?.map((subItem) => (
-                          <a key={subItem.name} href={subItem.href} className="block px-4 py-3 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white">
+                          <a key={subItem.name} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-400">
                             {subItem.name}
                           </a>
                         ))}
@@ -273,111 +339,51 @@ function LandingPage() {
                 {!isLoggedIn ? (
                   <>
                     <Link to="/login">
-                      <Button variant="ghost" className="text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white">
+                      <Button variant="ghost" className="text-xs font-black tracking-widest text-foreground/70 hover:bg-foreground/5 hover:text-white">
                         INGRESAR
                       </Button>
                     </Link>
                     <Link to="/registro">
-                      <Button className="bg-accent px-6 text-sm font-bold text-accent-foreground hover:bg-accent/90">
+                      <Button className="bg-lime-400 px-6 text-xs font-black tracking-widest text-black hover:bg-lime-300 transition-colors">
                         UNIRSE
                       </Button>
                     </Link>
                   </>
                 ) : (
                   <div className="flex items-center gap-4 relative">
-                    <button className="relative p-2 text-white/80 hover:text-white transition-colors">
-                      <Bell className="h-5 w-5" />
-                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
-                        3
-                      </span>
-                    </button>
+                    <NotificacionesBell />
 
                     <div className="relative">
                       <button 
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                         className="flex items-center gap-1 focus:outline-none"
                       >
-                        <Avatar className="h-9 w-9 border border-green-600 bg-green-700 text-white">
-                            <AvatarImage src={avatarUrl || null} alt={userData.nombrecompleto} />
-                            <AvatarFallback className="bg-green-700 text-sm font-bold text-white tracking-wider uppercase">
-                              {getIniciales(userData.nombrecompleto)}
-                            </AvatarFallback>
-                          </Avatar>
-                        <ChevronDown className="h-4 w-4 text-white/60" />
+                        <div className="h-9 w-9 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
+                          {avatarUrl
+                            ? <img src={avatarUrl} alt={userData.nombrecompleto} className="h-full w-full object-cover" />
+                            : getIniciales(userData.nombrecompleto)
+                          }
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-foreground/60" />
                       </button>
 
-                      {userMenuOpen && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                          <div className="absolute right-0 mt-3 w-64 rounded-md border border-zinc-800 bg-[#0c0c0e] shadow-2xl z-50 overflow-hidden">
-                            <div className="border-b border-zinc-800 p-4">
-                              <p className="text-sm font-bold text-white capitalize">{userData.nombrecompleto}</p>
-                              <p className="text-xs text-zinc-400 truncate mt-0.5">{userData.correo}</p>
-                            </div>
-
-                            <div className="p-1">
-                              <Link
-                                to="/perfil"
-                                onClick={() => setUserMenuOpen(false)}
-                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
-                              >
-                                <User className="h-4 w-4 text-zinc-400" />
-                                <span>Mi Perfil</span>
-                              </Link>
-
-                              {tieneModulosAdmin && puedeAccederPanel && (
-                                <Link
-                                  to="/admin"
-                                  onClick={() => setUserMenuOpen(false)}
-                                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
-                                >
-                                  <Shield className="h-4 w-4 text-zinc-400" />
-                                  <span>Panel de Control</span>
-                                </Link>
-                              )}
-                              
-                              {tieneModulosAlumno && puedeAccederPanel && (
-                                <Link
-                                  to="/alumno"
-                                  onClick={() => setUserMenuOpen(false)}
-                                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
-                                >
-                                  <Dumbbell className="h-4 w-4 text-zinc-400" />
-                                  <span>Panel de Alumno</span>
-                                </Link>
-                              )}
-
-                              {tieneModulosProfesor && puedeAccederPanel && (
-                                <Link
-                                  to="/profesor"
-                                  onClick={() => setUserMenuOpen(false)}
-                                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
-                                >
-                                  <ClipboardCheck className="h-4 w-4 text-zinc-400" />
-                                  <span>Panel de Profesor</span>
-                                </Link>
-                              )}
-
-                              <button
-                                onClick={() => {
-                                  setUserMenuOpen(false)
-                                  handleLogout()
-                                }}
-                                className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm text-red-500 hover:bg-red-950/20 transition-colors border-t border-zinc-800/60"
-                              >
-                                <LogOut className="h-4 w-4 text-red-500" />
-                                <span className="font-medium">Cerrar Sesión</span>
-                              </button>
-                            </div>
-                          </div>
-                        </>
-                      )}
+                      <UserMenu
+                        userData={userData}
+                        avatarUrl={avatarUrl}
+                        userMenuOpen={userMenuOpen}
+                        setUserMenuOpen={setUserMenuOpen}
+                        handleLogout={handleLogout}
+                        tieneModulosAdmin={tieneModulosAdmin}
+                        tieneModulosAlumno={tieneModulosAlumno}
+                        tieneModulosProfesor={tieneModulosProfesor}
+                        puedeAccederPanel={puedeAccederPanel}
+                      />
                     </div>
                   </div>
                 )}
               </div>
 
-              <button type="button" className="p-2 text-white lg:hidden" onClick={() => setMobileMenuOpen((previous) => !previous)}>
+              <button type="button" className="p-2 text-foreground lg:hidden" onClick={() => setMobileMenuOpen((previous) => !previous)}>
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
             </div>
@@ -385,7 +391,7 @@ function LandingPage() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="border-b border-white/10 bg-black lg:hidden">
+          <div className="border-b border-border bg-black lg:hidden">
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col gap-1">
                 {navigation.map((item) => (
@@ -395,9 +401,9 @@ function LandingPage() {
                       {item.hasDropdown && <ChevronDown className="h-4 w-4" />}
                     </a>
                     {item.hasDropdown && (
-                      <div className="ml-2 border-l border-white/10 pl-4">
+                      <div className="ml-2 border-l border-border pl-4">
                         {item.items?.map((subItem) => (
-                          <a key={subItem.name} href={subItem.href} className="block py-2 text-sm text-white/60 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
+                          <a key={subItem.name} href={subItem.href} className="block py-2 text-sm text-foreground/60 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
                             {subItem.name}
                           </a>
                         ))}
@@ -406,11 +412,11 @@ function LandingPage() {
                   </div>
                 ))}
 
-                <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
                   {!isLoggedIn ? (
                     <>
                       <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
+                        <Button variant="outline" className="w-full border-white/30 text-foreground hover:bg-white/10">
                           INGRESAR
                         </Button>
                       </Link>
@@ -423,24 +429,24 @@ function LandingPage() {
                   ) : (
                     <>
                       {tieneModulosAdmin && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-zinc-800 text-white hover:bg-white/5">
-                          <Shield className="h-4 w-4 text-zinc-400" />
+                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-foreground hover:bg-foreground/5">
+                          <Shield className="h-4 w-4 text-muted-foreground" />
                           PANEL DE CONTROL
                         </Button>
                       )}
                       {tieneModulosAlumno && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/alumno'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-zinc-800 text-emerald-400 hover:bg-white/5">
+                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/alumno'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-emerald-400 hover:bg-foreground/5">
                           <Dumbbell className="h-4 w-4 text-emerald-400" />
                           PANEL DE ALUMNO
                         </Button>
                       )}
                       {tieneModulosProfesor && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/profesor'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-zinc-800 text-violet-400 hover:bg-white/5">
+                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/profesor'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-violet-400 hover:bg-foreground/5">
                           <ClipboardCheck className="h-4 w-4 text-violet-400" />
                           PANEL DE PROFESOR
                         </Button>
                       )}
-                      <Button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} variant="destructive" className="w-full flex items-center justify-center gap-2 font-bold bg-red-600 hover:bg-red-700 text-white">
+                      <Button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} variant="destructive" className="w-full flex items-center justify-center gap-2 font-bold bg-red-600 hover:bg-red-700 text-foreground">
                         <LogOut className="h-4 w-4" />
                         CERRAR SESIÓN
                       </Button>
@@ -454,7 +460,7 @@ function LandingPage() {
       </header>
 
       {/* 🟢 SECCIÓN HERO - RECUPERADA CON TU FORMATO NATIVO DE CAPAS EXPANSIVAS */}
-      <section className="relative flex min-h-screen items-end pb-16 sm:pb-24">
+      <section className="relative flex min-h-screen items-end pb-8 sm:pb-12">
         {heroImages.map((imageSource, index) => (
           <div key={imageSource} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
             <img src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover" loading={index === 0 ? 'eager' : 'lazy'} />
@@ -469,47 +475,49 @@ function LandingPage() {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-4 flex items-center gap-2 text-sm text-white/60">
-            <span>Argentina</span>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-white/80">Formosa Capital</span>
-          </div>
+          <div className="flex flex-col items-start gap-2">
 
-         <div className="mb-6 flex w-full max-w-[620px] flex-col items-start">
-            {/* Contenedor del Logo optimizado: removidos los desbordamientos y alturas fijas gigantes */}
-            <div className="flex w-full justify-start overflow-visible py-2 sm:py-3">
-              <div className="flex h-16 w-auto items-center justify-start sm:h-20 md:h-24">
-                {useVectorLogo ? (
-                  <LogoBoxBravos className="h-full w-auto object-contain" width={280} height={80} />
-                ) : (
-                  <img 
-                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`} 
-                    alt="Box Bravos" 
-                    className="h-full w-auto object-contain object-left" 
-                  />
-                )}
-              </div>
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1.5 text-xs text-foreground/50">
+              <span>Argentina</span>
+              <ChevronRight className="h-3 w-3" />
+              <span className="text-foreground/70">Formosa Capital</span>
             </div>
-          
-            <p 
-              className="pt-4 text-xl font-black tracking-wide text-white sm:text-2xl md:text-3xl" 
-              style={{ fontSize: tituloSize ? `${tituloSize}px` : undefined, fontFamily: tituloFont || undefined, textAlign: 'left' }}
+
+            {/* Logo */}
+            <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[9px]">
+              {useVectorLogo ? (
+                <LogoBoxBravos className="h-full w-auto object-contain" width={280} height={80} />
+              ) : (
+                <img
+                  src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                  alt="Box Bravos"
+                  className="h-full w-auto object-contain object-left"
+                />
+              )}
+            </div>
+
+            {/* Título */}
+            <p
+              className="text-xl font-black tracking-wide text-foreground sm:text-2xl md:text-3xl"
+              style={{ fontSize: tituloSize ? `${tituloSize}px` : undefined, fontFamily: tituloFont || undefined }}
             >
               {titulo}
             </p>
-          </div>
 
-          <button className="group mt-8 flex items-center gap-2 text-sm font-semibold text-white/80 transition-colors hover:text-white">
-            <span>MÁS INFO</span>
-            <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
-          </button>
+            {/* MÁS INFO */}
+            <button className="group mt-3 flex items-center gap-2 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400">
+              <span>MÁS INFO</span>
+              <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
+            </button>
+          </div>
         </div>
       </section>
 
       {/* SECCIÓN FRASE MOTIVACIONAL */}
-      <section className="bg-black py-20 md:py-32">
+      <section className="bg-black py-12 md:py-16">
         <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
-          <blockquote className="text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
+          <blockquote className="text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
             {'"EL ÚNICO ENTRENAMIENTO MALO'} <br />
             <span className="text-accent">{'ES EL QUE NO HICISTE"'}</span>
           </blockquote>
@@ -517,21 +525,32 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN SOBRE NOSOTROS */}
-      <section id="nosotros" className="relative py-20 md:py-32">
+      <section id="nosotros" className="relative py-10 md:py-12">
         <div className="absolute inset-0">
-          <img src="/gym-interior.jpg" alt="Interior del Box" className="h-full w-full object-cover" />
+          <img src={imagenNosotros} alt="Interior del Box" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/80" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">SOBRE <span className="text-accent">NOSOTROS</span></h2>
-            <p className="mt-6 text-lg leading-relaxed text-white/70">Somos más que un gimnasio. Somos una comunidad de atletas comprometidos con la excelencia. Desde 2019, hemos ayudado a cientos de personas a transformar sus vidas a través del entrenamiento funcional.</p>
-            <p className="mt-4 text-lg leading-relaxed text-white/70">Nuestro Box cuenta con equipamiento Rogue Fitness de primera línea y coaches certificados que te guiarán en cada paso de tu transformación.</p>
+            <h2 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">
+              {tituloNosotros
+                ? <>{tituloNosotros.toUpperCase()}</>
+                : <>SOBRE <span className="text-accent">NOSOTROS</span></>
+              }
+            </h2>
+            {descripcionNosotros
+              ? <p className="mt-6 text-lg leading-relaxed text-foreground/70">{descripcionNosotros}</p>
+              : <p className="mt-6 text-lg leading-relaxed text-foreground/70">Somos más que un gimnasio. Somos una comunidad de atletas comprometidos con la excelencia. Desde 2019, hemos ayudado a cientos de personas a transformar sus vidas a través del entrenamiento funcional.</p>
+            }
+            {mision
+              ? <p className="mt-4 text-lg leading-relaxed text-foreground/70">{mision}</p>
+              : <p className="mt-4 text-lg leading-relaxed text-foreground/70">Nuestro Box cuenta con equipamiento Rogue Fitness de primera línea y coaches certificados que te guiarán en cada paso de tu transformación.</p>
+            }
             <div className="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-4">
               {[{ value: '500+', label: 'ATLETAS' }, { value: '15', label: 'COACHES' }, { value: '50+', label: 'CLASES/SEM' }, { value: '5', label: 'AÑOS' }].map((stat) => (
                 <div key={stat.label}>
                   <div className="text-3xl font-black text-accent sm:text-4xl">{stat.value}</div>
-                  <div className="mt-1 text-xs font-semibold tracking-wider text-white/50 sm:text-sm">{stat.label}</div>
+                  <div className="mt-1 text-xs font-semibold tracking-wider text-foreground/50 sm:text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -540,22 +559,20 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN CLASES */}
-      <section id="clases" className="bg-zinc-950 py-20 md:py-32">
+      <section id="clases" className="bg-zinc-950 py-12 md:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
+          <h2 className="mb-12 text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {[{ name: 'FUNCIONAL', image: '/hero-crossfit.jpg', description: 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.', duration: '60 MIN', level: 'TODOS' },
-              { name: 'WOD INTENSIVO', image: '/wod-training.jpg', description: 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.', duration: '45 MIN', level: 'INT/AVZ' },
-              { name: 'OPEN BOX', image: '/gym-interior.jpg', description: 'Espacio libre para entrenar a tu ritmo con acceso a todo el equipamiento.', duration: '90 MIN', level: 'TODOS' }].map((clase) => (
-              <div key={clase.name} className="group relative aspect-[4/5] cursor-pointer overflow-hidden">
-                <img src={clase.image} alt={clase.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            {claseCards.map((clase, idx) => (
+              <div key={idx} className="group relative aspect-[4/5] cursor-pointer overflow-hidden">
+                <img src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">
-                  <h3 className="text-2xl font-black text-white">{clase.name}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-white/70">{clase.description}</p>
+                  <h3 className="text-2xl font-black text-foreground">{clase.titulo.toUpperCase()}</h3>
+                  <p className="mt-2 line-clamp-2 text-sm text-foreground/70">{clase.descripcion}</p>
                   <div className="mt-4 flex items-center gap-4 text-xs font-semibold">
                     <span className="bg-accent px-2 py-1 text-accent-foreground">{clase.duration}</span>
-                    <span className="text-white/60">{clase.level}</span>
+                    <span className="text-foreground/60">{clase.level}</span>
                   </div>
                 </div>
               </div>
@@ -565,14 +582,14 @@ function LandingPage() {
       </section>
 
       {/* 🟢 SECCIÓN HORARIOS: 100% SCONECTADA Y FUNCIONANDO EN PARALELO */}
-      <section id="horarios" className="relative py-20 md:py-32">
+      <section id="horarios" className="relative py-12 md:py-16">
         <div className="absolute inset-0">
           <img src="/landing-hero-2.jpg" alt="Training" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-black/90" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
-          <p className="mb-10 max-w-2xl text-white/60">Contamos con clases de lunes a sábado. Elige el horario que mejor se adapte a tu rutina.</p>
+          <h2 className="mb-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
+          <p className="mb-10 max-w-2xl text-foreground/60">Contamos con clases de lunes a sábado. Elige el horario que mejor se adapte a tu rutina.</p>
           
           <div className="mb-8 flex flex-wrap gap-2">
             {diasSemanaMapeo.map((day) => (
@@ -583,7 +600,7 @@ function LandingPage() {
                 className={`px-4 py-2 text-sm font-bold tracking-wide transition-all border ${
                   diaSeleccionado === day.value
                     ? "bg-white text-black border-white"
-                    : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white"
+                    : "bg-foreground/5 text-foreground/70 border-border hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {day.label}
@@ -592,23 +609,23 @@ function LandingPage() {
           </div>
 
           {loadingHorarios ? (
-            <p className="text-sm text-white/40 animate-pulse">Sincronizando grilla de disciplinas...</p>
+            <p className="text-sm text-foreground/40 animate-pulse">Sincronizando grilla de disciplinas...</p>
           ) : clasesVisibles.length === 0 ? (
-            <div className="border border-white/5 bg-white/5 rounded-md p-6 text-center">
-              <p className="text-sm text-white/40">No hay turnos programados para los días {diaSeleccionado.toLowerCase()}.</p>
+            <div className="border border-white/5 bg-foreground/5 rounded-md p-6 text-center">
+              <p className="text-sm text-foreground/40">No hay turnos programados para los días {diaSeleccionado.toLowerCase()}.</p>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {clasesVisibles.map((item) => (
-                <div key={item.idHorario} className="border border-white/10 bg-white/5 p-4 transition-colors hover:bg-white/10">
+                <div key={item.idHorario} className="border border-border bg-foreground/5 p-4 transition-colors hover:bg-white/10">
                   <div className="text-lg font-bold text-accent">
                     {item.horaInicio ? item.horaInicio.slice(0, 5) : "00:00"} - {item.horaFin ? item.horaFin.slice(0, 5) : "00:00"} Hs
                   </div>
-                  <div className="mt-1 font-bold text-white uppercase">{item.nombreClase || "Clase"}</div>
+                  <div className="mt-1 font-bold text-foreground uppercase">{item.nombreClase || "Clase"}</div>
                   
                   {/* 🟢 Renderiza únicamente el nombre del profesor puro si existe en la base de datos */}
                   {item.nombreProfesor && (
-                    <div className="mt-1 text-sm text-white/50">
+                    <div className="mt-1 text-sm text-foreground/50">
                       {item.nombreProfesor}
                     </div>
                   )}
@@ -620,44 +637,85 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN CONTACTO */}
-      <section className="py-12 bg-background text-foreground">
-  <div className="max-w-6xl mx-auto px-6">
-    <h2 className="text-3xl font-bold text-bravos-green mb-8 uppercase">Encontranos</h2>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-      {/* Columna de Texto */}
-      <div className="flex items-start gap-4">
-        <MapPin className="h-8 w-8 text-bravos-green shrink-0" />
-        <div>
-          <h3 className="font-bold text-lg mb-1">DIRECCIÓN</h3>
-          <p className="text-muted-foreground">Eva Perón 552</p>
-          <p className="text-muted-foreground">Formosa Capital, Argentina</p>
-        </div>
-      </div>
+      <section id="contacto" className="py-12 bg-background text-foreground">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-bravos-green mb-8 uppercase">Encontranos</h2>
 
-      {/* Columna de Mapa */}
-      <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-lg">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000"
-          width="100%"
-          height="100%"
-          style={{ filter: 'grayscale(0.8) invert(1) contrast(0.9)' }}
-          allowFullScreen=""
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          title="Mapa de ubicación"
-        ></iframe>
-      </div>
-    </div>
-  </div>
-</section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {/* Columna de info */}
+            <div className="space-y-6">
+              {direccion && (
+                <div className="flex items-start gap-4">
+                  <MapPin className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-base mb-1 uppercase">Dirección</h3>
+                    <p className="text-muted-foreground">{direccion}</p>
+                  </div>
+                </div>
+              )}
+              {(horarioSemana || horarioSabado || horarioDomingo) && (
+                <div className="flex items-start gap-4">
+                  <Clock className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-base mb-1 uppercase">Horarios</h3>
+                    {horarioSemana && <p className="text-muted-foreground text-sm">{horarioSemana}</p>}
+                    {horarioSabado && <p className="text-muted-foreground text-sm">{horarioSabado}</p>}
+                    {horarioDomingo && <p className="text-muted-foreground text-sm">{horarioDomingo}</p>}
+                  </div>
+                </div>
+              )}
+              {telefono && (
+                <div className="flex items-start gap-4">
+                  <Phone className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-base mb-1 uppercase">Teléfono / WhatsApp</h3>
+                    <p className="text-muted-foreground">{telefono}</p>
+                  </div>
+                </div>
+              )}
+              {emailContacto && (
+                <div className="flex items-start gap-4">
+                  <Mail className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-base mb-1 uppercase">Email</h3>
+                    <p className="text-muted-foreground">{emailContacto}</p>
+                  </div>
+                </div>
+              )}
+              {instagram && (
+                <div className="flex items-start gap-4">
+                  <AtSign className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-base mb-1 uppercase">Instagram</h3>
+                    <p className="text-muted-foreground">@{instagram.replace(/^@/, '')}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Columna de Mapa */}
+            <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-lg">
+              <iframe
+                src={mapaUrl}
+                width="100%"
+                height="100%"
+                style={{ filter: 'grayscale(0.8) invert(1) contrast(0.9)' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Mapa de ubicación"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-white/10 bg-black py-8">
+      <footer className="border-t border-border bg-black py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
-            <p className="text-sm text-white/40">2026 Bravos Box. Todos los derechos reservados.</p>
+            <p className="text-sm text-foreground/40">2026 Bravos Box. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, PlayCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert"
 
 import apiClient from "@/api"
+import VideoPlayer from "@/components/VideoPlayer"
 
 const estadoConfig = {
   proxima: { label: "Próxima", className: "bg-primary/10 text-primary border-primary/20", icon: Calendar },
@@ -53,7 +54,7 @@ export default function ReservasPage() {
         coach: r.nombreProfesor || "Staff Bravos"
       }))
       
-      // Separamos en base al estado mapeado
+      // El backend ya calcula el estado real (completada/inasistencia/cancelada/proxima)
       setProximas(listaMapeada.filter(r => r.estado === 'proxima'))
       setHistorial(listaMapeada.filter(r => r.estado !== 'proxima'))
     } catch (error) {
@@ -117,9 +118,9 @@ export default function ReservasPage() {
     return (
       <Card className="bg-card border-border">
         <CardContent className="p-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h3 className="font-semibold text-foreground">{reserva.clase}</h3>
                 <Badge variant="outline" className={config.className}>
                   <Icon className="mr-1 h-3 w-3" />
@@ -144,7 +145,7 @@ export default function ReservasPage() {
             {showCancelButton && (
               <Button
                 variant="destructive"
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors"
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
                 onClick={() => setCancelDialog({
                   open: true,
                   idReserva: reserva.idReserva,
@@ -190,13 +191,9 @@ export default function ReservasPage() {
                       {rutina.ejercicios?.length > 0 && (
                         <div className="space-y-1 pt-1">
                           {rutina.ejercicios.map((ej, idx) => (
-                            <div key={ej.idEjercicio} className="flex items-center justify-between rounded bg-background/60 px-3 py-2">
+                            <div key={ej.idEjercicio} className="rounded bg-background/60 px-3 py-2 space-y-2">
                               <span className="text-sm">{idx + 1}. {ej.nombre}</span>
-                              {ej.videoUrl && (
-                                <a href={ej.videoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline shrink-0 ml-2">
-                                  <PlayCircle className="h-3.5 w-3.5" /> Video
-                                </a>
-                              )}
+                              <VideoPlayer url={ej.videoUrl} label="Ver video" />
                             </div>
                           ))}
                         </div>

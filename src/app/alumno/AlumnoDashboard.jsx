@@ -122,7 +122,7 @@ export default function AlumnoDashboard() {
   return (
     <div className="space-y-6">
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-black via-black/95 to-primary/20 border border-border">
+      <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-[url('/logo.jpg')] bg-center bg-no-repeat bg-contain opacity-10" />
         </div>
@@ -130,17 +130,17 @@ export default function AlumnoDashboard() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge className="bg-accent text-accent-foreground font-bold px-3 py-1">
+                <Badge className="bg-lime-400/20 text-lime-400 border border-lime-400/30 font-bold px-3 py-1">
                   <Flame className="w-3 h-3 mr-1" />
                   {userStats.racha} dias de racha
                 </Badge>
-                <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio." />
+                <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio." className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-black text-foreground tracking-tight">
+                <h1 className="text-3xl lg:text-4xl font-black text-sidebar-foreground tracking-tight">
                   {`¡VAMOS, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
-                <p className="text-lg text-muted-foreground mt-1">
+                <p className="text-lg text-sidebar-foreground/60 mt-1">
                   Cada entrenamiento es una oportunidad para ser mejor
                 </p>
               </div>
@@ -155,19 +155,19 @@ export default function AlumnoDashboard() {
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-background/50 dark:bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
+              <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" />
+                  <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
                 </div>
-                <p className="text-3xl font-black text-primary">{loadingReservas ? "..." : creditosReales}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Creditos</p>
+                <p className="text-3xl font-black text-lime-400">{loadingReservas ? "..." : creditosReales}</p>
+                <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Creditos</p>
               </div>
-              <div className="bg-background/50 dark:bg-black/50 backdrop-blur border border-border rounded-xl p-4 text-center relative">
+              <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
                 <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" />
+                  <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
                 </div>
-                <p className="text-3xl font-black text-accent">{userStats.totalClases}</p>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Clases</p>
+                <p className="text-3xl font-black text-lime-400">{userStats.totalClases}</p>
+                <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Clases</p>
               </div>
             </div>
           </div>
@@ -253,33 +253,33 @@ export default function AlumnoDashboard() {
                 clasesHoy.map((clase) => (
                   <div
                     key={clase.idHorario || clase.id}
-                    className="flex items-center justify-between p-4 rounded-xl bg-black/30 border border-border hover:border-primary/30 transition-colors"
+                    className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-foreground/5 border border-border hover:border-primary/30 transition-colors gap-2"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="text-center min-w-[60px]">
-                        <p className="text-2xl font-black text-foreground">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="text-center min-w-[44px]">
+                        <p className="text-xl font-black text-foreground leading-none">
                           {clase.horaInicio ? clase.horaInicio.split(":")[0] : "00"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {clase.horaInicio ? `:${clase.horaInicio.split(":")[1]}` : ":00"}
                         </p>
                       </div>
-                      <div className="border-l border-border pl-4">
-                        <p className="font-bold text-foreground">{clase.nombreClase || clase.nombre}</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="border-l border-border pl-3 min-w-0">
+                        <p className="font-bold text-foreground text-sm truncate">{clase.nombreClase || clase.nombre}</p>
+                        <p className="text-xs text-muted-foreground truncate">
                           {clase.nombreProfesor || "Staff Bravos"} · {clase.duracion || "60 min"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge 
-                        variant="outline" 
-                        className={(clase.cupoDisponible ?? clase.cupos ?? 0) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge
+                        variant="outline"
+                        className={`hidden sm:inline-flex ${(clase.cupoDisponible ?? clase.cupos ?? 0) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}`}
                       >
-                        {clase.cupoDisponible ?? clase.cupos ?? 0} cupos
+                        {clase.cupoDisponible ?? clase.cupos ?? 0}
                       </Badge>
                       <Link to="/alumno/reservar">
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold">
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold text-xs px-3">
                           Reservar
                         </Button>
                       </Link>
@@ -375,32 +375,29 @@ export default function AlumnoDashboard() {
 
       {/* TARJETA DE PROGRESO MENSUAL */}
       <Card className="bg-card border-border">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <TrendingUp className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground">PROGRESO MENSUAL</h3>
-                <p className="text-sm text-muted-foreground">
-                  Has completado {userStats.creditosUsados} de {creditosReales + userStats.creditosUsados} clases este mes
-                </p>
-                <div className="mt-3 w-64 h-3 bg-black/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
-                    style={{
-                      width: `${(userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <div className="text-right">
-              <p className="text-4xl font-black text-primary">
-                {Math.round((userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100)}%
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO MENSUAL</h3>
+                <p className="text-2xl sm:text-4xl font-black text-primary shrink-0">
+                  {Math.round((userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100)}%
+                </p>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                {userStats.creditosUsados} de {creditosReales + userStats.creditosUsados} clases este mes
               </p>
-              <p className="text-sm text-muted-foreground">completado</p>
+              <div className="mt-2 w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                  style={{
+                    width: `${(userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </CardContent>
