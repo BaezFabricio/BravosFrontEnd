@@ -1,262 +1,207 @@
-import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
-import { ArrowLeft, Loader2, Plus, Trash2, Upload } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import apiClient from "@/api"
+import RichTextEditor from "@/components/RichTextEditor"
+
+const DIAS = [
+  { key: "LUNES",     label: "Lun" },
+  { key: "MARTES",    label: "Mar" },
+  { key: "MIERCOLES", label: "Mié" },
+  { key: "JUEVES",    label: "Jue" },
+  { key: "VIERNES",   label: "Vie" },
+  { key: "SABADO",    label: "Sáb" },
+]
+
+const TURNOS = [
+  { nombre: "Mañana",   horaInicio: "06:00", horaFin: "12:00" },
+  { nombre: "Mediodía", horaInicio: "12:00", horaFin: "17:00" },
+  { nombre: "Noche",    horaInicio: "17:00", horaFin: "22:00" },
+]
+
+const HORAS   = Array.from({ length: 18 }, (_, i) => String(i + 5).padStart(2, "0"))
+const MINUTOS = ["00", "15", "30", "45"]
+const MESES   = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+
+function TimeSelect({ value, onChange, hasError }) {
+  const [hh, mm] = value ? value.split(":") : ["", ""]
+  const handleH = (h) => onChange(h ? `${h}:${mm || "00"}` : "")
+  const handleM = (m) => onChange(m ? `${hh || "05"}:${m}` : "")
+  const selectClass = "flex-1 bg-card text-sm text-foreground px-2 py-2 outline-none appearance-none text-center cursor-pointer border-0"
+  return (
+    <div className={`flex items-center border bg-card ${hasError ? "border-red-500/50" : "border-border"}`} style={{ colorScheme: "dark" }}>
+      <select value={hh || ""} onChange={e => handleH(e.target.value)} className={selectClass}>
+        <option value="">HH</option>
+        {HORAS.map(h => <option key={h} value={h}>{h}</option>)}
+      </select>
+      <span className="text-foreground/20 font-black px-0.5 shrink-0">:</span>
+      <select value={mm || ""} onChange={e => handleM(e.target.value)} className={selectClass}>
+        <option value="">MM</option>
+        {MINUTOS.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </div>
+  )
+}
+
+function DateSelect({ value, onChange }) {
+  const today = new Date()
+  const parsed = value ? new Date(value + "T00:00:00") : null
+  const dia  = parsed ? parsed.getDate() : ""
+  const mes  = parsed ? parsed.getMonth() : ""
+  const anio = parsed ? parsed.getFullYear() : ""
+  const rebuild = (d, m, y) => {
+    if (!d || m === "" || !y) { onChange(""); return }
+    onChange(`${y}-${String(Number(m) + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`)
+  }
+  const dias  = Array.from({ length: 31 }, (_, i) => i + 1)
+  const anios = Array.from({ length: 3  }, (_, i) => today.getFullYear() + i)
+  const s = "bg-card border-0 text-sm text-foreground px-2 py-2 outline-none appearance-none cursor-pointer flex-1 text-center"
+  return (
+    <div className="flex items-center border border-border bg-card" style={{ colorScheme: "dark" }}>
+      <select value={dia} onChange={e => rebuild(e.target.value, mes, anio)} className={s}>
+        <option value="">Día</option>
+        {dias.map(d => <option key={d} value={d}>{d}</option>)}
+      </select>
+      <span className="text-foreground/20 font-black">/</span>
+      <select value={mes} onChange={e => rebuild(dia, e.target.value, anio)} className={s}>
+        <option value="">Mes</option>
+        {MESES.map((m, i) => <option key={i} value={i}>{m}</option>)}
+      </select>
+      <span className="text-foreground/20 font-black">/</span>
+      <select value={anio} onChange={e => rebuild(dia, mes, e.target.value)} className={s}>
+        <option value="">Año</option>
+        {anios.map(a => <option key={a} value={a}>{a}</option>)}
+      </select>
+    </div>
+  )
+}
 
 export default function EditarClasePage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const planIdDesdeUrl = searchParams.get("planId")
   const navigate = useNavigate()
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadingData, setLoadingData] = useState(true)
-  const [errors, setErrors] = useState({})
-
-  const [profesores, setProfesores] = useState([])
+  const [isLoading, setIsLoading]       = useState(false)
+  const [loadingData, setLoadingData]   = useState(true)
+  const [errors, setErrors]             = useState({})
+  const [profesores, setProfesores]     = useState([])
+  const [planes, setPlanes]             = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
-  const [planes, setPlanes] = useState([])
-
-  const turnos = [
-    { id: "1", nombre: "Mañana", horaInicio: "06:00", horaFin: "12:00" },
-    { id: "2", nombre: "Siesta", horaInicio: "12:00", horaFin: "17:00" },
-    { id: "3", nombre: "Noche", horaInicio: "17:00", horaFin: "22:00" },
-  ]
-
-  const diasSemanaOptions = [
-    "LUNES",
-    "MARTES",
-    "MIERCOLES",
-    "JUEVES",
-    "VIERNES",
-    "SABADO",
-  ]
+  const [publicarProgramado, setPublicarProgramado] = useState(false)
 
   const [formData, setFormData] = useState({
-    nombre: "",
-    idPlan: "",
-    turnoId: "1",
-    horaInicio: "",
-    horaFin: "",
-    idProfesor: "",
-    capacidadMaxima: "",
-    diasSemana: [],
-    descripcion: "",
-    estado: "Activo",
-    categoria: "",
-    intensidad: "",
-    descripcionRutina: "",
-    ejercicios: [{ nombre: "", videoUrl: "" }],
+    nombre: "", horaInicio: "", horaFin: "",
+    idProfesor: "", capacidadMaxima: "15",
+    diasSemana: [], descripcion: "", rutina: "",
+    estado: "Activo", publicarFecha: "", publicarHora: "",
+    idPlan: null,
   })
 
-  const actualizarEjercicio = (index, campo, valor) => {
-    setFormData((prev) => {
-      const ejercicios = [...prev.ejercicios]
-      ejercicios[index] = { ...ejercicios[index], [campo]: valor }
-      return { ...prev, ejercicios }
-    })
-  }
+  const set = (campo, valor) => setFormData(prev => ({ ...prev, [campo]: valor }))
 
-  const agregarEjercicio = () => {
-    setFormData((prev) => ({ ...prev, ejercicios: [...prev.ejercicios, { nombre: "", videoUrl: "" }] }))
-  }
-
-  const quitarEjercicio = (index) => {
-    setFormData((prev) => ({ ...prev, ejercicios: prev.ejercicios.filter((_, i) => i !== index) }))
-  }
-
-  const [uploadingIndex, setUploadingIndex] = useState(null)
-  const fileInputRefs = useRef([])
-
-  const handleVideoUpload = async (index, file) => {
-    if (!file) return
-    setUploadingIndex(index)
-    try {
-      const formDataUpload = new FormData()
-      formDataUpload.append('video', file)
-      const res = await apiClient.post('/ejercicios/upload-video', formDataUpload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      actualizarEjercicio(index, 'videoUrl', res.data?.data?.url || '')
-      toast.success('Video subido correctamente')
-    } catch (err) {
-      toast.error('Error al subir el video', { description: err.response?.data?.message })
-    } finally {
-      setUploadingIndex(null)
-    }
-  }
-
-  const obtenerProfesores = async () => {
-    try {
-      setLoadingProfesores(true)
-      const token = localStorage.getItem("token")
-
-      const response = await fetch("http://localhost:3001/api/vv1/profesores", {
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      })
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.message || "Error al obtener profesores")
-      }
-
-      setProfesores(result.data)
-    } catch (error) {
-      console.error("Error al obtener profesores:", error)
-      toast.error("Error al cargar profesores", { description: error.message })
-    } finally {
-      setLoadingProfesores(false)
-    }
-  }
-
-  const obtenerClase = async () => {
-    try {
-      setLoadingData(true)
-      const token = localStorage.getItem("token")
-
-      const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`, {
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      })
-      const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.message || "Error al obtener la clase")
-      }
-
-      const clase = result.data
-
-      const turnoEncontrado = turnos.find(
-        (turno) => turno.nombre === clase.turno
-      )
-
-      setFormData({
-        nombre: clase.nombreClase || "",
-        idPlan: clase.idPlan ? clase.idPlan.toString() : "",
-        turnoId: turnoEncontrado ? turnoEncontrado.id : "1",
-        horaInicio: clase.horaInicio ? clase.horaInicio.substring(0, 5) : "",
-        horaFin: clase.horaFin ? clase.horaFin.substring(0, 5) : "",
-        idProfesor: clase.idProfesor ? clase.idProfesor.toString() : "",
-        capacidadMaxima: clase.cupoDisponible ? clase.cupoDisponible.toString() : "",
-        diasSemana: clase.diasSemana ? clase.diasSemana.split(",") : [],
-        descripcion: "",
-        estado: clase.estado || "Activo",
-        categoria: clase.rutina?.categoria || "",
-        intensidad: clase.rutina?.nivel || "",
-        descripcionRutina: clase.rutina?.descripcion || "",
-        ejercicios:
-          clase.rutina?.ejercicios && clase.rutina.ejercicios.length > 0
-            ? clase.rutina.ejercicios.map((ej) => ({ nombre: ej.nombre, videoUrl: ej.videoUrl || "" }))
-            : [{ nombre: "", videoUrl: "" }],
-      })
-    } catch (error) {
-      console.error("Error al obtener clase:", error)
-      toast.error("Error al cargar la clase", { description: error.message })
-    } finally {
-      setLoadingData(false)
-    }
-  }
-
- useEffect(() => {
-  const storedPermisos = localStorage.getItem("permisos")
-  let tieneAcceso = false
-
-  if (storedPermisos) {
-    try {
-      const lista = JSON.parse(storedPermisos)
-      if (lista.includes("clases:modificacion")) {
-        tieneAcceso = true
-      }
-    } catch (err) {
-      console.error("Error validando permisos de edición:", err)
-    }
-  }
-
-  // 🔴 SI NO TIENE EL TILDE, LO REBOTA AUTOMÁTICAMENTE A SU PANEL
-  if (!tieneAcceso) {
-    navigate("/admin/clases")
-    return
-  }
-    obtenerProfesores()
-    obtenerClase()
+  useEffect(() => {
+    const storedPermisos = localStorage.getItem("permisos")
+    let ok = false
+    try { ok = JSON.parse(storedPermisos || "[]").includes("clases:modificacion") } catch {}
+    if (!ok) { navigate("/admin/clases"); return }
 
     const token = localStorage.getItem("token")
-    fetch("http://localhost:3001/api/vv1/planes", {
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const h = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+
+    Promise.all([
+      fetch(`http://localhost:3001/api/vv1/clases/${id}`, { headers: h }).then(r => r.json()),
+      fetch("http://localhost:3001/api/vv1/profesores", { headers: h }).then(r => r.json()),
+      apiClient.get("/planes").then(r => r.data).catch(() => ({ success: false })),
+    ]).then(([resClase, resProfes, resPlanes]) => {
+      if (resPlanes.success) setPlanes(resPlanes.data || [])
+      if (resClase.success) {
+        const c = resClase.data
+        // descripcion puede ser JSON {desc, rutina} (rich text) o plain text (viejo)
+        let descripcionCargada = ""
+        let rutinaCargada = ""
+        const rawDesc = c.rutina?.descripcion || ""
+        try {
+          const parsed = JSON.parse(rawDesc)
+          if (parsed && typeof parsed.rutina !== "undefined") {
+            descripcionCargada = parsed.desc || ""
+            rutinaCargada = parsed.rutina || ""
+          } else {
+            descripcionCargada = rawDesc
+          }
+        } catch {
+          descripcionCargada = rawDesc
+          // Formato viejo: ejercicios como array
+          rutinaCargada = Array.isArray(c.rutina?.ejercicios)
+            ? c.rutina.ejercicios.map(e => e.nombre).join("\n")
+            : (typeof c.rutina?.ejercicios === "string" ? c.rutina.ejercicios : "")
+        }
+
+        setFormData({
+          nombre: c.nombreClase || "",
+          horaInicio: c.horaInicio ? c.horaInicio.substring(0, 5) : "",
+          horaFin: c.horaFin ? c.horaFin.substring(0, 5) : "",
+          idProfesor: c.idProfesor ? String(c.idProfesor) : "",
+          capacidadMaxima: c.cupoDisponible ? String(c.cupoDisponible) : "15",
+          diasSemana: c.diasSemana ? c.diasSemana.split(",").map(d => d.trim()) : [],
+          descripcion: descripcionCargada,
+          rutina: rutinaCargada,
+          estado: c.estado || "Activo",
+          publicarFecha: "", publicarHora: "",
+          idPlan: c.idPlan || (planIdDesdeUrl ? parseInt(planIdDesdeUrl) : null),
+        })
+      }
+      if (resProfes.success) setProfesores(resProfes.data)
     })
-      .then(r => r.json())
-      .then(r => setPlanes(r.data || []))
-      .catch(err => console.error("Error al cargar planes:", err))
-  }, [id])
+    .catch(err => toast.error("Error al cargar datos", { description: err.message }))
+    .finally(() => { setLoadingData(false); setLoadingProfesores(false) })
+  }, [id, navigate])
 
-  const validateForm = () => {
-    const newErrors = {}
+  const toggleDia = (dia) => set("diasSemana",
+    formData.diasSemana.includes(dia)
+      ? formData.diasSemana.filter(d => d !== dia)
+      : [...formData.diasSemana, dia]
+  )
 
-    if (!formData.nombre.trim()) {
-      newErrors.nombre = "El nombre es requerido"
-    }
+  const duracionMinutos = () => {
+    if (!formData.horaInicio || !formData.horaFin) return null
+    const [h1,m1] = formData.horaInicio.split(":").map(Number)
+    const [h2,m2] = formData.horaFin.split(":").map(Number)
+    const dur = (h2*60+m2)-(h1*60+m1)
+    return dur > 0 ? dur : null
+  }
 
-    if (!formData.idProfesor) {
-      newErrors.idProfesor = "El profesor es requerido"
-    }
-
-    if (!formData.horaInicio) {
-      newErrors.horaInicio = "La hora de inicio es requerida"
-    }
-
-    if (!formData.horaFin) {
-      newErrors.horaFin = "La hora de fin es requerida"
-    }
-
-    if (!formData.capacidadMaxima) {
-      newErrors.capacidadMaxima = "La capacidad es requerida"
-    }
-
-    if (formData.capacidadMaxima && parseInt(formData.capacidadMaxima) <= 0) {
-      newErrors.capacidadMaxima = "La capacidad debe ser mayor a 0"
-    }
-
-    if (formData.capacidadMaxima && parseInt(formData.capacidadMaxima) > 20) {
-      newErrors.capacidadMaxima = "El cupo disponible no puede superar 20"
-    }
-
-    if (formData.diasSemana.length === 0) {
-      newErrors.diasSemana = "Selecciona al menos un día"
-    }
-
-    if (formData.horaInicio && formData.horaFin) {
-      if (formData.horaInicio >= formData.horaFin) {
-        newErrors.horaFin = "La hora de fin debe ser posterior a la de inicio"
-      }
-    }
-
-    const turno = turnos.find((t) => t.id === formData.turnoId)
-
-    if (turno) {
-      if (formData.horaInicio && formData.horaInicio < turno.horaInicio) {
-        newErrors.horaInicio = `La hora de inicio debe ser posterior a ${turno.horaInicio}`
-      }
-
-      if (formData.horaFin && formData.horaFin > turno.horaFin) {
-        newErrors.horaFin = `La hora de fin debe ser anterior a ${turno.horaFin}`
-      }
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+  const validate = () => {
+    const e = {}
+    if (!formData.nombre.trim()) e.nombre = "Requerido"
+    if (!formData.idProfesor) e.idProfesor = "Requerido"
+    if (!formData.horaInicio) e.horario = "Seleccioná hora de inicio"
+    if (!formData.horaFin)   e.horario = "Seleccioná hora de fin"
+    if (formData.horaInicio && formData.horaFin && formData.horaInicio >= formData.horaFin)
+      e.horario = "La hora de fin debe ser posterior al inicio"
+    if (!formData.capacidadMaxima || parseInt(formData.capacidadMaxima) <= 0) e.capacidadMaxima = "Debe ser mayor a 0"
+    if (parseInt(formData.capacidadMaxima) > 20) e.capacidadMaxima = "Máximo 20 alumnos"
+    if (formData.diasSemana.length === 0) e.diasSemana = "Seleccioná al menos un día"
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    if (!validateForm()) return
-
+    if (!validate()) return
     setIsLoading(true)
-    setErrors({})
-
     try {
-      const turnoSeleccionado = turnos.find(
-        (turno) => turno.id === formData.turnoId
-      )
+      const turnoSeleccionado = TURNOS.find(t =>
+        formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin
+      ) || TURNOS[0]
 
+      let publicarEn = null
+      if (publicarProgramado && formData.publicarFecha && formData.publicarHora) {
+        publicarEn = `${formData.publicarFecha}T${formData.publicarHora}:00`
+      }
+
+      const token = localStorage.getItem("token")
       const payload = {
         nombreClase: formData.nombre,
         tipoClase: "Grupal",
@@ -265,486 +210,216 @@ export default function EditarClasePage() {
         estado: formData.estado,
         idGimnasio: null,
         idProfesor: parseInt(formData.idProfesor),
-
+        idPlan: formData.idPlan || null,
         diasSemana: formData.diasSemana,
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
-        turno: turnoSeleccionado?.nombre || "",
-        idPlan: formData.idPlan ? parseInt(formData.idPlan) : null,
+        turno: turnoSeleccionado.nombre,
         rutina: {
-          categoria: formData.categoria,
-          nivel: formData.intensidad,
-          descripcion: formData.descripcionRutina,
-          ejercicios: formData.ejercicios.filter((ej) => ej.nombre.trim() !== ""),
+          descripcion: formData.descripcion,
+          ejercicios: formData.rutina,
+          publicarEn,
         },
       }
-
-      const token = localStorage.getItem("token")
 
       const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify(payload),
       })
-
       const result = await response.json()
-
-      if (!result.success) {
-        throw new Error(result.message || "Error al editar la clase")
-      }
-
+      if (!result.success) throw new Error(result.message || "Error al editar la clase")
       toast.success("Clase editada exitosamente")
       navigate("/admin/clases")
     } catch (error) {
-      console.error("Error al editar clase:", error)
       toast.error("Error al editar la clase", { description: error.message })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const selectedTurno = turnos.find((t) => t.id === formData.turnoId)
+  const dur = duracionMinutos()
+  const resumenPublicacion = (() => {
+    if (!formData.publicarFecha || !formData.publicarHora) return null
+    const [y, m, d] = formData.publicarFecha.split("-").map(Number)
+    const [hh, mm] = formData.publicarHora.split(":")
+    return `${d} de ${MESES[m - 1]} ${y} a las ${hh}:${mm}`
+  })()
 
-  const cardClass = "border border-border bg-card overflow-hidden"
-  const cardHeaderClass = "border-b border-border px-5 py-3"
-  const titleClass = "text-[10px] font-black uppercase tracking-widest text-muted-foreground"
-  const labelClass = "text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 block"
+  const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+  const fieldError = "w-full bg-transparent border border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-400 transition-colors"
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-
-  const inputErrorClass =
-    "mt-1 w-full rounded-lg border border-destructive bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-destructive"
-
-  if (loadingData) {
-    return (
-      <div className="space-y-6">
-        <div className="border border-border bg-card p-6 text-center text-foreground/40">
-          Cargando datos de la clase...
-        </div>
-      </div>
-    )
-  }
+  if (loadingData) return (
+    <div className="border border-border bg-card p-10 text-center text-foreground/40">Cargando datos de la clase...</div>
+  )
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          to="/admin/clases"
-          className="border border-border p-2 text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center"
-        >
-          <ArrowLeft className="h-4 w-4" />
+      <div className="flex items-start gap-4">
+        <Link to="/admin/clases" className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
+          <ArrowLeft className="h-5 w-5" />
         </Link>
-
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Editar Clase</h1>
-          <p className="text-sm text-foreground/40 mt-1">Modifica los datos de la clase seleccionada.</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Editar Clase</h1>
+          <p className="text-sm text-foreground/50 mt-0.5">Modificá los datos de la clase.</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <section className={cardClass}>
-          <div className={cardHeaderClass}>
-            <h2 className={titleClass}>Información Básica</h2>
-          </div>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 items-start">
 
-          <div className="space-y-4 p-6">
-            <div>
-              <label className={labelClass}>Nombre de la Clase *</label>
+          {/* ── IZQUIERDA ── */}
+          <div className="border border-border divide-y divide-border">
 
-              <input
-                type="text"
-                value={formData.nombre}
-                onChange={(e) =>
-                  setFormData({ ...formData, nombre: e.target.value })
-                }
-                placeholder="Ej: Funcional WOD"
-                className={errors.nombre ? inputErrorClass : inputClass}
-              />
-
-              {errors.nombre && (
-                <p className="mt-1 text-xs text-red-400">{errors.nombre}</p>
-              )}
+            <div className="p-5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Nombre de la clase *</label>
+              <input type="text" value={formData.nombre} onChange={e => set("nombre", e.target.value)}
+                placeholder="Ej: WOD Competitivo" className={errors.nombre ? fieldError : field} />
+              {errors.nombre && <p className="mt-1.5 text-xs text-red-400">{errors.nombre}</p>}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass}>Profesor *</label>
-                <select
-                  value={formData.idProfesor}
-                  onChange={(e) => setFormData({ ...formData, idProfesor: e.target.value })}
-                  className={errors.idProfesor ? inputErrorClass : inputClass}
-                  disabled={loadingProfesores}
-                >
-                  <option value="">
-                    {loadingProfesores ? "Cargando profesores..." : "Seleccionar profesor..."}
-                  </option>
-                  {!loadingProfesores && profesores.map((profesor) => (
-                    <option key={profesor.idProfesor} value={profesor.idProfesor} className="bg-input text-foreground">
-                      {profesor.nombreProfesor}
-                    </option>
-                  ))}
-                </select>
-                {errors.idProfesor && <p className="mt-1 text-xs text-red-400">{errors.idProfesor}</p>}
-              </div>
-
-              <div>
-                <label className={labelClass}>Plan de Membresía</label>
-                <select
-                  value={formData.idPlan}
-                  onChange={(e) => setFormData({ ...formData, idPlan: e.target.value })}
-                  className={inputClass}
-                >
-                  <option value="">Sin restricción de plan</option>
-                  {planes.map((plan) => (
-                    <option key={plan.idPlan} value={plan.idPlan} className="bg-input text-foreground">
-                      {plan.nombre}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-muted-foreground">Solo alumnos con este plan podrán reservar</p>
-              </div>
-            </div>
-
-            <div>
-              <label className={labelClass}>Estado *</label>
-
-              <select
-                value={formData.estado}
-                onChange={(e) =>
-                  setFormData({ ...formData, estado: e.target.value })
-                }
-                className={inputClass}
-              >
-                <option value="Activo" className="bg-input text-foreground">
-                  Activo
-                </option>
-                <option value="Inactivo" className="bg-input text-foreground">
-                  Inactivo
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label className={labelClass}>Descripción</label>
-
-              <input
-                type="text"
+            <div className="p-5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Descripción</label>
+              <RichTextEditor
                 value={formData.descripcion}
-                onChange={(e) =>
-                  setFormData({ ...formData, descripcion: e.target.value })
-                }
-                placeholder="Breve descripción de la clase"
-                className={inputClass}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className={cardClass}>
-          <div className={cardHeaderClass}>
-            <h2 className={titleClass}>Planificación y Contenido Multimedia</h2>
-          </div>
-          <div className="space-y-4 p-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass}>Categoría / Tipo de clase</label>
-                <input
-                  type="text"
-                  value={formData.categoria}
-                  onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                  placeholder="Ej: WOD, Funcional, Halterofilia..."
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Nivel / Intensidad</label>
-                <input
-                  type="text"
-                  value={formData.intensidad}
-                  onChange={(e) => setFormData({ ...formData, intensidad: e.target.value })}
-                  placeholder="Ej: Principiante, RX, Scaled..."
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className={labelClass}>Descripción de la Disciplina</label>
-              <textarea
-                value={formData.descripcionRutina}
-                onChange={(e) => setFormData({ ...formData, descripcionRutina: e.target.value })}
-                placeholder="Explicá brevemente en qué consiste la clase para orientar a los alumnos..."
-                className={`${inputClass} min-h-[80px] resize-none`}
+                onChange={v => set("descripcion", v)}
+                placeholder="Breve descripción para que los alumnos entiendan de qué se trata..."
+                minHeight={90}
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label className={labelClass}>Ejercicios de la Rutina</label>
-                <button
-                  type="button"
-                  onClick={agregarEjercicio}
-                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            <div className="p-5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Rutina de la clase</label>
+              <RichTextEditor
+                value={formData.rutina}
+                onChange={v => set("rutina", v)}
+                placeholder={"Calentamiento: ...\n\nEjercicio principal: ...\n\nMetcon: ..."}
+                minHeight={200}
+              />
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Publicar rutina</label>
+                  <p className="text-xs text-foreground/60 mt-0.5">La clase siempre es reservable. La rutina se revela cuando vos decidas.</p>
+                </div>
+                <button type="button"
+                  onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarFecha", ""); set("publicarHora", "") }}
+                  className={`shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
+                    publicarProgramado
+                      ? "border-primary/30 text-primary bg-primary/5"
+                      : "border-border text-foreground/25 hover:text-foreground hover:border-foreground/20"
+                  }`}
                 >
-                  <Plus className="h-3.5 w-3.5" /> Agregar ejercicio
+                  {publicarProgramado ? <><Eye className="h-3 w-3" />Programada</> : <><EyeOff className="h-3 w-3" />Inmediata</>}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Cada ejercicio puede tener su propio video de demostración.
-              </p>
-
-              <div className="mt-3 space-y-3">
-                {formData.ejercicios.map((ejercicio, index) => (
-                  <div key={index} className="rounded-lg border border-border bg-secondary/40 p-3 space-y-2">
-                    <div className="flex gap-2 items-start">
-                      <input
-                        type="text"
-                        value={ejercicio.nombre}
-                        onChange={(e) => actualizarEjercicio(index, "nombre", e.target.value)}
-                        placeholder="Ej: Sentadilla con salto"
-                        className={inputClass + " mt-0 flex-1"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => quitarEjercicio(index)}
-                        disabled={formData.ejercicios.length === 1}
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+              {publicarProgramado && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-foreground/60 mb-1.5">Fecha</p>
+                      <DateSelect value={formData.publicarFecha} onChange={v => set("publicarFecha", v)} />
                     </div>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="url"
-                        value={ejercicio.videoUrl}
-                        onChange={(e) => actualizarEjercicio(index, "videoUrl", e.target.value)}
-                        placeholder="URL de YouTube (opcional)"
-                        className={inputClass + " mt-0 flex-1"}
-                      />
-                      <span className="text-xs text-muted-foreground shrink-0">o</span>
-                      <input
-                        type="file"
-                        accept="video/mp4,video/webm,video/quicktime,video/avi"
-                        className="hidden"
-                        ref={el => fileInputRefs.current[index] = el}
-                        onChange={(e) => handleVideoUpload(index, e.target.files[0])}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRefs.current[index]?.click()}
-                        disabled={uploadingIndex === index}
-                        className="flex items-center gap-1 shrink-0 px-3 h-10 rounded-lg border border-border text-sm text-muted-foreground hover:bg-secondary disabled:opacity-50"
-                      >
-                        {uploadingIndex === index
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Upload className="h-4 w-4" />}
-                        {uploadingIndex === index ? "Subiendo..." : "Subir"}
-                      </button>
+                    <div>
+                      <p className="text-[10px] text-foreground/60 mb-1.5">Hora</p>
+                      <TimeSelect value={formData.publicarHora} onChange={v => set("publicarHora", v)} />
                     </div>
-                    {ejercicio.videoUrl && !ejercicio.videoUrl.startsWith('http') && (
-                      <p className="text-xs text-green-500">✓ Archivo subido: {ejercicio.videoUrl.split('/').pop()}</p>
-                    )}
                   </div>
-                ))}
-              </div>
+                  {resumenPublicacion && <p className="text-xs text-primary">Rutina visible desde el {resumenPublicacion}</p>}
+                </div>
+              )}
             </div>
           </div>
-        </section>
 
-        <section className={cardClass}>
-          <div className={cardHeaderClass}>
-            <h2 className={titleClass}>Horario</h2>
-          </div>
+          {/* ── DERECHA ── */}
+          <div className="border border-border divide-y divide-border sticky top-6 self-start">
 
-          <div className="space-y-4 p-6">
-            <div>
-              <label className={labelClass}>Turno *</label>
-
-              <select
-                value={formData.turnoId}
-                onChange={(e) =>
-                  setFormData({ ...formData, turnoId: e.target.value })
-                }
-                className={inputClass}
-              >
-                {turnos.map((turno) => (
-                  <option
-                    key={turno.id}
-                    value={turno.id}
-                    className="bg-input text-foreground"
-                  >
-                    {turno.nombre} ({turno.horaInicio} - {turno.horaFin})
-                  </option>
-                ))}
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Plan / Categoría</label>
+              <select value={formData.idPlan ?? ""} onChange={e => set("idPlan", e.target.value ? parseInt(e.target.value) : null)}
+                style={{ colorScheme: "dark" }}
+                className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
+                <option value="">Sin plan asignado</option>
+                {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
               </select>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass}>Hora Inicio *</label>
-
-                <input
-                  type="time"
-                  value={formData.horaInicio}
-                  onChange={(e) =>
-                    setFormData({ ...formData, horaInicio: e.target.value })
-                  }
-                  className={errors.horaInicio ? inputErrorClass : inputClass}
-                />
-
-                {errors.horaInicio && (
-                  <p className="mt-1 text-xs text-red-400">
-                    {errors.horaInicio}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className={labelClass}>Hora Fin *</label>
-
-                <input
-                  type="time"
-                  value={formData.horaFin}
-                  onChange={(e) =>
-                    setFormData({ ...formData, horaFin: e.target.value })
-                  }
-                  className={errors.horaFin ? inputErrorClass : inputClass}
-                />
-
-                {errors.horaFin && (
-                  <p className="mt-1 text-xs text-red-400">
-                    {errors.horaFin}
-                  </p>
-                )}
-              </div>
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Coach *</label>
+              <select value={formData.idProfesor} onChange={e => set("idProfesor", e.target.value)}
+                disabled={loadingProfesores} style={{ colorScheme: "dark" }}
+                className={`w-full bg-card border ${errors.idProfesor ? "border-red-500/50" : "border-border"} text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors`}>
+                <option value="">{loadingProfesores ? "Cargando..." : "Seleccionar..."}</option>
+                {profesores.map(p => <option key={p.idProfesor} value={p.idProfesor}>{p.nombreProfesor}</option>)}
+              </select>
+              {errors.idProfesor && <p className="mt-1.5 text-xs text-red-400">{errors.idProfesor}</p>}
             </div>
 
-            {selectedTurno && (
-              <div className="rounded-lg border border-border bg-secondary p-3">
-                <p className="text-xs text-muted-foreground">
-                  Este turno opera entre{" "}
-                  <span className="font-semibold text-foreground">
-                    {selectedTurno.horaInicio}
-                  </span>{" "}
-                  y{" "}
-                  <span className="font-semibold text-foreground">
-                    {selectedTurno.horaFin}
-                  </span>
-                  .
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className={cardClass}>
-          <div className={cardHeaderClass}>
-            <h2 className={titleClass}>Capacidad</h2>
-          </div>
-
-          <div className="p-6">
-            <label className={labelClass}>Cupos disponibles *</label>
-
-            <input
-              type="number"
-              min="1"
-              max="20"
-              value={formData.capacidadMaxima}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  capacidadMaxima: e.target.value,
-                })
-              }
-              placeholder="Ej: 14"
-              className={errors.capacidadMaxima ? inputErrorClass : inputClass}
-            />
-
-            <p className="mt-1 text-xs text-muted-foreground">
-              El cupo máximo permitido es 20. Este valor representa los cupos
-              disponibles actuales.
-            </p>
-
-            {errors.capacidadMaxima && (
-              <p className="mt-1 text-xs text-red-400">
-                {errors.capacidadMaxima}
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className={cardClass}>
-          <div className={cardHeaderClass}>
-            <h2 className={titleClass}>Días de la Semana</h2>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {diasSemanaOptions.map((dia) => (
-                <label
-                  key={dia}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-input p-3 text-sm text-foreground hover:bg-secondary"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.diasSemana.includes(dia)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({
-                          ...formData,
-                          diasSemana: [...formData.diasSemana, dia],
-                        })
-                      } else {
-                        setFormData({
-                          ...formData,
-                          diasSemana: formData.diasSemana.filter(
-                            (d) => d !== dia
-                          ),
-                        })
-                      }
-                    }}
-                    className="h-4 w-4"
-                  />
-
-                  <span>{dia}</span>
-                </label>
-              ))}
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
+              <select value={formData.estado} onChange={e => set("estado", e.target.value)}
+                style={{ colorScheme: "dark" }}
+                className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
             </div>
 
-            {errors.diasSemana && (
-              <p className="mt-2 text-xs text-red-400">
-                {errors.diasSemana}
-              </p>
-            )}
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Cupo máximo *</label>
+              <input type="number" min="1" max="20" value={formData.capacidadMaxima}
+                onChange={e => set("capacidadMaxima", e.target.value)}
+                className={errors.capacidadMaxima ? fieldError : field} />
+              {errors.capacidadMaxima && <p className="mt-1.5 text-xs text-red-400">{errors.capacidadMaxima}</p>}
+            </div>
+
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-3">Horario *</label>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-[10px] text-foreground/60 mb-1.5">Inicio</p>
+                  <TimeSelect value={formData.horaInicio} onChange={v => set("horaInicio", v)} hasError={!!errors.horario && !formData.horaInicio} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-foreground/60 mb-1.5">Fin</p>
+                  <TimeSelect value={formData.horaFin} onChange={v => set("horaFin", v)} hasError={!!errors.horario && !formData.horaFin} />
+                </div>
+              </div>
+              {errors.horario && <p className="mt-1.5 text-[10px] text-red-400">{errors.horario}</p>}
+              {dur && !errors.horario && <p className="mt-1.5 text-[10px] text-foreground/60">{dur} min de duración</p>}
+            </div>
+
+            <div className="p-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Días *</label>
+              <div className="grid grid-cols-3 gap-1">
+                {DIAS.map(({ key, label }) => (
+                  <button key={key} type="button" onClick={() => toggleDia(key)}
+                    className={`py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${
+                      formData.diasSemana.includes(key)
+                        ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                        : "border-border text-foreground/30 hover:text-foreground hover:border-foreground/20"
+                    }`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {errors.diasSemana && <p className="mt-2 text-xs text-red-400">{errors.diasSemana}</p>}
+            </div>
+
+            <div className="p-4 space-y-2">
+              <button type="submit" disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 bg-lime-400 text-black font-black uppercase tracking-widest text-xs py-3 hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isLoading ? "Guardando..." : "Guardar Cambios"}
+              </button>
+              <Link to="/admin/clases"
+                className="block w-full text-center border border-border py-2.5 text-xs font-bold uppercase tracking-widest text-foreground/30 hover:text-foreground hover:border-foreground/20 transition-colors">
+                Cancelar
+              </Link>
+            </div>
           </div>
-        </section>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Link
-            to="/admin/clases"
-            className="flex-1 border border-border px-4 py-2 text-center text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
-          >
-            Cancelar
-          </Link>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex flex-1 items-center justify-center bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              "Guardar Cambios"
-            )}
-          </button>
         </div>
       </form>
     </div>

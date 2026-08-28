@@ -140,7 +140,10 @@ export default function ProfesorDashboard() {
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
                   {actividades.map(a => (
-                    <SelectItem key={a.idClase} value={String(a.idClase)}>{a.nombreClase}</SelectItem>
+                    <SelectItem key={a.idClase} value={String(a.idClase)}>
+                      {a.categoria || a.nombreClase}
+                      {a.dias ? ` · ${a.dias}` : ""}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -206,7 +209,7 @@ export default function ProfesorDashboard() {
           <div className="border-b border-border bg-secondary px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="font-black uppercase tracking-wide text-foreground text-sm">
-                {actividadObj?.nombreClase || "Clase"}
+                {actividadObj?.categoria || actividadObj?.nombreClase || "Clase"}
               </p>
               {horarioObj && (
                 <p className="text-xs text-muted-foreground mt-0.5">

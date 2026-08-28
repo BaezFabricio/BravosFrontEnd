@@ -11,6 +11,7 @@ import UsuariosPage from './app/admin/usuarios/UsuariosPage.jsx'
 import DetalleUsuarioPage from './app/admin/usuarios/[id]/DetalleUsuarioPage.jsx'
 import NuevoUsuarioPage from './app/admin/usuarios/nuevo/NuevoUsuarioPage.jsx'
 import EditarUsuarioPage from './app/admin/usuarios/[id]/editar/EditarUsuarioPage.jsx'
+import CargaMasivaAbonosPage from './app/admin/usuarios/abonos/CargaMasivaAbonosPage.jsx'
 import ConfiguracionLandingPage from './app/admin/configuracion/ConfiguracionLandingPage.jsx' 
 import ClasesPage from './app/admin/clases/ClasesPage.jsx'
 import EditarClasePage from './app/admin/clases/EditarClasePage.jsx'
@@ -133,6 +134,7 @@ function App() {
         <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/usuarios/abonos/carga-masiva" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><CargaMasivaAbonosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/:id" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><DetalleUsuarioPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/:id/editar" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><EditarUsuarioPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/configuracion" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><ConfiguracionLandingPage /></AdminLayout></RequireAuth>} />

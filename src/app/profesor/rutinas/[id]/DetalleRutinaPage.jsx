@@ -79,7 +79,10 @@ export default function DetalleRutinaPage() {
           {rutina.descripcion && (
             <div className="space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
-              <p className="text-sm text-foreground/70 whitespace-pre-wrap">{rutina.descripcion}</p>
+              <div
+                className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
+                dangerouslySetInnerHTML={{ __html: rutina.descripcion }}
+              />
             </div>
           )}
 

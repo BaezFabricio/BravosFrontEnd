@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronDown, ChevronUp } from "lucide-react"
+import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -96,12 +96,13 @@ export default function ReservasPage() {
   const ReservaCard = ({ reserva, showCancelButton = false }) => {
     const config = estadoConfig[reserva.estado] || estadoConfig.cancelada
     const Icon = config.icon
-    const [rutinaOpen, setRutinaOpen] = useState(false)
+    const [rutinaDialog, setRutinaDialog] = useState(false)
     const [rutina, setRutina] = useState(null)
     const [loadingRutina, setLoadingRutina] = useState(false)
 
-    const toggleRutina = async () => {
-      if (!rutinaOpen && rutina === null && reserva.idClase) {
+    const abrirRutina = async () => {
+      setRutinaDialog(true)
+      if (rutina === null && reserva.idClase) {
         setLoadingRutina(true)
         try {
           const res = await apiClient.get(`/profesores/clases/${reserva.idClase}/rutina`)
@@ -112,100 +113,130 @@ export default function ReservasPage() {
           setLoadingRutina(false)
         }
       }
-      setRutinaOpen(prev => !prev)
     }
 
     return (
-      <Card className="bg-card border-border">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h3 className="font-semibold text-foreground">{reserva.clase}</h3>
-                <Badge variant="outline" className={config.className}>
-                  <Icon className="mr-1 h-3 w-3" />
-                  {config.label}
-                </Badge>
+      <>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-foreground">{reserva.clase}</h3>
+                  <Badge variant="outline" className={config.className}>
+                    <Icon className="mr-1 h-3 w-3" />
+                    {config.label}
+                  </Badge>
+                </div>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{formatFechaFront(reserva.fecha)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{reserva.hora} hs</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>Coach: {reserva.coach}</span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatFechaFront(reserva.fecha)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>{reserva.hora} hs</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Coach: {reserva.coach}</span>
-                </div>
-              </div>
-            </div>
-            {showCancelButton && (
-              <Button
-                variant="destructive"
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
-                onClick={() => setCancelDialog({
-                  open: true,
-                  idReserva: reserva.idReserva,
-                  claseNombre: reserva.clase,
-                  fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
-                })}
-              >
-                <X className="mr-1.5 h-4 w-4 stroke-[3]" />
-                Cancelar
-              </Button>
-            )}
-          </div>
-
-          {/* Rutina de la clase — solo en próximas */}
-          {showCancelButton && reserva.idClase && (
-            <div className="border-t border-border pt-3">
-              <button
-                onClick={toggleRutina}
-                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                {loadingRutina
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <Dumbbell className="h-4 w-4" />
-                }
-                Ver rutina de la clase
-                {rutinaOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-
-              {rutinaOpen && (
-                <div className="mt-3 space-y-2">
-                  {rutina === false && (
-                    <p className="text-sm text-muted-foreground">Esta clase todavía no tiene una rutina asignada.</p>
-                  )}
-                  {rutina && (
-                    <div className="rounded-lg bg-secondary/40 p-3 space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {rutina.categoria && <Badge variant="default" className="text-xs">{rutina.categoria}</Badge>}
-                        {rutina.nivel && <Badge variant="outline" className="text-xs">{rutina.nivel}</Badge>}
-                      </div>
-                      {rutina.descripcion && (
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{rutina.descripcion}</p>
-                      )}
-                      {rutina.ejercicios?.length > 0 && (
-                        <div className="space-y-1 pt-1">
-                          {rutina.ejercicios.map((ej, idx) => (
-                            <div key={ej.idEjercicio} className="rounded bg-background/60 px-3 py-2 space-y-2">
-                              <span className="text-sm">{idx + 1}. {ej.nombre}</span>
-                              <VideoPlayer url={ej.videoUrl} label="Ver video" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+              {showCancelButton && (
+                <Button
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
+                  onClick={() => setCancelDialog({
+                    open: true,
+                    idReserva: reserva.idReserva,
+                    claseNombre: reserva.clase,
+                    fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
+                  })}
+                >
+                  <X className="mr-1.5 h-4 w-4 stroke-[3]" />
+                  Cancelar
+                </Button>
               )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {showCancelButton && reserva.idClase && (
+              <div className="border-t border-border pt-3">
+                <button
+                  onClick={abrirRutina}
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  Ver rutina de la clase
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Dialog open={rutinaDialog} onOpenChange={setRutinaDialog}>
+          <DialogContent className="bg-card border-border max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Dumbbell className="h-5 w-5 text-primary" />
+                Rutina — {reserva.clase}
+              </DialogTitle>
+              <DialogDescription>
+                {formatFechaFront(reserva.fecha)} · {reserva.hora} hs · Coach: {reserva.coach}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {loadingRutina && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
+              {!loadingRutina && rutina === false && (
+                <p className="text-sm text-muted-foreground text-center py-6">Esta clase todavía no tiene una rutina asignada.</p>
+              )}
+              {!loadingRutina && rutina && (() => {
+                // descripcion puede ser JSON {desc, rutina} (rich text) o plain text (viejo)
+                let desc = rutina.descripcion || ""
+                let contenidoRutina = ""
+                try {
+                  const p = JSON.parse(rutina.descripcion || "")
+                  if (p && typeof p.rutina !== "undefined") {
+                    desc = p.desc || ""
+                    contenidoRutina = p.rutina || ""
+                  }
+                } catch {
+                  // plain text o HTML sin JSON — se muestra tal cual
+                }
+                const ejerciciosTxt = !contenidoRutina && Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0
+                  ? rutina.ejercicios.map(e => e.nombre).join("\n")
+                  : ""
+                return (
+                  <div className="space-y-4">
+                    {desc && (
+                      <div
+                        className="text-sm text-foreground/80 leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-black prose-strong:text-foreground"
+                        dangerouslySetInnerHTML={{ __html: desc }}
+                      />
+                    )}
+                    {contenidoRutina && (
+                      <div
+                        className="text-sm text-foreground/80 leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-black prose-strong:text-foreground bg-muted/40 rounded-lg p-4 border border-border"
+                        dangerouslySetInnerHTML={{ __html: contenidoRutina }}
+                      />
+                    )}
+                    {ejerciciosTxt && (
+                      <pre className="text-sm text-foreground/70 whitespace-pre-wrap font-sans bg-muted/40 rounded-lg p-4 border border-border leading-relaxed">
+                        {ejerciciosTxt}
+                      </pre>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
     )
   }
 

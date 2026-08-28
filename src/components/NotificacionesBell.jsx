@@ -70,7 +70,7 @@ export default function NotificacionesBell() {
   const [open, setOpen] = useState(false)
   const [popups, setPopups] = useState([])
   const ref = useRef(null)
-  const prevNoLeidas = useRef(0)
+  const prevNoLeidas = useRef(null)
 
   const cargar = () => {
     apiClient.get('/notificaciones')
@@ -80,8 +80,8 @@ export default function NotificacionesBell() {
         const count = data.noLeidas || 0
         setNotifs(lista)
         setNoLeidas(count)
-        // Mostrar popup si llegaron nuevas del backend
-        if (count > prevNoLeidas.current && lista.length > 0) {
+        // Solo mostrar popup si llegaron NUEVAS (no en la carga inicial)
+        if (prevNoLeidas.current !== null && count > prevNoLeidas.current && lista.length > 0) {
           const nueva = lista.find(n => !n.leida)
           if (nueva) showPopup(nueva)
         }

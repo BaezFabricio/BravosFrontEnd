@@ -201,6 +201,13 @@ export default function AdminLayout({ children }) {
                 </p>
                 <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
               </div>
+              <button
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                className="shrink-0 p-1.5 text-sidebar-foreground/30 hover:text-red-400 transition-colors rounded"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
