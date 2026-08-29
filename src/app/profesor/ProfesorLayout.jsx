@@ -130,7 +130,7 @@ export default function ProfesorLayout({ children }) {
               >
                 <div className="flex items-center gap-2">
                   <Home className="h-4 w-4" /> 
-                  <span className="text-sm font-medium translate-y-[1px]">Ver Sitio</span>
+                  <span className="text-sm font-medium translate-y-[1px]"></span>
                 </div>
               </Button>
 

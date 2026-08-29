@@ -76,15 +76,40 @@ export default function DetalleRutinaPage() {
           )}
         </div>
         <div className="p-5 space-y-6">
-          {rutina.descripcion && (
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
-              <div
-                className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
-                dangerouslySetInnerHTML={{ __html: rutina.descripcion }}
-              />
-            </div>
-          )}
+          {(() => {
+            let descHtml = rutina.descripcion || ""
+            let rutinaHtml = ""
+            try {
+              const parsed = JSON.parse(rutina.descripcion || "")
+              if (parsed && typeof parsed === "object") {
+                descHtml = parsed.desc || ""
+                rutinaHtml = parsed.rutina || ""
+              }
+            } catch { /* plain HTML, use as-is */ }
+
+            return (
+              <>
+                {descHtml && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
+                    <div
+                      className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
+                      dangerouslySetInnerHTML={{ __html: descHtml }}
+                    />
+                  </div>
+                )}
+                {rutinaHtml && (
+                  <div className="space-y-1 border-t border-border pt-5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Rutina</p>
+                    <div
+                      className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
+                      dangerouslySetInnerHTML={{ __html: rutinaHtml }}
+                    />
+                  </div>
+                )}
+              </>
+            )
+          })()}
 
           {rutina.ejercicios?.length > 0 && (
             <div className="space-y-3 border-t border-border pt-5">

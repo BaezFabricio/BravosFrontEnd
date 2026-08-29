@@ -83,6 +83,13 @@ export default function ReservarClasePage() {
   const formatDate = (date) =>
     date.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })
 
+  const toLocalDateStr = (date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
   const getDatesOfWeek = () => {
     const dates = []
     const startOfWeek = new Date(selectedDate)
@@ -155,12 +162,20 @@ export default function ReservarClasePage() {
   const clasesFiltradas = useMemo(() => {
     const diaIndex = selectedDate.getDay()
     const nombreDiaBuscado = mapaDiasBD[diaIndex]
-    const fechaStr = selectedDate.toISOString().split('T')[0]
+    const fechaStr = toLocalDateStr(selectedDate)
 
     return clasesOriginales
       .filter(clase => {
-        const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : ""
-        if (diaClase !== nombreDiaBuscado || clase.estado !== 'Activo') return false
+        if (clase.estado !== 'Activo') return false
+        if (clase.fechaEspecifica) {
+          // Clase única: solo aparece el día exacto de su fecha
+          const fechaUnica = clase.fechaEspecifica.split('T')[0]
+          if (fechaUnica !== fechaStr) return false
+        } else {
+          // Clase recurrente: filtra por día de semana
+          const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : ""
+          if (diaClase !== nombreDiaBuscado) return false
+        }
         const hora = clase.horaInicio ? clase.horaInicio.substring(0, 5) : "00:00"
         if (turnoFiltro && !horaEnTurno(hora, turnoFiltro)) return false
         if (idPlanAlumno && clase.idPlan && clase.idPlan !== idPlanAlumno) return false
@@ -215,14 +230,18 @@ export default function ReservarClasePage() {
     }
     setIsLoading(true)
     try {
-      const fechaFormateada = selectedDate.toISOString().split('T')[0]
+      const fechaFormateada = toLocalDateStr(selectedDate)
       const response = await apiClient.post('/reservas', {
         idHorario: selectedClass.id,
         fechaReserva: fechaFormateada
       })
       if (response.data?.success) {
+        const idReservaNueva = response.data?.data?.idReserva
         toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}` })
         setCreditosReales(prev => prev - 1)
+        // Actualización optimista inmediata
+        const key = `${selectedClass.id}-${fechaFormateada}`
+        setReservasMap(prev => ({ ...prev, [key]: idReservaNueva }))
         await cargarReservas()
       }
     } catch (error) {

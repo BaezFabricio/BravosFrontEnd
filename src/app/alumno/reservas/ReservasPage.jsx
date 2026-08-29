@@ -117,7 +117,10 @@ export default function ReservasPage() {
 
     return (
       <>
-        <Card className="bg-card border-border">
+        <Card
+          className="bg-card border-border transition-colors cursor-pointer hover:border-primary/30"
+          onClick={abrirRutina}
+        >
           <CardContent className="p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -147,30 +150,21 @@ export default function ReservasPage() {
                 <Button
                   variant="destructive"
                   className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
-                  onClick={() => setCancelDialog({
-                    open: true,
-                    idReserva: reserva.idReserva,
-                    claseNombre: reserva.clase,
-                    fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
-                  })}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCancelDialog({
+                      open: true,
+                      idReserva: reserva.idReserva,
+                      claseNombre: reserva.clase,
+                      fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
+                    })
+                  }}
                 >
                   <X className="mr-1.5 h-4 w-4 stroke-[3]" />
                   Cancelar
                 </Button>
               )}
             </div>
-
-            {showCancelButton && reserva.idClase && (
-              <div className="border-t border-border pt-3">
-                <button
-                  onClick={abrirRutina}
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                >
-                  <Dumbbell className="h-4 w-4" />
-                  Ver rutina de la clase
-                </button>
-              </div>
-            )}
           </CardContent>
         </Card>
 

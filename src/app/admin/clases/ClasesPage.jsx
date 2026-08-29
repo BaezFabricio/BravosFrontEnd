@@ -11,6 +11,7 @@ import {
   User,
   ChevronDown,
   ChevronRight,
+  History,
 } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
@@ -57,12 +58,65 @@ export default function ClasesPage() {
     }
   }, [])
 
-  const clasesFiltradas = clases.filter((clase) =>
-    clase.nombreClase?.toLowerCase().includes(search.toLowerCase()) ||
-    clase.tipoClase?.toLowerCase().includes(search.toLowerCase()) ||
-    clase.estado?.toLowerCase().includes(search.toLowerCase()) ||
-    clase.nombreProfesor?.toLowerCase().includes(search.toLowerCase())
-  )
+  const ahora = new Date()
+  const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`
+
+  const DIAS_NUM = { DOMINGO:0, LUNES:1, MARTES:2, MIERCOLES:3, JUEVES:4, VIERNES:5, SABADO:6 }
+
+  // Devuelve la próxima fecha en que cae un día de la semana dado (hoy si la clase aún no pasó, o la próxima semana)
+  const proximaFecha = (diasStr, horaInicioStr) => {
+    if (!diasStr) return null
+    const diasArr = diasStr.split(',').map(d => d.trim().toUpperCase())
+    const base = new Date(); base.setSeconds(0, 0)
+    let minDiff = null
+    for (const dia of diasArr) {
+      const td = DIAS_NUM[dia]
+      if (td === undefined) continue
+      let diff = (td - base.getDay() + 7) % 7
+      // Si es hoy pero la hora ya pasó, empujar a la próxima semana
+      if (diff === 0 && horaInicioStr) {
+        const [hh, mm] = horaInicioStr.split(':').map(Number)
+        const claseHoy = new Date(); claseHoy.setHours(hh, mm, 0, 0)
+        if (base >= claseHoy) diff = 7
+      }
+      if (minDiff === null || diff < minDiff) minDiff = diff
+    }
+    if (minDiff === null) return null
+    const f = new Date(); f.setHours(0,0,0,0); f.setDate(f.getDate() + minDiff)
+    return f
+  }
+
+  // Una clase única "ya pasó" si su fecha es anterior a hoy,
+  // o si es hoy pero su hora de fin ya transcurrió.
+  const yaTermino = (clase) => {
+    if (!clase.fechaEspecifica) return false
+    const fecha = clase.fechaEspecifica.split('T')[0]
+    if (fecha < hoy) return true
+    if (fecha === hoy && clase.horaFin) {
+      const [h, m] = clase.horaFin.split(':').map(Number)
+      const fin = new Date(); fin.setHours(h, m, 0, 0)
+      return ahora > fin
+    }
+    return false
+  }
+
+  const clasesFiltradas = clases.filter((clase) => {
+    const matchBusqueda =
+      clase.nombreClase?.toLowerCase().includes(search.toLowerCase()) ||
+      clase.tipoClase?.toLowerCase().includes(search.toLowerCase()) ||
+      clase.estado?.toLowerCase().includes(search.toLowerCase()) ||
+      clase.nombreProfesor?.toLowerCase().includes(search.toLowerCase())
+    return matchBusqueda && !yaTermino(clase)
+  })
+
+  const historialClasesUnicas = clases
+    .filter((clase) => {
+      const matchBusqueda =
+        clase.nombreClase?.toLowerCase().includes(search.toLowerCase()) ||
+        clase.nombreProfesor?.toLowerCase().includes(search.toLowerCase())
+      return matchBusqueda && yaTermino(clase)
+    })
+    .sort((a, b) => b.fechaEspecifica.localeCompare(a.fechaEspecifica))
 
   const clasesAgrupadas = useMemo(() => {
     const grupos = {}
@@ -261,15 +315,43 @@ export default function ClasesPage() {
                                   </span>
                                   <span className="text-foreground/30">/{clase.cupoMaximo}</span>
                                 </span>
-                                {clase.diasSemana && (
-                                  <div className="flex gap-1">
-                                    {clase.diasSemana.split(",").map((dia) => (
-                                      <span key={dia} className="border border-border px-1.5 py-px text-[9px] font-bold uppercase text-foreground/50">
-                                        {dia.trim().substring(0, 3)}
+                                {clase.fechaEspecifica ? (() => {
+                                  const [y, m, d] = clase.fechaEspecifica.split('T')[0].split('-').map(Number)
+                                  const fechaObj = new Date(y, m - 1, d)
+                                  const label = fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
+                                  return (
+                                    <div className="flex gap-1 flex-wrap items-center">
+                                      <span className="border border-lime-400/20 bg-lime-400/5 px-1.5 py-px text-[9px] font-bold uppercase text-lime-400/70 capitalize">
+                                        {label}
                                       </span>
-                                    ))}
-                                  </div>
-                                )}
+                                      <span className="border border-lime-400/15 px-1.5 py-px text-[9px] font-bold uppercase text-lime-400/40">
+                                        Única
+                                      </span>
+                                    </div>
+                                  )
+                                })() : clase.diasSemana && (() => {
+                                  const proxima = proximaFecha(clase.diasSemana, clase.horaInicio)
+                                  const fechaLabel = proxima
+                                    ? proxima.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
+                                    : null
+                                  return (
+                                    <div className="flex gap-1 flex-wrap items-center">
+                                      {clase.diasSemana.split(",").map((dia) => (
+                                        <span key={dia} className="border border-border px-1.5 py-px text-[9px] font-bold uppercase text-foreground/50">
+                                          {dia.trim().substring(0, 3)}
+                                        </span>
+                                      ))}
+                                      {fechaLabel && (
+                                        <span className="border border-foreground/10 px-1.5 py-px text-[9px] font-bold uppercase text-foreground/35">
+                                          {fechaLabel}
+                                        </span>
+                                      )}
+                                      <span className="border border-foreground/10 px-1.5 py-px text-[9px] font-bold uppercase text-foreground/30">
+                                        Recurrente
+                                      </span>
+                                    </div>
+                                  )
+                                })()}
                               </div>
                             </div>
                           </div>
@@ -310,6 +392,67 @@ export default function ClasesPage() {
             ))
           )}
         </div>
+      )}
+
+      {/* ── HISTORIAL DE CLASES ÚNICAS PASADAS ─────────────────────────── */}
+      {historialClasesUnicas.length > 0 && (
+        <section className="border border-border bg-card">
+          <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-foreground/[0.02]">
+            <History className="h-4 w-4 text-foreground/30" />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Historial</p>
+              <p className="text-sm font-black text-foreground">Clases únicas realizadas</p>
+            </div>
+            <span className="text-[10px] font-bold text-foreground/30 ml-1">{historialClasesUnicas.length}</span>
+          </div>
+          <div className="divide-y divide-border">
+            {historialClasesUnicas.map((clase) => {
+              const fechaStr = clase.fechaEspecifica?.split('T')[0]
+              const [y, m, d] = fechaStr ? fechaStr.split('-').map(Number) : []
+              const fechaLabel = fechaStr
+                ? new Date(y, m - 1, d).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                : '—'
+              return (
+                <div key={clase.idClase} className="px-5 py-3 opacity-60 hover:opacity-80 transition-opacity">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-black uppercase tracking-wide text-foreground truncate">{clase.nombreClase}</h3>
+                        <span className="shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 border border-foreground/10 text-foreground/30">
+                          Realizada
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        <span className="text-xs text-foreground/50 capitalize">{fechaLabel}</span>
+                        {clase.horaInicio && clase.horaFin && (
+                          <span className="flex items-center gap-1 text-xs text-foreground/40">
+                            <Clock className="h-3 w-3" />
+                            {clase.horaInicio.substring(0, 5)} - {clase.horaFin.substring(0, 5)}
+                          </span>
+                        )}
+                        {clase.nombreProfesor && (
+                          <span className="flex items-center gap-1 text-xs text-foreground/40">
+                            <User className="h-3 w-3" />
+                            {clase.nombreProfesor}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {permisos.includes("clases:baja") && (
+                      <button
+                        onClick={() => setDeleteDialog({ open: true, clase })}
+                        className="p-1.5 text-foreground/20 hover:text-red-400 transition-colors shrink-0"
+                        title="Eliminar del historial"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
       )}
 
       {/* Modal de eliminar */}

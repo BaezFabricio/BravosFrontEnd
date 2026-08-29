@@ -34,10 +34,26 @@ export default function AlumnoDashboard() {
 
   // Datos estáticos temporales para las tarjetas de progreso
   const userStats = {
-    creditosUsados: 8,
     racha: 5,
     totalClases: 47,
   }
+
+  const hoyDate = new Date()
+
+  // Buscar el mes con más actividad: si hay completadas, usar su mes; si no, usar el mes actual
+  const todasCompletadas = reservasReales.filter(r => r.estadoReserva?.toLowerCase() === "completada")
+  const mesReferencia = todasCompletadas.length > 0
+    ? new Date(todasCompletadas[0].fechaReserva)
+    : hoyDate
+  const mesRef      = mesReferencia.getUTCMonth()
+  const anioRef     = mesReferencia.getUTCFullYear()
+  const diasEnMes   = new Date(anioRef, mesRef + 1, 0).getDate()
+  const nombreMes   = new Date(anioRef, mesRef, 1).toLocaleDateString("es-AR", { month: "long" })
+
+  const clasesCompletadasEsteMes = todasCompletadas.filter(r => {
+    const f = new Date(r.fechaReserva)
+    return f.getUTCFullYear() === anioRef && f.getUTCMonth() === mesRef
+  }).length
 
   // EFECTO 1: LEER SESIÓN, TRAER CRÉDITOS Y RESERVAS DEL ALUMNO
   useEffect(() => {
@@ -95,10 +111,12 @@ export default function AlumnoDashboard() {
         const diaBuscado = mapaDiasBD[numeroDiaJs] // Ej: "LUNES"
 
         // Filtranos usando la columna real 'clase.dia' que viene de tu base de datos
+        const hoyStr = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`
         const clasesFiltradasPorDia = allClases.filter(clase => {
-          // Evaluamos 'clase.dia' (la misma propiedad que usamos en ReservarClasePage)
+          if (clase.estado !== 'Activo') return false
+          if (clase.fechaEspecifica) return clase.fechaEspecifica.split('T')[0] === hoyStr
           const diaClase = clase.dia ? clase.dia.toUpperCase().trim() : ""
-          return diaClase === diaBuscado && clase.estado === 'Activo'
+          return diaClase === diaBuscado
         })
         
         // Ordenamos las clases de hoy por hora de inicio para que salgan en orden de grilla
@@ -384,17 +402,17 @@ export default function AlumnoDashboard() {
               <div className="flex items-baseline justify-between gap-2">
                 <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO MENSUAL</h3>
                 <p className="text-2xl sm:text-4xl font-black text-primary shrink-0">
-                  {Math.round((userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100)}%
+                  {Math.round((clasesCompletadasEsteMes / diasEnMes) * 100)}%
                 </p>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                {userStats.creditosUsados} de {creditosReales + userStats.creditosUsados} clases este mes
+                {clasesCompletadasEsteMes} de {diasEnMes} días en {nombreMes}
               </p>
               <div className="mt-2 w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
                   style={{
-                    width: `${(userStats.creditosUsados / (creditosReales + userStats.creditosUsados || 1)) * 100}%`,
+                    width: `${Math.min((clasesCompletadasEsteMes / diasEnMes) * 100, 100)}%`,
                   }}
                 />
               </div>

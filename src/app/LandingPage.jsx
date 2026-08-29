@@ -19,7 +19,6 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
-import { ModeToggle } from "@/components/ModeToggle"
 import { GymLoader } from '@/components/GymLoader'
 import UserMenu from '@/components/UserMenu'
 import NotificacionesBell from '@/components/NotificacionesBell'
@@ -265,12 +264,15 @@ function LandingPage() {
   // 🟢 FILTRADO DINÁMICO CRONOLÓGICO CONECTADO
   const clasesVisibles = clasesBackend
     .filter((c) => {
-  
+      if (c.fechaEspecifica) {
+        // Clase única: solo en la grilla del día correspondiente
+        const diaSemanaFecha = ['DOMINGO','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO'][new Date(c.fechaEspecifica + 'T00:00:00').getDay()]
+        return diaSemanaFecha === (diaSeleccionado || "").toUpperCase().trim()
+      }
       const diaBaseDatos = c.dia ? c.dia.toUpperCase().trim() : "";
       const diaBoton = diaSeleccionado ? diaSeleccionado.toUpperCase().trim() : "";
       return diaBaseDatos === diaBoton;
     })
-    
     .sort((a, b) => (a.horaInicio || "").localeCompare(b.horaInicio || ""));
 
   if (pageLoading) {
@@ -334,8 +336,6 @@ function LandingPage() {
 
               <div className="hidden items-center gap-3 lg:flex">
 
-                <ModeToggle />
-                
                 {!isLoggedIn ? (
                   <>
                     <Link to="/login">

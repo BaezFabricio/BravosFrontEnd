@@ -95,7 +95,7 @@ export default function EditarClasePage() {
     nombre: "", horaInicio: "", horaFin: "",
     idProfesor: "", capacidadMaxima: "15",
     diasSemana: [], descripcion: "", rutina: "",
-    estado: "Activo", publicarFecha: "", publicarHora: "",
+    estado: "Activo", publicarDatetime: "",
     idPlan: null,
   })
 
@@ -138,6 +138,16 @@ export default function EditarClasePage() {
             : (typeof c.rutina?.ejercicios === "string" ? c.rutina.ejercicios : "")
         }
 
+        // fechaPublicacion viene en UTC desde el backend — convertir a hora local Argentina
+        const fechaPublicacionCargada = c.fechaPublicacion
+          ? (() => {
+              const d = new Date(c.fechaPublicacion + 'Z') // forzar UTC parsing
+              return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16)
+            })()
+          : ""
+        if (fechaPublicacionCargada) setPublicarProgramado(true)
+
         setFormData({
           nombre: c.nombreClase || "",
           horaInicio: c.horaInicio ? c.horaInicio.substring(0, 5) : "",
@@ -148,7 +158,7 @@ export default function EditarClasePage() {
           descripcion: descripcionCargada,
           rutina: rutinaCargada,
           estado: c.estado || "Activo",
-          publicarFecha: "", publicarHora: "",
+          publicarDatetime: fechaPublicacionCargada,
           idPlan: c.idPlan || (planIdDesdeUrl ? parseInt(planIdDesdeUrl) : null),
         })
       }
@@ -196,10 +206,9 @@ export default function EditarClasePage() {
         formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin
       ) || TURNOS[0]
 
-      let publicarEn = null
-      if (publicarProgramado && formData.publicarFecha && formData.publicarHora) {
-        publicarEn = `${formData.publicarFecha}T${formData.publicarHora}:00`
-      }
+      const fechaPublicacion = (publicarProgramado && formData.publicarDatetime)
+        ? new Date(formData.publicarDatetime).toISOString().slice(0, 19).replace('T', ' ')
+        : null
 
       const token = localStorage.getItem("token")
       const payload = {
@@ -215,10 +224,10 @@ export default function EditarClasePage() {
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
         turno: turnoSeleccionado.nombre,
+        fechaPublicacion,
         rutina: {
           descripcion: formData.descripcion,
           ejercicios: formData.rutina,
-          publicarEn,
         },
       }
 
@@ -239,12 +248,6 @@ export default function EditarClasePage() {
   }
 
   const dur = duracionMinutos()
-  const resumenPublicacion = (() => {
-    if (!formData.publicarFecha || !formData.publicarHora) return null
-    const [y, m, d] = formData.publicarFecha.split("-").map(Number)
-    const [hh, mm] = formData.publicarHora.split(":")
-    return `${d} de ${MESES[m - 1]} ${y} a las ${hh}:${mm}`
-  })()
 
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
   const fieldError = "w-full bg-transparent border border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-400 transition-colors"
@@ -301,33 +304,34 @@ export default function EditarClasePage() {
             <div className="p-5">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Publicar rutina</label>
-                  <p className="text-xs text-foreground/60 mt-0.5">La clase siempre es reservable. La rutina se revela cuando vos decidas.</p>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Notificar alumnos por email</label>
+                  <p className="text-xs text-foreground/60 mt-0.5">Avisá automáticamente a todos los alumnos activos cuando la clase esté lista para reservar.</p>
                 </div>
                 <button type="button"
-                  onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarFecha", ""); set("publicarHora", "") }}
+                  onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
                   className={`shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
                     publicarProgramado
                       ? "border-primary/30 text-primary bg-primary/5"
                       : "border-border text-foreground/25 hover:text-foreground hover:border-foreground/20"
                   }`}
                 >
-                  {publicarProgramado ? <><Eye className="h-3 w-3" />Programada</> : <><EyeOff className="h-3 w-3" />Inmediata</>}
+                  {publicarProgramado ? <><Eye className="h-3 w-3" />Programado</> : <><EyeOff className="h-3 w-3" />Sin aviso</>}
                 </button>
               </div>
               {publicarProgramado && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-[10px] text-foreground/60 mb-1.5">Fecha</p>
-                      <DateSelect value={formData.publicarFecha} onChange={v => set("publicarFecha", v)} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-foreground/60 mb-1.5">Hora</p>
-                      <TimeSelect value={formData.publicarHora} onChange={v => set("publicarHora", v)} />
-                    </div>
-                  </div>
-                  {resumenPublicacion && <p className="text-xs text-primary">Rutina visible desde el {resumenPublicacion}</p>}
+                <div className="space-y-2">
+                  <input
+                    type="datetime-local"
+                    value={formData.publicarDatetime}
+                    onChange={e => set("publicarDatetime", e.target.value)}
+                    className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                    style={{ colorScheme: "dark" }}
+                  />
+                  {formData.publicarDatetime && (
+                    <p className="text-xs text-primary">
+                      📧 Email enviado el {new Date(formData.publicarDatetime).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })} a las {formData.publicarDatetime.slice(11, 16)} hs
+                    </p>
+                  )}
                 </div>
               )}
             </div>

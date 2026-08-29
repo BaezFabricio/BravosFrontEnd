@@ -206,7 +206,7 @@ export default function AlumnoLayout({ children }) {
             <div className="flex items-center gap-3">
               <ModeToggle />
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
-                <Home className="h-4 w-4" /> Ver Sitio
+                <Home className="h-4 w-4" />
               </Button>
 
               <NotificacionesBell />

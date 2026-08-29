@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, Calendar, CheckCheck, CreditCard, Dumbbell, Info, X, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react'
 import apiClient from '@/api'
 
@@ -65,6 +66,7 @@ function formatearFechaNotif(raw) {
 }
 
 export default function NotificacionesBell() {
+  const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [noLeidas, setNoLeidas] = useState(0)
   const [open, setOpen] = useState(false)
@@ -141,6 +143,20 @@ export default function NotificacionesBell() {
 
   const dismissPopup = (pid) => setPopups(prev => prev.filter(p => p.pid !== pid))
 
+  const handleClickNotif = (n) => {
+    if (!n.leida) marcarLeida(n.idNotificacion, n.local)
+    if (n.link) {
+      setOpen(false)
+      navigate(n.link)
+    }
+  }
+
+  const handleClickPopup = (p) => {
+    dismissPopup(p.pid)
+    if (!p.leida) marcarLeida(p.idNotificacion, p.local)
+    if (p.link) navigate(p.link)
+  }
+
   return (
     <>
       {/* Bell + Dropdown + Popups */}
@@ -167,14 +183,16 @@ export default function NotificacionesBell() {
               return (
                 <div
                   key={p.pid}
-                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-sm animate-in slide-in-from-top-2 fade-in duration-300 ${bg}`}
+                  onClick={() => p.link && handleClickPopup(p)}
+                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-sm animate-in slide-in-from-top-2 fade-in duration-300 ${bg} ${p.link ? 'cursor-pointer' : ''}`}
                 >
                   <Icono className={`h-4 w-4 mt-0.5 flex-shrink-0 ${color}`} />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-foreground">{p.titulo}</p>
                     <p className="text-[11px] text-foreground/60 mt-0.5 leading-relaxed">{p.mensaje}</p>
+                    {p.link && <p className="text-[10px] text-foreground/40 mt-1">Toca para ver →</p>}
                   </div>
-                  <button onClick={() => dismissPopup(p.pid)} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors">
+                  <button onClick={(e) => { e.stopPropagation(); dismissPopup(p.pid) }} className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -207,8 +225,8 @@ export default function NotificacionesBell() {
                   return (
                     <div
                       key={n.idNotificacion}
-                      onClick={() => !n.leida && marcarLeida(n.idNotificacion, n.local)}
-                      className={`flex gap-3 px-4 py-3 transition-colors ${n.leida ? 'opacity-40' : 'cursor-pointer hover:bg-muted'}`}
+                      onClick={() => handleClickNotif(n)}
+                      className={`flex gap-3 px-4 py-3 transition-colors ${n.leida ? 'opacity-40' : 'cursor-pointer hover:bg-muted'} ${n.link && !n.leida ? 'group' : ''}`}
                     >
                       <div className={`mt-0.5 flex-shrink-0 ${color}`}>
                         <Icono className="h-4 w-4" />

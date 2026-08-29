@@ -20,7 +20,7 @@ const TURNOS = [
 ]
 
 const HORAS = Array.from({ length: 18 }, (_, i) => String(i + 5).padStart(2, "0"))
-const MINUTOS = ["00", "15", "30", "45"]
+const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
 
 // Selector de hora: HH : MM
@@ -53,37 +53,45 @@ function TimeSelect({ value, onChange, hasError }) {
 // Selector de fecha: Día / Mes / Año
 function DateSelect({ value, onChange }) {
   const today = new Date()
-  const parsed = value ? new Date(value + "T00:00:00") : null
+  const anios = Array.from({ length: 8 }, (_, i) => today.getFullYear() - 1 + i)
+  const dias  = Array.from({ length: 31 }, (_, i) => i + 1)
 
-  const dia   = parsed ? parsed.getDate() : ""
-  const mes   = parsed ? parsed.getMonth() : ""
-  const anio  = parsed ? parsed.getFullYear() : ""
-
-  const rebuild = (d, m, y) => {
-    if (!d || m === "" || !y) { onChange(""); return }
-    const dd = String(d).padStart(2, "0")
-    const mm = String(Number(m) + 1).padStart(2, "0")
-    onChange(`${y}-${mm}-${dd}`)
+  const parsear = (v) => {
+    if (!v) return { dia: "", mes: "", anio: "" }
+    const d = new Date(v + "T00:00:00")
+    return { dia: d.getDate(), mes: d.getMonth(), anio: d.getFullYear() }
   }
 
-  const dias  = Array.from({ length: 31 }, (_, i) => i + 1)
-  const anios = Array.from({ length: 3 }, (_, i) => today.getFullYear() + i)
+  const init = parsear(value)
+  const [dia,  setDia]  = useState(init.dia)
+  const [mes,  setMes]  = useState(init.mes)
+  const [anio, setAnio] = useState(init.anio)
+
+  const emit = (d, m, y) => {
+    if (d !== "" && m !== "" && y !== "") {
+      const dd = String(d).padStart(2, "0")
+      const mm = String(Number(m) + 1).padStart(2, "0")
+      onChange(`${y}-${mm}-${dd}`)
+    } else {
+      onChange("")
+    }
+  }
 
   const selectClass = "bg-card border-0 text-sm text-foreground px-2 py-2 outline-none appearance-none cursor-pointer flex-1 text-center"
 
   return (
     <div className="flex items-center border border-border bg-card" style={{ colorScheme: "dark" }}>
-      <select value={dia} onChange={e => rebuild(e.target.value, mes, anio)} className={selectClass}>
+      <select value={dia} onChange={e => { const v = e.target.value; setDia(v); emit(v, mes, anio) }} className={selectClass}>
         <option value="">Día</option>
         {dias.map(d => <option key={d} value={d}>{d}</option>)}
       </select>
       <span className="text-foreground/20 font-black">/</span>
-      <select value={mes} onChange={e => rebuild(dia, e.target.value, anio)} className={selectClass}>
+      <select value={mes} onChange={e => { const v = e.target.value; setMes(v); emit(dia, v, anio) }} className={selectClass}>
         <option value="">Mes</option>
         {MESES.map((m, i) => <option key={i} value={i}>{m}</option>)}
       </select>
       <span className="text-foreground/20 font-black">/</span>
-      <select value={anio} onChange={e => rebuild(dia, mes, e.target.value)} className={selectClass}>
+      <select value={anio} onChange={e => { const v = e.target.value; setAnio(v); emit(dia, mes, v) }} className={selectClass}>
         <option value="">Año</option>
         {anios.map(a => <option key={a} value={a}>{a}</option>)}
       </select>
@@ -103,6 +111,8 @@ export default function NuevaClasePage() {
   const [planes, setPlanes]           = useState([])
   const [publicarProgramado, setPublicarProgramado] = useState(false)
 
+  const [esClaseUnica, setEsClaseUnica] = useState(false)
+
   const [formData, setFormData] = useState({
     nombre: "",
     idPlan: planIdDesdeUrl,
@@ -111,10 +121,10 @@ export default function NuevaClasePage() {
     idProfesor: "",
     capacidadMaxima: "15",
     diasSemana: [],
+    fechaEspecifica: "",
     descripcion: "",
     rutina: "",
-    publicarFecha: "",
-    publicarHora: "",
+    publicarDatetime: "",
   })
 
   const set = (campo, valor) => setFormData(prev => ({ ...prev, [campo]: valor }))
@@ -168,7 +178,11 @@ export default function NuevaClasePage() {
       e.horario = "La hora de fin debe ser posterior al inicio"
     if (!formData.capacidadMaxima || parseInt(formData.capacidadMaxima) <= 0) e.capacidadMaxima = "Debe ser mayor a 0"
     if (parseInt(formData.capacidadMaxima) > 20) e.capacidadMaxima = "Máximo 20 alumnos"
-    if (formData.diasSemana.length === 0) e.diasSemana = "Seleccioná al menos un día"
+    if (esClaseUnica) {
+      if (!formData.fechaEspecifica) e.diasSemana = "Seleccioná la fecha de la clase"
+    } else {
+      if (formData.diasSemana.length === 0) e.diasSemana = "Seleccioná al menos un día"
+    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -182,10 +196,9 @@ export default function NuevaClasePage() {
         formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin
       ) || TURNOS[0]
 
-      let publicarEn = null
-      if (publicarProgramado && formData.publicarFecha && formData.publicarHora) {
-        publicarEn = `${formData.publicarFecha}T${formData.publicarHora}:00`
-      }
+      const fechaPublicacion = (publicarProgramado && formData.publicarDatetime)
+        ? new Date(formData.publicarDatetime).toISOString().slice(0, 19).replace('T', ' ')
+        : null
 
       const token = localStorage.getItem("token")
       const payload = {
@@ -196,15 +209,18 @@ export default function NuevaClasePage() {
         estado: "Activo",
         idGimnasio: 1,
         idProfesor: parseInt(formData.idProfesor),
-        diasSemana: formData.diasSemana,
+        ...(esClaseUnica
+          ? { fechaEspecifica: formData.fechaEspecifica }
+          : { diasSemana: formData.diasSemana }
+        ),
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
         turno: turnoSeleccionado.nombre,
         idPlan: formData.idPlan ? parseInt(formData.idPlan) : null,
+        fechaPublicacion,
         rutina: {
           descripcion: formData.descripcion,
           ejercicios: formData.rutina,
-          publicarEn,
         },
       }
 
@@ -230,13 +246,6 @@ export default function NuevaClasePage() {
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
   const fieldError = "w-full bg-transparent border border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-400 transition-colors"
 
-  // Descripción legible de la publicación programada
-  const resumenPublicacion = (() => {
-    if (!formData.publicarFecha || !formData.publicarHora) return null
-    const [y, m, d] = formData.publicarFecha.split("-").map(Number)
-    const [hh, mm] = formData.publicarHora.split(":")
-    return `${d} de ${MESES[m - 1]} ${y} a las ${hh}:${mm}`
-  })()
 
   return (
     <div className="space-y-6">
@@ -295,40 +304,39 @@ export default function NuevaClasePage() {
               />
             </div>
 
-            {/* Publicación programada */}
+            {/* Notificación por email programada */}
             <div className="p-5">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Publicar rutina</label>
-                  <p className="text-xs text-foreground/60 mt-0.5">La clase siempre es reservable. La rutina se revela cuando vos decidas.</p>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Notificar alumnos por email</label>
+                  <p className="text-xs text-foreground/60 mt-0.5">Avisá automáticamente a todos los alumnos activos cuando la clase esté lista para reservar.</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarFecha", ""); set("publicarHora", "") }}
+                  onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
                   className={`shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
                     publicarProgramado
                       ? "border-primary/30 text-primary bg-primary/5"
                       : "border-border text-foreground/25 hover:text-foreground hover:border-foreground/20"
                   }`}
                 >
-                  {publicarProgramado ? <><Eye className="h-3 w-3" />Programada</> : <><EyeOff className="h-3 w-3" />Inmediata</>}
+                  {publicarProgramado ? <><Eye className="h-3 w-3" />Programado</> : <><EyeOff className="h-3 w-3" />Sin aviso</>}
                 </button>
               </div>
 
               {publicarProgramado && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-[10px] text-foreground/60 mb-1.5">Fecha</p>
-                      <DateSelect value={formData.publicarFecha} onChange={v => set("publicarFecha", v)} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-foreground/60 mb-1.5">Hora</p>
-                      <TimeSelect value={formData.publicarHora} onChange={v => set("publicarHora", v)} />
-                    </div>
-                  </div>
-                  {resumenPublicacion && (
-                    <p className="text-xs text-primary">Rutina visible desde el {resumenPublicacion}</p>
+                <div className="space-y-2">
+                  <input
+                    type="datetime-local"
+                    value={formData.publicarDatetime}
+                    onChange={e => set("publicarDatetime", e.target.value)}
+                    className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                    style={{ colorScheme: "dark" }}
+                  />
+                  {formData.publicarDatetime && (
+                    <p className="text-xs text-primary">
+                      📧 Email enviado el {new Date(formData.publicarDatetime).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })} a las {formData.publicarDatetime.slice(11, 16)} hs
+                    </p>
                   )}
                 </div>
               )}
@@ -383,21 +391,57 @@ export default function NuevaClasePage() {
             </div>
 
             <div className="p-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Días *</label>
-              <div className="grid grid-cols-3 gap-1">
-                {DIAS.map(({ key, label }) => (
-                  <button
-                    key={key} type="button" onClick={() => toggleDia(key)}
-                    className={`py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${
-                      formData.diasSemana.includes(key)
-                        ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
-                        : "border-border text-foreground/30 hover:text-foreground hover:border-foreground/20"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              {/* Toggle recurrente / única */}
+              <div className="flex items-center gap-1 mb-3">
+                <button
+                  type="button"
+                  onClick={() => { setEsClaseUnica(false); set("fechaEspecifica", "") }}
+                  className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors ${
+                    !esClaseUnica
+                      ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                      : "border-border text-foreground/30 hover:text-foreground"
+                  }`}
+                >
+                  Recurrente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEsClaseUnica(true); set("diasSemana", []) }}
+                  className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors ${
+                    esClaseUnica
+                      ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                      : "border-border text-foreground/30 hover:text-foreground"
+                  }`}
+                >
+                  Única
+                </button>
               </div>
+
+              {esClaseUnica ? (
+                <div>
+                  <p className="text-[10px] text-foreground/50 mb-1.5">Fecha de la clase *</p>
+                  <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
+                  <p className="text-[10px] text-foreground/35 mt-1.5">La clase no se repetirá. Pasada esa fecha desaparece automáticamente.</p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Días de la semana *</label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {DIAS.map(({ key, label }) => (
+                      <button
+                        key={key} type="button" onClick={() => toggleDia(key)}
+                        className={`py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${
+                          formData.diasSemana.includes(key)
+                            ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                            : "border-border text-foreground/30 hover:text-foreground hover:border-foreground/20"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {errors.diasSemana && <p className="mt-2 text-xs text-red-400">{errors.diasSemana}</p>}
             </div>
 

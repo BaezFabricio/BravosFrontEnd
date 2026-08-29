@@ -22,7 +22,15 @@ const fmt = (iso) => {
   } catch { return iso }
 }
 
+const sumarUnMes = (fechaStr) => {
+  if (!fechaStr) return ""
+  const d = new Date(fechaStr + "T00:00:00")
+  d.setMonth(d.getMonth() + 1)
+  return d.toISOString().split("T")[0]
+}
+
 function filaVacia() {
+  const hoy = new Date().toISOString().split("T")[0]
   return {
     _id: Math.random().toString(36).slice(2),
     idUsuario: "",
@@ -34,8 +42,8 @@ function filaVacia() {
     precioBase: 0,
     creditos: "",
     horario: "",
-    fechaInicio: new Date().toISOString().split("T")[0],
-    fechaVencimiento: "",
+    fechaInicio: hoy,
+    fechaVencimiento: sumarUnMes(hoy),
     monto: "",
     metodoPago: "Efectivo",
     estado: "pendiente",
@@ -65,6 +73,36 @@ export default function GestionAbonosPage() {
   const [restoreDialog, setRestoreDialog] = useState({ open: false, abono: null })
   const [guardando, setGuardando] = useState(false)
   const [historialVisible, setHistorialVisible] = useState(false)
+
+  // Navegación por mes
+  const hoyRef = new Date()
+  const [mesFiltro, setMesFiltro] = useState({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })
+
+  const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+
+  const labelMes = ({ year, month }) => `${MESES[month]} ${year}`
+
+  const moverMes = (delta) => setMesFiltro(prev => {
+    const d = new Date(prev.year, prev.month + delta, 1)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+
+  const esMesActual = mesFiltro.year === hoyRef.getFullYear() && mesFiltro.month === hoyRef.getMonth()
+
+  const abonosPorMes = (lista) =>
+    lista.filter(a => {
+      if (!a.inicio) return false
+      const d = new Date(a.inicio)
+      return d.getFullYear() === mesFiltro.year && d.getMonth() === mesFiltro.month
+    })
+
+  // Meses con datos para mostrar punto indicador
+  const mesesConDatos = new Set(
+    abonos.filter(a => a.inicio).map(a => {
+      const d = new Date(a.inicio)
+      return `${d.getFullYear()}-${d.getMonth()}`
+    })
+  )
 
   // Carga masiva
   const [filas, setFilas] = useState([filaVacia()])
@@ -357,7 +395,14 @@ export default function GestionAbonosPage() {
 
                   <td className="px-3 py-2 min-w-[130px]">
                     <input type="date" className={inp} value={f.fechaInicio} disabled={f.estado === "ok"}
-                      onChange={e => upd(f._id, "fechaInicio", e.target.value)} />
+                      onChange={e => {
+                        const val = e.target.value
+                        setFilas(prev => prev.map(row =>
+                          row._id === f._id
+                            ? { ...row, fechaInicio: val, fechaVencimiento: val ? sumarUnMes(val) : row.fechaVencimiento }
+                            : row
+                        ))
+                      }} />
                   </td>
 
                   <td className="px-3 py-2 min-w-[130px]">
@@ -397,18 +442,77 @@ export default function GestionAbonosPage() {
         </button>
       </div>
 
-      {/* ── LISTA DE ABONOS ACTIVOS ──────────────────────────────────────────── */}
+      {/* ── LISTA DE ABONOS POR MES ──────────────────────────────────────────── */}
       {(() => {
         const activos = abonos.filter(a => a.estado !== "CANCELADO")
+        const delMes  = abonosPorMes(activos)
+        const prevKey = `${mesFiltro.year}-${mesFiltro.month - 1 < 0 ? 11 : mesFiltro.month - 1}`
+          .replace(/-([-\d]+)$/, m => {
+            const n = parseInt(m.slice(1)); return `-${n < 0 ? 11 : n}`
+          })
+        const nextKey = `${mesFiltro.year}-${(mesFiltro.month + 1) % 12}`
+        const hayPrev = mesesConDatos.has(`${mesFiltro.month === 0 ? mesFiltro.year - 1 : mesFiltro.year}-${mesFiltro.month === 0 ? 11 : mesFiltro.month - 1}`)
+        const hayNext = mesesConDatos.has(`${mesFiltro.month === 11 ? mesFiltro.year + 1 : mesFiltro.year}-${(mesFiltro.month + 1) % 12}`)
+
         return (
           <div className="border border-border bg-card">
-            <div className="border-b border-border px-5 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresías Activas</p>
-                <p className="text-xs text-foreground/40 mt-0.5">Podés editar fechas, créditos o cancelar.</p>
+            {/* Cabecera con navegación de mes */}
+            <div className="border-b border-border px-5 py-3 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresías</p>
+                <p className="text-xs text-foreground/40 mt-0.5">Agrupadas por mes de inicio · editá fechas, créditos o cancelá.</p>
               </div>
-              <button onClick={cargarAbonos} className="text-xs text-foreground/40 hover:text-foreground transition-colors">↺ Actualizar</button>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => moverMes(-1)}
+                  className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground border border-border hover:border-foreground/30 transition-colors text-sm"
+                  title="Mes anterior"
+                >
+                  ‹
+                </button>
+
+                <div className="flex items-center gap-1.5 px-3 py-1 border border-border bg-muted/40 min-w-[150px] justify-center">
+                  <span className="text-xs font-semibold text-foreground">{labelMes(mesFiltro)}</span>
+                  {esMesActual && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
+                      Actual
+                    </span>
+                  )}
+                  {mesesConDatos.has(`${mesFiltro.year}-${mesFiltro.month}`) && !esMesActual && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-foreground/30 border border-border px-1.5 py-px">
+                      Archivado
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => moverMes(1)}
+                  disabled={esMesActual}
+                  className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground border border-border hover:border-foreground/30 transition-colors text-sm disabled:opacity-20 disabled:cursor-not-allowed"
+                  title="Mes siguiente"
+                >
+                  ›
+                </button>
+
+                <button onClick={cargarAbonos} className="ml-2 text-xs text-foreground/30 hover:text-foreground transition-colors" title="Actualizar">↺</button>
+              </div>
             </div>
+
+            {/* Resumen rápido del mes */}
+            {delMes.length > 0 && (
+              <div className="border-b border-border border-dashed px-5 py-2 flex items-center gap-6 text-[10px] text-muted-foreground">
+                <span><span className="font-black text-foreground">{delMes.length}</span> membresía{delMes.length !== 1 ? "s" : ""}</span>
+                <span><span className="font-black text-lime-400">{delMes.filter(a => a.estado === "ACTIVO").length}</span> activas</span>
+                {delMes.filter(a => a.estado === "VENCIDO").length > 0 && (
+                  <span><span className="font-black text-foreground/40">{delMes.filter(a => a.estado === "VENCIDO").length}</span> vencidas</span>
+                )}
+                {delMes.filter(a => a.estado === "PAUSADO").length > 0 && (
+                  <span><span className="font-black text-yellow-400">{delMes.filter(a => a.estado === "PAUSADO").length}</span> pausadas</span>
+                )}
+              </div>
+            )}
+
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
@@ -421,10 +525,20 @@ export default function GestionAbonosPage() {
                 <tbody className="divide-y divide-border">
                   {cargandoAbonos ? (
                     <tr><td colSpan="10" className="p-8 text-center text-foreground/40 animate-pulse text-xs">Cargando...</td></tr>
-                  ) : activos.length === 0 ? (
-                    <tr><td colSpan="10" className="p-8 text-center text-foreground/40 text-xs">No hay membresías activas.</td></tr>
-                  ) : activos.map(ab => (
-                    <tr key={ab.id} className="hover:bg-foreground/3 transition-colors">
+                  ) : delMes.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="p-10 text-center">
+                        <p className="text-xs text-foreground/30">Sin membresías en {labelMes(mesFiltro)}.</p>
+                        {!esMesActual && (
+                          <button onClick={() => setMesFiltro({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })}
+                            className="mt-2 text-[10px] text-foreground/25 hover:text-foreground/50 underline underline-offset-2 transition-colors">
+                            Volver al mes actual
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ) : delMes.map(ab => (
+                    <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
                       <td className="px-4 py-3 font-semibold text-foreground text-xs">{ab.nombreAlumno}</td>
                       <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
@@ -457,6 +571,30 @@ export default function GestionAbonosPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Meses con datos — navegación rápida */}
+            {mesesConDatos.size > 1 && (
+              <div className="border-t border-border border-dashed px-5 py-2.5 flex items-center gap-2 flex-wrap">
+                <span className="text-[9px] uppercase tracking-widest text-foreground/25 font-bold mr-1">Ir a:</span>
+                {Array.from(mesesConDatos)
+                  .map(k => { const [y, m] = k.split("-").map(Number); return { year: y, month: m } })
+                  .sort((a, b) => b.year - a.year || b.month - a.month)
+                  .map(({ year, month }) => {
+                    const activo = year === mesFiltro.year && month === mesFiltro.month
+                    return (
+                      <button key={`${year}-${month}`}
+                        onClick={() => setMesFiltro({ year, month })}
+                        className={`text-[10px] px-2 py-0.5 border transition-colors ${
+                          activo
+                            ? "border-foreground/40 text-foreground bg-foreground/5"
+                            : "border-border text-foreground/35 hover:text-foreground hover:border-foreground/25"
+                        }`}>
+                        {MESES[month].slice(0, 3)} {year}
+                      </button>
+                    )
+                  })}
+              </div>
+            )}
           </div>
         )
       })()}
@@ -540,7 +678,14 @@ export default function GestionAbonosPage() {
                 <div key={key} className="flex items-center gap-3">
                   <span className="text-muted-foreground w-28 shrink-0 font-semibold uppercase">{label}</span>
                   <input type={type} value={formEdit[key]}
-                    onChange={e => setFormEdit(p => ({ ...p, [key]: e.target.value }))}
+                    onChange={e => {
+                      const val = e.target.value
+                      setFormEdit(p => {
+                        const next = { ...p, [key]: val }
+                        if (key === "fechaInicio" && val) next.fechaVencimiento = sumarUnMes(val)
+                        return next
+                      })
+                    }}
                     className="flex-1 bg-muted border border-border rounded p-2 text-foreground outline-none text-xs" />
                 </div>
               ))}
