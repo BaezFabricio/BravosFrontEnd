@@ -103,13 +103,9 @@ export default function UsuariosPage() {
       })
       const resultado = await res.json()
       
-      // 🔴 REVISIÓN CLAVE: Mirá este log en la consola del navegador (F12)
-      console.log("📥 DATOS REALES QUE LLEGAN A LA TABLA:", resultado)
-
       const listaReal = resultado.data || resultado;
       setUsers(Array.isArray(listaReal) ? listaReal : [])
     } catch (err) {
-      console.error("Error al cargar usuarios:", err)
       setError("No se pudieron cargar los usuarios. Por favor, intenta nuevamente.")
     } finally {
       setIsLoading(false)
@@ -173,7 +169,6 @@ export default function UsuariosPage() {
       await cambiarEstadoUsuario(userId, newStatus)
       setUsers(users.map((u) => (u.id === userId ? { ...u, estado: newStatus } : u)))
     } catch (err) {
-      console.error("Error al cambiar estado:", err)
       toast.error("Error al cambiar el estado del usuario")
     }
     setConfirmDialog({ open: false, user: null, action: "" })
@@ -186,7 +181,6 @@ export default function UsuariosPage() {
       setUsers(prev => prev.filter((u) => (u.idUsuario || u.id) !== userId))
       toast.success("Usuario eliminado correctamente")
     } catch (err) {
-      console.error("Error al eliminar usuario:", err)
       toast.error("Error al eliminar el usuario", { description: err?.response?.data?.message || err.message })
     } finally {
       setIsDeleting(false)

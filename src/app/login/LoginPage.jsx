@@ -71,7 +71,6 @@ export default function LoginPage() {
       else navigate("/inicio", { replace: true })
 
     } catch (error) {
-      console.error("Error en el login:", error)
       toast.error("Error de conexión", { description: "Asegúrate de que el backend esté encendido." })
       setIsLoading(false)
     }

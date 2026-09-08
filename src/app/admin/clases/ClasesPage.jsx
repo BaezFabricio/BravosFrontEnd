@@ -43,7 +43,6 @@ export default function ClasesPage() {
       expandido['sin-plan'] = true
       setPlanesExpandidos(expandido)
     } catch (error) {
-      console.error("Error al obtener datos:", error)
       setError(error.response?.data?.message || error.message || "Error al cargar los datos")
     } finally {
       setLoading(false)
@@ -54,7 +53,7 @@ export default function ClasesPage() {
     obtenerDatos()
     const storedPermisos = localStorage.getItem("permisos")
     if (storedPermisos) {
-      try { setPermisos(JSON.parse(storedPermisos)) } catch (err) { console.error(err) }
+      try { setPermisos(JSON.parse(storedPermisos)) } catch { }
     }
   }, [])
 

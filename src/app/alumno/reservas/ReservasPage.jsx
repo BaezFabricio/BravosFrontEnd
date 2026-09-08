@@ -57,8 +57,7 @@ export default function ReservasPage() {
       // El backend ya calcula el estado real (completada/inasistencia/cancelada/proxima)
       setProximas(listaMapeada.filter(r => r.estado === 'proxima'))
       setHistorial(listaMapeada.filter(r => r.estado !== 'proxima'))
-    } catch (error) {
-      console.error("No se pudo recuperar el historial de reservas:", error)
+    } catch {
     } finally {
       setLoading(false)
     }
@@ -78,8 +77,7 @@ export default function ReservasPage() {
       if (response.data?.success) {
         await cargarReservas()
       }
-    } catch (error) {
-      console.error("Error al cancelar la reserva:", error)
+    } catch {
     } finally {
       setIsLoadingCancel(false)
       setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })

@@ -41,7 +41,6 @@ export default function PlanesPage() {
       const response = await apiClient.get("/planes")
       setPlanes(response.data?.data || [])
     } catch (err) {
-      console.error("Error al obtener planes:", err)
       setError(err.response?.data?.message || "No se pudieron cargar los planes.")
     } finally {
       setLoading(false)
@@ -79,48 +78,51 @@ export default function PlanesPage() {
       return
     }
 
-    setGuardando(true)
+    const payload = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      precio: Number(formData.precio),
+      cantidadCreditos: Number(formData.cantidadCreditos),
+      tipo: formData.tipo,
+    }
 
-    try {
-      const payload = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion,
-        precio: Number(formData.precio),
-        cantidadCreditos: Number(formData.cantidadCreditos),
-        tipo: formData.tipo,
-      }
-
-      if (planEditando) {
-        await apiClient.put(`/planes/${planEditando.idPlan}`, payload)
-      } else {
-        await apiClient.post("/planes", payload)
-      }
-
-      toast.success(planEditando ? "Plan actualizado exitosamente" : "Plan creado exitosamente")
+    if (planEditando) {
+      const planOriginal = planEditando
       setDialogOpen(false)
-      await cargarPlanes()
-    } catch (err) {
-      console.error("Error al guardar plan:", err)
-      toast.error("No se pudo guardar el plan", { description: err.response?.data?.message })
-    } finally {
-      setGuardando(false)
+      setPlanes(prev => prev.map(p => p.idPlan === planOriginal.idPlan ? { ...p, ...payload } : p))
+      try {
+        await apiClient.put(`/planes/${planOriginal.idPlan}`, payload)
+        toast.success("Plan actualizado exitosamente")
+      } catch (err) {
+        setPlanes(prev => prev.map(p => p.idPlan === planOriginal.idPlan ? planOriginal : p))
+        toast.error("No se pudo guardar el plan", { description: err.response?.data?.message })
+      }
+    } else {
+      setGuardando(true)
+      try {
+        await apiClient.post("/planes", payload)
+        toast.success("Plan creado exitosamente")
+        setDialogOpen(false)
+        await cargarPlanes()
+      } catch (err) {
+        toast.error("No se pudo guardar el plan", { description: err.response?.data?.message })
+      } finally {
+        setGuardando(false)
+      }
     }
   }
 
   const confirmarEliminar = async () => {
     if (!deleteDialog.plan) return
-    setEliminando(true)
+    const planAEliminar = deleteDialog.plan
+    setDeleteDialog({ open: false, plan: null })
+    setPlanes(prev => prev.filter(p => p.idPlan !== planAEliminar.idPlan))
     try {
-      await apiClient.delete(`/planes/${deleteDialog.plan.idPlan}`)
+      await apiClient.delete(`/planes/${planAEliminar.idPlan}`)
       toast.success("Plan eliminado exitosamente")
-      setDeleteDialog({ open: false, plan: null })
-      await cargarPlanes()
     } catch (err) {
-      console.error("Error al eliminar plan:", err)
+      setPlanes(prev => [...prev, planAEliminar])
       toast.error("No se pudo eliminar el plan", { description: err.response?.data?.message })
-      setDeleteDialog({ open: false, plan: null })
-    } finally {
-      setEliminando(false)
     }
   }
 
