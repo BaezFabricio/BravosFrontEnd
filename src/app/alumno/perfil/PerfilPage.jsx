@@ -100,7 +100,7 @@ export default function PerfilPage() {
                 })
               }
             })
-            .catch(err => console.error("Error cargando abonos:", err))
+            .catch(() => {})
         }
   
         if (mounted && usuario) {
@@ -148,8 +148,7 @@ export default function PerfilPage() {
             localStorage.setItem('avatarUrl', usuario.avatarUrl)
           }
         }
-      } catch (error) {
-        console.error('No se pudo obtener perfil:', error)
+      } catch {
       } finally {
         if (mounted) setLoading(false)
       }
@@ -231,7 +230,6 @@ export default function PerfilPage() {
           window.dispatchEvent(new CustomEvent("avatar-updated", { detail: persistedAvatar }))
         })
         .catch((error) => {
-          console.error("Error al guardar el avatar:", error)
           setAvatarError(error.message || "No se pudo guardar la foto en la base de datos.")
         })
         .finally(() => {
@@ -307,8 +305,7 @@ export default function PerfilPage() {
       toast.success("Contraseña cambiada exitosamente")
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
       setShowChangePassword(false)
-    } catch (error) {
-      console.error("Error:", error)
+    } catch {
       toast.error("Error al cambiar la contraseña")
     } finally {
       setPasswordLoading(false)
@@ -448,7 +445,7 @@ export default function PerfilPage() {
               ].map(({ label, badge, style }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">{label}</p>
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 ${style}`}>{badge}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${style}`}>{badge}</span>
                 </div>
               ))}
             </div>

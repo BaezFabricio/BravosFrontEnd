@@ -79,8 +79,7 @@ export default function DetalleUsuarioPage() {
         setCargandoReservas(true)
         const res = await apiClient.get(`/reservas/admin/usuario/${id}`)
         setReservasReales(res.data?.data || res.data || [])
-      } catch (err) {
-        console.error("Error al cargar reservas del usuario:", err)
+      } catch {
       } finally {
         setCargandoReservas(false)
       }
@@ -96,8 +95,7 @@ export default function DetalleUsuarioPage() {
         const respuesta = await getUsuarioById(id)
         const datosReales = respuesta?.data || respuesta;
         setUser(datosReales)
-      } catch (fetchError) {
-        console.error("Error al cargar detalle del usuario:", fetchError)
+      } catch {
         setError("No se pudo cargar el detalle del usuario.")
       } finally {
         setIsLoading(false)
@@ -113,30 +111,24 @@ export default function DetalleUsuarioPage() {
   const membership = membershipConfig[estadoMembresia] || membershipConfig.vencida
 
   const handleStatusChange = async (newStatus) => {
+    const estadoAnterior = user?.estado
+    setStatusDialog({ open: false, action: "" })
+    setUser((currentUser) => ({ ...currentUser, estado: newStatus }))
     try {
-      setIsActionLoading(true)
       await cambiarEstadoUsuario(id, newStatus)
-      setUser((currentUser) => ({ ...currentUser, estado: newStatus }))
-    } catch (statusError) {
-      console.error("Error al actualizar estado:", statusError)
+    } catch {
+      setUser((currentUser) => ({ ...currentUser, estado: estadoAnterior }))
       toast.error("No se pudo actualizar el estado del usuario.")
-    } finally {
-      setIsActionLoading(false)
-      setStatusDialog({ open: false, action: "" })
     }
   }
 
   const handleDelete = async () => {
+    setDeleteDialog(false)
     try {
-      setIsActionLoading(true)
       await eliminarUsuario(id)
       navigate("/admin/usuarios")
-    } catch (deleteError) {
-      console.error("Error al eliminar usuario:", deleteError)
+    } catch {
       toast.error("No se pudo eliminar el usuario.")
-    } finally {
-      setIsActionLoading(false)
-      setDeleteDialog(false)
     }
   }
 

@@ -143,16 +143,13 @@ export default function ClasesPage() {
   }
 
   const handleDelete = async (claseId) => {
+    const claseAEliminar = deleteDialog.clase
+    setDeleteDialog({ open: false, clase: null })
+    setClases(prev => prev.filter(c => c.idClase !== claseId))
     try {
-      const response = await apiClient.delete(`/clases/${claseId}`)
-      if (response.data?.success || response.status === 200) {
-        setClases(clases.filter((clase) => clase.idClase !== claseId))
-        setDeleteDialog({ open: false, clase: null })
-      } else {
-        throw new Error(response.data?.message || "Error al eliminar la clase")
-      }
+      await apiClient.delete(`/clases/${claseId}`)
     } catch (error) {
-      console.error("Error al eliminar clase:", error)
+      setClases(prev => [...prev, claseAEliminar])
       toast.error("No se pudo eliminar la clase", { description: error.response?.data?.message || error.message })
     }
   }

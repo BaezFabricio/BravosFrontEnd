@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
+import { toast } from '@/lib/notificar'
 
 const modulosAdminConfig = [
   { id: "dashboard",     nombre: "Dashboard",     icon: LayoutDashboard },
@@ -137,8 +138,7 @@ export default function PerfilesPage() {
           usuarios: usuariosCount,
         }
       }))
-    } catch (error) {
-      console.error("Error cargando perfiles:", error)
+    } catch {
       setPerfiles([])
     } finally {
       setIsLoading(false)
@@ -200,43 +200,68 @@ export default function PerfilesPage() {
   }
 
   const handleSave = async () => {
-    setIsLoading(true)
     const permisos = []
     Object.keys(formData.modulos).forEach(moduloId => {
       const m = formData.modulos[moduloId]
       if (m?.permisos) Object.keys(m.permisos).forEach(accionId => { if (m.permisos[accionId]) permisos.push({ modulo: moduloId, nombreAccion: accionId }) })
     })
-    try {
-      const token = localStorage.getItem("token")
-      const res = await fetch("http://localhost:3001/api/vv1/perfiles", {
-        method: editDialog.isNew ? "POST" : "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ idPerfil: editDialog.isNew ? undefined : editDialog.perfil?.idPerfil, nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
-      })
-      if (!res.ok) throw new Error("Error al guardar")
+
+    if (editDialog.isNew) {
+      setIsLoading(true)
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch("http://localhost:3001/api/vv1/perfiles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
+        })
+        if (!res.ok) throw new Error("Error al guardar")
+        setEditDialog({ open: false, perfil: null, isNew: false })
+        await cargarPerfiles()
+        toast.success("Perfil creado exitosamente")
+      } catch {
+        toast.error("No se pudo crear el perfil")
+      } finally {
+        setIsLoading(false)
+      }
+    } else {
+      const perfilOriginal = editDialog.perfil
       setEditDialog({ open: false, perfil: null, isNew: false })
-      await cargarPerfiles()
-    } catch (error) {
-      console.error("Error al guardar el perfil:", error)
-    } finally {
-      setIsLoading(false)
+      setPerfiles(prev => prev.map(p =>
+        (p.idPerfil === perfilOriginal?.idPerfil)
+          ? { ...p, nombre: formData.nombre, nombrePerfil: formData.nombre, descripcion: formData.descripcion, modulos: formData.modulos }
+          : p
+      ))
+      try {
+        const token = localStorage.getItem("token")
+        const res = await fetch("http://localhost:3001/api/vv1/perfiles", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ idPerfil: perfilOriginal?.idPerfil, nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
+        })
+        if (!res.ok) throw new Error("Error al guardar")
+        toast.success("Perfil actualizado exitosamente")
+      } catch {
+        setPerfiles(prev => prev.map(p => p.idPerfil === perfilOriginal?.idPerfil ? perfilOriginal : p))
+        toast.error("No se pudo guardar el perfil")
+      }
     }
   }
 
   const handleDelete = async () => {
     if (!deleteDialog.perfil) return
-    setIsLoading(true)
-    const id = deleteDialog.perfil.idPerfil || deleteDialog.perfil.id_perfil
+    const perfilAEliminar = deleteDialog.perfil
+    const id = perfilAEliminar.idPerfil || perfilAEliminar.id_perfil
+    setDeleteDialog({ open: false, perfil: null })
+    setPerfiles(prev => prev.filter(p => (p.idPerfil || p.id_perfil) !== id))
     try {
       const token = localStorage.getItem("token")
       const res = await fetch(`http://localhost:3001/api/vv1/perfiles/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
       if (!res.ok) throw new Error("Error al eliminar")
-      setDeleteDialog({ open: false, perfil: null })
-      await cargarPerfiles()
-    } catch (error) {
-      console.error("Error al eliminar el perfil:", error)
-    } finally {
-      setIsLoading(false)
+      toast.success("Perfil eliminado")
+    } catch {
+      setPerfiles(prev => [...prev, perfilAEliminar])
+      toast.error("No se pudo eliminar el perfil")
     }
   }
 

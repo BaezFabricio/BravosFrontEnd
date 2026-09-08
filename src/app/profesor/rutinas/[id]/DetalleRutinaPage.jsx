@@ -13,8 +13,7 @@ export default function DetalleRutinaPage() {
   useEffect(() => {
     apiClient.get(`/rutinas/${id}`)
       .then(res => setRutina(res.data?.data))
-      .catch(err => {
-        console.error('Error al cargar la rutina:', err)
+      .catch(() => {
         setError('Rutina no encontrada o no tenés permiso para verla.')
       })
       .finally(() => setLoading(false))
@@ -60,17 +59,17 @@ export default function DetalleRutinaPage() {
       <div className="border border-border bg-card">
         <div className="border-b border-border px-5 py-3 flex flex-wrap gap-2 items-center">
           {rutina.categoria && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-400 border border-lime-400/20">
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-md">
               {rutina.categoria}
             </span>
           )}
           {rutina.nivel && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md">
               {rutina.nivel}
             </span>
           )}
           {rutina.duracion && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border flex items-center gap-1">
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md flex items-center gap-1">
               <Clock className="h-3 w-3" /> {rutina.duracion}
             </span>
           )}
