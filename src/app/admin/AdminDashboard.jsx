@@ -54,9 +54,9 @@ export default function AdminDashboard() {
   }
 
   const formatearActividad = (fechaOrden) => {
-    if (!fechaOrden) return { fecha: '—', hora: null }
+    if (!fechaOrden) return { fecha: '-', hora: null }
     const d = new Date(fechaOrden)
-    if (isNaN(d.getTime())) return { fecha: '—', hora: null }
+    if (isNaN(d.getTime())) return { fecha: '-', hora: null }
     const hoy = new Date()
     const ayer = new Date(); ayer.setDate(hoy.getDate() - 1)
     const esHoy  = d.toDateString() === hoy.toDateString()
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Dashboard</h1>
-        <p className=”text-sm text-foreground/40 mt-1”>Panel de administración — Bravos Gym</p>
+        <p className=”text-sm text-foreground/40 mt-1”>Panel de administración &mdash; Bravos Gym</p>
       </div>
 
       {/* STAT CARDS */}
