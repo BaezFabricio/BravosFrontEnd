@@ -116,7 +116,7 @@ export default function ProfesorPerfilPage() {
             <p className="font-bold text-foreground text-base leading-tight">{formData.nombre || "—"}</p>
             <p className="text-xs text-foreground/40 mt-1">{formData.email || "—"}</p>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20">
+          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20 rounded-md">
             Profesor
           </span>
         </div>

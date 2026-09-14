@@ -27,6 +27,7 @@ import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
 import AlumnoReservasPage from './app/alumno/reservas/ReservasPage.jsx'
 import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
+import AlumnoDocumentacionPage from './app/alumno/documentacion/DocumentacionPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 
 import ProfesorLayout from './app/profesor/ProfesorLayout.jsx'
@@ -150,6 +151,7 @@ function App() {
         <Route path="/alumno/reservas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservasPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/creditos" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/documentacion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDocumentacionPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
 
         {/* RUTAS DE PROFESOR CORREGIDAS */}

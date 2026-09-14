@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil } from "lucide-react"
+import React, { useEffect, useState, useRef } from "react"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import {
   Dialog,
@@ -58,6 +58,8 @@ function calcularMonto(precioBase, metodoPago) {
 
 export default function GestionAbonosPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const usuarioPreId = searchParams.get("usuario")
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -110,6 +112,9 @@ export default function GestionAbonosPage() {
   const busquedaRefs = useRef({})
   const [dropdownPos, setDropdownPos] = useState({})
 
+  // Comprobantes por fila (idFila → array de docs)
+  const [comprobantesMap, setComprobantesMap] = useState({})
+
   const getToken = () => localStorage.getItem("token")
   const getHeaders = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" })
 
@@ -123,8 +128,17 @@ export default function GestionAbonosPage() {
       fetch("http://localhost:3001/api/vv1/usuarios", { headers: h }).then(r => r.json()),
     ]).then(([rP, rU]) => {
       setPlanes(Array.isArray(rP.data) ? rP.data : [])
-      const lista = rU.data || rU
-      setUsuarios(Array.isArray(lista) ? lista : [])
+      const lista = Array.isArray(rU.data || rU) ? (rU.data || rU) : []
+      setUsuarios(lista)
+
+      // Pre-seleccionar alumno si viene por query param
+      if (usuarioPreId) {
+        const u = lista.find(x => String(x.idUsuario || x.id) === String(usuarioPreId))
+        if (u) {
+          const nombre = u.nombre || u.nombrecompleto || ""
+          setFilas([{ ...filaVacia(), idUsuario: u.idUsuario || u.id, nombreAlumno: nombre, busqueda: nombre }])
+        }
+      }
     }).catch(() => {})
 
     cargarAbonos()
@@ -234,11 +248,11 @@ export default function GestionAbonosPage() {
   const seleccionarAlumno = (id, usuario) => {
     const idUsu  = usuario.idUsuario || usuario.id
     const nombre = usuario.nombre || usuario.nombrecompleto || ""
-    setFilas(prev => prev.map(f =>
-      f._id === id
-        ? { ...f, idUsuario: idUsu, nombreAlumno: nombre, busqueda: nombre, sugerencias: [], mostrarSugerencias: false }
-        : f
-    ))
+    setFilas(prev => prev.map(f => {
+      if (f._id !== id) return f
+      if (f.metodoPago === "Transferencia") cargarComprobantes(id, idUsu)
+      return { ...f, idUsuario: idUsu, nombreAlumno: nombre, busqueda: nombre, sugerencias: [], mostrarSugerencias: false }
+    }))
   }
 
   const seleccionarPlan = (id, idPlan) => {
@@ -253,12 +267,25 @@ export default function GestionAbonosPage() {
     ))
   }
 
+  const cargarComprobantes = async (filaId, idUsuario) => {
+    if (!idUsuario) return
+    try {
+      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+      const json = await r.json()
+      setComprobantesMap(prev => ({ ...prev, [filaId]: json.data || [] }))
+    } catch { setComprobantesMap(prev => ({ ...prev, [filaId]: [] })) }
+  }
+
   const cambiarMetodo = (id, metodoPago) => {
     setFilas(prev => prev.map(f =>
       f._id === id
         ? { ...f, metodoPago, monto: f.precioBase ? calcularMonto(f.precioBase, metodoPago) : f.monto }
         : f
     ))
+    if (metodoPago === "Transferencia") {
+      const fila = filas.find(f => f._id === id)
+      if (fila?.idUsuario) cargarComprobantes(id, fila.idUsuario)
+    }
   }
 
   const enviar = async () => {
@@ -274,7 +301,7 @@ export default function GestionAbonosPage() {
       upd(f._id, "estado", "cargando")
       try {
         const plan = planes.find(p => String(p.idPlan) === String(f.idPlan))
-        const r = await fetch(`http://localhost:3001/api/vv1/usuarios/${f.idUsuario}/abonos`, {
+        const r = await fetch(`/api/vv1/usuarios/${f.idUsuario}/abonos`, {
           method: "POST", headers: getHeaders(),
           body: JSON.stringify({
             tipoAbono:         plan?.nombre,
@@ -286,6 +313,25 @@ export default function GestionAbonosPage() {
           })
         })
         if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || "Error") }
+
+        // Si el pago es Transferencia y hay comprobante del alumno, aprobarlo automáticamente
+        if (f.metodoPago === "Transferencia" && f.idUsuario) {
+          const docs = comprobantesMap[f._id] || []
+          const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
+          const filtrados = desde
+            ? docs.filter(d => d.tipo === "comprobante_transferencia" && (!d.creadoEn || new Date(d.creadoEn) >= desde))
+            : docs.filter(d => d.tipo === "comprobante_transferencia")
+          if (filtrados.length > 0) {
+            const docId = filtrados[0].idDocumento
+            await fetch(`/api/vv1/documentos/${docId}/aprobar`, { method: "PATCH", headers: getHeaders() }).catch(() => {})
+            // Actualizar el estado local del comprobante
+            setComprobantesMap(prev => ({
+              ...prev,
+              [f._id]: (prev[f._id] || []).map(d => d.idDocumento === docId ? { ...d, estado: "aprobado" } : d)
+            }))
+          }
+        }
+
         upd(f._id, "estado", "ok")
       } catch (err) {
         upd(f._id, "estado", "error")
@@ -353,7 +399,8 @@ export default function GestionAbonosPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {filas.map((f) => (
-                <tr key={f._id} className={`transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
+                <React.Fragment key={f._id}>
+                <tr className={`transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
                   <td className="px-3 py-2 w-8 text-center">
                     {f.estado === "cargando" && <Loader2 className="h-4 w-4 animate-spin text-foreground/40 mx-auto" />}
                     {f.estado === "ok"       && <CheckCircle2 className="h-4 w-4 text-lime-400 mx-auto" />}
@@ -431,6 +478,45 @@ export default function GestionAbonosPage() {
                     )}
                   </td>
                 </tr>
+                {/* Sub-fila de comprobantes cuando método = Transferencia */}
+                {f.metodoPago === "Transferencia" && f.idUsuario && (() => {
+                  const docs = (comprobantesMap[f._id] || []).filter(d => d.tipo === "comprobante_transferencia")
+                  // Filtrar por fecha: comprobantes desde la fecha de inicio del abono
+                  const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
+                  const filtrados = desde ? docs.filter(d => !d.creadoEn || new Date(d.creadoEn) >= desde) : docs
+                  return (
+                    <tr key={`comp-${f._id}`} className="bg-lime-400/3">
+                      <td colSpan={10} className="px-4 py-3 border-t border-dashed border-lime-400/20">
+                        <div className="flex items-start gap-3 flex-wrap">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-lime-400/70 shrink-0 mt-0.5">
+                            Comprobantes de transferencia
+                          </span>
+                          {comprobantesMap[f._id] === undefined ? (
+                            <span className="text-[10px] text-foreground/30 animate-pulse">Cargando...</span>
+                          ) : filtrados.length === 0 ? (
+                            <span className="text-[10px] text-foreground/30 border border-dashed border-foreground/10 px-2 py-1">
+                              Sin comprobantes cargados desde {f.fechaInicio || "la fecha de inicio"}
+                            </span>
+                          ) : filtrados.map((doc, i) => (
+                            <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
+                              className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 transition-colors ${
+                                doc.estado === "aprobado"
+                                  ? "border border-lime-400/50 bg-lime-400/10 text-lime-400 hover:bg-lime-400/15"
+                                  : "border border-foreground/15 bg-foreground/3 text-foreground/50 hover:bg-foreground/8"
+                              }`}>
+                              <CheckCircle2 className="h-3 w-3" />
+                              {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : `Comprobante ${i + 1}`}
+                              <span className={`ml-0.5 ${doc.estado === "aprobado" ? "text-lime-400/60" : "text-foreground/30"}`}>
+                                {doc.estado === "aprobado" ? "✓" : "↗"}
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })()}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

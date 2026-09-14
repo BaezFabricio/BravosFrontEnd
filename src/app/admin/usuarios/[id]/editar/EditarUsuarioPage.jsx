@@ -201,7 +201,7 @@ export default function EditarUsuarioPage() {
               <p className="text-xs text-foreground/40 mt-1">{formData.email || "correo@ejemplo.com"}</p>
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${
                 formData.estado === "activo"
                   ? "bg-lime-400/10 text-lime-400 border-lime-400/20"
                   : "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
@@ -209,7 +209,7 @@ export default function EditarUsuarioPage() {
                 {formData.estado === "activo" ? "Activo" : "Inactivo"}
               </span>
               {perfilSeleccionado && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border capitalize">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md capitalize">
                   {perfilSeleccionado.nombrePerfil || perfilSeleccionado.nombre}
                 </span>
               )}

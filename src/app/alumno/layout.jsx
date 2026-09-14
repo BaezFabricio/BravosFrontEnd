@@ -17,6 +17,7 @@ import {
   Shield,
   Dumbbell,
   ClipboardCheck,
+  FolderOpen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History },
   { name: "Mis Créditos", mobileLabel: "Créditos", href: "/alumno/creditos", icon: CreditCard },
   { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User },
+  { name: "Documentación", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen },
 ]
 
 export default function AlumnoLayout({ children }) {

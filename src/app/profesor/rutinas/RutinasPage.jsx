@@ -126,12 +126,12 @@ export default function RutinasPage() {
                       <p className="font-semibold text-sm text-foreground truncate">{rutina.nombre}</p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {rutina.nivel && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 uppercase tracking-widest ${NIVEL_COLOR[rutina.nivel?.toLowerCase()] || 'bg-foreground/5 text-foreground/50 border border-border'}`}>
+                          <span className={`text-[10px] font-black px-2 py-0.5 uppercase tracking-widest rounded-md ${NIVEL_COLOR[rutina.nivel?.toLowerCase()] || 'bg-foreground/5 text-foreground/50 border border-border'}`}>
                             {rutina.nivel}
                           </span>
                         )}
                         {rutina.categoria && (
-                          <span className="text-[10px] font-black px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border uppercase tracking-widest">
+                          <span className="text-[10px] font-black px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md uppercase tracking-widest">
                             {rutina.categoria}
                           </span>
                         )}
