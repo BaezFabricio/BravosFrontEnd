@@ -35,7 +35,6 @@ import apiClient, {
   getUsuarioById,
 } from "@/api"
 import { toast } from '@/lib/notificar'
-import GestionAbonosPage from "@/app/admin/usuarios/abonos/CargaMasivaAbonosPage"
 
 const METODOS_PAGO = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
 
@@ -402,9 +401,16 @@ export default function DetalleUsuarioPage() {
         ))}
       </div>
 
-      {/* PESTAÑA ABONOS — interfaz completa de gestión embebida */}
+      {/* PESTAÑA ABONOS */}
       {vistaActiva === "abonos" && (
-        <GestionAbonosPage usuarioPropId={id} />
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <p className="text-xs text-foreground/30 uppercase tracking-widest">Gestión de abonos de este usuario</p>
+          <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}>
+            <button type="button" className="border border-lime-400/20 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-2">
+              + Cargar / Gestionar Abonos
+            </button>
+          </Link>
+        </div>
       )}
 
       {/* PESTAÑA RESERVAS */}

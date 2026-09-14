@@ -56,11 +56,10 @@ function calcularMonto(precioBase, metodoPago) {
   return String(metodoPago === "Tarjeta Crédito" ? Math.round(precioBase * 1.1) : precioBase)
 }
 
-export default function GestionAbonosPage({ usuarioPropId } = {}) {
+export default function GestionAbonosPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const usuarioPreId = usuarioPropId || searchParams.get("usuario")
-  const isEmbedded = !!usuarioPropId
+  const usuarioPreId = searchParams.get("usuario")
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -148,20 +147,19 @@ export default function GestionAbonosPage({ usuarioPropId } = {}) {
   const cargarAbonos = async () => {
     setCargandoAbonos(true)
     try {
-      const url = isEmbedded
-        ? `/api/vv1/usuarios/${usuarioPropId}/abonos`
+      const url = usuarioPreId
+        ? `/api/vv1/usuarios/${usuarioPreId}/abonos`
         : "http://localhost:3001/api/vv1/usuarios/abonos/todos"
       const r = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
       const json = await r.json()
       const lista = Array.isArray(json.data) ? json.data : []
-      // En modo embebido los abonos vienen sin nombreAlumno, normalizamos
       setAbonos(lista.map(a => ({
         ...a,
         id: a.idAbono || a.id,
         inicio: a.fechaInicio || a.inicio,
         vencimiento: a.fechaVencimiento || a.vencimiento,
         abono: a.tipoAbono || a.abono,
-        idUsuario: a.idUsuario || usuarioPropId,
+        idUsuario: a.idUsuario || usuarioPreId,
       })))
     } catch { setAbonos([]) }
     finally { setCargandoAbonos(false) }
@@ -364,18 +362,16 @@ export default function GestionAbonosPage({ usuarioPropId } = {}) {
   return (
     <div className="space-y-6">
 
-      {/* Header — oculto cuando está embebido en DetalleUsuarioPage */}
-      {!isEmbedded && (
-        <div className="flex items-start gap-4">
-          <Link to="/admin/usuarios" className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
-            <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
-          </div>
+      {/* Header */}
+      <div className="flex items-start gap-4">
+        <Link to={usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios"} className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
+          <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
         </div>
-      )}
+      </div>
 
       {/* ── CARGA MASIVA ─────────────────────────────────────────────────────── */}
       <div className="space-y-3">
