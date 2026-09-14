@@ -22,10 +22,11 @@ const fmt = (iso) => {
   } catch { return iso }
 }
 
-const sumarUnMes = (fechaStr) => {
+const diezDelMesSiguiente = (fechaStr) => {
   if (!fechaStr) return ""
   const d = new Date(fechaStr + "T00:00:00")
   d.setMonth(d.getMonth() + 1)
+  d.setDate(10)
   return d.toISOString().split("T")[0]
 }
 
@@ -43,7 +44,7 @@ function filaVacia() {
     creditos: "",
     horario: "",
     fechaInicio: hoy,
-    fechaVencimiento: sumarUnMes(hoy),
+    fechaVencimiento: diezDelMesSiguiente(hoy),
     monto: "",
     metodoPago: "Efectivo",
     estado: "pendiente",
@@ -455,7 +456,7 @@ export default function GestionAbonosPage() {
                         const val = e.target.value
                         setFilas(prev => prev.map(row =>
                           row._id === f._id
-                            ? { ...row, fechaInicio: val, fechaVencimiento: val ? sumarUnMes(val) : row.fechaVencimiento }
+                            ? { ...row, fechaInicio: val, fechaVencimiento: val ? diezDelMesSiguiente(val) : row.fechaVencimiento }
                             : row
                         ))
                       }} />
@@ -632,10 +633,13 @@ export default function GestionAbonosPage() {
                         )}
                       </td>
                     </tr>
-                  ) : delMes.map(ab => (
+                  ) : delMes.map((ab, idx) => {
+                    const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
+                    const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
+                    return (
                     <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
-                      <td className="px-4 py-3 font-semibold text-foreground text-xs">{ab.nombreAlumno}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{idx + 1}</td>
+                      <td className="px-4 py-3 font-semibold text-foreground text-xs">{nombreMostrar}</td>
                       <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
                       <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.inicio)}</td>
                       <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.vencimiento)}</td>
@@ -662,7 +666,7 @@ export default function GestionAbonosPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
@@ -777,7 +781,7 @@ export default function GestionAbonosPage() {
                       const val = e.target.value
                       setFormEdit(p => {
                         const next = { ...p, [key]: val }
-                        if (key === "fechaInicio" && val) next.fechaVencimiento = sumarUnMes(val)
+                        if (key === "fechaInicio" && val) next.fechaVencimiento = diezDelMesSiguiente(val)
                         return next
                       })
                     }}
