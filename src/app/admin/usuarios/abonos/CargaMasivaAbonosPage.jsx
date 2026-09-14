@@ -113,8 +113,10 @@ export default function GestionAbonosPage() {
   const busquedaRefs = useRef({})
   const [dropdownPos, setDropdownPos] = useState({})
 
-  // Comprobantes por fila (idFila → array de docs)
+  // Comprobantes por fila de carga (idFila → array de docs)
   const [comprobantesMap, setComprobantesMap] = useState({})
+  // Comprobantes por abono existente (idAbono → array de docs)
+  const [comprobantesAbonos, setComprobantesAbonos] = useState({})
 
   const getToken = () => localStorage.getItem("token")
   const getHeaders = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" })
@@ -284,6 +286,26 @@ export default function GestionAbonosPage() {
       const json = await r.json()
       setComprobantesMap(prev => ({ ...prev, [filaId]: json.data || [] }))
     } catch { setComprobantesMap(prev => ({ ...prev, [filaId]: [] })) }
+  }
+
+  const cargarComprobantesAbono = async (abonoId, idUsuario) => {
+    if (!idUsuario || comprobantesAbonos[abonoId] !== undefined) return
+    try {
+      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+      const json = await r.json()
+      setComprobantesAbonos(prev => ({ ...prev, [abonoId]: json.data || [] }))
+    } catch { setComprobantesAbonos(prev => ({ ...prev, [abonoId]: [] })) }
+  }
+
+  const aprobarComprobante = async (abonoId, idDocumento) => {
+    try {
+      await fetch(`/api/vv1/documentos/${idDocumento}/aprobar`, { method: "PATCH", headers: getHeaders() })
+      setComprobantesAbonos(prev => ({
+        ...prev,
+        [abonoId]: (prev[abonoId] || []).map(d => d.idDocumento === idDocumento ? { ...d, estado: "aprobado" } : d)
+      }))
+      toast.success("Comprobante aprobado")
+    } catch { toast.error("No se pudo aprobar el comprobante") }
   }
 
   const cambiarMetodo = (id, metodoPago) => {
@@ -636,8 +658,17 @@ export default function GestionAbonosPage() {
                   ) : delMes.map((ab) => {
                     const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                     const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
+                    const esTransferencia = ab.metodoPago === "Transferencia"
+                    if (esTransferencia && ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
+                    const docsAbono = esTransferencia ? (comprobantesAbonos[ab.id] || []).filter(d => {
+                      if (d.tipo !== "comprobante_transferencia") return false
+                      if (!ab.inicio) return true
+                      const desde = new Date(ab.inicio.split("T")[0] + "T00:00:00")
+                      return !d.creadoEn || new Date(d.creadoEn) >= desde
+                    }) : []
                     return (
-                    <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
+                    <React.Fragment key={ab.id}>
+                    <tr className="hover:bg-foreground/[0.02] transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
                       <td className="px-4 py-3 font-semibold text-foreground text-xs">{nombreMostrar}</td>
                       <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
@@ -666,6 +697,44 @@ export default function GestionAbonosPage() {
                         </div>
                       </td>
                     </tr>
+                    {esTransferencia && (
+                      <tr className="bg-lime-400/3">
+                        <td colSpan={10} className="px-6 py-2.5 border-t border-dashed border-lime-400/15">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-lime-400/60 shrink-0">
+                              Comprobante
+                            </span>
+                            {comprobantesAbonos[ab.id] === undefined ? (
+                              <span className="text-[10px] text-foreground/30 animate-pulse">Cargando...</span>
+                            ) : docsAbono.length === 0 ? (
+                              <span className="text-[10px] text-foreground/25 border border-dashed border-foreground/10 px-2 py-1">Sin comprobante</span>
+                            ) : docsAbono.map((doc) => (
+                              <div key={doc.idDocumento} className="flex items-center gap-2">
+                                <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
+                                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border transition-colors ${
+                                    doc.estado === "aprobado"
+                                      ? "border-lime-400/50 bg-lime-400/10 text-lime-400"
+                                      : "border-foreground/15 bg-foreground/3 text-foreground/50 hover:bg-foreground/8"
+                                  }`}>
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : "Ver"}
+                                  {doc.estado === "aprobado" ? " ✓" : " ↗"}
+                                </a>
+                                {doc.estado !== "aprobado" && (
+                                  <button
+                                    onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
+                                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border border-lime-400/30 text-lime-400 hover:bg-lime-400/10 transition-colors"
+                                  >
+                                    Aprobar
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   )})}
                 </tbody>
               </table>
