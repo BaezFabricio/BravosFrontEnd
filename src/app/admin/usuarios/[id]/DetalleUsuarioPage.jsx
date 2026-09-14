@@ -428,20 +428,20 @@ export default function DetalleUsuarioPage() {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Historial de Abonos</p>
               <p className="text-xs text-foreground/40 mt-0.5">Membresías adquiridas por este usuario.</p>
             </div>
-            <button type="button"
-              onClick={abrirCargarAbono}
-              className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
-              <Plus className="h-3 w-3" /> Cargar Abono
-            </button>
+            <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}>
+              <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
+                + Cargar Abono
+              </button>
+            </Link>
           </div>
           {cargandoAbonos ? (
             <div className="p-8 text-center text-xs text-foreground/30 uppercase tracking-widest animate-pulse">Cargando abonos...</div>
           ) : abonos.length === 0 ? (
             <div className="p-8 text-center space-y-2">
               <p className="text-xs text-foreground/30 uppercase tracking-widest">Sin abonos registrados</p>
-              <button type="button" onClick={abrirCargarAbono} className="text-[10px] text-lime-500 hover:text-lime-400 underline underline-offset-2 transition-colors">
+              <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`} className="text-[10px] text-lime-500 hover:text-lime-400 underline underline-offset-2 transition-colors">
                 Cargar primer abono →
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="overflow-x-auto">
