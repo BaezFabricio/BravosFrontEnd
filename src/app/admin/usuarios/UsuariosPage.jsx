@@ -290,7 +290,7 @@ export default function UsuariosPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
-                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`) }}>
+                    <tr key={user.idUsuario || user.id} className="group hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`) }}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
@@ -303,6 +303,11 @@ export default function UsuariosPage() {
                             <p className="font-semibold text-sm text-foreground">{user.nombre}</p>
                             <p className="text-xs text-foreground/40">{user.email}</p>
                           </div>
+                          <span className="ml-1 overflow-hidden max-w-0 group-hover:max-w-[120px] transition-all duration-300 ease-out opacity-0 group-hover:opacity-100">
+                            <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
+                              Ver Abonos →
+                            </span>
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
