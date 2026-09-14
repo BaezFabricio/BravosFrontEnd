@@ -235,7 +235,7 @@ export default function ClasesPage() {
                       <p className="font-black text-foreground text-sm">{plan.nombre}</p>
                     </div>
                     {plan.tipo && (
-                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md">
                         {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
                       </span>
                     )}
@@ -283,7 +283,7 @@ export default function ClasesPage() {
                                 <h3 className="text-sm font-black uppercase tracking-wide text-foreground truncate">
                                   {clase.nombreClase}
                                 </h3>
-                                <span className={`shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 border ${
+                                <span className={`shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 border rounded-md ${
                                   clase.estado === "Activo"
                                     ? "bg-lime-400/10 text-lime-400 border-lime-400/20"
                                     : "bg-red-500/10 text-red-400 border-red-500/20"

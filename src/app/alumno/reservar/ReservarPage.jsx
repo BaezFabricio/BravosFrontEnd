@@ -285,21 +285,17 @@ export default function ReservarClasePage() {
       </div>
 
       {/* CRÉDITOS */}
-      <Card className="bg-card border-border">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <span className="text-lg font-bold text-primary">
-                {loadingCreditos ? "..." : creditosReales}
-              </span>
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Créditos Disponibles</p>
-              <p className="text-sm text-muted-foreground">Cada reserva consume 1 crédito</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="border border-border bg-card px-4 py-3 flex items-center gap-3">
+        <div className="w-9 h-9 bg-primary/20 flex items-center justify-center shrink-0">
+          <span className="text-base font-bold text-primary">
+            {loadingCreditos ? "..." : creditosReales}
+          </span>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Créditos Disponibles</p>
+          <p className="text-xs text-muted-foreground">Cada reserva consume 1 crédito</p>
+        </div>
+      </div>
 
       {/* CALENDARIO SEMANAL */}
       <Card className="bg-card border-border">
@@ -371,7 +367,7 @@ export default function ReservarClasePage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : clasesAgrupadas.length === 0 ? (
-          <p className="text-sm text-muted-foreground p-4 bg-muted/20 rounded-lg border border-dashed border-border text-center">
+          <p className="text-sm text-muted-foreground py-5 border border-dashed border-border text-center">
             No hay clases{turnoFiltro ? ` de ${TURNOS.find(t => t.id === turnoFiltro)?.label.toLowerCase()}` : ""} para los {mapaDiasBD[selectedDate.getDay()].toLowerCase()}.
           </p>
         ) : (
@@ -412,7 +408,7 @@ export default function ReservarClasePage() {
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-semibold text-foreground">{clase.nombre}</h3>
                               {clase.reservado && (
-                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-400 border border-green-500/25">
+                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-400 border border-green-500/25 rounded-md">
                                   <CheckCircle2 className="h-3 w-3" /> Reservado
                                 </span>
                               )}

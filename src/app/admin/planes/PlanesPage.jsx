@@ -164,7 +164,7 @@ export default function PlanesPage() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</p>
                   <p className="font-black text-foreground text-sm mt-0.5">{plan.nombre}</p>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border shrink-0">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border shrink-0 rounded-md">
                   {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
                 </span>
               </div>

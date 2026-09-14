@@ -31,6 +31,7 @@ export default function AlumnoDashboard() {
   const [creditosReales, setCreditosReales] = useState(0)      
   const [loadingReservas, setLoadingReservas] = useState(true)
   const [loadingClases, setLoadingClases] = useState(true)
+  const [membresia, setMembresia] = useState(null)
 
   // Datos estáticos temporales para las tarjetas de progreso
   const userStats = {
@@ -55,6 +56,24 @@ export default function AlumnoDashboard() {
     return f.getUTCFullYear() === anioRef && f.getUTCMonth() === mesRef
   }).length
 
+  // Progreso semanal: lunes a viernes de la semana actual
+  const lunesActual = (() => {
+    const d = new Date(hoyDate)
+    const dia = d.getDay() === 0 ? 7 : d.getDay()
+    d.setDate(d.getDate() - (dia - 1))
+    d.setHours(0, 0, 0, 0)
+    return d
+  })()
+  const viernesActual = new Date(lunesActual)
+  viernesActual.setDate(lunesActual.getDate() + 4)
+  viernesActual.setHours(23, 59, 59, 999)
+
+  const clasesSemanales = todasCompletadas.filter(r => {
+    const f = new Date(r.fechaReserva)
+    return f >= lunesActual && f <= viernesActual
+  }).length
+  const metaSemanal = 5
+
   // EFECTO 1: LEER SESIÓN, TRAER CRÉDITOS Y RESERVAS DEL ALUMNO
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -74,6 +93,7 @@ export default function AlumnoDashboard() {
           const datosUsuario = responseUser.data?.data || responseUser.data
           if (datosUsuario) {
             setCreditosReales(datosUsuario.creditos || 0)
+            setMembresia(datosUsuario.membresia || null)
           }
         }
       } catch (error) {
@@ -172,21 +192,41 @@ export default function AlumnoDashboard() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
-                <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
+                  <div className="absolute top-2 right-2">
+                    <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
+                  </div>
+                  <p className="text-3xl font-black text-lime-400">{loadingReservas ? "..." : creditosReales}</p>
+                  <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Creditos</p>
                 </div>
-                <p className="text-3xl font-black text-lime-400">{loadingReservas ? "..." : creditosReales}</p>
-                <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Creditos</p>
-              </div>
-              <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
-                <div className="absolute top-2 right-2">
-                  <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
+                <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
+                  <div className="absolute top-2 right-2">
+                    <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
+                  </div>
+                  <p className="text-3xl font-black text-lime-400">{userStats.totalClases}</p>
+                  <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Clases</p>
                 </div>
-                <p className="text-3xl font-black text-lime-400">{userStats.totalClases}</p>
-                <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Clases</p>
               </div>
+              {membresia && (
+                <div className={`rounded-xl px-4 py-2.5 flex items-center justify-between border ${
+                  membresia === 'activa' || membresia === 'vigente'
+                    ? 'bg-lime-400/10 border-lime-400/30'
+                    : 'bg-red-500/10 border-red-500/30'
+                }`}>
+                  <span className={`text-xs font-black uppercase tracking-widest ${
+                    membresia === 'activa' || membresia === 'vigente' ? 'text-lime-400' : 'text-red-400'
+                  }`}>
+                    Membresía {membresia === 'activa' || membresia === 'vigente' ? 'activa' : 'vencida'}
+                  </span>
+                  {membresia !== 'activa' && membresia !== 'vigente' && (
+                    <a href="/alumno/documentacion" className="text-[10px] font-bold uppercase tracking-wide text-red-400 hover:text-red-300 transition-colors underline underline-offset-2">
+                      Regularizar →
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -391,30 +431,49 @@ export default function AlumnoDashboard() {
         </Card>
       </div>
 
-      {/* TARJETA DE PROGRESO MENSUAL */}
+      {/* TARJETA DE PROGRESO */}
       <Card className="bg-card border-border">
         <CardContent className="p-4 sm:p-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
               <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO MENSUAL</h3>
-                <p className="text-2xl sm:text-4xl font-black text-primary shrink-0">
-                  {Math.round((clasesCompletadasEsteMes / diasEnMes) * 100)}%
+            <div className="flex-1 min-w-0 space-y-4">
+              {/* Semanal */}
+              <div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO SEMANAL</h3>
+                  <p className="text-2xl sm:text-3xl font-black text-primary shrink-0">
+                    {clasesSemanales}/{metaSemanal}
+                  </p>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Clases completadas esta semana
                 </p>
+                <div className="mt-2 w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    style={{ width: `${Math.min((clasesSemanales / metaSemanal) * 100, 100)}%` }}
+                  />
+                </div>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                {clasesCompletadasEsteMes} de {diasEnMes} días en {nombreMes}
-              </p>
-              <div className="mt-2 w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
-                  style={{
-                    width: `${Math.min((clasesCompletadasEsteMes / diasEnMes) * 100, 100)}%`,
-                  }}
-                />
+              {/* Mensual */}
+              <div className="border-t border-border pt-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO MENSUAL</h3>
+                  <p className="text-2xl sm:text-3xl font-black text-primary shrink-0">
+                    {Math.round((clasesCompletadasEsteMes / diasEnMes) * 100)}%
+                  </p>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  {clasesCompletadasEsteMes} clases en {nombreMes}
+                </p>
+                <div className="mt-2 w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    style={{ width: `${Math.min((clasesCompletadasEsteMes / diasEnMes) * 100, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
