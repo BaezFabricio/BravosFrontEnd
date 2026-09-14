@@ -699,15 +699,15 @@ export default function GestionAbonosPage() {
                     </tr>
                     {esTransferencia && (
                       <tr className="bg-lime-400/3">
-                        <td colSpan={10} className="px-6 py-2.5 border-t border-dashed border-lime-400/15">
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-lime-400/60 shrink-0">
+                        <td colSpan={10} className="px-6 py-3 border-t border-dashed border-lime-400/15">
+                          <div className="flex items-center gap-4 flex-wrap">
+                            <span className="text-xs font-black uppercase tracking-widest text-lime-400/70 shrink-0">
                               Comprobante
                             </span>
                             {comprobantesAbonos[ab.id] === undefined ? (
-                              <span className="text-[10px] text-foreground/30 animate-pulse">Cargando...</span>
+                              <span className="text-xs text-foreground/30 animate-pulse">Cargando...</span>
                             ) : docsAbono.length === 0 ? (
-                              <span className="text-[10px] text-foreground/25 border border-dashed border-foreground/10 px-2 py-1">Sin comprobante</span>
+                              <span className="text-xs text-foreground/40 border border-dashed border-foreground/15 px-3 py-1">Sin comprobante</span>
                             ) : docsAbono.map((doc) => (
                               <div key={doc.idDocumento} className="flex items-center gap-2">
                                 <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
