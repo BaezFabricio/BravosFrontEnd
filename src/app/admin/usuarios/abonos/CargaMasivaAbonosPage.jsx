@@ -635,7 +635,7 @@ export default function GestionAbonosPage() {
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado",""].map(h => (
+                    {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado","","Comprobante"].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -666,8 +666,7 @@ export default function GestionAbonosPage() {
                       return !d.creadoEn || new Date(d.creadoEn) >= desde
                     })
                     return (
-                    <React.Fragment key={ab.id}>
-                    <tr className="hover:bg-foreground/[0.02] transition-colors">
+                    <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
                       <td className="px-4 py-3 font-semibold text-foreground text-xs">{nombreMostrar}</td>
                       <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
@@ -695,30 +694,25 @@ export default function GestionAbonosPage() {
                           </button>
                         </div>
                       </td>
-                    </tr>
-                    {docsAbono.length > 0 && (
-                      <tr className="bg-lime-400/3">
-                        <td colSpan={10} className="px-6 py-3 border-t border-dashed border-lime-400/15">
-                          <div className="flex items-center gap-4 flex-wrap">
-                            <span className="text-xs font-black uppercase tracking-widest text-lime-400/70 shrink-0">
-                              Comprobante
-                            </span>
+                      <td className="px-4 py-3">
+                        {docsAbono.length > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap">
                             {docsAbono.map((doc) => (
-                              <div key={doc.idDocumento} className="flex items-center gap-2">
+                              <div key={doc.idDocumento} className="flex items-center gap-1.5">
                                 <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
-                                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border transition-colors ${
+                                  className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 border transition-colors ${
                                     doc.estado === "aprobado"
                                       ? "border-lime-400/50 bg-lime-400/10 text-lime-400"
-                                      : "border-foreground/15 bg-foreground/3 text-foreground/50 hover:bg-foreground/8"
+                                      : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                                   }`}>
-                                  <CheckCircle2 className="h-3 w-3" />
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
                                   {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : "Ver"}
                                   {doc.estado === "aprobado" ? " ✓" : " ↗"}
                                 </a>
                                 {doc.estado !== "aprobado" && (
                                   <button
                                     onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
-                                    className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border border-lime-400/30 text-lime-400 hover:bg-lime-400/10 transition-colors"
+                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 border border-lime-400/30 text-lime-400 hover:bg-lime-400/10 transition-colors"
                                   >
                                     Aprobar
                                   </button>
@@ -726,10 +720,9 @@ export default function GestionAbonosPage() {
                               </div>
                             ))}
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                    </React.Fragment>
+                        )}
+                      </td>
+                    </tr>
                   )})}
                 </tbody>
               </table>
