@@ -519,24 +519,20 @@ export default function GestionAbonosPage() {
                   return (
                     <tr key={`comp-${f._id}`} className="bg-lime-400/3">
                       <td colSpan={10} className="px-4 py-3 border-t border-dashed border-lime-400/20">
-                        <div className="flex items-start gap-3 flex-wrap">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-lime-400/70 shrink-0 mt-0.5">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="text-xs font-black uppercase tracking-widest text-lime-400/70 shrink-0">
                             Comprobantes de transferencia
                           </span>
                           {comprobantesMap[f._id] === undefined ? (
-                            <span className="text-[10px] text-foreground/30 animate-pulse">Cargando...</span>
-                          ) : filtrados.length === 0 ? (
-                            <span className="text-[10px] text-foreground/30 border border-dashed border-foreground/10 px-2 py-1">
-                              Sin comprobantes cargados desde {f.fechaInicio || "la fecha de inicio"}
-                            </span>
+                            <span className="text-xs text-foreground/30 animate-pulse">Cargando...</span>
                           ) : filtrados.map((doc, i) => (
                             <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
-                              className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 transition-colors ${
+                              className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 transition-colors ${
                                 doc.estado === "aprobado"
                                   ? "border border-lime-400/50 bg-lime-400/10 text-lime-400 hover:bg-lime-400/15"
-                                  : "border border-foreground/15 bg-foreground/3 text-foreground/50 hover:bg-foreground/8"
+                                  : "border border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                               }`}>
-                              <CheckCircle2 className="h-3 w-3" />
+                              <CheckCircle2 className="h-3.5 w-3.5" />
                               {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : `Comprobante ${i + 1}`}
                               <span className={`ml-0.5 ${doc.estado === "aprobado" ? "text-lime-400/60" : "text-foreground/30"}`}>
                                 {doc.estado === "aprobado" ? "✓" : "↗"}
