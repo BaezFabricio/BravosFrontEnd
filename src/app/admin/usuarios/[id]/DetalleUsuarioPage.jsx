@@ -210,10 +210,9 @@ export default function DetalleUsuarioPage() {
               <Pencil className="h-3.5 w-3.5" /> Editar
             </button>
           </Link>
-          <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}>
-            <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
-              + Cargar Abono
-            </button>
+          <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}
+            className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
+            + Cargar Abono
           </Link>
           {user?.estado === "activo" ? (
             <button type="button" className="border border-yellow-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-yellow-400 hover:bg-yellow-400/5 transition-colors flex items-center gap-1.5"
