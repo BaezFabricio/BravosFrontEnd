@@ -633,12 +633,12 @@ export default function GestionAbonosPage() {
                         )}
                       </td>
                     </tr>
-                  ) : delMes.map((ab, idx) => {
+                  ) : delMes.map((ab) => {
                     const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                     const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
                     return (
                     <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{idx + 1}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
                       <td className="px-4 py-3 font-semibold text-foreground text-xs">{nombreMostrar}</td>
                       <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
                       <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.inicio)}</td>
