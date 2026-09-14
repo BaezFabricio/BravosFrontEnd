@@ -125,7 +125,7 @@ export default function EditarUsuarioPage() {
       const resultado = await res.json()
       if (!res.ok) throw new Error(resultado.message || "Error al actualizar")
       toast.success("Usuario actualizado exitosamente")
-      navigate(`/admin/usuarios/${id}`)
+      navigate(-1)
     } catch (err) {
       toast.error("Error al guardar los cambios", { description: err.message })
     } finally {
@@ -151,7 +151,7 @@ export default function EditarUsuarioPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(`/admin/usuarios/${id}`)}
+            onClick={() => navigate(-1)}
             className="shrink-0 border border-border p-2 text-foreground/40 hover:text-foreground hover:border-foreground/30 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -164,7 +164,7 @@ export default function EditarUsuarioPage() {
         <div className="flex gap-2 pl-11 sm:pl-0">
           <button
             type="button"
-            onClick={() => navigate(`/admin/usuarios/${id}`)}
+            onClick={() => navigate(-1)}
             disabled={isSaving}
             className="border border-border px-3 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50"
           >
@@ -339,7 +339,7 @@ export default function EditarUsuarioPage() {
           <div className="flex justify-end gap-3 pt-1">
             <button
               type="button"
-              onClick={() => navigate(`/admin/usuarios/${id}`)}
+              onClick={() => navigate(-1)}
               disabled={isSaving}
               className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50"
             >
