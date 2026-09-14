@@ -658,14 +658,13 @@ export default function GestionAbonosPage() {
                   ) : delMes.map((ab) => {
                     const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                     const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
-                    const esTransferencia = ab.metodoPago === "Transferencia"
-                    if (esTransferencia && ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
-                    const docsAbono = esTransferencia ? (comprobantesAbonos[ab.id] || []).filter(d => {
+                    if (ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
+                    const docsAbono = (comprobantesAbonos[ab.id] || []).filter(d => {
                       if (d.tipo !== "comprobante_transferencia") return false
                       if (!ab.inicio) return true
                       const desde = new Date(ab.inicio.split("T")[0] + "T00:00:00")
                       return !d.creadoEn || new Date(d.creadoEn) >= desde
-                    }) : []
+                    })
                     return (
                     <React.Fragment key={ab.id}>
                     <tr className="hover:bg-foreground/[0.02] transition-colors">
@@ -697,18 +696,14 @@ export default function GestionAbonosPage() {
                         </div>
                       </td>
                     </tr>
-                    {esTransferencia && (
+                    {docsAbono.length > 0 && (
                       <tr className="bg-lime-400/3">
                         <td colSpan={10} className="px-6 py-3 border-t border-dashed border-lime-400/15">
                           <div className="flex items-center gap-4 flex-wrap">
                             <span className="text-xs font-black uppercase tracking-widest text-lime-400/70 shrink-0">
                               Comprobante
                             </span>
-                            {comprobantesAbonos[ab.id] === undefined ? (
-                              <span className="text-xs text-foreground/30 animate-pulse">Cargando...</span>
-                            ) : docsAbono.length === 0 ? (
-                              <span className="text-xs text-foreground/40 border border-dashed border-foreground/15 px-3 py-1">Sin comprobante</span>
-                            ) : docsAbono.map((doc) => (
+                            {docsAbono.map((doc) => (
                               <div key={doc.idDocumento} className="flex items-center gap-2">
                                 <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
                                   className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border transition-colors ${
