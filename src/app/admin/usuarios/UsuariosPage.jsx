@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Search,
   Plus,
@@ -13,6 +13,7 @@ import {
   Download,
   AlertCircle,
   Loader2,
+  CreditCard,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
@@ -63,6 +64,7 @@ const membershipConfig = {
 }
 
 export default function UsuariosPage() {
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -297,7 +299,7 @@ export default function UsuariosPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
-                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors">
+                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/${user.idUsuario || user.id}`) }}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
@@ -329,7 +331,7 @@ export default function UsuariosPage() {
                           const isActivo = user.estado === "activo"
                           const isSuspendido = user.estado === "suspendido"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${isActivo ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isActivo ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -341,7 +343,7 @@ export default function UsuariosPage() {
                           const isVigente = user.membresia === "vigente" || user.membresia === "activa"
                           const isPorVencer = user.membresia === "por_vencer"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${isVigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isVigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -350,7 +352,7 @@ export default function UsuariosPage() {
                       <td className="px-4 py-3 hidden lg:table-cell">
                         <span className="font-semibold text-sm text-foreground">{user.creditos}</span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right" data-no-navigate>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 text-foreground/40 hover:text-foreground transition-colors">
@@ -375,6 +377,16 @@ export default function UsuariosPage() {
                                 <Link to={`/admin/usuarios/${user.idUsuario || user.id}/editar`}>
                                   <Pencil className="mr-2 h-4 w-4" />
                                   Editar
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
+
+                            {/* 🟢 ACCIÓN: CARGAR ABONO */}
+                            {permisos.includes("usuarios:alta") && (
+                              <DropdownMenuItem asChild>
+                                <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`}>
+                                  <CreditCard className="mr-2 h-4 w-4" />
+                                  Cargar Abono
                                 </Link>
                               </DropdownMenuItem>
                             )}
