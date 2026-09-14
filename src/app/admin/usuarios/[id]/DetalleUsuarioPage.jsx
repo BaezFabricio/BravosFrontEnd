@@ -36,15 +36,15 @@ import apiClient, {
 import { toast } from '@/lib/notificar'
 
 const statusConfig = {
-  activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-  inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
+  activo:   { label: "Activo",    className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  inactivo: { label: "Inactivo",  className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
-  vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  activa: { label: "Activa", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
 const formatearFecha = (fechaRaw) => {
@@ -214,17 +214,17 @@ export default function DetalleUsuarioPage() {
             className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
             + Cargar Abono
           </Link>
-          {user?.estado === "activo" ? (
-            <button type="button" className="border border-yellow-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-yellow-400 hover:bg-yellow-400/5 transition-colors flex items-center gap-1.5"
-              onClick={() => setStatusDialog({ open: true, action: "suspend" })}>
-              <UserX className="h-3.5 w-3.5" /> Suspender
-            </button>
-          ) : user?.estado !== "inactivo" ? (
+          {user?.estado === "inactivo" ? (
             <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5"
               onClick={() => setStatusDialog({ open: true, action: "activate" })}>
               <UserCheck className="h-3.5 w-3.5" /> Activar
             </button>
-          ) : null}
+          ) : (
+            <button type="button" className="border border-foreground/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground/60 hover:border-foreground/20 transition-colors flex items-center gap-1.5"
+              onClick={() => setStatusDialog({ open: true, action: "deactivate" })}>
+              <UserX className="h-3.5 w-3.5" /> Desactivar
+            </button>
+          )}
           <button type="button" className="border border-red-500/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors flex items-center gap-1.5"
             onClick={() => setDeleteDialog(true)}>
             <Trash2 className="h-3.5 w-3.5" /> Eliminar
@@ -245,7 +245,7 @@ export default function DetalleUsuarioPage() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black uppercase tracking-tight text-foreground leading-none">{user?.nombre}</h1>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : user?.estado === "suspendido" ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
                 {status.label}
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border capitalize">
@@ -400,13 +400,13 @@ export default function DetalleUsuarioPage() {
         <DialogContent className="bg-card border-border rounded-xl">
           <DialogHeader>
             <DialogTitle className="font-semibold text-foreground tracking-tight">
-              {statusDialog.action === "suspend" ? "Suspender Acceso" : "Restablecer Acceso"}
+              {statusDialog.action === "activate" ? "Activar Usuario" : "Desactivar Usuario"}
             </DialogTitle>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" size="sm" onClick={() => setStatusDialog({ open: false, action: "" })}>Cancelar</Button>
             <Button variant={statusDialog.action === "activate" ? "default" : "destructive"} size="sm"
-              onClick={() => handleStatusChange(statusDialog.action === "suspend" ? "suspendido" : "activo")}
+              onClick={() => handleStatusChange(statusDialog.action === "activate" ? "activo" : "inactivo")}
               disabled={isActionLoading}>
               Confirmar
             </Button>

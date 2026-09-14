@@ -53,14 +53,14 @@ const getIniciales = (name) => {
 
 const statusConfig = {
   activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
-  vigente: { label: "Activa", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
   por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
-  vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-500 border-red-500/20" },
 }
 
 export default function UsuariosPage() {
@@ -357,51 +357,35 @@ export default function UsuariosPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-64">
                             
-                            {/* 🟢 ACCIÓN: VER DETALLE */}
+                            {/* VER DETALLE */}
                             {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-                              <DropdownMenuItem asChild>
-                               <Link to={`/admin/usuarios/${user.idUsuario || user.id}`}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Ver Detalle
-                                </Link>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/usuarios/${user.idUsuario || user.id}`) }}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Ver Detalle
                               </DropdownMenuItem>
                             )}
 
-                            {/* 🟢 ACCIÓN: EDICIÓN */}
+                            {/* EDITAR */}
                             {permisos.includes("usuarios:modificacion") && (
-                              <DropdownMenuItem asChild>
-                                <Link to={`/admin/usuarios/${user.idUsuario || user.id}/editar`}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Editar
-                                </Link>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/usuarios/${user.idUsuario || user.id}/editar`) }}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
                               </DropdownMenuItem>
                             )}
 
-                            {/* 🟢 ACCIÓN: CARGAR ABONO */}
+                            {/* CARGAR ABONO */}
                             {permisos.includes("usuarios:alta") && (
-                              <DropdownMenuItem asChild>
-                                <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`}>
-                                  <CreditCard className="mr-2 h-4 w-4" />
-                                  Cargar Abono
-                                </Link>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`) }}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Cargar Abono
                               </DropdownMenuItem>
                             )}
-                            
-                            {/* 🟢 ACCIONES DE CAMBIO DE ESTADO */}
+
+                            {/* ACTIVAR / DESACTIVAR */}
                             {permisos.includes("usuarios:modificacion") && (
                               <>
                                 <DropdownMenuSeparator />
-                                {user.estado === "activo" && (
-                                  <DropdownMenuItem
-                                    onClick={() => setConfirmDialog({ open: true, user, action: "suspend" })}
-                                    className="text-yellow-500 px-4 py-2"
-                                  >
-                                    <UserX className="mr-3 h-5 w-5" />
-                                    Suspender
-                                  </DropdownMenuItem>
-                                )}
-                                
-                                {user.estado === "suspendido" && (
+                                {user.estado === "inactivo" ? (
                                   <DropdownMenuItem
                                     onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
                                     className="text-green-500 px-4 py-2"
@@ -409,19 +393,16 @@ export default function UsuariosPage() {
                                     <UserCheck className="mr-3 h-5 w-5" />
                                     Activar
                                   </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
+                                    className="text-gray-500 px-4 py-2"
+                                  >
+                                    <UserX className="mr-3 h-5 w-5" />
+                                    Desactivar
+                                  </DropdownMenuItem>
                                 )}
                               </>
-                            )}
-
-                            {/* 🟢 ACCIÓN: DAR DE BAJA */}
-                            {permisos.includes("usuarios:baja") && user.estado !== "inactivo" && (
-                              <DropdownMenuItem
-                                onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
-                                className="text-gray-500 px-4 py-2"
-                              >
-                                <UserX className="mr-3 h-5 w-5" />
-                                Dar de Baja
-                              </DropdownMenuItem>
                             )}
 
                             {/* 🟢 ACCIÓN: ELIMINAR PERMANENTE */}
@@ -455,17 +436,12 @@ export default function UsuariosPage() {
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>
-              {confirmDialog.action === "suspend" && "Suspender Usuario"}
-              {confirmDialog.action === "activate" && "Activar Usuario"}
-              {confirmDialog.action === "deactivate" && "Dar de Baja Usuario"}
+              {confirmDialog.action === "activate" ? "Activar Usuario" : "Desactivar Usuario"}
             </DialogTitle>
             <DialogDescription>
-              {confirmDialog.action === "suspend" &&
-                `¿Estás seguro de suspender a ${confirmDialog.user?.nombre}? El usuario no podrá reservar clases ni usar sus créditos.`}
-              {confirmDialog.action === "activate" &&
-                `¿Estás seguro de activar a ${confirmDialog.user?.nombre}? El usuario podrá volver a usar el sistema.`}
-              {confirmDialog.action === "deactivate" &&
-                `¿Estás seguro de dar de baja a ${confirmDialog.user?.nombre}? Esta acción deshabilitará completamente al usuario.`}
+              {confirmDialog.action === "activate"
+                ? `¿Activar a ${confirmDialog.user?.nombre}? Podrá volver a usar el sistema.`
+                : `¿Desactivar a ${confirmDialog.user?.nombre}? No podrá reservar clases ni usar sus créditos.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -476,12 +452,7 @@ export default function UsuariosPage() {
               variant={confirmDialog.action === "activate" ? "default" : "destructive"}
               onClick={() => {
                 if (confirmDialog.user) {
-                  const newStatus =
-                    confirmDialog.action === "suspend"
-                      ? "suspendido"
-                      : confirmDialog.action === "activate"
-                        ? "activo"
-                        : "inactivo"
+                  const newStatus = confirmDialog.action === "activate" ? "activo" : "inactivo"
                   handleStatusChange(confirmDialog.user.idUsuario || confirmDialog.user.id, newStatus)
                 }
               }}
