@@ -525,6 +525,10 @@ export default function GestionAbonosPage() {
                           </span>
                           {comprobantesMap[f._id] === undefined ? (
                             <span className="text-xs text-foreground/30 animate-pulse">Cargando...</span>
+                          ) : filtrados.length === 0 ? (
+                            <span className="text-xs text-foreground/30 border border-dashed border-foreground/10 px-2 py-1">
+                              Sin comprobantes cargados desde {f.fechaInicio || "la fecha de inicio"}
+                            </span>
                           ) : filtrados.map((doc, i) => (
                             <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
                               className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 transition-colors ${
