@@ -635,7 +635,7 @@ export default function GestionAbonosPage() {
               <table className="w-full text-sm min-w-[900px]">
                 <thead>
                   <tr className="border-b border-border">
-                    {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado","","Comprobante"].map(h => (
+                    {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado","Método Pago","","Comprobante"].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -684,6 +684,7 @@ export default function GestionAbonosPage() {
                           {ab.estado}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-xs text-foreground/60">{ab.metodoPago || "-"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <button onClick={() => abrirEditar(ab)} className="p-1.5 text-foreground/40 hover:text-foreground transition-colors" title="Editar">
