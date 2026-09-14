@@ -290,7 +290,7 @@ export default function UsuariosPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
-                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/${user.idUsuario || user.id}`) }}>
+                    <tr key={user.idUsuario || user.id} className="hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`) }}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
