@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft, Zap, Shield, Users } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft, Zap, Shield, Users, UserX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from '@/lib/notificar'
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({})
+  const [cuentaDesactivada, setCuentaDesactivada] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -51,6 +52,11 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        if (data.code === 'CUENTA_INACTIVA') {
+          setCuentaDesactivada(true)
+          setIsLoading(false)
+          return
+        }
         toast.error(data.message || "Error al iniciar sesión")
         setIsLoading(false)
         return
@@ -74,6 +80,32 @@ export default function LoginPage() {
       toast.error("Error de conexión", { description: "Asegúrate de que el backend esté encendido." })
       setIsLoading(false)
     }
+  }
+
+  if (cuentaDesactivada) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0c0d09] p-6">
+        <div className="w-full max-w-md border border-border bg-card p-8 text-center space-y-5">
+          <div className="flex justify-center">
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-full">
+              <UserX className="h-10 w-10 text-red-400" />
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Cuenta desactivada</h2>
+            <p className="text-sm text-foreground/50 mt-2 leading-relaxed">
+              Tu cuenta fue desactivada. Para volver a acceder al sistema, contactá al administrador del gimnasio para que la reactive.
+            </p>
+          </div>
+          <button
+            onClick={() => { setCuentaDesactivada(false); setFormData({ email: "", password: "" }) }}
+            className="w-full border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            Volver al login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

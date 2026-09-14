@@ -46,6 +46,14 @@ function RequireAuth({ children, allowedRoles }) {
     return <Navigate to="/login" replace />
   }
 
+  try {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+    if (usuario.estado === 'inactivo') {
+      return <Navigate to="/" replace />
+    }
+  } catch {}
+
+
   if (!allowedRoles || allowedRoles.length === 0) {
     return children
   }
