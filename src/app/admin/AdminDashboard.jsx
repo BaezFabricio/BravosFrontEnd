@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Dashboard</h1>
-        <p className=”text-sm text-foreground/40 mt-1”>Panel de administracion - Bravos Gym</p>
+        <p className="text-sm text-foreground/40 mt-1">Panel de administracion - Bravos Gym</p>
       </div>
 
       {/* STAT CARDS */}
