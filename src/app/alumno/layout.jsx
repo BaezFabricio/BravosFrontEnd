@@ -245,7 +245,7 @@ export default function AlumnoLayout({ children }) {
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-sm text-muted-foreground animate-pulse">Sincronizando credenciales de acceso con Bravos Box...</p>
             </div>
-          ) : !tieneAbonoActivo && pathname !== '/alumno/perfil' ? (
+          ) : !tieneAbonoActivo && pathname !== '/alumno/perfil' && pathname !== '/alumno/documentacion' ? (
             /* 🛑 CORTE DE FLUJO: Pantalla de bloqueo si no tiene créditos o pagos activos */
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 bg-card border border-border rounded-2xl max-w-2xl mx-auto mt-8 shadow-xl">
               <div className="p-4 mb-4 text-destructive bg-destructive/10 rounded-full animate-bounce">

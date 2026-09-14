@@ -31,7 +31,7 @@ export default function AdminDashboard() {
           setRecentActivity(resData.recentActivity || [])
         }
       } catch (error) {
-        console.error("Error al sincronizar mÃ©tricas del administrador:", error)
+        console.error("Error al sincronizar métricas del administrador:", error)
       } finally {
         setLoading(false)
       }
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     { title: "Total Usuarios",        value: tarjetas.totalUsuarios,        sub: "+12%",           type: "neutral",  icon: Users },
     { title: "Usuarios Activos",      value: tarjetas.usuariosActivos,      sub: "+8%",            type: "positive", icon: UserCheck },
     { title: "Suspendidos",           value: tarjetas.suspendidos,          sub: "Revisar caja",   type: "negative", icon: UserX },
-    { title: "MembresÃ­as por Vencer", value: tarjetas.membresiasPorVencer,  sub: "PrÃ³ximos 7 dÃ­as",type: "warning",  icon: Clock },
+    { title: "Membresías por Vencer", value: tarjetas.membresiasPorVencer,  sub: "Próximos 7 días",type: "warning",  icon: Clock },
   ]
 
   const statStyle = {
@@ -54,9 +54,9 @@ export default function AdminDashboard() {
   }
 
   const formatearActividad = (fechaOrden) => {
-    if (!fechaOrden) return { fecha: 'â€”', hora: null }
+    if (!fechaOrden) return { fecha: '—', hora: null }
     const d = new Date(fechaOrden)
-    if (isNaN(d.getTime())) return { fecha: 'â€”', hora: null }
+    if (isNaN(d.getTime())) return { fecha: '—', hora: null }
     const hoy = new Date()
     const ayer = new Date(); ayer.setDate(hoy.getDate() - 1)
     const esHoy  = d.toDateString() === hoy.toDateString()
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Dashboard</h1>
-        <p className="text-sm text-foreground/40 mt-1">Panel de administraciÃ³n â€” Bravos Gym</p>
+        <p className=”text-sm text-foreground/40 mt-1”>Panel de administración — Bravos Gym</p>
       </div>
 
       {/* STAT CARDS */}
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
             <p className="text-sm text-foreground/40 text-center py-8">Buscando...</p>
           ) : suspendedUsers.length === 0 ? (
             <div className="px-5 py-8 text-center">
-              <p className="text-sm text-lime-400 font-semibold">Â¡Todo en orden!</p>
+              <p className="text-sm text-lime-400 font-semibold">¡Todo en orden!</p>
               <p className="text-xs text-foreground/40 mt-1">No hay usuarios suspendidos.</p>
             </div>
           ) : (
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
                     <p className="text-[11px] text-foreground/40 mt-0.5">{user.email || "sin correo"}</p>
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md shrink-0">
-                    {user.daysOverdue <= 0 ? "Sin crÃ©ditos" : `${user.daysOverdue} dÃ­as`}
+                    {user.daysOverdue <= 0 ? "Sin créditos" : `${user.daysOverdue} días`}
                   </span>
                 </div>
               ))}

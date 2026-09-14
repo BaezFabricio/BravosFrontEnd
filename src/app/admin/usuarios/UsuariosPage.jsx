@@ -169,7 +169,7 @@ export default function UsuariosPage() {
   const handleStatusChange = async (userId, newStatus) => {
     try {
       await cambiarEstadoUsuario(userId, newStatus)
-      setUsers(users.map((u) => (u.id === userId ? { ...u, estado: newStatus } : u)))
+      setUsers(users.map((u) => ((u.idUsuario || u.id) === userId ? { ...u, estado: newStatus } : u)))
     } catch (err) {
       toast.error("Error al cambiar el estado del usuario")
     }
@@ -387,7 +387,7 @@ export default function UsuariosPage() {
                                 <DropdownMenuSeparator />
                                 {user.estado === "inactivo" ? (
                                   <DropdownMenuItem
-                                    onClick={() => setConfirmDialog({ open: true, user, action: "activate" })}
+                                    onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, user, action: "activate" }) }}
                                     className="text-green-500 px-4 py-2"
                                   >
                                     <UserCheck className="mr-3 h-5 w-5" />
@@ -395,7 +395,7 @@ export default function UsuariosPage() {
                                   </DropdownMenuItem>
                                 ) : (
                                   <DropdownMenuItem
-                                    onClick={() => setConfirmDialog({ open: true, user, action: "deactivate" })}
+                                    onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, user, action: "deactivate" }) }}
                                     className="text-gray-500 px-4 py-2"
                                   >
                                     <UserX className="mr-3 h-5 w-5" />
@@ -454,6 +454,7 @@ export default function UsuariosPage() {
                 if (confirmDialog.user) {
                   const newStatus = confirmDialog.action === "activate" ? "activo" : "inactivo"
                   handleStatusChange(confirmDialog.user.idUsuario || confirmDialog.user.id, newStatus)
+                  setConfirmDialog({ open: false, user: null, action: null })
                 }
               }}
             >
