@@ -206,15 +206,6 @@ export default function UsuariosPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {permisos.includes("membresias:alta") && (
-            <Link
-              to="/admin/usuarios/abonos/carga-masiva"
-              className="inline-flex items-center border border-border text-foreground/50 font-black uppercase tracking-widest text-xs px-4 py-2 hover:text-foreground hover:border-foreground/30 transition-colors gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Carga de Abonos
-            </Link>
-          )}
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"

@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
-  Plus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -36,6 +35,7 @@ import apiClient, {
   getUsuarioById,
 } from "@/api"
 import { toast } from '@/lib/notificar'
+import GestionAbonosPage from "@/app/admin/usuarios/abonos/CargaMasivaAbonosPage"
 
 const METODOS_PAGO = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
 
@@ -104,8 +104,6 @@ export default function DetalleUsuarioPage() {
   const [reservasReales, setReservasReales] = useState([])
   const [cargandoReservas, setCargandoReservas] = useState(false)
 
-  const [abonos, setAbonos] = useState([])
-  const [cargandoAbonos, setCargandoAbonos] = useState(false)
 
   const [documentos, setDocumentos] = useState([])
   const [cargandoDocs, setCargandoDocs] = useState(false)
@@ -131,22 +129,6 @@ export default function DetalleUsuarioPage() {
       }
     }
     cargarReservas()
-  }, [id])
-
-  useEffect(() => {
-    if (!id) return
-    const cargarAbonos = async () => {
-      try {
-        setCargandoAbonos(true)
-        const res = await apiClient.get(`/usuarios/${id}/abonos`)
-        setAbonos(res.data?.data || res.data || [])
-      } catch (err) {
-        console.error("Error al cargar abonos del usuario:", err)
-      } finally {
-        setCargandoAbonos(false)
-      }
-    }
-    cargarAbonos()
   }, [id])
 
   useEffect(() => {
@@ -420,64 +402,9 @@ export default function DetalleUsuarioPage() {
         ))}
       </div>
 
-      {/* PESTAÑA ABONOS */}
+      {/* PESTAÑA ABONOS — interfaz completa de gestión embebida */}
       {vistaActiva === "abonos" && (
-        <div className="border border-border bg-card">
-          <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Historial de Abonos</p>
-              <p className="text-xs text-foreground/40 mt-0.5">Membresías adquiridas por este usuario.</p>
-            </div>
-            <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}>
-              <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
-                + Cargar Abono
-              </button>
-            </Link>
-          </div>
-          {cargandoAbonos ? (
-            <div className="p-8 text-center text-xs text-foreground/30 uppercase tracking-widest animate-pulse">Cargando abonos...</div>
-          ) : abonos.length === 0 ? (
-            <div className="p-8 text-center space-y-2">
-              <p className="text-xs text-foreground/30 uppercase tracking-widest">Sin abonos registrados</p>
-              <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`} className="text-[10px] text-lime-500 hover:text-lime-400 underline underline-offset-2 transition-colors">
-                Cargar primer abono →
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[700px]">
-                <thead>
-                  <tr className="border-b border-border">
-                    {["Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado"].map(h => (
-                      <th key={h} className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {abonos.map(ab => (
-                    <tr key={ab.idAbono || ab.id} className="hover:bg-foreground/3 transition-colors">
-                      <td className="px-4 py-3 font-semibold text-foreground">{ab.tipoAbono || ab.abono || ab.nombrePlan}</td>
-                      <td className="px-4 py-3 text-foreground/40">{formatearFecha(ab.fechaInicio || ab.inicio)}</td>
-                      <td className="px-4 py-3 text-foreground/40">{formatearFecha(ab.fechaVencimiento || ab.vencimiento)}</td>
-                      <td className="px-4 py-3 text-center text-foreground/60">{ab.turnos}</td>
-                      <td className="px-4 py-3 text-center text-foreground/40">{ab.usados || 0}</td>
-                      <td className="px-4 py-3 text-center font-bold text-lime-400">{ab.disponibles ?? (ab.turnos - (ab.usados || 0))}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
-                          ab.estado === "CANCELADO" ? "bg-foreground/5 text-foreground/30 border-foreground/10"
-                          : ab.estado === "VENCIDO"  ? "bg-foreground/5 text-foreground/40 border-foreground/10"
-                          : "bg-lime-400/10 text-lime-400 border-lime-400/20"
-                        }`}>
-                          {ab.estado || "ACTIVO"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <GestionAbonosPage usuarioPropId={id} />
       )}
 
       {/* PESTAÑA RESERVAS */}

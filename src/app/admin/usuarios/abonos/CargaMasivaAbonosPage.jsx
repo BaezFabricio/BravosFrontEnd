@@ -56,10 +56,11 @@ function calcularMonto(precioBase, metodoPago) {
   return String(metodoPago === "Tarjeta Crédito" ? Math.round(precioBase * 1.1) : precioBase)
 }
 
-export default function GestionAbonosPage() {
+export default function GestionAbonosPage({ usuarioPropId } = {}) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const usuarioPreId = searchParams.get("usuario")
+  const usuarioPreId = usuarioPropId || searchParams.get("usuario")
+  const isEmbedded = !!usuarioPropId
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -147,11 +148,21 @@ export default function GestionAbonosPage() {
   const cargarAbonos = async () => {
     setCargandoAbonos(true)
     try {
-      const r = await fetch("http://localhost:3001/api/vv1/usuarios/abonos/todos", {
-        headers: { Authorization: `Bearer ${getToken()}` }
-      })
+      const url = isEmbedded
+        ? `/api/vv1/usuarios/${usuarioPropId}/abonos`
+        : "http://localhost:3001/api/vv1/usuarios/abonos/todos"
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
       const json = await r.json()
-      setAbonos(Array.isArray(json.data) ? json.data : [])
+      const lista = Array.isArray(json.data) ? json.data : []
+      // En modo embebido los abonos vienen sin nombreAlumno, normalizamos
+      setAbonos(lista.map(a => ({
+        ...a,
+        id: a.idAbono || a.id,
+        inicio: a.fechaInicio || a.inicio,
+        vencimiento: a.fechaVencimiento || a.vencimiento,
+        abono: a.tipoAbono || a.abono,
+        idUsuario: a.idUsuario || usuarioPropId,
+      })))
     } catch { setAbonos([]) }
     finally { setCargandoAbonos(false) }
   }
@@ -353,16 +364,18 @@ export default function GestionAbonosPage() {
   return (
     <div className="space-y-6">
 
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <Link to="/admin/usuarios" className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
-          <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
+      {/* Header — oculto cuando está embebido en DetalleUsuarioPage */}
+      {!isEmbedded && (
+        <div className="flex items-start gap-4">
+          <Link to="/admin/usuarios" className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
+            <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── CARGA MASIVA ─────────────────────────────────────────────────────── */}
       <div className="space-y-3">
