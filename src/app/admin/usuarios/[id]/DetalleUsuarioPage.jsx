@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
   ArrowLeft,
-  User,
   Mail,
   Phone,
   CreditCard,
@@ -16,6 +15,8 @@ import {
   Stethoscope,
   CheckCircle2,
   Clock,
+  Loader2,
+  Plus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,27 @@ import apiClient, {
   getUsuarioById,
 } from "@/api"
 import { toast } from '@/lib/notificar'
+
+const METODOS_PAGO = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
+
+const sumarUnMes = (fechaStr) => {
+  if (!fechaStr) return ""
+  const d = new Date(fechaStr + "T00:00:00")
+  d.setMonth(d.getMonth() + 1)
+  return d.toISOString().split("T")[0]
+}
+
+function formAbonoPorDefecto() {
+  const hoy = new Date().toISOString().split("T")[0]
+  return {
+    idPlan: "",
+    creditos: "",
+    fechaInicio: hoy,
+    fechaVencimiento: sumarUnMes(hoy),
+    monto: "",
+    metodoPago: "Efectivo",
+  }
+}
 
 
 const statusConfig = {
@@ -87,6 +109,13 @@ export default function DetalleUsuarioPage() {
 
   const [documentos, setDocumentos] = useState([])
   const [cargandoDocs, setCargandoDocs] = useState(false)
+
+  // Modal cargar abono
+  const [abonoDialog, setAbonoDialog] = useState(false)
+  const [planes, setPlanes] = useState([])
+  const [formAbono, setFormAbono] = useState(formAbonoPorDefecto())
+  const [comprobantesAbono, setComprobantesAbono] = useState(undefined)
+  const [enviandoAbono, setEnviandoAbono] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -153,6 +182,84 @@ export default function DetalleUsuarioPage() {
     }
     if (id) cargarUsuario()
   }, [id])
+
+  useEffect(() => {
+    apiClient.get("/planes").then(r => setPlanes(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => {})
+  }, [])
+
+  const abrirCargarAbono = () => {
+    setFormAbono(formAbonoPorDefecto())
+    setComprobantesAbono(undefined)
+    setAbonoDialog(true)
+  }
+
+  const onCambiarPlan = (idPlan) => {
+    const plan = planes.find(p => String(p.idPlan) === String(idPlan))
+    const precio = plan?.precio || 0
+    setFormAbono(prev => ({
+      ...prev,
+      idPlan,
+      creditos: plan ? String(plan.cantidadCreditos || "") : prev.creditos,
+      monto: precio ? String(prev.metodoPago === "Tarjeta Crédito" ? Math.round(precio * 1.1) : precio) : prev.monto,
+    }))
+  }
+
+  const onCambiarMetodo = (metodoPago) => {
+    const plan = planes.find(p => String(p.idPlan) === String(formAbono.idPlan))
+    const precio = plan?.precio || 0
+    setFormAbono(prev => ({
+      ...prev,
+      metodoPago,
+      monto: precio ? String(metodoPago === "Tarjeta Crédito" ? Math.round(precio * 1.1) : precio) : prev.monto,
+    }))
+    if (metodoPago === "Transferencia") {
+      apiClient.get(`/documentos/usuario/${id}`)
+        .then(r => setComprobantesAbono(r.data?.data || []))
+        .catch(() => setComprobantesAbono([]))
+    } else {
+      setComprobantesAbono(undefined)
+    }
+  }
+
+  const guardarAbono = async () => {
+    if (!formAbono.idPlan || !formAbono.fechaInicio) {
+      toast.error("Completá plan y fecha de inicio")
+      return
+    }
+    setEnviandoAbono(true)
+    try {
+      const plan = planes.find(p => String(p.idPlan) === String(formAbono.idPlan))
+      const sesion = (() => { try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} } })()
+      await apiClient.post(`/usuarios/${id}/abonos`, {
+        tipoAbono: plan?.nombre,
+        fechaInicio: formAbono.fechaInicio,
+        fechaVencimiento: formAbono.fechaVencimiento || undefined,
+        metodoPago: formAbono.metodoPago,
+        importe: formAbono.monto ? parseFloat(formAbono.monto) : undefined,
+        idUsuarioOperador: sesion.idUsuario,
+      })
+
+      if (formAbono.metodoPago === "Transferencia" && comprobantesAbono?.length) {
+        const desde = new Date(formAbono.fechaInicio + "T00:00:00")
+        const filtrados = comprobantesAbono.filter(d =>
+          d.tipo === "comprobante_transferencia" && (!d.creadoEn || new Date(d.creadoEn) >= desde)
+        )
+        if (filtrados.length > 0) {
+          await apiClient.patch(`/documentos/${filtrados[0].idDocumento}/aprobar`).catch(() => {})
+        }
+      }
+
+      toast.success("Abono cargado correctamente")
+      setAbonoDialog(false)
+      // Refrescar abonos
+      const res = await apiClient.get(`/usuarios/${id}/abonos`)
+      setAbonos(res.data?.data || res.data || [])
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "No se pudo cargar el abono")
+    } finally {
+      setEnviandoAbono(false)
+    }
+  }
 
   const status = statusConfig[user?.estado] || statusConfig.activo
 
@@ -321,20 +428,20 @@ export default function DetalleUsuarioPage() {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Historial de Abonos</p>
               <p className="text-xs text-foreground/40 mt-0.5">Membresías adquiridas por este usuario.</p>
             </div>
-            <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}>
-              <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
-                + Cargar Abono
-              </button>
-            </Link>
+            <button type="button"
+              onClick={abrirCargarAbono}
+              className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
+              <Plus className="h-3 w-3" /> Cargar Abono
+            </button>
           </div>
           {cargandoAbonos ? (
             <div className="p-8 text-center text-xs text-foreground/30 uppercase tracking-widest animate-pulse">Cargando abonos...</div>
           ) : abonos.length === 0 ? (
             <div className="p-8 text-center space-y-2">
               <p className="text-xs text-foreground/30 uppercase tracking-widest">Sin abonos registrados</p>
-              <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`} className="text-[10px] text-lime-500 hover:text-lime-400 underline underline-offset-2 transition-colors">
+              <button type="button" onClick={abrirCargarAbono} className="text-[10px] text-lime-500 hover:text-lime-400 underline underline-offset-2 transition-colors">
                 Cargar primer abono →
-              </Link>
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -472,6 +579,138 @@ export default function DetalleUsuarioPage() {
           )}
         </div>
       )}
+
+      {/* MODAL CARGAR ABONO */}
+      <Dialog open={abonoDialog} onOpenChange={open => { if (!enviandoAbono) setAbonoDialog(open) }}>
+        <DialogContent className="bg-card border-border rounded-xl max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-black uppercase tracking-widest text-foreground">
+              Cargar Abono — {user?.nombre}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-xs">
+            {/* Plan */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan *</label>
+              <select
+                className="w-full bg-muted border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                value={formAbono.idPlan}
+                onChange={e => onCambiarPlan(e.target.value)}
+              >
+                <option value="">Seleccionar plan...</option>
+                {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
+              </select>
+            </div>
+
+            {/* Fechas */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Inicio *</label>
+                <input type="date"
+                  className="w-full bg-muted border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                  value={formAbono.fechaInicio}
+                  onChange={e => setFormAbono(prev => ({
+                    ...prev,
+                    fechaInicio: e.target.value,
+                    fechaVencimiento: e.target.value ? sumarUnMes(e.target.value) : prev.fechaVencimiento
+                  }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vencimiento</label>
+                <input type="date"
+                  className="w-full bg-muted border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                  value={formAbono.fechaVencimiento}
+                  onChange={e => setFormAbono(prev => ({ ...prev, fechaVencimiento: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Método de pago + Monto */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Método de pago</label>
+                <select
+                  className="w-full bg-muted border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                  value={formAbono.metodoPago}
+                  onChange={e => onCambiarMetodo(e.target.value)}
+                >
+                  {METODOS_PAGO.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monto ($)</label>
+                <input type="number"
+                  className="w-full bg-muted border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
+                  value={formAbono.monto}
+                  onChange={e => setFormAbono(prev => ({ ...prev, monto: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            {/* Créditos (read-only del plan) */}
+            {formAbono.creditos && (
+              <div className="flex items-center gap-2 px-3 py-2 border border-dashed border-lime-400/30 bg-lime-400/5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créditos del plan:</span>
+                <span className="font-black text-lime-400 text-sm">{formAbono.creditos}</span>
+              </div>
+            )}
+
+            {/* Sub-fila comprobantes si método = Transferencia */}
+            {formAbono.metodoPago === "Transferencia" && (
+              <div className="border border-dashed border-lime-400/20 bg-lime-400/3 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-lime-400/70 mb-2">
+                  Comprobantes de transferencia
+                </p>
+                {comprobantesAbono === undefined ? (
+                  <p className="text-[10px] text-foreground/30 animate-pulse">Cargando comprobantes...</p>
+                ) : (() => {
+                  const desde = formAbono.fechaInicio ? new Date(formAbono.fechaInicio + "T00:00:00") : null
+                  const filtrados = (comprobantesAbono || []).filter(d =>
+                    d.tipo === "comprobante_transferencia" && (!d.creadoEn || !desde || new Date(d.creadoEn) >= desde)
+                  )
+                  return filtrados.length === 0 ? (
+                    <span className="text-[10px] text-foreground/30 border border-dashed border-foreground/10 px-2 py-1">
+                      Sin comprobantes desde {formAbono.fechaInicio || "la fecha de inicio"}
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {filtrados.map((doc, i) => (
+                        <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
+                          className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 transition-colors ${
+                            doc.estado === "aprobado"
+                              ? "border border-lime-400/50 bg-lime-400/10 text-lime-400 hover:bg-lime-400/15"
+                              : "border border-foreground/15 bg-foreground/3 text-foreground/50 hover:bg-foreground/8"
+                          }`}>
+                          <CheckCircle2 className="h-3 w-3" />
+                          {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : `Comprobante ${i + 1}`}
+                          <span className="ml-0.5">{doc.estado === "aprobado" ? "✓" : "↗"}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )
+                })()}
+                <p className="text-[10px] text-foreground/25 mt-2">
+                  Al guardar, el comprobante más reciente del alumno se aprobará automáticamente.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setAbonoDialog(false)} disabled={enviandoAbono}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={guardarAbono} disabled={enviandoAbono}
+              className="bg-lime-500 hover:bg-lime-400 text-black font-black uppercase tracking-widest text-xs">
+              {enviandoAbono && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
+              {enviandoAbono ? "Guardando..." : "Guardar Abono"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* MODALES */}
       <Dialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ ...statusDialog, open })}>
