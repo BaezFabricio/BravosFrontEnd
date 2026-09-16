@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
+import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from '@/lib/notificar'
 import apiClient from "@/api"
 import RichTextEditor from "@/components/RichTextEditor"
@@ -252,9 +253,7 @@ export default function EditarClasePage() {
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
   const fieldError = "w-full bg-transparent border border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-400 transition-colors"
 
-  if (loadingData) return (
-    <div className="border border-border bg-card p-10 text-center text-foreground/40">Cargando datos de la clase...</div>
-  )
+  if (loadingData) return <AdminFormSkeleton />
 
   return (
     <div className="space-y-6">

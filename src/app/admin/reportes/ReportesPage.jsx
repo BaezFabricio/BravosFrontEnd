@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { Loader2, TrendingUp, Users, Calendar, PieChart as PieChartIcon } from "lucide-react"
+import { TrendingUp, Users, Calendar, PieChart as PieChartIcon } from "lucide-react"
+import { AdminPageSkeleton } from "@/components/AdminPageSkeleton"
 import {
   ResponsiveContainer,
   BarChart,
@@ -61,11 +62,7 @@ export default function ReportesPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
+    return <AdminPageSkeleton rows={4} />
   }
 
   if (error || !datos) {

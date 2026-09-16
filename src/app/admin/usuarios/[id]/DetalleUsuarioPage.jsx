@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-import { GymLoader } from "@/components/GymLoader"
+import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient, {
   cambiarEstadoUsuario,
   eliminarUsuario,
@@ -167,11 +167,7 @@ export default function DetalleUsuarioPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <GymLoader text="Sincronizando ficha del usuario..." />
-      </div>
-    )
+    return <AdminFormSkeleton />
   }
 
   if (error && !user) {

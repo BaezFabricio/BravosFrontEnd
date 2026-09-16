@@ -31,7 +31,7 @@ const navigation = [
 ]
 
 export default function ProfesorLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [usuario, setUsuario] = useState({ nombre: "Cargando...", email: "", iniciales: "??" })
   const [avatarUrl, setAvatarUrl] = useState("")
@@ -86,8 +86,8 @@ export default function ProfesorLayout({ children }) {
               <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </div>
-            <button className="lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
-              <X className="h-6 w-6" />
+            <button className="text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors p-1" onClick={() => setSidebarOpen(false)}>
+              <X className="h-5 w-5" />
             </button>
           </div>
           <nav className="flex-1 px-3 py-4 space-y-0.5">
@@ -114,9 +114,9 @@ export default function ProfesorLayout({ children }) {
       </aside>
 
       <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
-            <HamburgerButton isOpen={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)} />
+            {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
             <div className="flex-1" />
             
             <div className="flex items-center gap-4"> {/* Ajustamos el gap aquí */}

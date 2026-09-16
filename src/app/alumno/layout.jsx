@@ -35,7 +35,7 @@ const navigation = [
 ]
 
 export default function AlumnoLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const menuRef = useRef(null)
   
@@ -157,8 +157,8 @@ export default function AlumnoLayout({ children }) {
               <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </Link>
-            <button className="lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
-              <X className="h-6 w-6" />
+            <button className="text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors p-1" onClick={() => setSidebarOpen(false)}>
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -201,9 +201,9 @@ export default function AlumnoLayout({ children }) {
       </aside>
 
       <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-            <HamburgerButton isOpen={sidebarOpen} onClick={() => setSidebarOpen(!sidebarOpen)} />
+            {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               <ModeToggle />

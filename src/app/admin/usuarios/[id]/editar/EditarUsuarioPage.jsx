@@ -5,7 +5,7 @@ import {
   ShieldCheck, ToggleLeft, AlertCircle, CheckCircle2
 } from "lucide-react"
 import { getUsuarioById } from "@/api"
-import { GymLoader } from "@/components/GymLoader"
+import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from '@/lib/notificar'
 
 const emptyForm = {
@@ -134,11 +134,7 @@ export default function EditarUsuarioPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <GymLoader text="Cargando datos del usuario..." />
-      </div>
-    )
+    return <AdminFormSkeleton />
   }
 
   const perfilSeleccionado = perfilesBD.find((p) => String(p.idPerfil) === formData.idPerfil)

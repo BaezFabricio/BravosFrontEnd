@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Save, Upload, Layout, Users, Dumbbell, MapPin, Image as ImageIcon, Loader2 } from 'lucide-react'
-import { GymLoader } from '@/components/GymLoader'
+import { AdminFormSkeleton } from '@/components/AdminPageSkeleton'
 import { toast } from '@/lib/notificar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
 
@@ -232,11 +232,7 @@ function ConfiguracionLandingPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <GymLoader text="Cargando configuración del sitio..." />
-      </div>
-    )
+    return <AdminFormSkeleton />
   }
 
   return (

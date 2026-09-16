@@ -17,7 +17,6 @@ const PASSWORD_RULES = [
   { id: 'upper', label: 'Una letra mayúscula (A-Z)', test: (p) => /[A-Z]/.test(p) },
   { id: 'lower', label: 'Una letra minúscula (a-z)', test: (p) => /[a-z]/.test(p) },
   { id: 'num',   label: 'Un número (0-9)',           test: (p) => /[0-9]/.test(p) },
-  { id: 'sym',   label: 'Un símbolo (@ # $ %)',     test: (p) => /[@#$%!^&*()_+\-=]/.test(p) },
 ]
 
 function validateField(field, value, formData) {

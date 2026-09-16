@@ -68,12 +68,20 @@ export default function LoginPage() {
       localStorage.setItem("permisos", JSON.stringify(listadoPermisos))
       if (data.data?.usuario?.avatarUrl) localStorage.setItem("avatarUrl", data.data.usuario.avatarUrl)
 
-      const tieneAdmin = listadoPermisos.some(p => !p.startsWith("alumno_") && p !== "")
-      const tieneAlumno = listadoPermisos.some(p => p.startsWith("alumno_"))
+      const tieneAdmin = listadoPermisos.some(p =>
+        p.startsWith("usuarios:") || p.startsWith("dashboard:") ||
+        p.startsWith("perfiles:") || p.startsWith("membresias:") ||
+        p.startsWith("clases:") || p.startsWith("configuracion:")
+      )
+      const tieneAlumno = listadoPermisos.some(p => p.startsWith("alumno"))
+      const tieneProfesor = listadoPermisos.some(p => p.startsWith("profesor"))
 
-      if (tieneAdmin && tieneAlumno) navigate("/seleccionar-panel", { replace: true })
+      const modulos = [tieneAdmin, tieneAlumno, tieneProfesor].filter(Boolean).length
+
+      if (modulos > 1) navigate("/seleccionar-panel", { replace: true })
       else if (tieneAdmin) navigate("/admin", { replace: true })
       else if (tieneAlumno) navigate("/alumno", { replace: true })
+      else if (tieneProfesor) navigate("/profesor", { replace: true })
       else navigate("/inicio", { replace: true })
 
     } catch (error) {

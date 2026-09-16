@@ -19,7 +19,8 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
-import { GymLoader } from '@/components/GymLoader'
+import { ImgConSkeleton } from '@/components/ImgConSkeleton'
+import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import UserMenu from '@/components/UserMenu'
 import NotificacionesBell from '@/components/NotificacionesBell'
 
@@ -54,7 +55,11 @@ function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [heroImages, setHeroImages] = useState(defaultHeroImages)
   const [titulo, setTitulo] = useState('Centro de Entrenamiento')
-  const [logoUrl, setLogoUrl] = useState('/logo-box-bravos-final.png')
+  const [logoUrl, setLogoUrl] = useState(null)
+  const [logoFailed, setLogoFailed] = useState(false)
+  const [logoImgLoaded, setLogoImgLoaded] = useState(false)
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [tituloSize, setTituloSize] = useState(null)
   const [tituloFont, setTituloFont] = useState(null)
   const [logoTs, setLogoTs] = useState(Date.now())
@@ -82,9 +87,9 @@ function LandingPage() {
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
 
-  const useVectorLogo = !logoUrl || logoUrl.includes('logo-box-bravos-final.png')
+  const showLogoSkeleton = !logoUrl || logoFailed || !logoImgLoaded
+  const pageLoading = !configLoaded || (!!logoUrl && !logoImgLoaded && !logoFailed)
 
-  const [pageLoading, setPageLoading] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('avatarUrl') || '')
   
@@ -109,6 +114,17 @@ function LandingPage() {
     { label: 'VIERNES', value: 'VIERNES' },
     { label: 'SÁBADO', value: 'SABADO' }
   ]
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -158,8 +174,17 @@ function LandingPage() {
         if (!isMounted) return
         if (data?.tituloHero) setTitulo(data.tituloHero)
         if (data?.logoUrl) {
+          const ts = Date.now()
           setLogoUrl(data.logoUrl)
-          setLogoTs(Date.now())
+          setLogoFailed(false)
+          setLogoImgLoaded(false)
+          setLogoTs(ts)
+          const preload = new Image()
+          preload.onload = () => { if (isMounted) setLogoImgLoaded(true) }
+          preload.onerror = () => { if (isMounted) setLogoFailed(true) }
+          preload.src = `${data.logoUrl}${data.logoUrl.includes('?') ? '&' : '?'}t=${ts}`
+        } else {
+          setLogoUrl(null)
         }
         if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
         if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
@@ -201,7 +226,7 @@ function LandingPage() {
         if (isMounted) setHeroImages(defaultHeroImages)
       })
       .finally(() => {
-        if (isMounted) setPageLoading(false)
+        if (isMounted) setConfigLoaded(true)
       })
     fetch("http://localhost:3001/api/vv1/clases/disponibles")
       .then((res) => res.json())
@@ -277,9 +302,7 @@ function LandingPage() {
 
   if (pageLoading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <GymLoader text="Cargando..." />
-      </div>
+      <LandingPageSkeleton />
     )
   }
 
@@ -290,14 +313,18 @@ function LandingPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
 
-              <Link to="/" className="flex items-center">
-                {useVectorLogo ? (
-                  <LogoBoxBravos className="block h-auto w-auto max-h-[60px] max-w-[180px]" width={180} height={52} />
-                ) : (
+              <Link to="/" className="flex items-center h-[52px]">
+                {showLogoSkeleton && (
+                  <div className="h-[40px] w-[150px] bg-white/5 animate-pulse rounded" />
+                )}
+                {logoUrl && (
                   <img
-                    src={logoUrl ? `${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}` : null}
+                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
                     alt="Box Bravos"
-                    className="block h-auto w-auto max-h-[60px] max-w-[180px] object-contain"
+                    className={`block h-auto w-auto max-h-[60px] max-w-[180px] object-contain ${logoImgLoaded ? '' : 'hidden'}`}
+                    onLoad={() => setLogoImgLoaded(true)}
+                    onError={() => setLogoFailed(true)}
+                    ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
                   />
                 )}
               </Link>
@@ -463,7 +490,7 @@ function LandingPage() {
       <section className="relative flex min-h-screen items-end pb-8 sm:pb-12">
         {heroImages.map((imageSource, index) => (
           <div key={imageSource} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
-            <img src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover" loading={index === 0 ? 'eager' : 'lazy'} />
+            <ImgConSkeleton src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover" containerClassName="h-full w-full" loading={index === 0 ? 'eager' : 'lazy'} />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
           </div>
         ))}
@@ -486,13 +513,17 @@ function LandingPage() {
 
             {/* Logo */}
             <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[9px]">
-              {useVectorLogo ? (
-                <LogoBoxBravos className="h-full w-auto object-contain" width={280} height={80} />
-              ) : (
+              {showLogoSkeleton && (
+                <div className="h-full w-[220px] bg-white/5 animate-pulse rounded" />
+              )}
+              {logoUrl && (
                 <img
                   src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
                   alt="Box Bravos"
-                  className="h-full w-auto object-contain object-left"
+                  className={`h-full w-auto object-contain object-left ${logoImgLoaded ? '' : 'hidden'}`}
+                  onLoad={() => setLogoImgLoaded(true)}
+                  onError={() => setLogoFailed(true)}
+                  ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
                 />
               )}
             </div>
@@ -527,7 +558,7 @@ function LandingPage() {
       {/* SECCIÓN SOBRE NOSOTROS */}
       <section id="nosotros" className="relative py-10 md:py-12">
         <div className="absolute inset-0">
-          <img src={imagenNosotros} alt="Interior del Box" className="h-full w-full object-cover" />
+          <ImgConSkeleton src={imagenNosotros} alt="Interior del Box" className="h-full w-full object-cover" containerClassName="h-full w-full" />
           <div className="absolute inset-0 bg-black/80" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
@@ -565,7 +596,7 @@ function LandingPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {claseCards.map((clase, idx) => (
               <div key={idx} className="group relative aspect-[4/5] cursor-pointer overflow-hidden">
-                <img src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" containerClassName="h-full w-full absolute inset-0" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">
                   <h3 className="text-2xl font-black text-foreground">{clase.titulo.toUpperCase()}</h3>

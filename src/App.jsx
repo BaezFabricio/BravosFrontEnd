@@ -29,6 +29,7 @@ import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import AlumnoDocumentacionPage from './app/alumno/documentacion/DocumentacionPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
+import SeleccionarPanelPage from './app/seleccionar-panel/SeleccionarPanelPage.jsx'
 
 import ProfesorLayout from './app/profesor/ProfesorLayout.jsx'
 import ProfesorDashboard from "./app/profesor/ProfesorDashboard"
@@ -137,6 +138,7 @@ function App() {
         <Route path="/registro" element={<RegistroPage />} />
         <Route path="/verificar-cuenta" element={<VerificarCuentaPage />} />
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
+        <Route path="/seleccionar-panel" element={<RequireAuth><SeleccionarPanelPage /></RequireAuth>} />
 
         {/* RUTAS DE ADMINISTRADOR */}
         <Route path="/admin" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />

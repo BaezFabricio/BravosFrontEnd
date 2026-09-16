@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText } from "lucide-react"
+import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from "@/lib/notificar"
 import {
   Dialog,
@@ -64,6 +65,7 @@ export default function GestionAbonosPage() {
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
+  const [loadingInicial, setLoadingInicial] = useState(true)
 
   // Lista general de abonos
   const [abonos, setAbonos] = useState([])
@@ -142,7 +144,7 @@ export default function GestionAbonosPage() {
           setFilas([{ ...filaVacia(), idUsuario: u.idUsuario || u.id, nombreAlumno: nombre, busqueda: nombre }])
         }
       }
-    }).catch(() => {})
+    }).catch(() => {}).finally(() => setLoadingInicial(false))
 
     cargarAbonos()
   }, [navigate])
@@ -379,6 +381,8 @@ export default function GestionAbonosPage() {
     ok:  filas.filter(f => f.estado === "ok").length,
     err: filas.filter(f => f.estado === "error").length,
   }
+
+  if (loadingInicial) return <AdminFormSkeleton />
 
   const inp = "w-full bg-card border border-border text-sm text-foreground px-2 py-1.5 outline-none focus:border-foreground/40 transition-colors placeholder:text-foreground/25"
 
