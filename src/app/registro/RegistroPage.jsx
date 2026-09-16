@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy } from 'lucide-react'
+import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
@@ -12,12 +12,50 @@ const STEPS = [
   { icon: Trophy,  text: "Seguí tu progreso semana a semana" },
 ]
 
+const PASSWORD_RULES = [
+  { id: 'len',   label: 'Mínimo 8 caracteres',      test: (p) => p.length >= 8 },
+  { id: 'upper', label: 'Una letra mayúscula (A-Z)', test: (p) => /[A-Z]/.test(p) },
+  { id: 'lower', label: 'Una letra minúscula (a-z)', test: (p) => /[a-z]/.test(p) },
+  { id: 'num',   label: 'Un número (0-9)',           test: (p) => /[0-9]/.test(p) },
+  { id: 'sym',   label: 'Un símbolo (@ # $ %)',     test: (p) => /[@#$%!^&*()_+\-=]/.test(p) },
+]
+
+function validateField(field, value, formData) {
+  switch (field) {
+    case 'nombre':
+      return value.trim() ? '' : 'El nombre es requerido'
+    case 'dni':
+      if (!value.trim()) return 'El DNI es requerido'
+      if (!/^\d{7,8}$/.test(value)) return 'DNI inválido (7-8 dígitos)'
+      return ''
+    case 'email':
+      if (!value) return 'El correo es requerido'
+      if (!/\S+@\S+\.\S+/.test(value)) return 'Ingresá un email válido'
+      return ''
+    case 'telefono':
+      if (!value.trim()) return 'El teléfono es requerido'
+      if (!/^\d{10,15}$/.test(value.replace(/\D/g, ''))) return 'Teléfono inválido'
+      return ''
+    case 'password':
+      if (!value) return 'La contraseña es requerida'
+      if (PASSWORD_RULES.some(r => !r.test(value))) return 'La contraseña no cumple los requisitos'
+      return ''
+    case 'confirmPassword':
+      if (!value) return 'Confirmá tu contraseña'
+      if (value !== formData.password) return 'Las contraseñas no coinciden'
+      return ''
+    default:
+      return ''
+  }
+}
+
 function RegistroPage() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [touched, setTouched] = useState({})
 
   const [usuarioId, setUsuarioId] = useState(null)
   const [isEditingEmail, setIsEditingEmail] = useState(false)
@@ -29,29 +67,39 @@ function RegistroPage() {
   })
   const [errors, setErrors] = useState({})
 
-  const set = (field) => (e) => setFormData(prev => ({ ...prev, [field]: e.target.value }))
-
-  const validateForm = () => {
-    const e = {}
-    if (!formData.nombre.trim()) e.nombre = 'El nombre es requerido'
-    if (!formData.dni.trim()) e.dni = 'El DNI es requerido'
-    else if (!/^\d{7,8}$/.test(formData.dni)) e.dni = 'DNI inválido (7-8 dígitos)'
-    if (!formData.email) e.email = 'El correo es requerido'
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Correo inválido'
-    if (!formData.telefono.trim()) e.telefono = 'El teléfono es requerido'
-    else if (!/^\d{10,15}$/.test(formData.telefono.replace(/\D/g, ''))) e.telefono = 'Teléfono inválido'
-    if (!formData.password) e.password = 'La contraseña es requerida'
-    else if (formData.password.length < 8) e.password = 'Mínimo 8 caracteres'
-    if (!formData.confirmPassword) e.confirmPassword = 'Confirmá tu contraseña'
-    else if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Las contraseñas no coinciden'
-    return e
+  const set = (field) => (e) => {
+    const value = e.target.value
+    setFormData(prev => {
+      const next = { ...prev, [field]: value }
+      if (touched[field]) {
+        setErrors(errs => ({ ...errs, [field]: validateField(field, value, next) }))
+      }
+      // revalidar confirmPassword si cambia la password
+      if (field === 'password' && touched.confirmPassword) {
+        setErrors(errs => ({ ...errs, confirmPassword: validateField('confirmPassword', next.confirmPassword, next) }))
+      }
+      return next
+    })
   }
+
+  const onBlur = (field) => () => {
+    setTouched(prev => ({ ...prev, [field]: true }))
+    setErrors(prev => ({ ...prev, [field]: validateField(field, formData[field], formData) }))
+  }
+
+  const isValid = (field) => touched[field] && !errors[field] && formData[field]
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const newErrors = validateForm()
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-    setErrors({})
+    // Marcar todos como tocados y validar
+    const allTouched = Object.fromEntries(Object.keys(formData).map(k => [k, true]))
+    setTouched(allTouched)
+    const newErrors = Object.fromEntries(
+      Object.keys(formData).map(k => [k, validateField(k, formData[k], formData)])
+    )
+    setErrors(newErrors)
+    if (Object.values(newErrors).some(Boolean)) return
+
     setIsLoading(true)
     try {
       const response = await registroUsuario({
@@ -104,12 +152,10 @@ function RegistroPage() {
             <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
               <CheckCircle2 className="h-10 w-10 text-lime-400" />
             </div>
-
             <div>
               <h2 className="text-2xl font-black text-foreground tracking-tight">¡Cuenta creada!</h2>
               <p className="text-muted-foreground text-sm mt-1">Verificá tu correo para activarla</p>
             </div>
-
             <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-2">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Enviamos el link a</p>
               {!isEditingEmail ? (
@@ -125,8 +171,7 @@ function RegistroPage() {
               ) : (
                 <div className="flex flex-col gap-2 mt-1">
                   <Input
-                    type="email"
-                    value={newEmailInput}
+                    type="email" value={newEmailInput}
                     onChange={(e) => setNewEmailInput(e.target.value)}
                     className="h-9 text-center bg-background text-sm"
                     placeholder="tu@correo.com"
@@ -142,11 +187,9 @@ function RegistroPage() {
                 </div>
               )}
             </div>
-
             <p className="text-xs text-muted-foreground leading-relaxed">
               Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
             </p>
-
             <Link to="/login" className="block">
               <Button className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm">
                 Ir al inicio de sesión
@@ -170,7 +213,6 @@ function RegistroPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-lime-400/10 via-transparent to-transparent" />
         <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-lime-400/40 to-transparent" />
-
         <div className="relative z-10 flex items-center gap-4">
           <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
           <div>
@@ -178,7 +220,6 @@ function RegistroPage() {
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
           </div>
         </div>
-
         <div className="relative z-10 space-y-6">
           <div>
             <h1 className="text-5xl font-black text-white leading-none tracking-tight">
@@ -189,7 +230,6 @@ function RegistroPage() {
               Creá tu cuenta y empezá a gestionar tus clases, créditos y progreso desde el día uno.
             </p>
           </div>
-
           <div className="space-y-3">
             {STEPS.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
@@ -201,7 +241,6 @@ function RegistroPage() {
             ))}
           </div>
         </div>
-
         <div className="relative z-10">
           <p className="text-[11px] text-white/20 tracking-widest uppercase">© 2026 Bravos Box</p>
         </div>
@@ -230,7 +269,6 @@ function RegistroPage() {
           <div className="flex items-start justify-center p-6 lg:p-12 min-h-full">
             <div className="w-full max-w-sm py-2">
 
-              {/* Volver — solo desktop */}
               <button
                 onClick={() => navigate(-1)}
                 className="hidden lg:flex mb-8 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -256,11 +294,13 @@ function RegistroPage() {
                     <Input
                       id="nombre" type="text" placeholder="Juan Pérez"
                       autoComplete="name"
-                      className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.nombre ? 'border-destructive' : ''}`}
-                      value={formData.nombre} onChange={set('nombre')}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.nombre && touched.nombre ? 'border-destructive' : isValid('nombre') ? 'border-lime-400/50' : ''}`}
+                      value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')}
                     />
+                    {isValid('nombre') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-400" />}
+                    {errors.nombre && touched.nombre && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                   </div>
-                  {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
+                  {errors.nombre && touched.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
                 </div>
 
                 {/* DNI + Teléfono en fila */}
@@ -271,11 +311,12 @@ function RegistroPage() {
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="dni" type="text" placeholder="12345678"
-                        className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.dni ? 'border-destructive' : ''}`}
-                        value={formData.dni} onChange={set('dni')}
+                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.dni && touched.dni ? 'border-destructive' : isValid('dni') ? 'border-lime-400/50' : ''}`}
+                        value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')}
                       />
+                      {isValid('dni') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-400" />}
                     </div>
-                    {errors.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
+                    {errors.dni && touched.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
                   </div>
 
                   <div className="space-y-1.5">
@@ -285,11 +326,12 @@ function RegistroPage() {
                       <Input
                         id="telefono" type="tel" placeholder="1123456789"
                         autoComplete="tel"
-                        className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.telefono ? 'border-destructive' : ''}`}
-                        value={formData.telefono} onChange={set('telefono')}
+                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.telefono && touched.telefono ? 'border-destructive' : isValid('telefono') ? 'border-lime-400/50' : ''}`}
+                        value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')}
                       />
+                      {isValid('telefono') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-400" />}
                     </div>
-                    {errors.telefono && <p className="text-xs text-destructive">{errors.telefono}</p>}
+                    {errors.telefono && touched.telefono && <p className="text-xs text-destructive">{errors.telefono}</p>}
                   </div>
                 </div>
 
@@ -303,11 +345,13 @@ function RegistroPage() {
                     <Input
                       id="email" type="email" placeholder="tu@email.com"
                       autoComplete="email"
-                      className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.email ? 'border-destructive' : ''}`}
-                      value={formData.email} onChange={set('email')}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.email && touched.email ? 'border-destructive' : isValid('email') ? 'border-lime-400/50' : ''}`}
+                      value={formData.email} onChange={set('email')} onBlur={onBlur('email')}
                     />
+                    {isValid('email') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-400" />}
+                    {errors.email && touched.email && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                   </div>
-                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                  {errors.email && touched.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </div>
 
                 {/* Contraseña */}
@@ -320,15 +364,32 @@ function RegistroPage() {
                     <Input
                       id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres"
                       autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.password ? 'border-destructive' : ''}`}
-                      value={formData.password} onChange={set('password')}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.password && touched.password ? 'border-destructive' : isValid('password') ? 'border-lime-400/50' : ''}`}
+                      value={formData.password} onChange={set('password')} onBlur={onBlur('password')}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+
+                  {/* Checklist de requisitos — aparece cuando el usuario empieza a escribir */}
+                  {formData.password.length > 0 && (
+                    <div className="mt-2 space-y-1 p-3 bg-muted/30 border border-border rounded-lg">
+                      {PASSWORD_RULES.map(rule => {
+                        const ok = rule.test(formData.password)
+                        return (
+                          <div key={rule.id} className={`flex items-center gap-2 text-xs transition-colors ${ok ? 'text-lime-400' : 'text-muted-foreground'}`}>
+                            {ok
+                              ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-lime-400" />
+                              : <div className="h-3.5 w-3.5 shrink-0 rounded-full border border-muted-foreground/40" />
+                            }
+                            {rule.label}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Confirmar contraseña */}
@@ -341,15 +402,16 @@ function RegistroPage() {
                     <Input
                       id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña"
                       autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.confirmPassword ? 'border-destructive' : ''}`}
-                      value={formData.confirmPassword} onChange={set('confirmPassword')}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.confirmPassword && touched.confirmPassword ? 'border-destructive' : isValid('confirmPassword') ? 'border-lime-400/50' : ''}`}
+                      value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')}
                     />
                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && touched.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+                  {isValid('confirmPassword') && <p className="text-xs text-lime-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Las contraseñas coinciden</p>}
                 </div>
 
                 <Button
