@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronRight, AlertCircle } from "lucide-react"
+import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -89,46 +89,6 @@ export default function ReservasPage() {
     const [anio, mes, dia] = fechaStr.split('-')
     const date = new Date(anio, mes - 1, dia)
     return date.toLocaleDateString("es-AR", { day: 'numeric', month: 'short', year: 'numeric' })
-  }
-
-  const EjercicioAlumnoItem = ({ ej, idx }) => {
-    const [showVariantes, setShowVariantes] = useState(false)
-    const variantes = ej.variantes || []
-
-    return (
-      <div className="border border-border rounded-lg overflow-hidden">
-        <div className="flex items-center gap-3 px-3 py-2.5 bg-card">
-          <span className="text-xs text-muted-foreground font-mono w-5 shrink-0">{idx + 1}.</span>
-          <span className="text-sm font-semibold text-foreground flex-1">{ej.nombre}</span>
-          {variantes.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowVariantes(!showVariantes)}
-              className="shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 border border-amber-400/30 text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 transition-colors rounded"
-            >
-              <AlertCircle className="h-3 w-3" />
-              No puedo hacerlo
-            </button>
-          )}
-        </div>
-        {showVariantes && variantes.length > 0 && (
-          <div className="border-t border-border bg-amber-400/5 p-3 space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-amber-400/70">Variantes disponibles</p>
-            {variantes.map(v => (
-              <div key={v.idVariante} className="bg-card border border-border rounded p-2.5">
-                <p className="text-sm font-semibold text-foreground">{v.nombre}</p>
-                {v.limitacion && (
-                  <p className="text-[10px] text-amber-400/70 font-bold uppercase tracking-widest mt-0.5">Para: {v.limitacion}</p>
-                )}
-                {v.descripcion && (
-                  <p className="text-xs text-foreground/60 mt-1">{v.descripcion}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
   }
 
   const ReservaCard = ({ reserva, showCancelButton = false }) => {
@@ -245,7 +205,9 @@ export default function ReservasPage() {
                 } catch {
                   // plain text o HTML sin JSON — se muestra tal cual
                 }
-                const tieneEjerciciosEstructurados = Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0
+                const ejerciciosTxt = !contenidoRutina && Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0
+                  ? rutina.ejercicios.map(e => e.nombre).join("\n")
+                  : ""
                 return (
                   <div className="space-y-4">
                     {desc && (
@@ -260,13 +222,10 @@ export default function ReservasPage() {
                         dangerouslySetInnerHTML={{ __html: contenidoRutina }}
                       />
                     )}
-                    {tieneEjerciciosEstructurados && (
-                      <div className="space-y-2 border-t border-border pt-3">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ejercicios</p>
-                        {rutina.ejercicios.map((ej, idx) => (
-                          <EjercicioAlumnoItem key={ej.idEjercicio} ej={ej} idx={idx} />
-                        ))}
-                      </div>
+                    {ejerciciosTxt && (
+                      <pre className="text-sm text-foreground/70 whitespace-pre-wrap font-sans bg-muted/40 rounded-lg p-4 border border-border leading-relaxed">
+                        {ejerciciosTxt}
+                      </pre>
                     )}
                   </div>
                 )

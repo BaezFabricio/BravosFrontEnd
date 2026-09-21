@@ -1,125 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Loader2, Dumbbell, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Clock, Users, Loader2, Dumbbell } from 'lucide-react'
 import apiClient from '@/api'
 import VideoPlayer from '@/components/VideoPlayer'
-
-function VariantesEjercicio({ ejercicio }) {
-  const [open, setOpen] = useState(false)
-  const [variantes, setVariantes] = useState(ejercicio.variantes || [])
-  const [form, setForm] = useState({ nombre: '', descripcion: '', limitacion: '' })
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(null)
-
-  const handleAdd = async () => {
-    if (!form.nombre.trim()) return
-    setSaving(true)
-    try {
-      const res = await apiClient.post(`/ejercicios/${ejercicio.idEjercicio}/variantes`, form)
-      setVariantes(prev => [...prev, res.data.data])
-      setForm({ nombre: '', descripcion: '', limitacion: '' })
-    } catch {
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (idVariante) => {
-    setDeleting(idVariante)
-    try {
-      await apiClient.delete(`/ejercicios/${ejercicio.idEjercicio}/variantes/${idVariante}`)
-      setVariantes(prev => prev.filter(v => v.idVariante !== idVariante))
-    } catch {
-    } finally {
-      setDeleting(null)
-    }
-  }
-
-  return (
-    <div className="border-t border-border/50 mt-2">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground/40 hover:text-foreground/70 transition-colors"
-      >
-        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        <span className="font-black uppercase tracking-widest">
-          Variantes ({variantes.length})
-        </span>
-      </button>
-
-      {open && (
-        <div className="px-3 pb-3 space-y-3">
-          {variantes.length > 0 && (
-            <div className="space-y-2">
-              {variantes.map(v => (
-                <div key={v.idVariante} className="flex items-start gap-2 bg-foreground/5 border border-border/50 rounded px-3 py-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{v.nombre}</p>
-                    {v.limitacion && (
-                      <p className="text-[10px] text-amber-400/70 font-bold uppercase tracking-widest mt-0.5">
-                        Para: {v.limitacion}
-                      </p>
-                    )}
-                    {v.descripcion && (
-                      <p className="text-xs text-foreground/50 mt-1">{v.descripcion}</p>
-                    )}
-                    {v.videoUrl && <VideoPlayer url={v.videoUrl} label="Ver video" />}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(v.idVariante)}
-                    disabled={deleting === v.idVariante}
-                    className="shrink-0 p-1 text-foreground/25 hover:text-red-400 transition-colors disabled:opacity-40"
-                  >
-                    {deleting === v.idVariante
-                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      : <Trash2 className="h-3.5 w-3.5" />
-                    }
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/30">Agregar variante</p>
-            <input
-              type="text"
-              placeholder="Nombre de la variante *"
-              value={form.nombre}
-              onChange={e => setForm(prev => ({ ...prev, nombre: e.target.value }))}
-              className="w-full bg-transparent border border-border text-xs text-foreground placeholder:text-foreground/25 px-2 py-1.5 outline-none focus:border-foreground/40"
-            />
-            <input
-              type="text"
-              placeholder="Para qué limitación (ej: rodilla, espalda...)"
-              value={form.limitacion}
-              onChange={e => setForm(prev => ({ ...prev, limitacion: e.target.value }))}
-              className="w-full bg-transparent border border-border text-xs text-foreground placeholder:text-foreground/25 px-2 py-1.5 outline-none focus:border-foreground/40"
-            />
-            <input
-              type="text"
-              placeholder="Descripción (opcional)"
-              value={form.descripcion}
-              onChange={e => setForm(prev => ({ ...prev, descripcion: e.target.value }))}
-              className="w-full bg-transparent border border-border text-xs text-foreground placeholder:text-foreground/25 px-2 py-1.5 outline-none focus:border-foreground/40"
-            />
-            <button
-              type="button"
-              onClick={handleAdd}
-              disabled={saving || !form.nombre.trim()}
-              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-lime-400/10 border border-lime-400/20 text-lime-400 hover:bg-lime-400/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-              Agregar
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export default function DetalleRutinaPage() {
   const { id } = useParams()
@@ -235,15 +118,12 @@ export default function DetalleRutinaPage() {
               </div>
               <div className="space-y-2">
                 {rutina.ejercicios.map((ej, idx) => (
-                  <div key={ej.idEjercicio} className="border border-border bg-white/2">
-                    <div className="p-3 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground font-mono w-5">{idx + 1}.</span>
-                        <span className="text-sm font-semibold text-foreground">{ej.nombre}</span>
-                      </div>
-                      <VideoPlayer url={ej.videoUrl} label="Ver video" />
+                  <div key={ej.idEjercicio} className="border border-border bg-white/2 p-3 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground font-mono w-5">{idx + 1}.</span>
+                      <span className="text-sm font-semibold text-foreground">{ej.nombre}</span>
                     </div>
-                    <VariantesEjercicio ejercicio={ej} />
+                    <VideoPlayer url={ej.videoUrl} label="Ver video" />
                   </div>
                 ))}
               </div>
