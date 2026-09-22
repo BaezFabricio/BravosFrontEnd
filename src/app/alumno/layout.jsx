@@ -24,6 +24,7 @@ import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import apiClient from "@/api"
+import RenovarMembresia from "@/components/RenovarMembresia"
 
 const navigation = [
   { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard },
@@ -245,23 +246,20 @@ export default function AlumnoLayout({ children }) {
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-sm text-muted-foreground animate-pulse">Sincronizando credenciales de acceso con Bravos Box...</p>
             </div>
-          ) : !tieneAbonoActivo && pathname !== '/alumno/perfil' && pathname !== '/alumno/documentacion' ? (
-            /* 🛑 CORTE DE FLUJO: Pantalla de bloqueo si no tiene créditos o pagos activos */
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 bg-card border border-border rounded-2xl max-w-2xl mx-auto mt-8 shadow-xl">
-              <div className="p-4 mb-4 text-destructive bg-destructive/10 rounded-full animate-bounce">
-                <ShieldAlert className="h-10 w-10" />
+          ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
+            /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
+            <div className="max-w-5xl mx-auto mt-4 space-y-4">
+              <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
+                <ShieldAlert className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-red-400">Sin membresía vigente</p>
+                  <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para acceder al sistema.</p>
+                </div>
+                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-400 text-xs gap-1">
+                  <LogOut className="h-3.5 w-3.5" /> Salir
+                </Button>
               </div>
-              <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">MEMBRESÍA COMPROMETIDA O INEXISTENTE</h2>
-              <p className="text-muted-foreground max-w-md text-sm leading-relaxed mb-6">
-                Detectamos que tu usuario no registra un pase de abono activo con créditos disponibles en el sistema.
-              </p>
-              <div className="p-4 rounded-xl bg-background/40 dark:bg-black/40 border border-border text-left w-full text-xs text-muted-foreground space-y-2 mb-6">
-                <p>• <strong>Para regularizar:</strong> Deberás presentarte en la recepción del Box.</p>
-                <p>• <strong>Administración:</strong> Podrán darte de alta cargando el abono y registrando tu pago en la cuenta corriente.</p>
-              </div>
-              <Button onClick={handleLogout} variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 font-bold">
-                <LogOut className="mr-2 h-4 w-4" /> Salir del Sistema
-              </Button>
+              <RenovarMembresia onRenovado={() => window.location.reload()} />
             </div>
           ) : (
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */

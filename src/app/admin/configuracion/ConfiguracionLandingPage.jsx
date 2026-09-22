@@ -97,6 +97,12 @@ function ConfiguracionLandingPage() {
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaUrl, setMapaUrl] = useState('')
+  // Datos bancarios
+  const [bancoEntidad, setBancoEntidad]           = useState('')
+  const [titularCuenta, setTitularCuenta]         = useState('')
+  const [cuitTransferencia, setCuitTransferencia] = useState('')
+  const [cvuTransferencia, setCvuTransferencia]   = useState('')
+  const [aliasTransferencia, setAliasTransferencia] = useState('')
 
   const puedeModificar = permisos.includes('configuracion:modificacion')
   const useVectorLogo = !logoPreview || logoPreview.includes('logo-box-bravos-final.png')
@@ -143,6 +149,11 @@ function ConfiguracionLandingPage() {
       setHorarioSabado(d.horario_sabado || 'Sábado: 8:00 - 14:00')
       setHorarioDomingo(d.horario_domingo || 'Domingo: Cerrado')
       setMapaUrl(d.mapaUrl || '')
+      setBancoEntidad(d.bancoEntidad || '')
+      setTitularCuenta(d.titularCuenta || '')
+      setCuitTransferencia(d.cuitTransferencia || '')
+      setCvuTransferencia(d.cvuTransferencia || '')
+      setAliasTransferencia(d.aliasTransferencia || '')
     } catch {
       toast.error('No se pudo cargar la configuración')
     } finally {
@@ -219,6 +230,11 @@ function ConfiguracionLandingPage() {
       fd.append('horario_sabado', horarioSabado)
       fd.append('horario_domingo', horarioDomingo)
       fd.append('mapaUrl', mapaUrl)
+      fd.append('bancoEntidad', bancoEntidad)
+      fd.append('titularCuenta', titularCuenta)
+      fd.append('cuitTransferencia', cuitTransferencia)
+      fd.append('cvuTransferencia', cvuTransferencia)
+      fd.append('aliasTransferencia', aliasTransferencia)
 
       const res = await fetch('/landing/config', { method: 'PUT', body: fd })
       if (!res.ok) throw new Error()
@@ -474,6 +490,26 @@ function ConfiguracionLandingPage() {
                 </Field>
                 <Field label="Domingo">
                   <input disabled={!puedeModificar} type="text" value={horarioDomingo} onChange={e => setHorarioDomingo(e.target.value)} placeholder="Cerrado" className={inputCls} />
+                </Field>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Datos bancarios" subtitle="Datos de la cuenta bancaria del gimnasio para que los alumnos puedan hacer transferencias.">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Banco / Entidad">
+                  <input disabled={!puedeModificar} type="text" value={bancoEntidad} onChange={e => setBancoEntidad(e.target.value)} placeholder="Banco Galicia / Cuenta Corriente" className={inputCls} />
+                </Field>
+                <Field label="Titular de la cuenta">
+                  <input disabled={!puedeModificar} type="text" value={titularCuenta} onChange={e => setTitularCuenta(e.target.value)} placeholder="BRAVOS FITNESS S.R.L." className={inputCls} />
+                </Field>
+                <Field label="CUIT">
+                  <input disabled={!puedeModificar} type="text" value={cuitTransferencia} onChange={e => setCuitTransferencia(e.target.value)} placeholder="30-71649283-9" className={inputCls} />
+                </Field>
+                <Field label="CBU" hint="22 dígitos del CBU de la cuenta.">
+                  <input disabled={!puedeModificar} type="text" value={cvuTransferencia} onChange={e => setCvuTransferencia(e.target.value)} placeholder="0000003100012345678901" className={inputCls} />
+                </Field>
+                <Field label="Alias" hint="Alias de la cuenta bancaria.">
+                  <input disabled={!puedeModificar} type="text" value={aliasTransferencia} onChange={e => setAliasTransferencia(e.target.value)} placeholder="BRAVOS.FITNESS.OFICIAL" className={inputCls} />
                 </Field>
               </div>
             </SectionCard>

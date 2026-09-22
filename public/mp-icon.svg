@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300">
+  <!-- Outer dark navy ellipse -->
+  <ellipse cx="240" cy="150" rx="238" ry="148" fill="#1a1169"/>
+  <!-- Inner blue fill -->
+  <ellipse cx="240" cy="150" rx="210" ry="122" fill="#009ee3"/>
+  <!-- Highlight top-left -->
+  <ellipse cx="210" cy="132" rx="170" ry="90" fill="#3cb8f5" opacity="0.5"/>
+
+  <!-- LEFT HAND: thick band from lower-left arcing up to center -->
+  <path
+    d="M 58,208
+       C 72,154 136,100 196,118
+       L 220,134
+       C 162,118 100,168 82,222
+       Z"
+    fill="white"
+  />
+  <!-- LEFT HAND thumb/wrist fill to make it thicker -->
+  <path
+    d="M 196,118 C 212,108 232,116 238,130
+       L 220,134 C 214,122 204,116 196,118 Z"
+    fill="white"
+  />
+
+  <!-- RIGHT HAND: thick band from upper-right arcing down to center -->
+  <path
+    d="M 422,92
+       C 408,146 344,200 284,182
+       L 260,166
+       C 318,182 380,132 398,78
+       Z"
+    fill="white"
+  />
+  <!-- RIGHT HAND thumb/wrist fill to make it thicker -->
+  <path
+    d="M 284,182 C 268,192 248,184 242,170
+       L 260,166 C 266,178 276,184 284,182 Z"
+    fill="white"
+  />
+
+  <!-- Center clasp overlap highlight -->
+  <path
+    d="M 238,130 C 248,124 260,128 264,138
+       L 260,166 C 252,158 242,150 238,130 Z"
+    fill="white" opacity="0.6"
+  />
+</svg>

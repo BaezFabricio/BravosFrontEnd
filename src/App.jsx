@@ -26,6 +26,9 @@ import AlumnoDashboard from './app/alumno/AlumnoDashboard.jsx'
 import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
 import AlumnoReservasPage from './app/alumno/reservas/ReservasPage.jsx'
 import AlumnoCreditosPage from './app/alumno/creditos/CreditosPage.jsx'
+import PagoExitosoPage from './app/alumno/creditos/PagoExitosoPage.jsx'
+import PagoPendientePage from './app/alumno/creditos/PagoPendientePage.jsx'
+import PagoFallidoPage from './app/alumno/creditos/PagoFallidoPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import AlumnoDocumentacionPage from './app/alumno/documentacion/DocumentacionPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
@@ -160,6 +163,9 @@ function App() {
         <Route path="/alumno/reservar" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservarPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/reservas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservasPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/creditos" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoCreditosPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/pago-exitoso" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><PagoExitosoPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/pago-pendiente" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><PagoPendientePage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/pago-fallido" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><PagoFallidoPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/documentacion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDocumentacionPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />

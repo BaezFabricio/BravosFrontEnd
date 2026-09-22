@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { CheckCircle2, XCircle, Clock, Zap, RotateCcw, AlertCircle } from "lucide-react"
 import apiClient from "@/api"
 import { GymLoader } from "@/components/GymLoader"
+import RenovarMembresia from "@/components/RenovarMembresia"
 
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
 
@@ -17,7 +18,7 @@ function formatFechaLarga(fechaString) {
   return f.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
 }
 
-function MovimientoRow({ mov, index }) {
+function MovimientoRow({ mov }) {
   const esRecarga = mov.creditos.startsWith("+")
   const esCero    = mov.creditos === "0"
   const esNeg     = mov.creditos.startsWith("-")
@@ -36,26 +37,17 @@ function MovimientoRow({ mov, index }) {
   const creditoColor = esRecarga ? "text-lime-400" : esNeg || esCero ? "text-red-400" : "text-foreground/50"
 
   return (
-    <div
-      className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border last:border-0 hover:bg-foreground/[0.02] transition-colors"
-    >
-      {/* Ícono de estado */}
+    <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border last:border-0 hover:bg-foreground/[0.02] transition-colors">
       <div className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center border ${estadoMeta.bg}`}>
         <estadoMeta.Icon className={`h-3.5 w-3.5 ${estadoMeta.color}`} />
       </div>
-
-      {/* Descripción + fecha */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{mov.descripcion}</p>
         <p className="text-[11px] text-foreground/40 mt-0.5">{formatFechaCorta(mov.fecha)}</p>
       </div>
-
-      {/* Badge estado */}
       <span className={`hidden sm:inline-flex shrink-0 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-full ${estadoMeta.bg} ${estadoMeta.color}`}>
         {estadoMeta.label}
       </span>
-
-      {/* Créditos */}
       <span className={`shrink-0 text-base font-black tabular-nums ${creditoColor}`}>
         {mov.creditos}
       </span>
@@ -64,29 +56,31 @@ function MovimientoRow({ mov, index }) {
 }
 
 export default function CreditosPage() {
-  const [datos, setDatos]   = useState(null)
+  const [datos, setDatos]     = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]   = useState(null)
+  const [error, setError]     = useState(null)
 
-  useEffect(() => {
+  const cargar = () => {
+    setLoading(true)
     apiClient.get("/reservas/mis-creditos-movimientos")
       .then(r => setDatos(r.data?.data || r.data))
       .catch(() => setError("No pudimos cargar tu información de créditos."))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { cargar() }, [])
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><GymLoader text="Cargando créditos..." /></div>
   if (error)   return <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-sm text-red-400">{error}</div>
   if (!datos)  return null
 
   const { abono, movimientos } = datos
-  const sinAbono       = !abono || abono.nombrePlan === "Sin plan activo"
-  const total          = abono?.totalCreditos || 0
-  const disponibles    = abono?.creditosCisponibles || 0
-  const usados         = abono?.creditosUtilizados || 0
-  const porcentaje     = total > 0 ? Math.round((disponibles / total) * 100) : 0
+  const sinAbono    = !abono || abono.nombrePlan === "Sin plan activo"
+  const total       = abono?.totalCreditos || 0
+  const disponibles = abono?.creditosCisponibles || 0
+  const usados      = abono?.creditosUtilizados || 0
+  const porcentaje  = total > 0 ? Math.round((disponibles / total) * 100) : 0
 
-  // Dots de créditos (máx 20 puntos visuales)
   const escala     = total > 20 ? total / 20 : 1
   const totalDots  = Math.round(total / escala)
   const activeDots = Math.round(disponibles / escala)
@@ -94,21 +88,22 @@ export default function CreditosPage() {
   return (
     <div className="space-y-5">
 
-      {/* Encabezado */}
       <div>
         <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Mis Créditos</h1>
         <p className="text-sm text-foreground/40 mt-0.5">Estado de tu cuenta y movimientos</p>
       </div>
 
-      {/* Alerta sin abono */}
       {sinAbono && (
-        <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-          <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-bold text-red-400">Sin membresía vigente</p>
-            <p className="text-xs text-foreground/50 mt-0.5">Contactá al gimnasio para renovar tu plan y volver a reservar.</p>
+        <>
+          <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
+            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-red-400">Sin membresía vigente</p>
+              <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para volver a reservar clases.</p>
+            </div>
           </div>
-        </div>
+          <RenovarMembresia onRenovado={cargar} />
+        </>
       )}
 
       {/* Hero: número grande + barra de puntos */}
@@ -125,19 +120,15 @@ export default function CreditosPage() {
           </div>
         </div>
 
-        {/* Barra de puntos */}
         <div className="flex gap-1.5 flex-wrap">
           {Array.from({ length: totalDots }).map((_, i) => (
             <div
               key={i}
-              className={`h-3 w-3 rounded-sm transition-colors ${
-                i < activeDots ? "bg-lime-400" : "bg-foreground/10"
-              }`}
+              className={`h-3 w-3 rounded-sm transition-colors ${i < activeDots ? "bg-lime-400" : "bg-foreground/10"}`}
             />
           ))}
         </div>
 
-        {/* Vencimiento */}
         {abono?.fechaVencimiento && (
           <p className="mt-4 text-[11px] text-foreground/35 border-t border-border pt-3">
             Vencimiento: <span className="text-foreground/50 font-semibold">{formatFechaLarga(abono.fechaVencimiento)}</span>
@@ -184,7 +175,7 @@ export default function CreditosPage() {
             Todavía no tenés movimientos registrados.
           </div>
         ) : (
-          movimientos.map((mov, i) => <MovimientoRow key={i} mov={mov} index={i} />)
+          movimientos.map((mov, i) => <MovimientoRow key={i} mov={mov} />)
         )}
       </div>
 
