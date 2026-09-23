@@ -5,9 +5,9 @@ import apiClient from '@/api'
 import { GymLoader } from '@/components/GymLoader'
 
 const NIVEL_COLOR = {
-  principiante: 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20',
-  intermedio:   'bg-amber-400/10 text-amber-400 border border-amber-400/20',
-  avanzado:     'bg-red-500/10 text-red-400 border border-red-500/20',
+  principiante: 'bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-400/20',
+  intermedio:   'bg-amber-400/10 text-amber-700 dark:text-amber-400 border border-amber-400/20',
+  avanzado:     'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20',
 }
 
 export default function RutinasPage() {
@@ -73,7 +73,7 @@ export default function RutinasPage() {
 
       {/* ERROR */}
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 flex items-center gap-3 text-red-400">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 flex items-center gap-3 text-red-700 dark:text-red-400">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium">{error}</p>
         </div>

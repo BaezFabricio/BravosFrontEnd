@@ -15,14 +15,14 @@ const ICONOS_TIPO = {
 }
 
 const COLORES_TIPO = {
-  reserva:     'text-lime-400',
-  asistencia:  'text-blue-400',
-  credito:     'text-yellow-400',
+  reserva:     'text-lime-700 dark:text-lime-400',
+  asistencia:  'text-blue-700 dark:text-blue-400',
+  credito:     'text-yellow-700 dark:text-yellow-400',
   sistema:     'text-muted-foreground',
-  exito:       'text-lime-400',
-  error:       'text-red-400',
-  advertencia: 'text-yellow-400',
-  info:        'text-blue-400',
+  exito:       'text-lime-700 dark:text-lime-400',
+  error:       'text-red-700 dark:text-red-400',
+  advertencia: 'text-yellow-700 dark:text-yellow-400',
+  info:        'text-blue-700 dark:text-blue-400',
 }
 
 const BG_POPUP = {
@@ -165,7 +165,7 @@ export default function NotificacionesBell() {
           onClick={() => setOpen(o => !o)}
           className="relative p-2 rounded-full hover:bg-muted transition-colors"
         >
-          <Bell className={`h-5 w-5 transition-colors ${noLeidas > 0 ? 'text-lime-400' : 'text-muted-foreground'}`} />
+          <Bell className={`h-5 w-5 transition-colors ${noLeidas > 0 ? 'text-lime-700 dark:text-lime-400' : 'text-muted-foreground'}`} />
           {noLeidas > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-lime-400 text-[10px] font-black text-black ring-2 ring-background">
               {noLeidas > 9 ? '9+' : noLeidas}
@@ -206,7 +206,7 @@ export default function NotificacionesBell() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <span className="text-sm font-bold text-foreground uppercase tracking-wide">Notificaciones</span>
               {noLeidas > 0 && (
-                <button onClick={marcarTodas} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-lime-400 transition-colors font-semibold">
+                <button onClick={marcarTodas} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-lime-700 dark:hover:text-lime-400 transition-colors font-semibold">
                   <CheckCheck className="h-3.5 w-3.5" /> Marcar todas
                 </button>
               )}

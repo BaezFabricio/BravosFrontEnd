@@ -172,12 +172,12 @@ export default function AlumnoLayout({ children }) {
                   to={item.href}
                   className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
                     isActive
-                      ? "border-l-2 border-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-400"
+                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   }`}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-400" : ""}`} />
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
                   {item.name}
                 </Link>
               )
@@ -250,12 +250,12 @@ export default function AlumnoLayout({ children }) {
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
             <div className="max-w-5xl mx-auto mt-4 space-y-4">
               <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-                <ShieldAlert className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                <ShieldAlert className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-red-400">Sin membresía vigente</p>
+                  <p className="text-sm font-bold text-red-700 dark:text-red-400">Sin membresía vigente</p>
                   <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para acceder al sistema.</p>
                 </div>
-                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-400 text-xs gap-1">
+                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-700 dark:hover:text-red-400 text-xs gap-1">
                   <LogOut className="h-3.5 w-3.5" /> Salir
                 </Button>
               </div>
@@ -277,7 +277,7 @@ export default function AlumnoLayout({ children }) {
                   key={item.name}
                   to={item.href}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
-                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-400" : "text-sidebar-foreground/50"}`}
+                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>

@@ -175,7 +175,7 @@ export default function ClasesPage() {
 
       {/* Pestañas */}
       <div className="flex gap-2 border-b border-border">
-        <button className="border-b-2 border-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground">
+        <button className="border-b-2 border-lime-600 dark:border-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground">
           Clases
         </button>
         <Link
@@ -205,7 +205,7 @@ export default function ClasesPage() {
       )}
 
       {error && (
-        <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-red-400">
+        <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
@@ -248,7 +248,7 @@ export default function ClasesPage() {
                     <Link
                       to={`/admin/clases/nueva?planId=${plan.idPlan}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-lime-400 hover:text-lime-300 transition-colors"
+                      className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-300 transition-colors"
                     >
                       <Plus className="h-3 w-3" />
                       Nueva clase
@@ -285,8 +285,8 @@ export default function ClasesPage() {
                                 </h3>
                                 <span className={`shrink-0 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 border rounded-md ${
                                   clase.estado === "Activo"
-                                    ? "bg-lime-400/10 text-lime-400 border-lime-400/20"
-                                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                                    ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
+                                    : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"
                                 }`}>
                                   {clase.estado === "Activo" ? "Activa" : "Inactiva"}
                                 </span>
@@ -306,7 +306,7 @@ export default function ClasesPage() {
                                 )}
                                 <span className="flex items-center gap-1 text-xs">
                                   <Users className="h-3 w-3 text-foreground/40" />
-                                  <span className={clase.cupoDisponible <= 0 ? "text-red-400" : "text-lime-400"}>
+                                  <span className={clase.cupoDisponible <= 0 ? "text-red-700 dark:text-red-400" : "text-lime-700 dark:text-lime-400"}>
                                     {clase.cupoDisponible}
                                   </span>
                                   <span className="text-foreground/30">/{clase.cupoMaximo}</span>
@@ -317,10 +317,10 @@ export default function ClasesPage() {
                                   const label = fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
                                   return (
                                     <div className="flex gap-1 flex-wrap items-center">
-                                      <span className="border border-lime-400/20 bg-lime-400/5 px-1.5 py-px text-[9px] font-bold uppercase text-lime-400/70 capitalize">
+                                      <span className="border border-lime-400/20 bg-lime-400/5 px-1.5 py-px text-[9px] font-bold uppercase text-lime-700/70 dark:text-lime-400/70 capitalize">
                                         {label}
                                       </span>
-                                      <span className="border border-lime-400/15 px-1.5 py-px text-[9px] font-bold uppercase text-lime-400/40">
+                                      <span className="border border-lime-400/15 px-1.5 py-px text-[9px] font-bold uppercase text-lime-700/40 dark:text-lime-400/40">
                                         Única
                                       </span>
                                     </div>
@@ -370,7 +370,7 @@ export default function ClasesPage() {
                                 {permisos.includes("clases:baja") && (
                                   <button
                                     onClick={() => setDeleteDialog({ open: true, clase })}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-red-500/5 transition-colors"
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                     Eliminar
@@ -437,7 +437,7 @@ export default function ClasesPage() {
                     {permisos.includes("clases:baja") && (
                       <button
                         onClick={() => setDeleteDialog({ open: true, clase })}
-                        className="p-1.5 text-foreground/20 hover:text-red-400 transition-colors shrink-0"
+                        className="p-1.5 text-foreground/20 hover:text-red-700 dark:hover:text-red-400 transition-colors shrink-0"
                         title="Eliminar del historial"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -455,7 +455,7 @@ export default function ClasesPage() {
       {deleteDialog.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md border border-border bg-card p-6">
-            <h2 className="text-sm font-black uppercase tracking-widest text-red-400">Eliminar Clase</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-red-700 dark:text-red-400">Eliminar Clase</h2>
             <p className="mt-3 text-sm text-foreground/60">
               ¿Estás seguro de eliminar la clase{" "}
               <strong className="text-foreground">{deleteDialog.clase?.nombreClase}</strong>? Esta acción no se puede deshacer.
@@ -470,7 +470,7 @@ export default function ClasesPage() {
               {permisos.includes("clases:baja") && (
                 <button
                   onClick={() => deleteDialog.clase && handleDelete(deleteDialog.clase.idClase)}
-                  className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors"
+                  className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors"
                 >
                   Eliminar
                 </button>

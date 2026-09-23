@@ -7,8 +7,8 @@ function Iniciales({ nombre }) {
 }
 
 function RolBadge({ perfil, tieneModulosAdmin, tieneModulosProfesor }) {
-  if (tieneModulosAdmin) return <span className="text-[10px] font-black uppercase tracking-widest text-lime-400">Admin</span>;
-  if (tieneModulosProfesor) return <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Profesor</span>;
+  if (tieneModulosAdmin) return <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Admin</span>;
+  if (tieneModulosProfesor) return <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">Profesor</span>;
   return <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumno</span>;
 }
 
@@ -16,9 +16,9 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
   if (!userMenuOpen) return null;
 
   const paneles = [
-    tieneModulosAdmin && puedeAccederPanel && { to: '/admin', icon: Shield, label: 'Panel Admin', color: 'hover:text-lime-400 hover:border-l-lime-400' },
-    tieneModulosProfesor && puedeAccederPanel && { to: '/profesor', icon: ClipboardCheck, label: 'Panel Profesor', color: 'hover:text-blue-400 hover:border-l-blue-400' },
-    tieneModulosAlumno && puedeAccederPanel && { to: '/alumno', icon: Dumbbell, label: 'Panel Alumno', color: 'hover:text-lime-400 hover:border-l-lime-400' },
+    tieneModulosAdmin && puedeAccederPanel && { to: '/admin', icon: Shield, label: 'Panel Admin', color: 'hover:text-lime-700 dark:hover:text-lime-400 hover:border-l-lime-600 dark:hover:border-l-lime-400' },
+    tieneModulosProfesor && puedeAccederPanel && { to: '/profesor', icon: ClipboardCheck, label: 'Panel Profesor', color: 'hover:text-blue-700 dark:hover:text-blue-400 hover:border-l-blue-600 dark:hover:border-l-blue-400' },
+    tieneModulosAlumno && puedeAccederPanel && { to: '/alumno', icon: Dumbbell, label: 'Panel Alumno', color: 'hover:text-lime-700 dark:hover:text-lime-400 hover:border-l-lime-600 dark:hover:border-l-lime-400' },
   ].filter(Boolean);
 
   return (
@@ -74,7 +74,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
         <div className="border-t border-border">
           <button
             onClick={() => { setUserMenuOpen(false); handleLogout(); }}
-            className="flex w-full items-center gap-3 border-l-2 border-l-transparent px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-red-500/60 hover:text-red-400 hover:border-l-red-500 hover:bg-red-500/5 transition-all"
+            className="flex w-full items-center gap-3 border-l-2 border-l-transparent px-4 py-3 text-[11px] font-bold uppercase tracking-widest text-red-500/60 hover:text-red-700 dark:hover:text-red-400 hover:border-l-red-600 dark:hover:border-l-red-500 hover:bg-red-500/5 transition-all"
           >
             <LogOut className="h-3.5 w-3.5 shrink-0" />
             Cerrar Sesión

@@ -62,7 +62,7 @@ export default function SeleccionarPanelPage() {
               className="w-full flex items-center gap-4 px-4 py-4 rounded-lg border border-border bg-card hover:border-lime-400/50 hover:bg-lime-400/5 transition-all text-left group"
             >
               <div className="h-10 w-10 rounded-lg bg-lime-400/10 flex items-center justify-center shrink-0 group-hover:bg-lime-400/20 transition-colors">
-                <panel.icon className="h-5 w-5 text-lime-400" />
+                <panel.icon className="h-5 w-5 text-lime-700 dark:text-lime-400" />
               </div>
               <div>
                 <p className="font-bold text-sm text-foreground">{panel.label}</p>

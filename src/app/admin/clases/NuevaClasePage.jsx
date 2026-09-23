@@ -34,7 +34,7 @@ function TimeSelect({ value, onChange, hasError }) {
 
   return (
     <div
-      className={`flex items-center border bg-card ${hasError ? "border-red-500/50" : "border-border"}`}
+      className={`flex items-center border bg-card ${hasError ? "border-red-600/50 dark:border-red-500/50" : "border-border"}`}
       style={{ colorScheme: "dark" }}
     >
       <select value={hh || ""} onChange={e => handleH(e.target.value)} className={selectClass}>
@@ -244,7 +244,7 @@ export default function NuevaClasePage() {
   const dur = duracionMinutos()
 
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
-  const fieldError = "w-full bg-transparent border border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-400 transition-colors"
+  const fieldError = "w-full bg-transparent border border-red-600/50 dark:border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-600 dark:focus:border-red-400 transition-colors"
 
 
   return (
@@ -281,7 +281,7 @@ export default function NuevaClasePage() {
                 placeholder="Ej: WOD Competitivo"
                 className={errors.nombre ? fieldError : field}
               />
-              {errors.nombre && <p className="mt-1.5 text-xs text-red-400">{errors.nombre}</p>}
+              {errors.nombre && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.nombre}</p>}
             </div>
 
             <div className="p-5">
@@ -353,12 +353,12 @@ export default function NuevaClasePage() {
                 onChange={e => set("idProfesor", e.target.value)}
                 disabled={loadingProfesores}
                 style={{ colorScheme: "dark" }}
-                className={`w-full bg-card border ${errors.idProfesor ? "border-red-500/50" : "border-border"} text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors`}
+                className={`w-full bg-card border ${errors.idProfesor ? "border-red-600/50 dark:border-red-500/50" : "border-border"} text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors`}
               >
                 <option value="">{loadingProfesores ? "Cargando..." : "Seleccionar..."}</option>
                 {profesores.map(p => <option key={p.idProfesor} value={p.idProfesor}>{p.nombreProfesor}</option>)}
               </select>
-              {errors.idProfesor && <p className="mt-1.5 text-xs text-red-400">{errors.idProfesor}</p>}
+              {errors.idProfesor && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.idProfesor}</p>}
             </div>
 
             <div className="p-4">
@@ -369,7 +369,7 @@ export default function NuevaClasePage() {
                 onChange={e => set("capacidadMaxima", e.target.value)}
                 className={errors.capacidadMaxima ? fieldError : field}
               />
-              {errors.capacidadMaxima && <p className="mt-1.5 text-xs text-red-400">{errors.capacidadMaxima}</p>}
+              {errors.capacidadMaxima && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.capacidadMaxima}</p>}
             </div>
 
             <div className="p-4">
@@ -384,7 +384,7 @@ export default function NuevaClasePage() {
                   <TimeSelect value={formData.horaFin} onChange={v => set("horaFin", v)} hasError={!!errors.horario && !formData.horaFin} />
                 </div>
               </div>
-              {errors.horario && <p className="mt-1.5 text-[10px] text-red-400">{errors.horario}</p>}
+              {errors.horario && <p className="mt-1.5 text-[10px] text-red-700 dark:text-red-400">{errors.horario}</p>}
               {dur && !errors.horario && (
                 <p className="mt-1.5 text-[10px] text-foreground/60">{dur} min de duración</p>
               )}
@@ -398,7 +398,7 @@ export default function NuevaClasePage() {
                   onClick={() => { setEsClaseUnica(false); set("fechaEspecifica", "") }}
                   className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors ${
                     !esClaseUnica
-                      ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                      ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "border-border text-foreground/30 hover:text-foreground"
                   }`}
                 >
@@ -409,7 +409,7 @@ export default function NuevaClasePage() {
                   onClick={() => { setEsClaseUnica(true); set("diasSemana", []) }}
                   className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors ${
                     esClaseUnica
-                      ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                      ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "border-border text-foreground/30 hover:text-foreground"
                   }`}
                 >
@@ -432,7 +432,7 @@ export default function NuevaClasePage() {
                         key={key} type="button" onClick={() => toggleDia(key)}
                         className={`py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${
                           formData.diasSemana.includes(key)
-                            ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+                            ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                             : "border-border text-foreground/30 hover:text-foreground hover:border-foreground/20"
                         }`}
                       >
@@ -442,7 +442,7 @@ export default function NuevaClasePage() {
                   </div>
                 </div>
               )}
-              {errors.diasSemana && <p className="mt-2 text-xs text-red-400">{errors.diasSemana}</p>}
+              {errors.diasSemana && <p className="mt-2 text-xs text-red-700 dark:text-red-400">{errors.diasSemana}</p>}
             </div>
 
             <div className="p-4 space-y-2">

@@ -52,15 +52,15 @@ const getIniciales = (name) => {
 }
 
 const statusConfig = {
-  activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  activo: { label: "Activo", className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
-  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
-  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 border-yellow-500/20" },
+  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20" },
 }
 
 export default function UsuariosPage() {
@@ -304,7 +304,7 @@ export default function UsuariosPage() {
                             <p className="text-xs text-foreground/40">{user.email}</p>
                           </div>
                           <span className="ml-1 overflow-hidden max-w-0 group-hover:max-w-[120px] transition-all duration-300 ease-out opacity-0 group-hover:opacity-100">
-                            <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
+                            <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
                               Ver Abonos →
                             </span>
                           </span>
@@ -327,7 +327,7 @@ export default function UsuariosPage() {
                           const isActivo = user.estado === "activo"
                           const isSuspendido = user.estado === "suspendido"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isActivo ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isActivo ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -339,7 +339,7 @@ export default function UsuariosPage() {
                           const isVigente = user.membresia === "vigente" || user.membresia === "activa"
                           const isPorVencer = user.membresia === "por_vencer"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isVigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isVigente ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -388,7 +388,7 @@ export default function UsuariosPage() {
                                 {user.estado === "inactivo" ? (
                                   <DropdownMenuItem
                                     onClick={(e) => { e.stopPropagation(); setConfirmDialog({ open: true, user, action: "activate" }) }}
-                                    className="text-green-500 px-4 py-2"
+                                    className="text-green-700 dark:text-green-500 px-4 py-2"
                                   >
                                     <UserCheck className="mr-3 h-5 w-5" />
                                     Activar

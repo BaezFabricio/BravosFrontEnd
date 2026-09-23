@@ -146,7 +146,7 @@ export default function PlanesPage() {
       </div>
 
       {error && (
-        <div className="p-3 border border-red-500/20 bg-red-500/5 text-red-400 text-sm">
+        <div className="p-3 border border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
@@ -191,7 +191,7 @@ export default function PlanesPage() {
                   </button>
                   <button
                     onClick={() => setDeleteDialog({ open: true, plan })}
-                    className="border border-red-500/20 px-3 py-2 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors"
+                    className="border border-red-500/20 px-3 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -320,7 +320,7 @@ export default function PlanesPage() {
             <button
               onClick={confirmarEliminar}
               disabled={eliminando}
-              className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {eliminando ? "Eliminando..." : "Eliminar"}
             </button>

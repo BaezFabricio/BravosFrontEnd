@@ -11,7 +11,7 @@ const getIniciales = (name) => {
     : name.substring(0, 2).toUpperCase()
 }
 
-const inputCls = `w-full border border-border bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
+const inputCls = `w-full border border-border bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-600/50 dark:focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
 
 export default function ProfesorPerfilPage() {
   const navigate = useNavigate()
@@ -116,7 +116,7 @@ export default function ProfesorPerfilPage() {
             <p className="font-bold text-foreground text-base leading-tight">{formData.nombre || "—"}</p>
             <p className="text-xs text-foreground/40 mt-1">{formData.email || "—"}</p>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-400/10 text-blue-400 border border-blue-400/20 rounded-md">
+          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-400/10 text-blue-700 dark:text-blue-400 border border-blue-400/20 rounded-md">
             Profesor
           </span>
         </div>
@@ -170,7 +170,7 @@ export default function ProfesorPerfilPage() {
 
             {isEditing && (
               <div className="flex items-start gap-3 border border-lime-400/20 bg-lime-400/5 px-4 py-3 mt-2">
-                <AlertCircle className="h-4 w-4 text-lime-400 shrink-0 mt-0.5" />
+                <AlertCircle className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground/40">
                   Los cambios se aplican de inmediato al guardar.
                 </p>

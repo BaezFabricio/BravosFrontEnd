@@ -99,12 +99,12 @@ export default function ProfesorLayout({ children }) {
                   to={item.href}
                   className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
                     isActive
-                      ? "border-l-2 border-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-400"
+                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   }`}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-400" : ""}`} />
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
                   {item.name}
                 </Link>
               )
@@ -175,7 +175,7 @@ export default function ProfesorLayout({ children }) {
                   key={item.name}
                   to={item.href}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
-                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-400" : "text-sidebar-foreground/50"}`}
+                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>

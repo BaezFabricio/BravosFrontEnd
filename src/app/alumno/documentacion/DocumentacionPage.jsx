@@ -38,14 +38,14 @@ function EstadoBadge({ ultimo }) {
   }
   if (ultimo.estado === "aprobado") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-lime-400/50 bg-lime-400/10 text-lime-400 rounded-md">
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400 rounded-md">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Aprobado
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-yellow-500/40 bg-yellow-500/8 text-yellow-400 rounded-md">
+    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-yellow-600/40 dark:border-yellow-500/40 bg-yellow-500/8 text-yellow-700 dark:text-yellow-400 rounded-md">
       <Clock className="h-3.5 w-3.5" />
       En revisión
     </span>
@@ -104,7 +104,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
                 </span>
               )}
               {ultimo.estado === "aprobado" && (
-                <span className="shrink-0 text-[10px] font-bold text-lime-400">✓</span>
+                <span className="shrink-0 text-[10px] font-bold text-lime-700 dark:text-lime-400">✓</span>
               )}
             </div>
             <a

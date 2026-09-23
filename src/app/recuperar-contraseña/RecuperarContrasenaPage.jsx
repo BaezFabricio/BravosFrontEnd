@@ -73,7 +73,7 @@ export default function RecuperarContrasenaPage() {
   }
 
   const inputClass = (err) =>
-    `h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 transition-colors ${err ? "border-destructive" : ""}`
+    `h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${err ? "border-destructive" : ""}`
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#0c0d09] relative">
@@ -91,7 +91,7 @@ export default function RecuperarContrasenaPage() {
         <div className="flex items-center gap-3 mb-8 anim-fade-up">
           <img src="/logo.jpg" alt="Bravos" className="h-9 w-9 rounded-xl" />
           <div>
-            <p className="text-xs font-bold tracking-[0.3em] text-lime-400 uppercase leading-none">Bravos</p>
+            <p className="text-xs font-bold tracking-[0.3em] text-lime-700 dark:text-lime-400 uppercase leading-none">Bravos</p>
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
           </div>
         </div>
@@ -106,11 +106,11 @@ export default function RecuperarContrasenaPage() {
                 <div key={label} className="flex items-center gap-2 flex-1">
                   <div className={`flex items-center gap-1.5 ${i > 0 ? '' : ''}`}>
                     <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-black transition-all
-                      ${done ? 'bg-lime-400 text-black' : active ? 'bg-lime-400/20 border border-lime-400 text-lime-400' : 'bg-white/5 border border-white/10 text-white/20'}`}>
+                      ${done ? 'bg-lime-400 text-black' : active ? 'bg-lime-400/20 border border-lime-600 dark:border-lime-400 text-lime-700 dark:text-lime-400' : 'bg-white/5 border border-white/10 text-white/20'}`}>
                       {done ? '✓' : i + 1}
                     </div>
                     <span className={`text-[10px] font-bold uppercase tracking-wider hidden sm:block transition-colors
-                      ${done ? 'text-lime-400' : active ? 'text-white/70' : 'text-white/20'}`}>
+                      ${done ? 'text-lime-700 dark:text-lime-400' : active ? 'text-white/70' : 'text-white/20'}`}>
                       {label}
                     </span>
                   </div>
@@ -167,12 +167,12 @@ export default function RecuperarContrasenaPage() {
             <div key="code" className="anim-fade-up space-y-5">
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <KeyRound className="h-5 w-5 text-lime-400" />
+                  <KeyRound className="h-5 w-5 text-lime-700 dark:text-lime-400" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-foreground tracking-tight">Ingresá el código</h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    Lo enviamos a <span className="text-lime-400 font-medium">{email}</span>
+                    Lo enviamos a <span className="text-lime-700 dark:text-lime-400 font-medium">{email}</span>
                   </p>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export default function RecuperarContrasenaPage() {
                   </label>
                   <Input
                     id="code" type="text" placeholder="000000" maxLength={6}
-                    className={`h-14 text-center text-3xl tracking-[0.4em] font-mono bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.code ? "border-destructive" : ""}`}
+                    className={`h-14 text-center text-3xl tracking-[0.4em] font-mono bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.code ? "border-destructive" : ""}`}
                     value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   />
                   {errors.code && <p className="text-xs text-destructive text-center">{errors.code}</p>}
@@ -263,7 +263,7 @@ export default function RecuperarContrasenaPage() {
           {step === "success" && (
             <div key="success" className="anim-fade-up text-center space-y-5 py-2">
               <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
-                <CheckCircle2 className="h-10 w-10 text-lime-400" />
+                <CheckCircle2 className="h-10 w-10 text-lime-700 dark:text-lime-400" />
               </div>
 
               <div>

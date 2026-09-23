@@ -36,15 +36,15 @@ import apiClient, {
 import { toast } from '@/lib/notificar'
 
 const statusConfig = {
-  activo:   { label: "Activo",    className: "bg-green-500/10 text-green-500 border-green-500/20" },
+  activo:   { label: "Activo",    className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
   inactivo: { label: "Inactivo",  className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
-  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
-  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  activa:     { label: "Activa",     className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  vigente:    { label: "Activa",     className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-500 border-yellow-500/20" },
+  vencida:    { label: "Vencida",    className: "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20" },
 }
 
 const formatearFecha = (fechaRaw) => {
@@ -207,11 +207,11 @@ export default function DetalleUsuarioPage() {
             </button>
           </Link>
           <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}
-            className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
+            className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
             + Cargar Abono
           </Link>
           {user?.estado === "inactivo" ? (
-            <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5"
+            <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5"
               onClick={() => setStatusDialog({ open: true, action: "activate" })}>
               <UserCheck className="h-3.5 w-3.5" /> Activar
             </button>
@@ -221,7 +221,7 @@ export default function DetalleUsuarioPage() {
               <UserX className="h-3.5 w-3.5" /> Desactivar
             </button>
           )}
-          <button type="button" className="border border-red-500/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/5 transition-colors flex items-center gap-1.5"
+          <button type="button" className="border border-red-500/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors flex items-center gap-1.5"
             onClick={() => setDeleteDialog(true)}>
             <Trash2 className="h-3.5 w-3.5" /> Eliminar
           </button>
@@ -241,7 +241,7 @@ export default function DetalleUsuarioPage() {
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-black uppercase tracking-tight text-foreground leading-none">{user?.nombre}</h1>
             <div className="flex items-center gap-2 mt-1.5">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
                 {status.label}
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border capitalize">
@@ -251,7 +251,7 @@ export default function DetalleUsuarioPage() {
           </div>
           <div className="shrink-0 text-right">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créditos</p>
-            <p className="text-4xl font-black text-lime-400 leading-none mt-1">{user?.creditos ?? 0}</p>
+            <p className="text-4xl font-black text-lime-700 dark:text-lime-400 leading-none mt-1">{user?.creditos ?? 0}</p>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export default function DetalleUsuarioPage() {
             <div key={label} className={`px-4 py-3 ${i >= 3 ? 'border-t border-border' : ''} lg:border-t-0`}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
               {isStatus
-                ? <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${vigente ? "bg-lime-400/10 text-lime-400 border-lime-400/20" : "bg-red-500/10 text-red-400 border-red-500/20"}`}>{value}</span>
+                ? <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${vigente ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"}`}>{value}</span>
                 : <p className="text-sm font-semibold text-foreground truncate">{value}</p>
               }
             </div>
@@ -283,7 +283,7 @@ export default function DetalleUsuarioPage() {
           { key: "documentos", label: "Documentos" },
         ].map(({ key, label }) => (
           <button key={key}
-            className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === key ? "border-lime-400 text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
+            className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === key ? "border-lime-600 dark:border-lime-400 text-lime-700 dark:text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
             onClick={() => setVistaActiva(key)}
           >
             {label}
@@ -313,9 +313,9 @@ export default function DetalleUsuarioPage() {
                 ) : reservasReales.map((r) => {
                   const estadoBadge = {
                     proxima:     { label: 'Próxima',    cls: 'bg-foreground/5 text-foreground/50 border-border' },
-                    completada:  { label: 'Asistió',    cls: 'bg-lime-400/10 text-lime-400 border-lime-400/20' },
-                    cancelada:   { label: 'Cancelada',  cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
-                    inasistencia:{ label: 'No asistió', cls: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20' },
+                    completada:  { label: 'Asistió',    cls: 'bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20' },
+                    cancelada:   { label: 'Cancelada',  cls: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20' },
+                    inasistencia:{ label: 'No asistió', cls: 'bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20' },
                   }[r.estadoReserva] || { label: r.estadoReserva, cls: 'bg-foreground/5 text-foreground/50 border-border' }
                   return (
                     <tr key={r.idReserva} className="hover:bg-foreground/3 transition-colors">
@@ -367,8 +367,8 @@ export default function DetalleUsuarioPage() {
                       <>
                         <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
                           ultimo.estado === "aprobado"
-                            ? "bg-lime-400/10 text-lime-400 border-lime-400/20"
-                            : "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
+                            ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
+                            : "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
                         }`}>
                           {ultimo.estado === "aprobado" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                           {ultimo.estado === "aprobado" ? "Aprobado" : "En revisión"}

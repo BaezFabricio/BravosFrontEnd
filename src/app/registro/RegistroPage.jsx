@@ -149,7 +149,7 @@ function RegistroPage() {
         <div className="relative z-10 w-full max-w-md">
           <div className="rounded-2xl border border-lime-400/20 bg-background p-8 shadow-2xl text-center space-y-5">
             <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-lime-400" />
+              <CheckCircle2 className="h-10 w-10 text-lime-700 dark:text-lime-400" />
             </div>
             <div>
               <h2 className="text-2xl font-black text-foreground tracking-tight">¡Cuenta creada!</h2>
@@ -159,7 +159,7 @@ function RegistroPage() {
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Enviamos el link a</p>
               {!isEditingEmail ? (
                 <div className="space-y-1">
-                  <p className="font-bold text-lime-400 text-base">{formData.email}</p>
+                  <p className="font-bold text-lime-700 dark:text-lime-400 text-base">{formData.email}</p>
                   <button
                     onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}
                     className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
@@ -215,7 +215,7 @@ function RegistroPage() {
         <div className="relative z-10 flex items-center gap-4">
           <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
           <div>
-            <p className="text-xs font-bold tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
+            <p className="text-xs font-bold tracking-[0.3em] text-lime-700 dark:text-lime-400 uppercase">Bravos</p>
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
           </div>
         </div>
@@ -223,7 +223,7 @@ function RegistroPage() {
           <div>
             <h1 className="text-5xl font-black text-white leading-none tracking-tight">
               UNITE AL<br />
-              <span className="text-lime-400">BOX</span>
+              <span className="text-lime-700 dark:text-lime-400">BOX</span>
             </h1>
             <p className="mt-4 text-white/50 text-base leading-relaxed max-w-xs">
               Creá tu cuenta y empezá a gestionar tus clases, créditos y progreso desde el día uno.
@@ -233,7 +233,7 @@ function RegistroPage() {
             {STEPS.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-4 w-4 text-lime-400" />
+                  <Icon className="h-4 w-4 text-lime-700 dark:text-lime-400" />
                 </div>
                 <span className="text-sm text-white/60 font-medium">{text}</span>
               </div>
@@ -293,10 +293,10 @@ function RegistroPage() {
                     <Input
                       id="nombre" type="text" placeholder="Juan Pérez"
                       autoComplete="name"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.nombre && touched.nombre ? 'border-destructive' : isValid('nombre') ? 'border-lime-400/50' : ''}`}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.nombre && touched.nombre ? 'border-destructive' : isValid('nombre') ? 'border-lime-400/50' : ''}`}
                       value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')}
                     />
-                    {isValid('nombre') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-400" />}
+                    {isValid('nombre') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-700 dark:text-lime-400" />}
                     {errors.nombre && touched.nombre && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                   </div>
                   {errors.nombre && touched.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
@@ -310,10 +310,10 @@ function RegistroPage() {
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="dni" type="text" placeholder="12345678"
-                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.dni && touched.dni ? 'border-destructive' : isValid('dni') ? 'border-lime-400/50' : ''}`}
+                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.dni && touched.dni ? 'border-destructive' : isValid('dni') ? 'border-lime-400/50' : ''}`}
                         value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')}
                       />
-                      {isValid('dni') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-400" />}
+                      {isValid('dni') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-700 dark:text-lime-400" />}
                     </div>
                     {errors.dni && touched.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
                   </div>
@@ -325,10 +325,10 @@ function RegistroPage() {
                       <Input
                         id="telefono" type="tel" placeholder="1123456789"
                         autoComplete="tel"
-                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.telefono && touched.telefono ? 'border-destructive' : isValid('telefono') ? 'border-lime-400/50' : ''}`}
+                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.telefono && touched.telefono ? 'border-destructive' : isValid('telefono') ? 'border-lime-400/50' : ''}`}
                         value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')}
                       />
-                      {isValid('telefono') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-400" />}
+                      {isValid('telefono') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-700 dark:text-lime-400" />}
                     </div>
                     {errors.telefono && touched.telefono && <p className="text-xs text-destructive">{errors.telefono}</p>}
                   </div>
@@ -344,10 +344,10 @@ function RegistroPage() {
                     <Input
                       id="email" type="email" placeholder="tu@email.com"
                       autoComplete="email"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.email && touched.email ? 'border-destructive' : isValid('email') ? 'border-lime-400/50' : ''}`}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.email && touched.email ? 'border-destructive' : isValid('email') ? 'border-lime-400/50' : ''}`}
                       value={formData.email} onChange={set('email')} onBlur={onBlur('email')}
                     />
-                    {isValid('email') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-400" />}
+                    {isValid('email') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-700 dark:text-lime-400" />}
                     {errors.email && touched.email && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                   </div>
                   {errors.email && touched.email && <p className="text-xs text-destructive">{errors.email}</p>}
@@ -363,7 +363,7 @@ function RegistroPage() {
                     <Input
                       id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres"
                       autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.password && touched.password ? 'border-destructive' : isValid('password') ? 'border-lime-400/50' : ''}`}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.password && touched.password ? 'border-destructive' : isValid('password') ? 'border-lime-400/50' : ''}`}
                       value={formData.password} onChange={set('password')} onBlur={onBlur('password')}
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)}
@@ -378,9 +378,9 @@ function RegistroPage() {
                       {PASSWORD_RULES.map(rule => {
                         const ok = rule.test(formData.password)
                         return (
-                          <div key={rule.id} className={`flex items-center gap-2 text-xs transition-colors ${ok ? 'text-lime-400' : 'text-muted-foreground'}`}>
+                          <div key={rule.id} className={`flex items-center gap-2 text-xs transition-colors ${ok ? 'text-lime-700 dark:text-lime-400' : 'text-muted-foreground'}`}>
                             {ok
-                              ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-lime-400" />
+                              ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-lime-700 dark:text-lime-400" />
                               : <div className="h-3.5 w-3.5 shrink-0 rounded-full border border-muted-foreground/40" />
                             }
                             {rule.label}
@@ -401,7 +401,7 @@ function RegistroPage() {
                     <Input
                       id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña"
                       autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 ${errors.confirmPassword && touched.confirmPassword ? 'border-destructive' : isValid('confirmPassword') ? 'border-lime-400/50' : ''}`}
+                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.confirmPassword && touched.confirmPassword ? 'border-destructive' : isValid('confirmPassword') ? 'border-lime-400/50' : ''}`}
                       value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')}
                     />
                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -410,7 +410,7 @@ function RegistroPage() {
                     </button>
                   </div>
                   {errors.confirmPassword && touched.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
-                  {isValid('confirmPassword') && <p className="text-xs text-lime-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Las contraseñas coinciden</p>}
+                  {isValid('confirmPassword') && <p className="text-xs text-lime-700 dark:text-lime-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Las contraseñas coinciden</p>}
                 </div>
 
                 <Button

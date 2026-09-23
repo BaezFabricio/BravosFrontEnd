@@ -37,7 +37,7 @@ export default function DetalleRutinaPage() {
           </button>
         </Link>
         <div className="border border-red-500/20 bg-card p-8 text-center">
-          <p className="text-red-400">{error || 'Rutina no encontrada.'}</p>
+          <p className="text-red-700 dark:text-red-400">{error || 'Rutina no encontrada.'}</p>
         </div>
       </div>
     )
@@ -59,7 +59,7 @@ export default function DetalleRutinaPage() {
       <div className="border border-border bg-card">
         <div className="border-b border-border px-5 py-3 flex flex-wrap gap-2 items-center">
           {rutina.categoria && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-400 border border-lime-400/20 rounded-md">
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20 rounded-md">
               {rutina.categoria}
             </span>
           )}

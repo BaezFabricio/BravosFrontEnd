@@ -335,27 +335,27 @@ export default function PerfilPage() {
       {/* Alertas de membresía */}
       {membershipStatus === "por_vencer" && (
         <div className="flex items-start gap-3 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
+          <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-yellow-400">Membresía por vencer</p>
+            <p className="text-xs font-black uppercase tracking-widest text-yellow-700 dark:text-yellow-400">Membresía por vencer</p>
             <p className="text-xs text-foreground/50 mt-0.5">Vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Acercate al box para renovar.</p>
           </div>
         </div>
       )}
       {membershipStatus === "vencida" && (
         <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-red-400">Membresía vencida</p>
+            <p className="text-xs font-black uppercase tracking-widest text-red-700 dark:text-red-400">Membresía vencida</p>
             <p className="text-xs text-foreground/50 mt-0.5">Venció el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Renovate para seguir reservando.</p>
           </div>
         </div>
       )}
       {userData.estado === "suspendido" && (
         <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-red-400">Cuenta suspendida</p>
+            <p className="text-xs font-black uppercase tracking-widest text-red-700 dark:text-red-400">Cuenta suspendida</p>
             <p className="text-xs text-foreground/50 mt-0.5">Regularizá tu membresía para volver a reservar clases.</p>
           </div>
         </div>
@@ -376,7 +376,7 @@ export default function PerfilPage() {
                 }
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-lime-400">{perfilVisible}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
                 <h2 className="text-xl font-black uppercase text-foreground leading-tight truncate mt-0.5">{nombreVisible}</h2>
                 <p className="text-xs text-foreground/40 truncate">{correoVisible}</p>
                 <label className="mt-3 inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors">
@@ -387,7 +387,7 @@ export default function PerfilPage() {
               </div>
             </div>
             {avatarError && (
-              <p className="mt-3 text-xs text-red-400 border border-red-500/20 bg-red-500/5 px-3 py-2">{avatarError}</p>
+              <p className="mt-3 text-xs text-red-700 dark:text-red-400 border border-red-500/20 bg-red-500/5 px-3 py-2">{avatarError}</p>
             )}
           </div>
 
@@ -464,7 +464,7 @@ export default function PerfilPage() {
                 </div>
                 <div className="flex items-center justify-between px-5 py-4">
                   <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">Créditos</p>
-                  <p className="text-3xl font-black text-lime-400 leading-none">{abonoData.creditos || 0}</p>
+                  <p className="text-3xl font-black text-lime-700 dark:text-lime-400 leading-none">{abonoData.creditos || 0}</p>
                 </div>
               </div>
             </div>
@@ -472,7 +472,7 @@ export default function PerfilPage() {
 
           {membershipStatus === "vigente" && (
             <div className="border border-lime-400/20 bg-lime-400/5 px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-lime-400">Al día</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Al día</p>
               <p className="text-xs text-foreground/40 mt-1">Próximo vencimiento: {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</p>
             </div>
           )}

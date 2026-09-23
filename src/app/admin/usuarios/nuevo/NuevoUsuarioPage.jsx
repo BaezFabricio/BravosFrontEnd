@@ -212,7 +212,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   />
                 </div>
-                {errors.nombre && <p className="text-sm text-red-400">{errors.nombre}</p>}
+                {errors.nombre && <p className="text-sm text-red-700 dark:text-red-400">{errors.nombre}</p>}
               </div>
 
               <div className="space-y-2">
@@ -227,7 +227,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
                   />
                 </div>
-                {errors.dni && <p className="text-sm text-red-400">{errors.dni}</p>}
+                {errors.dni && <p className="text-sm text-red-700 dark:text-red-400">{errors.dni}</p>}
               </div>
 
               <div className="space-y-2">
@@ -243,7 +243,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
-                {errors.email && <p className="text-sm text-red-400">{errors.email}</p>}
+                {errors.email && <p className="text-sm text-red-700 dark:text-red-400">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -258,7 +258,7 @@ export default function NuevoUsuarioPage() {
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   />
                 </div>
-                {errors.telefono && <p className="text-sm text-red-400">{errors.telefono}</p>}
+                {errors.telefono && <p className="text-sm text-red-700 dark:text-red-400">{errors.telefono}</p>}
               </div>
             </div>
           </div>
@@ -286,7 +286,7 @@ export default function NuevoUsuarioPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.perfil && <p className="text-sm text-red-400">{errors.perfil}</p>}
+                {errors.perfil && <p className="text-sm text-red-700 dark:text-red-400">{errors.perfil}</p>}
               </div>
 
               <div className="space-y-2">
@@ -309,7 +309,7 @@ export default function NuevoUsuarioPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-sm text-red-400">{errors.password}</p>}
+                {errors.password && <p className="text-sm text-red-700 dark:text-red-400">{errors.password}</p>}
                 <p className="text-xs text-muted-foreground">
                   El usuario deberá cambiar esta contraseña en su primer inicio de sesión.
                 </p>

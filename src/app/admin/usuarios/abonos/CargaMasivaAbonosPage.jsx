@@ -419,8 +419,8 @@ export default function GestionAbonosPage() {
 
         {(resumen.ok > 0 || resumen.err > 0) && (
           <div className="flex items-center gap-4 text-xs">
-            {resumen.ok  > 0 && <span className="flex items-center gap-1.5 text-lime-500 font-bold"><CheckCircle2 className="h-3.5 w-3.5" />{resumen.ok} guardados</span>}
-            {resumen.err > 0 && <span className="flex items-center gap-1.5 text-red-400 font-bold"><AlertCircle className="h-3.5 w-3.5" />{resumen.err} errores</span>}
+            {resumen.ok  > 0 && <span className="flex items-center gap-1.5 text-lime-700 dark:text-lime-500 font-bold"><CheckCircle2 className="h-3.5 w-3.5" />{resumen.ok} guardados</span>}
+            {resumen.err > 0 && <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400 font-bold"><AlertCircle className="h-3.5 w-3.5" />{resumen.err} errores</span>}
           </div>
         )}
 
@@ -439,8 +439,8 @@ export default function GestionAbonosPage() {
                 <tr className={`transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
                   <td className="px-3 py-2 w-8 text-center">
                     {f.estado === "cargando" && <Loader2 className="h-4 w-4 animate-spin text-foreground/40 mx-auto" />}
-                    {f.estado === "ok"       && <CheckCircle2 className="h-4 w-4 text-lime-400 mx-auto" />}
-                    {f.estado === "error"    && <AlertCircle  className="h-4 w-4 text-red-400 mx-auto" title={f.mensajeError} />}
+                    {f.estado === "ok"       && <CheckCircle2 className="h-4 w-4 text-lime-700 dark:text-lime-400 mx-auto" />}
+                    {f.estado === "error"    && <AlertCircle  className="h-4 w-4 text-red-700 dark:text-red-400 mx-auto" title={f.mensajeError} />}
                   </td>
 
                   <td className="px-3 py-2 min-w-[180px]">
@@ -508,7 +508,7 @@ export default function GestionAbonosPage() {
                   <td className="px-3 py-2 w-10 text-center">
                     {f.estado !== "ok" && (
                       <button onClick={() => setFilas(prev => prev.filter(r => r._id !== f._id))}
-                        className="text-foreground/20 hover:text-red-400 transition-colors">
+                        className="text-foreground/20 hover:text-red-700 dark:hover:text-red-400 transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}
@@ -524,7 +524,7 @@ export default function GestionAbonosPage() {
                     <tr key={`comp-${f._id}`} className="bg-lime-400/3">
                       <td colSpan={10} className="px-4 py-3 border-t border-dashed border-lime-400/20">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-xs font-black uppercase tracking-widest text-lime-400/70 shrink-0">
+                          <span className="text-xs font-black uppercase tracking-widest text-lime-700/70 dark:text-lime-400/70 shrink-0">
                             Comprobantes de transferencia
                           </span>
                           {comprobantesMap[f._id] === undefined ? (
@@ -537,12 +537,12 @@ export default function GestionAbonosPage() {
                             <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
                               className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 transition-colors ${
                                 doc.estado === "aprobado"
-                                  ? "border border-lime-400/50 bg-lime-400/10 text-lime-400 hover:bg-lime-400/15"
+                                  ? "border border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400 hover:bg-lime-400/15"
                                   : "border border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                               }`}>
                               <CheckCircle2 className="h-3.5 w-3.5" />
                               {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : `Comprobante ${i + 1}`}
-                              <span className={`ml-0.5 ${doc.estado === "aprobado" ? "text-lime-400/60" : "text-foreground/30"}`}>
+                              <span className={`ml-0.5 ${doc.estado === "aprobado" ? "text-lime-700/60 dark:text-lime-400/60" : "text-foreground/30"}`}>
                                 {doc.estado === "aprobado" ? "✓" : "↗"}
                               </span>
                             </a>
@@ -597,7 +597,7 @@ export default function GestionAbonosPage() {
                 <div className="flex items-center gap-1.5 px-3 py-1 border border-border bg-muted/40 min-w-[150px] justify-center">
                   <span className="text-xs font-semibold text-foreground">{labelMes(mesFiltro)}</span>
                   {esMesActual && (
-                    <span className="text-[9px] font-black uppercase tracking-widest text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
                       Actual
                     </span>
                   )}
@@ -625,12 +625,12 @@ export default function GestionAbonosPage() {
             {delMes.length > 0 && (
               <div className="border-b border-border border-dashed px-5 py-2 flex items-center gap-6 text-[10px] text-muted-foreground">
                 <span><span className="font-black text-foreground">{delMes.length}</span> membresía{delMes.length !== 1 ? "s" : ""}</span>
-                <span><span className="font-black text-lime-400">{delMes.filter(a => a.estado === "ACTIVO").length}</span> activas</span>
+                <span><span className="font-black text-lime-700 dark:text-lime-400">{delMes.filter(a => a.estado === "ACTIVO").length}</span> activas</span>
                 {delMes.filter(a => a.estado === "VENCIDO").length > 0 && (
                   <span><span className="font-black text-foreground/40">{delMes.filter(a => a.estado === "VENCIDO").length}</span> vencidas</span>
                 )}
                 {delMes.filter(a => a.estado === "PAUSADO").length > 0 && (
-                  <span><span className="font-black text-yellow-400">{delMes.filter(a => a.estado === "PAUSADO").length}</span> pausadas</span>
+                  <span><span className="font-black text-yellow-700 dark:text-yellow-400">{delMes.filter(a => a.estado === "PAUSADO").length}</span> pausadas</span>
                 )}
               </div>
             )}
@@ -678,12 +678,12 @@ export default function GestionAbonosPage() {
                       <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.vencimiento)}</td>
                       <td className="px-4 py-3 text-center text-foreground/60 text-xs">{ab.turnos}</td>
                       <td className="px-4 py-3 text-center text-foreground/40 text-xs">{ab.usados || 0}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-lime-400 text-xs">{ab.disponibles}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-lime-700 dark:text-lime-400 text-xs">{ab.disponibles}</td>
                       <td className="px-4 py-3 text-xs">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
                           ab.estado === "VENCIDO"  ? "bg-foreground/5 text-foreground/40 border-foreground/10"
-                          : ab.estado === "PAUSADO" ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
-                          : "bg-lime-400/10 text-lime-400 border-lime-400/20"
+                          : ab.estado === "PAUSADO" ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
+                          : "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
                         }`}>
                           {ab.estado}
                         </span>
@@ -694,7 +694,7 @@ export default function GestionAbonosPage() {
                           <button onClick={() => abrirEditar(ab)} className="p-1.5 text-foreground/40 hover:text-foreground transition-colors" title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setDeleteDialog({ open: true, abono: ab })} className="p-1.5 text-foreground/40 hover:text-red-400 transition-colors" title="Cancelar membresía">
+                          <button onClick={() => setDeleteDialog({ open: true, abono: ab })} className="p-1.5 text-foreground/40 hover:text-red-700 dark:hover:text-red-400 transition-colors" title="Cancelar membresía">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -707,7 +707,7 @@ export default function GestionAbonosPage() {
                                 <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
                                   className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 border transition-colors ${
                                     doc.estado === "aprobado"
-                                      ? "border-lime-400/50 bg-lime-400/10 text-lime-400"
+                                      ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                                       : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                                   }`}>
                                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -717,7 +717,7 @@ export default function GestionAbonosPage() {
                                 {doc.estado !== "aprobado" && (
                                   <button
                                     onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
-                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 border border-lime-400/30 text-lime-400 hover:bg-lime-400/10 transition-colors"
+                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 border border-lime-400/30 text-lime-700 dark:text-lime-400 hover:bg-lime-400/10 transition-colors"
                                   >
                                     Aprobar
                                   </button>
@@ -773,7 +773,7 @@ export default function GestionAbonosPage() {
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">
                   Historial de Canceladas
-                  <span className="ml-2 text-[9px] bg-red-500/15 text-red-400 border border-red-500/20 px-1.5 py-0.5">{cancelados.length}</span>
+                  <span className="ml-2 text-[9px] bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/20 px-1.5 py-0.5">{cancelados.length}</span>
                 </p>
                 <p className="text-xs text-foreground/25 mt-0.5">Membresías revocadas · se pueden recuperar.</p>
               </div>
@@ -803,7 +803,7 @@ export default function GestionAbonosPage() {
                         <td className="px-4 py-3">
                           <button
                             onClick={() => setRestoreDialog({ open: true, abono: ab })}
-                            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-lime-500 hover:text-lime-400 border border-lime-500/30 hover:border-lime-400/50 px-2.5 py-1 transition-colors"
+                            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-500 hover:text-lime-700 dark:hover:text-lime-400 border border-lime-500/30 hover:border-lime-600/50 dark:hover:border-lime-400/50 px-2.5 py-1 transition-colors"
                             title="Recuperar membresía"
                           >
                             ↺ Recuperar
@@ -923,17 +923,17 @@ export default function GestionAbonosPage() {
       <Dialog open={restoreDialog.open} onOpenChange={open => !open && setRestoreDialog({ open: false, abono: null })}>
         <DialogContent className="bg-card border border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lime-400 uppercase text-sm font-black tracking-widest">Recuperar Membresía</DialogTitle>
+            <DialogTitle className="text-lime-700 dark:text-lime-400 uppercase text-sm font-black tracking-widest">Recuperar Membresía</DialogTitle>
           </DialogHeader>
           {restoreDialog.abono && (
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-lime-400/10 border border-lime-400/20 text-lime-400 rounded text-xs font-medium">
+              <div className="p-3 bg-lime-400/10 border border-lime-400/20 text-lime-700 dark:text-lime-400 rounded text-xs font-medium">
                 ✓ La membresía volverá al estado ACTIVO con sus créditos disponibles.
               </div>
               <div className="bg-muted/60 border border-border rounded p-3 space-y-1.5">
                 <div className="flex justify-between"><span className="text-muted-foreground">Alumno:</span><span className="font-bold text-foreground">{restoreDialog.abono.nombreAlumno}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Plan:</span><span className="font-bold text-foreground">{restoreDialog.abono.abono}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Créditos:</span><span className="font-bold text-lime-400">{restoreDialog.abono.disponibles} disponibles</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Créditos:</span><span className="font-bold text-lime-700 dark:text-lime-400">{restoreDialog.abono.disponibles} disponibles</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Vencimiento:</span><span className="font-mono text-foreground">{fmt(restoreDialog.abono.vencimiento)}</span></div>
               </div>
             </div>

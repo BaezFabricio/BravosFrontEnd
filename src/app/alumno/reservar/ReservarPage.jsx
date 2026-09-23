@@ -408,7 +408,7 @@ export default function ReservarClasePage() {
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-semibold text-foreground">{clase.nombre}</h3>
                               {clase.reservado && (
-                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-400 border border-green-500/25 rounded-md">
+                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/25 rounded-md">
                                   <CheckCircle2 className="h-3 w-3" /> Reservado
                                 </span>
                               )}
@@ -427,8 +427,8 @@ export default function ReservarClasePage() {
                           <Badge
                             variant="outline"
                             className={sinCupos
-                              ? "bg-red-500/10 text-red-500 border-red-500/20"
-                              : "bg-green-500/10 text-green-500 border-green-500/20"
+                              ? "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20"
+                              : "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20"
                             }
                           >
                             {clase.cuposDisponibles}/{clase.cuposTotales} cupos
@@ -484,14 +484,14 @@ export default function ReservarClasePage() {
                             puedeCan ? (
                               <Button
                                 variant="outline"
-                                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+                                className="w-full border-red-500/30 text-red-700 dark:text-red-400 hover:bg-red-500/10 hover:border-red-600/50 dark:hover:border-red-500/50"
                                 onClick={() => setCancelDialog({ open: true, clase })}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
                                 Cancelar reserva
                               </Button>
                             ) : (
-                              <Button variant="outline" className="w-full opacity-50 cursor-not-allowed border-green-500/20 text-green-400" disabled>
+                              <Button variant="outline" className="w-full opacity-50 cursor-not-allowed border-green-500/20 text-green-700 dark:text-green-400" disabled>
                                 <CheckCircle2 className="mr-2 h-4 w-4" />
                                 Reservado · Ya no podés cancelar
                               </Button>
@@ -543,8 +543,8 @@ export default function ReservarClasePage() {
             </div>
           )}
           <Alert className="bg-yellow-500/10 border-yellow-500/20">
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-500/80">
+            <AlertCircle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />
+            <AlertDescription className="text-yellow-700/80 dark:text-yellow-500/80">
               Se descontará 1 crédito. Si cancelás con menos de 2 horas de anticipación, el crédito no se devuelve.
             </AlertDescription>
           </Alert>
@@ -581,15 +581,15 @@ export default function ReservarClasePage() {
           )}
           {cancelDialog.clase && puedeCancelar(selectedDate, cancelDialog.clase.hora) ? (
             <Alert className="bg-green-500/10 border-green-500/20">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-green-500/80">
+              <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-500" />
+              <AlertDescription className="text-green-700/80 dark:text-green-500/80">
                 Cancelás con más de 2 horas de anticipación. Tu crédito será devuelto.
               </AlertDescription>
             </Alert>
           ) : (
             <Alert className="bg-red-500/10 border-red-500/20">
-              <AlertCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-500/80">
+              <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-500" />
+              <AlertDescription className="text-red-700/80 dark:text-red-500/80">
                 Faltan menos de 2 horas para la clase. El crédito <strong>no</strong> será devuelto.
               </AlertDescription>
             </Alert>

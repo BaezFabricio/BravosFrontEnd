@@ -168,7 +168,7 @@ export default function AlumnoDashboard() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge className="bg-lime-400/20 text-lime-400 border border-lime-400/30 font-bold px-3 py-1">
+                <Badge className="bg-lime-400/20 text-lime-700 dark:text-lime-400 border border-lime-400/30 font-bold px-3 py-1">
                   <Flame className="w-3 h-3 mr-1" />
                   {userStats.racha} dias de racha
                 </Badge>
@@ -198,14 +198,14 @@ export default function AlumnoDashboard() {
                   <div className="absolute top-2 right-2">
                     <HelpTooltip content="Creditos disponibles para reservar clases." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
                   </div>
-                  <p className="text-3xl font-black text-lime-400">{loadingReservas ? "..." : creditosReales}</p>
+                  <p className="text-3xl font-black text-lime-700 dark:text-lime-400">{loadingReservas ? "..." : creditosReales}</p>
                   <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Creditos</p>
                 </div>
                 <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
                   <div className="absolute top-2 right-2">
                     <HelpTooltip content="Total de clases tomadas en Bravos." iconClassName="h-3 w-3" className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
                   </div>
-                  <p className="text-3xl font-black text-lime-400">{userStats.totalClases}</p>
+                  <p className="text-3xl font-black text-lime-700 dark:text-lime-400">{userStats.totalClases}</p>
                   <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Clases</p>
                 </div>
               </div>
@@ -216,12 +216,12 @@ export default function AlumnoDashboard() {
                     : 'bg-red-500/10 border-red-500/30'
                 }`}>
                   <span className={`text-xs font-black uppercase tracking-widest ${
-                    membresia === 'activa' || membresia === 'vigente' ? 'text-lime-400' : 'text-red-400'
+                    membresia === 'activa' || membresia === 'vigente' ? 'text-lime-700 dark:text-lime-400' : 'text-red-700 dark:text-red-400'
                   }`}>
                     Membresía {membresia === 'activa' || membresia === 'vigente' ? 'activa' : 'vencida'}
                   </span>
                   {membresia !== 'activa' && membresia !== 'vigente' && (
-                    <a href="/alumno/documentacion" className="text-[10px] font-bold uppercase tracking-wide text-red-400 hover:text-red-300 transition-colors underline underline-offset-2">
+                    <a href="/alumno/documentacion" className="text-[10px] font-bold uppercase tracking-wide text-red-700 dark:text-red-400 hover:text-red-300 transition-colors underline underline-offset-2">
                       Regularizar →
                     </a>
                   )}

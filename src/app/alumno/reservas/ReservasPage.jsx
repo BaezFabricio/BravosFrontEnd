@@ -144,9 +144,9 @@ export default function ReservasPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2 bg-lime-400/10 border border-lime-400/30 rounded-lg px-3 py-2.5">
-                  <Dumbbell className="h-4 w-4 text-lime-400 shrink-0" />
-                  <span className="text-sm font-bold text-lime-400">Ver rutina del día</span>
-                  <ChevronRight className="h-4 w-4 text-lime-400 ml-auto" />
+                  <Dumbbell className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0" />
+                  <span className="text-sm font-bold text-lime-700 dark:text-lime-400">Ver rutina del día</span>
+                  <ChevronRight className="h-4 w-4 text-lime-700 dark:text-lime-400 ml-auto" />
                 </div>
               </div>
               {showCancelButton && (
@@ -268,8 +268,8 @@ export default function ReservasPage() {
               ) : (
                 <div className="space-y-4">
                   <Alert className="bg-green-500/10 border-green-500/20">
-                    <AlertTriangle className="h-4 w-4 text-green-500" />
-                    <AlertDescription className="text-green-500/80">
+                    <AlertTriangle className="h-4 w-4 text-green-700 dark:text-green-500" />
+                    <AlertDescription className="text-green-700/80 dark:text-green-500/80">
                       Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto.
                     </AlertDescription>
                   </Alert>
@@ -311,8 +311,8 @@ export default function ReservasPage() {
           </div>
 
           <Alert className="bg-green-500/10 border-green-500/20">
-            <AlertTriangle className="h-4 w-4 text-green-500" />
-            <AlertDescription className="text-green-500/80">
+            <AlertTriangle className="h-4 w-4 text-green-700 dark:text-green-500" />
+            <AlertDescription className="text-green-700/80 dark:text-green-500/80">
               Si cancelas con más de 2 horas de anticipación, tu crédito será devuelto automáticamente.
             </AlertDescription>
           </Alert>

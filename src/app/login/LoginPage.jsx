@@ -96,7 +96,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md border border-border bg-card p-8 text-center space-y-5">
           <div className="flex justify-center">
             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-full">
-              <UserX className="h-10 w-10 text-red-400" />
+              <UserX className="h-10 w-10 text-red-700 dark:text-red-400" />
             </div>
           </div>
           <div>
@@ -140,7 +140,7 @@ export default function LoginPage() {
         <div className="relative z-10 flex items-center gap-4">
           <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
           <div>
-            <p className="text-xs font-bold tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
+            <p className="text-xs font-bold tracking-[0.3em] text-lime-700 dark:text-lime-400 uppercase">Bravos</p>
             <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function LoginPage() {
           <div>
             <h1 className="text-5xl font-black text-white leading-none tracking-tight">
               ENTRENÁ<br />
-              <span className="text-lime-400">SIN LÍMITES</span>
+              <span className="text-lime-700 dark:text-lime-400">SIN LÍMITES</span>
             </h1>
             <p className="mt-4 text-white/50 text-base leading-relaxed max-w-xs">
               Tu plataforma de gestión para el Box. Reservas, créditos y progreso en un solo lugar.
@@ -161,7 +161,7 @@ export default function LoginPage() {
             {FEATURES.map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-4 w-4 text-lime-400" />
+                  <Icon className="h-4 w-4 text-lime-700 dark:text-lime-400" />
                 </div>
                 <span className="text-sm text-white/60 font-medium">{text}</span>
               </div>
@@ -228,7 +228,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="tu@email.com"
                     autoComplete="email"
-                    className={`pl-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 transition-colors ${errors.email ? "border-destructive" : ""}`}
+                    className={`pl-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.email ? "border-destructive" : ""}`}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
@@ -244,7 +244,7 @@ export default function LoginPage() {
                   </label>
                   <Link
                     to="/recuperar-contrasena"
-                    className="text-xs text-lime-500 hover:text-lime-400 transition-colors font-medium"
+                    className="text-xs text-lime-700 dark:text-lime-500 hover:text-lime-700 dark:hover:text-lime-400 transition-colors font-medium"
                   >
                     ¿La olvidaste?
                   </Link>
@@ -256,7 +256,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    className={`pl-10 pr-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 transition-colors ${errors.password ? "border-destructive" : ""}`}
+                    className={`pl-10 pr-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.password ? "border-destructive" : ""}`}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />

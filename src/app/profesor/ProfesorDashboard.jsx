@@ -275,9 +275,9 @@ export default function ProfesorDashboard() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
                         isPresente
-                          ? "bg-lime-400/20 text-lime-400"
+                          ? "bg-lime-400/20 text-lime-700 dark:text-lime-400"
                           : isAusente
-                          ? "bg-red-500/20 text-red-400"
+                          ? "bg-red-500/20 text-red-700 dark:text-red-400"
                           : "bg-secondary text-muted-foreground"
                       }`}>
                         {getInitials(a.nombrecompleto)}
@@ -313,13 +313,13 @@ export default function ProfesorDashboard() {
                         <>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "presente")}
-                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-lime-400 hover:text-lime-400 hover:bg-lime-400/5 transition-all"
+                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
                           >
                             <CheckCircle2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Presente</span>
                           </button>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "ausente")}
-                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-red-500 hover:text-red-400 hover:bg-red-500/5 transition-all"
+                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
                           >
                             <XCircle className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ausente</span>
                           </button>

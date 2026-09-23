@@ -19,7 +19,7 @@ const emptyForm = {
 }
 
 const inputCls = (error) =>
-  `w-full border ${error ? "border-red-500/40" : "border-border"} bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors`
+  `w-full border ${error ? "border-red-600/40 dark:border-red-500/40" : "border-border"} bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-600/50 dark:focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors`
 
 const Field = ({ label, icon: Icon, error, children }) => (
   <div className="space-y-1.5">
@@ -29,7 +29,7 @@ const Field = ({ label, icon: Icon, error, children }) => (
     </label>
     {children}
     {error && (
-      <p className="flex items-center gap-1 text-xs text-red-400">
+      <p className="flex items-center gap-1 text-xs text-red-700 dark:text-red-400">
         <AlertCircle className="h-3 w-3" /> {error}
       </p>
     )}
@@ -184,7 +184,7 @@ export default function EditarUsuarioPage() {
         {/* PANEL LATERAL — Vista previa del usuario */}
         <div className="space-y-4">
           <div className="border border-border bg-card p-6 flex flex-col items-center text-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-lime-400 border-2 border-lime-400/40 flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-full bg-lime-400 border-2 border-lime-600/40 dark:border-lime-400/40 flex items-center justify-center overflow-hidden">
               {formData.avatarUrl
                 ? <img src={formData.avatarUrl} alt={formData.nombre} className="h-full w-full object-cover" />
                 : <span className="text-2xl font-black text-black tracking-widest">{getIniciales(formData.nombre)}</span>
@@ -199,8 +199,8 @@ export default function EditarUsuarioPage() {
             <div className="flex flex-wrap gap-2 justify-center">
               <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${
                 formData.estado === "activo"
-                  ? "bg-lime-400/10 text-lime-400 border-lime-400/20"
-                  : "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
+                  ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
+                  : "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
               }`}>
                 {formData.estado === "activo" ? "Activo" : "Inactivo"}
               </span>
@@ -322,7 +322,7 @@ export default function EditarUsuarioPage() {
 
               {perfilSeleccionado && (
                 <div className="flex items-start gap-3 border border-lime-400/20 bg-lime-400/5 px-4 py-3">
-                  <CheckCircle2 className="h-4 w-4 text-lime-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0 mt-0.5" />
                   <p className="text-xs text-foreground/40">
                     El perfil <span className="font-semibold text-foreground capitalize">{perfilSeleccionado.nombrePerfil || perfilSeleccionado.nombre}</span> otorgará los permisos correspondientes al usuario al guardar los cambios.
                   </p>

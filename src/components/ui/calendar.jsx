@@ -17,7 +17,7 @@ function Calendar({ className, ...props }) {
         cell: "h-9 w-9 text-center p-0 relative flex items-center justify-center",
         day: "h-8 w-8 rounded-md hover:bg-zinc-800 transition-all flex items-center justify-center",
         day_selected: "bg-white text-black font-bold hover:bg-white",
-        day_today: "text-green-500 font-bold",
+        day_today: "text-green-700 dark:text-green-500 font-bold",
         day_outside: "text-zinc-600",
       }}
       {...props}
