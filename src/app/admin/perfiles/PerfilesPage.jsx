@@ -13,7 +13,7 @@ import {
 import { toast } from '@/lib/notificar'
 
 const modulosAdminConfig = [
-  { id: "dashboard",     nombre: "Dashboard",     icon: LayoutDashboard },
+  { id: "dashboard",     nombre: "Resumen",       icon: LayoutDashboard },
   { id: "usuarios",      nombre: "Usuarios",      icon: Users },
   { id: "clases",        nombre: "Clases",        icon: Calendar },
   { id: "reservas",      nombre: "Reservas",      icon: Calendar },
@@ -42,10 +42,10 @@ const permisosConfig = [
 ]
 
 const PERMISO_COLORS = {
-  lime:  { ring: "ring-lime-400/60",  bg: "bg-lime-400",  check: "text-black",        badge: "bg-lime-400/10 text-lime-400 border-lime-400/20" },
-  blue:  { ring: "ring-blue-400/60",  bg: "bg-blue-400",  check: "text-white",        badge: "bg-blue-400/10 text-blue-400 border-blue-400/20" },
-  amber: { ring: "ring-amber-400/60", bg: "bg-amber-400", check: "text-black",        badge: "bg-amber-400/10 text-amber-400 border-amber-400/20" },
-  red:   { ring: "ring-red-400/60",   bg: "bg-red-500",   check: "text-white",        badge: "bg-red-400/10 text-red-400 border-red-400/20" },
+  lime:  { ring: "ring-lime-400/60",  bg: "bg-lime-400",  check: "text-black",        badge: "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" },
+  blue:  { ring: "ring-blue-400/60",  bg: "bg-blue-400",  check: "text-white",        badge: "bg-blue-400/10 text-blue-700 dark:text-blue-400 border-blue-400/20" },
+  amber: { ring: "ring-amber-400/60", bg: "bg-amber-400", check: "text-black",        badge: "bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20" },
+  red:   { ring: "ring-red-400/60",   bg: "bg-red-500",   check: "text-white",        badge: "bg-red-400/10 text-red-700 dark:text-red-400 border-red-400/20" },
 }
 
 const PERMISOS_POR_MODULO = {
@@ -276,13 +276,13 @@ export default function PerfilesPage() {
         <button
           type="button"
           onClick={() => setExpandedModulos(prev => ({ ...prev, [modulo.id]: !prev[modulo.id] }))}
-          className={`flex items-center gap-2.5 py-2.5 px-3 rounded-lg transition-colors w-full text-left ${isExpanded ? "bg-lime-400/10 text-lime-400" : "hover:bg-muted text-foreground"}`}
+          className={`flex items-center gap-2.5 py-2.5 px-3 rounded-lg transition-colors w-full text-left ${isExpanded ? "bg-lime-400/10 text-lime-700 dark:text-lime-400" : "hover:bg-muted text-foreground"}`}
         >
           {isExpanded ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
           <Icon className="h-3.5 w-3.5 shrink-0" />
           <span className="text-sm font-medium flex-1">{modulo.nombre}</span>
           {tieneAlguno && !isExpanded && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-lime-400/10 text-lime-400 border border-lime-400/20">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20">
               {Object.values(permisos).filter(Boolean).length} perm.
             </span>
           )}
@@ -358,7 +358,7 @@ export default function PerfilesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="h-9 w-9 rounded-xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0">
-                      <Shield className="h-4 w-4 text-lime-400" />
+                      <Shield className="h-4 w-4 text-lime-700 dark:text-lime-400" />
                     </div>
                     <div className="min-w-0">
                       <p className="font-black text-foreground truncate">{perfil.nombre || perfil.nombrePerfil || "Sin nombre"}</p>
@@ -449,12 +449,12 @@ export default function PerfilesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="nombre" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nombre del Perfil</Label>
-                <Input id="nombre" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 h-10"
+                <Input id="nombre" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 h-10"
                   value={formData.nombre} onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="descripcion" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descripción</Label>
-                <Input id="descripcion" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-400 h-10"
+                <Input id="descripcion" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 h-10"
                   value={formData.descripcion} onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))} />
               </div>
             </div>
@@ -462,7 +462,7 @@ export default function PerfilesPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Módulos y Permisos</Label>
-                <Button type="button" variant="outline" size="sm" className="h-7 text-xs border-lime-400/40 text-lime-500 hover:bg-lime-400/10 hover:text-lime-400" onClick={marcarTodosLosPermisos}>
+                <Button type="button" variant="outline" size="sm" className="h-7 text-xs border-lime-600/40 dark:border-lime-400/40 text-lime-700 dark:text-lime-500 hover:bg-lime-400/10 hover:text-lime-700 dark:hover:text-lime-400" onClick={marcarTodosLosPermisos}>
                   Acceso completo
                 </Button>
               </div>
@@ -472,7 +472,7 @@ export default function PerfilesPage() {
                 {/* Admin */}
                 <div>
                   <button type="button" onClick={() => setAdminMasterOpen(!adminMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-lime-400 bg-lime-400/5 border-b border-lime-400/10 hover:bg-lime-400/10 transition-colors">
+                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-lime-700 dark:text-lime-400 bg-lime-400/5 border-b border-lime-400/10 hover:bg-lime-400/10 transition-colors">
                     {adminMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
                     <Settings className="h-4 w-4 shrink-0" />
                     <span>Panel Administrador</span>
@@ -487,7 +487,7 @@ export default function PerfilesPage() {
                 {/* Alumno */}
                 <div>
                   <button type="button" onClick={() => setAlumnoMasterOpen(!alumnoMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-blue-400 bg-blue-400/5 border-b border-blue-400/10 hover:bg-blue-400/10 transition-colors">
+                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-blue-700 dark:text-blue-400 bg-blue-400/5 border-b border-blue-400/10 hover:bg-blue-400/10 transition-colors">
                     {alumnoMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
                     <Shield className="h-4 w-4 shrink-0" />
                     <span>Panel Alumno</span>
@@ -502,7 +502,7 @@ export default function PerfilesPage() {
                 {/* Profesor */}
                 <div>
                   <button type="button" onClick={() => setProfesorMasterOpen(!profesorMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-amber-400 bg-amber-400/5 hover:bg-amber-400/10 transition-colors">
+                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-amber-700 dark:text-amber-400 bg-amber-400/5 hover:bg-amber-400/10 transition-colors">
                     {profesorMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
                     <Dumbbell className="h-4 w-4 shrink-0" />
                     <span>Panel Profesor</span>

@@ -17,7 +17,7 @@ export default function PagoPendientePage() {
         .clock-hand { transform-origin: 50% 50%; animation: spin-clock 2s linear infinite; }
       `}</style>
 
-      <div className="circle-pop-pend w-24 h-24 rounded-full bg-yellow-500/10 border-2 border-yellow-500 flex items-center justify-center">
+      <div className="circle-pop-pend w-24 h-24 rounded-full bg-yellow-500/10 border-2 border-yellow-600 dark:border-yellow-500 flex items-center justify-center">
         <svg viewBox="0 0 52 52" className="w-12 h-12" fill="none">
           <circle cx="26" cy="26" r="18" stroke="#eab308" strokeWidth="3"/>
           <line className="clock-hand" x1="26" y1="26" x2="26" y2="13" stroke="#eab308" strokeWidth="2.5" strokeLinecap="round"/>

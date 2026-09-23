@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import {
   Banknote, Landmark, Upload, Loader2, Copy, Check,
   CheckCircle2, ChevronDown, MessageCircle, AlertCircle, X,
-  ShieldCheck, Zap, QrCode, CreditCard
+  ShieldCheck, Zap, QrCode
 } from "lucide-react"
 import { initMercadoPago, Payment } from "@mercadopago/sdk-react"
 import QRCode from "react-qr-code"
@@ -40,7 +40,7 @@ function CopyBtn({ text, label = "Copiar" }) {
       className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground/40 hover:text-foreground/70 transition-colors whitespace-nowrap"
     >
       {copied ? (
-        <><Check className="h-3 w-3 text-lime-400" /> Copiado</>
+        <><Check className="h-3 w-3 text-lime-600 dark:text-lime-400" /> Copiado</>
       ) : (
         <><Copy className="h-3 w-3" /> {label}</>
       )}
@@ -94,12 +94,14 @@ function getFeaturesForTier(tier, plan) {
   return presets[Math.min(tier, 3)]
 }
 
+// Todos los planes vencen el próximo día 10 (ver proximoDia10 en el backend),
+// sin importar cuándo se pagaron. Nada de "30 días" / "45 días": no es real.
 function getTierMeta(tier) {
   const meta = [
-    { label: "INICIAL", sub: "Válido 30 días", subColor: "text-foreground/40" },
-    { label: "RECOMENDADO", sub: "Renovación mensual", subColor: "text-lime-400" },
-    { label: "INTERMEDIO", sub: "Válido 45 días", subColor: "text-foreground/40" },
-    { label: "LARGO PLAZO", sub: "Ahorra 15%", subColor: "text-lime-400" },
+    { label: "INICIAL", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
+    { label: "RECOMENDADO", sub: "Renovación mensual · vence el 10", subColor: "text-lime-600 dark:text-lime-400" },
+    { label: "INTERMEDIO", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
+    { label: "LARGO PLAZO", sub: "Ahorra 15% · vence el 10", subColor: "text-lime-600 dark:text-lime-400" },
   ]
   return meta[Math.min(tier, 3)]
 }
@@ -122,14 +124,139 @@ function getSubPrice(tier, plan) {
 
 // ── Modal de pago ─────────────────────────────────────────────────────────────
 
-function ModalPago({ plan, open, onClose, configBanco }) {
+// Duración total de la animación de "¡Pago confirmado!" (pop-in + dibujo del
+// check + pausa final para poder mirarlo ya completo). Tiene que coincidir con
+// los tiempos del <style> dentro de ModalPago — están documentados juntos ahí.
+const PAGO_EXITO_MS = 2700
+
+function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
   const [tab, setTab]                   = useState("mp")
   const [preferenceId, setPreferenceId] = useState(null)
   const [mpUrl, setMpUrl]               = useState(null)
+  const [qrData, setQrData]             = useState(null)
   const [loadingUrl, setLoadingUrl]     = useState(false)
   const [uploading, setUploading]       = useState(false)
   const [comprobante, setComprobante]   = useState(null)
-  const fileRef = useRef(null)
+  const [pagando, setPagando]           = useState(false)
+  const [pagoConfirmado, setPagoConfirmado]     = useState(false)
+  const [yaPagadoAntes, setYaPagadoAntes]       = useState(false)
+  const fileRef       = useRef(null)
+  const pagandoRef    = useRef(false)
+  // idPago que ya existía al abrir el modal. undefined = todavía no se cargó.
+  // Sin esta base, un pago viejo del mismo día (de una prueba anterior, por
+  // ejemplo) se confundía con uno recién hecho y el modal se cerraba solo.
+  const idPagoBaseRef = useRef(undefined)
+  // true cuando ya detectamos el pago pero la pestaña estaba en segundo plano.
+  // Los navegadores congelan animaciones CSS y frenan timers en pestañas no
+  // visibles: si mostráramos el cartel ahí, el usuario vuelve y ya se está
+  // cerrando, o nunca ve la animación porque arrancó mientras no se pintaba.
+  const pagoListoParaMostrarRef = useRef(false)
+
+  // El pago puede confirmarse afuera del navegador: QR pagado desde el celular,
+  // o Mercado Crédito que redirige a MP y puede volver por otra pestaña. Mientras
+  // el modal está abierto en la pestaña "mp", se pregunta cada 1.5s si apareció
+  // un pago con un idPago distinto al que ya existía cuando se abrió el modal.
+  useEffect(() => {
+    if (!open || tab !== "mp" || !plan?.idPlan || pagoConfirmado) return
+    const interval = setInterval(async () => {
+      if (idPagoBaseRef.current === undefined) return
+      try {
+        const res = await apiClient.get(`/pagos/estado/${plan.idPlan}`)
+        const idPago = res.data?.data?.idPago
+        if (idPago && idPago !== idPagoBaseRef.current) {
+          // OJO: onRenovado (refresca créditos en CreditosPage) NO se llama acá.
+          // CreditosPage solo renderiza este modal mientras sinAbono es true — si
+          // se refresca ahora, sinAbono pasa a false y React desmonta el modal
+          // entero en el acto, matando la animación de éxito antes de que corra.
+          // Se llama recién en el timer de cierre, cuando ya no hace falta que
+          // el modal siga montado.
+          if (document.visibilityState === "visible") {
+            setPagoConfirmado(true)
+          } else {
+            pagoListoParaMostrarRef.current = true
+          }
+        }
+      } catch {
+        // Un fallo de red puntual no debería frenar el polling; se reintenta solo.
+      }
+    }, 1500)
+    return () => clearInterval(interval)
+  }, [open, tab, plan?.idPlan, pagoConfirmado])
+
+  // Si el pago se detectó mientras la pestaña estaba de fondo, se muestra recién
+  // al volver — así la animación arranca de cero con la pestaña ya visible.
+  useEffect(() => {
+    const alVolver = () => {
+      if (document.visibilityState === "visible" && pagoListoParaMostrarRef.current) {
+        pagoListoParaMostrarRef.current = false
+        setPagoConfirmado(true)
+      }
+    }
+    document.addEventListener("visibilitychange", alVolver)
+    return () => document.removeEventListener("visibilitychange", alVolver)
+  }, [])
+
+  // Cierra el modal recién cuando termina de verse la animación de éxito
+  // completa (definida más abajo, junto al <style>), no antes. onRenovado
+  // también se llama recién acá (no al detectar el pago): si se refresca la
+  // lista de créditos antes, CreditosPage desmonta este modal a mitad de la
+  // animación. onClose/onRenovado van en refs porque son funciones nuevas en
+  // cada render del padre — como dependencia directa del efecto, reiniciarían
+  // el timer de más.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onRenovadoRef = useRef(onRenovado)
+  onRenovadoRef.current = onRenovado
+  useEffect(() => {
+    if (!pagoConfirmado) return
+    const timer = setTimeout(() => {
+      onRenovadoRef.current?.()
+      onCloseRef.current()
+    }, PAGO_EXITO_MS)
+    return () => clearTimeout(timer)
+  }, [pagoConfirmado])
+
+  const procesarPago = async () => {
+    // Guarda sincrónica: setPagando no desactiva el botón hasta el siguiente render,
+    // y cada click genera un token de tarjeta nuevo, o sea un cobro nuevo.
+    if (pagandoRef.current) return
+    const controller = window.paymentBrickController
+    if (!controller) { toast.error("El formulario de pago todavía no está listo"); return }
+    pagandoRef.current = true
+    setPagando(true)
+    // Asignar location.href no corta la ejecución: si soltamos la guarda igual,
+    // el botón se rehabilita mientras el navegador todavía está yendo a la otra
+    // página, y un click ahí cobra de nuevo.
+    let navegando = false
+    try {
+      const { formData, selectedPaymentMethod } = await controller.getFormData()
+      // Mercado Crédito y wallet se resuelven por redirect, no por token de tarjeta
+      if (selectedPaymentMethod && selectedPaymentMethod !== "credit_card" && selectedPaymentMethod !== "debit_card") {
+        if (!mpUrl) { toast.error("No se pudo abrir el checkout de Mercado Pago"); return }
+        navegando = true
+        window.location.href = mpUrl
+        return
+      }
+      const res = await apiClient.post("/pagos/procesar-tarjeta", { formData, idPlan: plan.idPlan })
+      const { status } = res.data?.data || {}
+      const frontendUrl = window.location.origin
+      if (status === "approved" || status === "in_process" || status === "pending") {
+        navegando = true
+        window.location.href = status === "approved"
+          ? `${frontendUrl}/alumno/pago-exitoso`
+          : `${frontendUrl}/alumno/pago-pendiente`
+        return
+      }
+      toast.error("Pago rechazado")
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Error al procesar el pago")
+    } finally {
+      if (!navegando) {
+        pagandoRef.current = false
+        setPagando(false)
+      }
+    }
+  }
 
   // Precarga la preferencia al abrir el modal
   useEffect(() => {
@@ -138,15 +265,29 @@ function ModalPago({ plan, open, onClose, configBanco }) {
     setComprobante(null)
     setPreferenceId(null)
     setMpUrl(null)
+    setQrData(null)
+    setPagoConfirmado(false)
+    setYaPagadoAntes(false)
+    idPagoBaseRef.current = undefined
+    pagoListoParaMostrarRef.current = false
     setLoadingUrl(true)
+
+    apiClient.get(`/pagos/estado/${plan.idPlan}`)
+      .then((r) => { idPagoBaseRef.current = r.data?.data?.idPago ?? null })
+      .catch(() => { idPagoBaseRef.current = null })
+
     apiClient
       .post("/pagos/crear-preferencia", { idPlan: plan.idPlan })
       .then((r) => {
-        const { id, init_point, sandbox_init_point } = r.data?.data || {}
+        const { id, init_point, sandbox_init_point, qrData } = r.data?.data || {}
         setPreferenceId(id || null)
         setMpUrl(init_point || sandbox_init_point || null)
+        setQrData(qrData || null)
       })
-      .catch(() => toast.error("No se pudo cargar el formulario de pago"))
+      .catch((err) => {
+        if (err?.response?.data?.errorCode === "PAGO_DUPLICADO") setYaPagadoAntes(true)
+        else toast.error("No se pudo cargar el formulario de pago")
+      })
       .finally(() => setLoadingUrl(false))
   }, [open, plan?.idPlan])
 
@@ -173,11 +314,11 @@ function ModalPago({ plan, open, onClose, configBanco }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="bg-card border-border p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden sm:max-w-2xl">
 
         {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-border">
-          <p className="text-[10px] font-black uppercase tracking-widest text-lime-400 mb-1">
+          <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 mb-1">
             PASARELA DE PAGO SEGURA
           </p>
           <h2 className="text-lg font-black text-foreground">
@@ -187,15 +328,15 @@ function ModalPago({ plan, open, onClose, configBanco }) {
 
         {/* Total */}
         <div className="px-6 py-3 flex items-center justify-between border-b border-border">
-          <div className="flex items-center gap-2 text-sm text-foreground/50">
-            <div className="h-4 w-4 rounded-full border-2 border-lime-400 flex items-center justify-center">
-              <div className="h-1.5 w-1.5 rounded-full bg-lime-400" />
+          <div className="flex items-center gap-2 text-sm text-foreground/60">
+            <div className="h-4 w-4 rounded-full border-2 border-lime-600 dark:border-lime-400 flex items-center justify-center">
+              <div className="h-1.5 w-1.5 rounded-full bg-lime-600 dark:bg-lime-400" />
             </div>
             Total a abonar:
           </div>
-          <span className="text-2xl font-black text-lime-400">
+          <span className="text-2xl font-black text-lime-700 dark:text-lime-400">
             ${Number(plan.precio).toLocaleString("es-AR")}{" "}
-            <span className="text-sm font-bold text-foreground/40">ARS</span>
+            <span className="text-sm font-bold text-foreground/50">ARS</span>
           </span>
         </div>
 
@@ -204,7 +345,7 @@ function ModalPago({ plan, open, onClose, configBanco }) {
 
         {/* Tabs método */}
         <div className="px-6 pt-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55 mb-3">
             SELECCIONA MÉTODO DE PAGO
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -220,14 +361,14 @@ function ModalPago({ plan, open, onClose, configBanco }) {
             </button>
             <button
               onClick={() => setTab("transferencia")}
-              className={`flex items-center justify-center gap-2 py-3 text-sm font-bold border transition-colors rounded-lg ${
+              className={`flex items-center justify-center gap-2 py-3 text-xs font-bold border transition-colors rounded-lg ${
                 tab === "transferencia"
-                  ? "border-lime-400 bg-lime-400/10 text-lime-400"
+                  ? "border-lime-600 dark:border-lime-400 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                   : "border-border text-foreground/50 hover:border-foreground/30 hover:text-foreground"
               }`}
             >
               <Landmark className="h-4 w-4 shrink-0" />
-              Transferencia Bancaria
+              Transferencia
             </button>
           </div>
         </div>
@@ -235,8 +376,80 @@ function ModalPago({ plan, open, onClose, configBanco }) {
         {/* ── Tab: Mercado Pago ── */}
         {tab === "mp" && (
           <div className="px-6 py-4 space-y-4">
-
-            {loadingUrl ? (
+            {/* Definidas acá, no dentro del bloque de éxito: si el <style> y el
+                elemento animado aparecen juntos recién cuando se confirma el pago,
+                algunos navegadores no llegan a registrar la animación a tiempo y
+                queda pegada en su estado inicial (invisible). Estando ya en el
+                documento desde que se abre el modal, no hay carrera posible. */}
+            {/* Timing de la animación de éxito, lento a propósito para que se
+                aprecie bien. El cierre del modal (más abajo, PAGO_EXITO_MS) usa
+                este mismo total — si se cambian estos tiempos, hay que actualizar
+                esa constante también para que no se desincronicen.
+                  pop-in:     0.9s
+                  draw-check: arranca a los 0.7s, dura 1.1s -> termina a los 1.8s
+                  pausa final para poder mirarlo ya completo: 0.9s
+                  total: 2.7s (= PAGO_EXITO_MS) */}
+            <style>{`
+              @keyframes pago-pop-in {
+                0%   { transform: scale(0.4); opacity: 0; }
+                70%  { transform: scale(1.15); opacity: 1; }
+                100% { transform: scale(1); }
+              }
+              @keyframes pago-draw-check {
+                0%   { stroke-dashoffset: 60; }
+                100% { stroke-dashoffset: 0; }
+              }
+              .pago-circle-pop { animation: pago-pop-in 0.9s cubic-bezier(0.22,1,0.36,1) both; }
+              .pago-check-draw {
+                stroke-dasharray: 60;
+                stroke-dashoffset: 60;
+                animation: pago-draw-check 1.1s ease-out 0.7s both;
+              }
+            `}</style>
+            {yaPagadoAntes ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
+                <div className="w-16 h-16 rounded-full bg-foreground/[0.04] border border-border flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-foreground/40" />
+                </div>
+                <div>
+                  <p className="text-lg font-black text-foreground">Ya pagaste este plan hoy</p>
+                  <p className="text-sm text-foreground/50 mt-1 max-w-xs">
+                    Tu membresía ya está activa. Si necesitás otro plan, escribinos.
+                  </p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="border border-border hover:border-foreground/30 text-foreground font-black uppercase tracking-widest text-xs px-6 py-3 rounded-lg transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : pagoConfirmado ? (
+              <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
+                <div className="pago-circle-pop w-16 h-16 rounded-full bg-lime-400/10 border-2 border-lime-600 dark:border-lime-400 flex items-center justify-center">
+                  <svg viewBox="0 0 52 52" className="w-8 h-8" fill="none">
+                    <polyline
+                      className="pago-check-draw text-lime-700 dark:text-lime-400"
+                      points="10,28 22,40 42,16"
+                      stroke="currentColor"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-lg font-black text-foreground">¡Pago confirmado!</p>
+                  <p className="text-sm text-foreground/50 mt-1">Tu membresía ya está activa.</p>
+                </div>
+                <button
+                  onClick={() => { onRenovado?.(); onClose() }}
+                  className="bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-widest text-xs px-6 py-3 rounded-lg transition-colors"
+                >
+                  Listo
+                </button>
+              </div>
+            ) : loadingUrl ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="h-6 w-6 animate-spin text-foreground/30" />
               </div>
@@ -245,49 +458,60 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                 {/* QR + info + botón */}
                 {(() => {
                   const qrUrl = mpUrl || (preferenceId ? `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${preferenceId}` : null)
-                  return qrUrl ? (
+                  // El QR interoperable (qrData) lo puede escanear y pagar cualquier
+                  // billetera con su propia app — ARQ, Naranja X, Ualá, MP, etc.
+                  // Sin él (ej. si falla al crearlo), se cae al QR con el link, que
+                  // solo sirve leído con la cámara.
+                  const qrValue = qrData || qrUrl
+                  return qrValue ? (
                     <div className="space-y-3 mb-4">
-                      <div className="flex items-center gap-4 bg-foreground/[0.03] border border-border rounded-xl p-4">
-                        <div className="bg-white p-2 rounded-lg shrink-0">
-                          <QRCode value={qrUrl} size={72} />
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-2">
-                          <p className="text-sm font-black text-foreground">Pagá con tu cuenta de Mercado Pago</p>
-                          <p className="text-[11px] text-foreground/40 leading-snug">
-                            Usá tus tarjetas guardadas, dinero disponible, cuotas sin tarjeta y mucho más.
-                          </p>
-                          <div className="flex items-center gap-1 flex-nowrap">
-                            {[
-                              { label: "VISA",  color: "#fff", bg: "#1a1f71", italic: true },
-                              { img: "/pm-master.svg?v=2", bg: "#fff" },
-                              { img: "/pm-amex.svg", bg: "#fff", big: true },
-                              { label: "NX",    color: "#fff",    bg: "#e85d04" },
-                              { label: "Cabal", color: "#fff", bg: "#16a34a" },
-                              { label: "OCA",   color: "#c00",    bg: "#fff" },
-                              { label: "Ualá",  color: "#7c3aed", bg: "#fff" },
-                            ].map((item) => (
-                              <div key={item.label || item.img} className="rounded flex items-center justify-center shrink-0 px-2" style={{height:"26px", minWidth:"34px", background: item.bg}}>
-                                {item.img
-                                  ? <img src={item.img} alt="" className={item.big ? "h-5 w-auto" : "h-4 w-auto"} />
-                                  : <span className="text-[11px] font-black leading-none" style={{color: item.color, fontStyle: item.italic ? "italic" : "normal"}}>{item.label}</span>
-                                }
-                              </div>
-                            ))}
+                      <div className="bg-foreground/[0.03] border border-border rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-4">
+                          <div className="bg-white p-2 rounded-lg shrink-0 hidden sm:block">
+                            <QRCode value={qrValue} size={72} />
                           </div>
-                          <a
-                            href={qrUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#008ecc] text-white font-black uppercase tracking-widest text-[10px] py-2.5 rounded-lg transition-colors"
-                          >
-                            <MPLogo className="h-4 w-auto" />
-                            PAGAR CON MERCADO PAGO
-                          </a>
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <p className="text-sm font-black text-foreground">
+                              {qrData ? "Pagá con cualquier billetera" : "Pagá con tu cuenta de Mercado Pago"}
+                            </p>
+                            <p className="text-[11px] text-foreground/60 leading-snug">
+                              {qrData
+                                ? "Escaneá el QR desde la app de tu banco o billetera favorita."
+                                : "Usá tus tarjetas guardadas, dinero disponible, cuotas sin tarjeta y mucho más."}
+                            </p>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {[
+                                { label: "VISA",  color: "#fff", bg: "#1a1f71", italic: true },
+                                { img: "/pm-master.svg?v=2", bg: "#fff" },
+                                { img: "/pm-amex.svg", bg: "#fff", big: true },
+                                { label: "NX",    color: "#fff",    bg: "#e85d04" },
+                                { label: "Cabal", color: "#fff", bg: "#16a34a" },
+                                { label: "OCA",   color: "#c00",    bg: "#fff" },
+                                { label: "Ualá",  color: "#7c3aed", bg: "#fff" },
+                              ].map((item) => (
+                                <div key={item.label || item.img} className="rounded flex items-center justify-center shrink-0 px-2" style={{height:"26px", minWidth:"34px", background: item.bg}}>
+                                  {item.img
+                                    ? <img src={item.img} alt="" className={item.big ? "h-5 w-auto" : "h-4 w-auto"} />
+                                    : <span className="text-[11px] font-black leading-none" style={{color: item.color, fontStyle: item.italic ? "italic" : "normal"}}>{item.label}</span>
+                                  }
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
+                        <a
+                          href={qrUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#008ecc] text-white font-black uppercase tracking-widest text-[10px] py-2.5 rounded-lg transition-colors"
+                        >
+                          <MPLogo className="h-4 w-auto" />
+                          PAGAR CON MERCADO PAGO
+                        </a>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 border-t border-border" />
-                        <span className="text-[10px] text-foreground/30 uppercase tracking-widest font-bold">O PAGÁ CON TARJETA</span>
+                        <span className="text-[10px] text-foreground/50 uppercase tracking-widest font-bold">O PAGÁ CON TARJETA</span>
                         <div className="flex-1 border-t border-border" />
                       </div>
                     </div>
@@ -302,6 +526,7 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                     mercadoPago: ["onboarding_credits"],
                   },
                   visual: {
+                    hidePaymentButton: true,
                     style: {
                       theme: "dark",
                       customVariables: {
@@ -312,26 +537,23 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                     },
                   },
                 }}
-                onSubmit={async ({ selectedPaymentMethod, formData }) => {
-                  if (selectedPaymentMethod === "bank_transfer" || selectedPaymentMethod === "atm") return
-                  try {
-                    const res = await apiClient.post("/pagos/procesar-tarjeta", { formData, idPlan: plan.idPlan })
-                    const { status } = res.data?.data || {}
-                    const frontendUrl = window.location.origin
-                    if (status === "approved") window.location.href = `${frontendUrl}/alumno/pago-exitoso`
-                    else if (status === "in_process" || status === "pending") window.location.href = `${frontendUrl}/alumno/pago-pendiente`
-                    else { toast.error("Pago rechazado"); throw new Error("Pago rechazado") }
-                  } catch (err) {
-                    const msg = err?.response?.data?.message || err?.message || "Error al procesar el pago"
-                    toast.error(msg)
-                    throw err
-                  }
-                }}
                 onError={(error) => {
                   console.error("MP Brick error:", error)
                   toast.error("Error en el formulario de pago")
                 }}
               />
+
+              <button
+                type="button"
+                onClick={procesarPago}
+                disabled={pagando}
+                className="flex items-center justify-center gap-2 w-full bg-lime-400 hover:bg-lime-300 disabled:opacity-60 disabled:cursor-not-allowed text-black font-black uppercase tracking-widest text-xs py-3.5 rounded-lg transition-colors"
+              >
+                {pagando
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Procesando...</>
+                  : <><ShieldCheck className="h-4 w-4" /> Pagar ${Number(plan.precio).toLocaleString("es-AR")}</>
+                }
+              </button>
               </>
             ) : (
               <div className="flex items-center justify-center py-10">
@@ -351,13 +573,13 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                   <div className="grid grid-cols-2 divide-x divide-border border-b border-border">
                     {configBanco.banco && (
                       <div className="px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">BANCO / ENTIDAD</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">BANCO / ENTIDAD</p>
                         <p className="text-sm font-bold text-foreground mt-0.5">{configBanco.banco}</p>
                       </div>
                     )}
                     {configBanco.titular && (
                       <div className="px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">TITULAR</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">TITULAR</p>
                         <p className="text-sm font-bold text-foreground mt-0.5">{configBanco.titular}</p>
                       </div>
                     )}
@@ -367,7 +589,7 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                 {configBanco.cuit && (
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">CUIT</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">CUIT</p>
                       <p className="text-sm font-mono font-bold text-foreground tracking-wider mt-0.5">{configBanco.cuit}</p>
                     </div>
                     <CopyBtn text={configBanco.cuit} label="Copiar CUIT" />
@@ -377,7 +599,7 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                 {configBanco.cbu && (
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">CBU</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">CBU</p>
                       <p className="text-sm font-mono font-bold text-foreground tracking-wider mt-0.5">{configBanco.cbu}</p>
                     </div>
                     <CopyBtn text={configBanco.cbu} label="Copiar CBU" />
@@ -387,8 +609,8 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                 {configBanco.alias && (
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">ALIAS</p>
-                      <p className="text-base font-mono font-black text-lime-400 mt-0.5">{configBanco.alias}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">ALIAS</p>
+                      <p className="text-base font-mono font-black text-lime-700 dark:text-lime-400 mt-0.5">{configBanco.alias}</p>
                     </div>
                     <CopyBtn text={configBanco.alias} label="Copiar Alias" />
                   </div>
@@ -404,7 +626,7 @@ function ModalPago({ plan, open, onClose, configBanco }) {
             )}
 
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55 mb-2">
                 CARGAR COMPROBANTE DE PAGO
               </p>
               <input
@@ -419,9 +641,9 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                 }}
               />
               {comprobante ? (
-                <div className="flex items-center gap-2 border border-lime-400/30 bg-lime-400/5 rounded-lg px-4 py-3">
-                  <CheckCircle2 className="h-4 w-4 text-lime-400 shrink-0" />
-                  <p className="text-sm text-lime-400 font-semibold truncate">{comprobante}</p>
+                <div className="flex items-center gap-2 border border-lime-600/30 dark:border-lime-400/30 bg-lime-400/5 rounded-lg px-4 py-3">
+                  <CheckCircle2 className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0" />
+                  <p className="text-sm text-lime-700 dark:text-lime-400 font-semibold truncate">{comprobante}</p>
                 </div>
               ) : (
                 <button
@@ -436,21 +658,21 @@ function ModalPago({ plan, open, onClose, configBanco }) {
                     </>
                   ) : (
                     <>
-                      <Upload className="h-6 w-6 text-foreground/30 group-hover:text-foreground/50 transition-colors" />
-                      <span className="text-xs text-foreground/40">
+                      <Upload className="h-6 w-6 text-foreground/40 group-hover:text-foreground/60 transition-colors" />
+                      <span className="text-xs text-foreground/60">
                         Arrastrá tu comprobante aquí o{" "}
-                        <span className="text-lime-400 underline underline-offset-2">haz clic para subir</span>
+                        <span className="text-lime-700 dark:text-lime-400 underline underline-offset-2">haz clic para subir</span>
                       </span>
-                      <span className="text-[10px] text-foreground/25">PDF, JPG, PNG hasta 10MB</span>
+                      <span className="text-[10px] text-foreground/40">PDF, JPG, PNG hasta 10MB</span>
                     </>
                   )}
                 </button>
               )}
             </div>
 
-            <p className="flex items-center gap-1.5 text-[11px] text-foreground/35">
-              <span className="h-3 w-3 rounded-full border border-foreground/25 inline-flex items-center justify-center shrink-0">
-                <span className="h-1 w-1 rounded-full bg-foreground/25" />
+            <p className="flex items-center gap-1.5 text-[11px] text-foreground/55">
+              <span className="h-3 w-3 rounded-full border border-foreground/40 inline-flex items-center justify-center shrink-0">
+                <span className="h-1 w-1 rounded-full bg-foreground/40" />
               </span>
               Acreditación sujeta a verificación (demora habitual: 10-30 min).
             </p>
@@ -523,7 +745,6 @@ export default function RenovarMembresia({ onRenovado }) {
   const [configBanco, setConfigBanco] = useState({ banco: "", titular: "", cuit: "", cbu: "", alias: "" })
   const [planModal, setPlanModal]     = useState(null)
   const [faqOpen, setFaqOpen]         = useState(null)
-  const [tabActiva, setTabActiva]     = useState("mensuales")
 
   useEffect(() => {
     apiClient
@@ -562,41 +783,18 @@ export default function RenovarMembresia({ onRenovado }) {
     <div className="space-y-10">
       {/* ── Encabezado ── */}
       <div className="text-center space-y-2">
-        <p className="text-[11px] font-black uppercase tracking-widest text-lime-400">
+        <p className="text-[11px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
           MEMBRESÍAS & CRÉDITOS DISPONIBLES
         </p>
         <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-foreground leading-tight">
           Elegí tu plan o pack de créditos
         </h1>
-        <p className="text-sm text-foreground/50 max-w-lg mx-auto leading-relaxed">
+        <p className="text-sm text-foreground/60 max-w-lg mx-auto leading-relaxed">
           Seleccioná la opción que mejor se adapte a tu ritmo de entrenamiento. Flexibilidad total
           para reservar tus clases favoritas con la comunidad BRAVOS.
         </p>
       </div>
 
-      {/* ── Tabs ── */}
-      <div className="flex justify-center gap-3 flex-wrap">
-        <button
-          onClick={() => setTabActiva("mensuales")}
-          className={`px-5 py-2 text-xs font-black uppercase tracking-widest border rounded-full transition-colors ${
-            tabActiva === "mensuales"
-              ? "bg-lime-400 border-lime-400 text-black"
-              : "border-border text-foreground/50 hover:border-foreground/40 hover:text-foreground"
-          }`}
-        >
-          Planes Mensuales / Recurrentes
-        </button>
-        <button
-          onClick={() => setTabActiva("packs")}
-          className={`px-5 py-2 text-xs font-black uppercase tracking-widest border rounded-full transition-colors ${
-            tabActiva === "packs"
-              ? "bg-lime-400 border-lime-400 text-black"
-              : "border-border text-foreground/50 hover:border-foreground/40 hover:text-foreground"
-          }`}
-        >
-          Packs de Clases (sin vencimiento rápido)
-        </button>
-      </div>
 
       {/* ── Cards de planes ── */}
       <div
@@ -617,7 +815,7 @@ export default function RenovarMembresia({ onRenovado }) {
 
           return (
             /* Wrapper con overflow-visible para que el badge flote encima */
-            <div key={p.idPlan} className={`relative flex flex-col ${esRec ? "pt-4" : ""}`}>
+            <div key={p.idPlan} className={`relative flex flex-col transition-transform duration-300 hover:-translate-y-2 ${esRec ? "pt-4" : "mt-6"}`}>
 
               {/* Badge MÁS POPULAR — flota encima del borde de la card */}
               {esRec && (
@@ -629,16 +827,16 @@ export default function RenovarMembresia({ onRenovado }) {
               )}
 
               {/* Card */}
-              <div className={`flex-1 flex flex-col rounded-2xl border transition-all overflow-hidden ${
+              <div className={`flex-1 flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden ${
                 esRec
-                  ? "border-lime-400/60 bg-[#0d150d] shadow-[0_0_40px_rgba(163,230,53,0.18)]"
-                  : "border-border bg-card"
+                  ? "border-lime-400/60 bg-[#0d150d] shadow-[0_0_40px_rgba(163,230,53,0.18)] hover:shadow-[0_0_60px_rgba(163,230,53,0.35)] hover:border-lime-400"
+                  : "border-border bg-card shadow-sm hover:shadow-lg hover:border-foreground/20"
               }`}>
                 <div className="flex-1 flex flex-col p-6 gap-5 min-h-[500px]">
 
                   {/* Tier label */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${esRec ? "text-white/40" : "text-foreground/40"}`}>
                       {meta.label}
                     </span>
                     <span className={`text-[10px] font-bold ${meta.subColor}`}>
@@ -652,7 +850,7 @@ export default function RenovarMembresia({ onRenovado }) {
                       {p.nombre}
                     </h3>
                     {p.descripcion && (
-                      <p className="text-xs text-foreground/40 mt-1 leading-snug line-clamp-2">
+                      <p className={`text-xs mt-1 leading-snug line-clamp-2 ${esRec ? "text-white/40" : "text-foreground/40"}`}>
                         {p.descripcion.split("\n")[0]}
                       </p>
                     )}
@@ -662,7 +860,7 @@ export default function RenovarMembresia({ onRenovado }) {
                   <div>
                     <p className={`text-4xl font-black leading-none ${esRec ? "text-lime-400" : "text-foreground"}`}>
                       ${Number(p.precio).toLocaleString("es-AR")}
-                      <span className="text-sm font-bold text-foreground/40 ml-1">
+                      <span className={`text-sm font-bold ml-1 ${esRec ? "text-white/40" : "text-foreground/40"}`}>
                         {esRec ? "ARS/MES" : "ARS"}
                       </span>
                     </p>
@@ -674,18 +872,22 @@ export default function RenovarMembresia({ onRenovado }) {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-border" />
+                  <div className={`border-t ${esRec ? "border-white/10" : "border-border"}`} />
 
                   {/* Features */}
                   <ul className="space-y-3 flex-1">
                     {features.map((f, i) => (
                       <li key={i} className="flex items-start gap-2">
                         {f.ok ? (
-                          <Check className="h-3.5 w-3.5 mt-0.5 shrink-0 text-lime-400" />
+                          <Check className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${esRec ? "text-lime-400" : "text-lime-600 dark:text-lime-400"}`} />
                         ) : (
-                          <X className="h-3.5 w-3.5 mt-0.5 shrink-0 text-foreground/20" />
+                          <X className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${esRec ? "text-white/20" : "text-foreground/20"}`} />
                         )}
-                        <span className={`text-xs leading-snug ${f.ok ? "text-foreground/70" : "text-foreground/30 line-through"}`}>
+                        <span className={`text-xs leading-snug ${
+                          f.ok
+                            ? esRec ? "text-white/70" : "text-foreground/70"
+                            : esRec ? "text-white/30 line-through" : "text-foreground/30 line-through"
+                        }`}>
                           {f.text}
                         </span>
                       </li>
@@ -698,7 +900,7 @@ export default function RenovarMembresia({ onRenovado }) {
                     className={`w-full flex items-center justify-center gap-2 py-3.5 text-sm font-black uppercase tracking-widest rounded-xl transition-colors ${
                       esRec
                         ? "bg-lime-400 text-black hover:bg-lime-300"
-                        : "border border-border text-foreground hover:border-foreground/40 hover:bg-foreground/5"
+                        : "border border-border text-foreground hover:border-foreground/50 hover:bg-foreground/5"
                     }`}
                   >
                     ELEGIR PLAN {esRec && "→"}
@@ -714,10 +916,10 @@ export default function RenovarMembresia({ onRenovado }) {
       {planesOrdenados.length > 1 && (
         <div>
           <div className="mb-4">
-            <p className="text-[11px] font-black uppercase tracking-widest text-foreground/40">
+            <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55">
               COMPARATIVA DE DISCIPLINAS Y BENEFICIOS
             </p>
-            <p className="text-xs text-foreground/30 mt-0.5">
+            <p className="text-xs text-foreground/50 mt-0.5">
               Conocé todo lo que incluye cada nivel de suscripción en nuestra sede.
             </p>
           </div>
@@ -725,11 +927,11 @@ export default function RenovarMembresia({ onRenovado }) {
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 pr-4 text-[10px] font-black uppercase tracking-widest text-foreground/40 w-[28%]">
+                  <th className="text-left py-3 pr-4 text-[10px] font-black uppercase tracking-widest text-foreground/55 w-[28%]">
                     DISCIPLINA / BENEFICIO
                   </th>
                   {planesOrdenados.map((p) => (
-                    <th key={p.idPlan} className="py-3 px-2 text-center text-[10px] font-black uppercase tracking-widest text-foreground/50">
+                    <th key={p.idPlan} className="py-3 px-2 text-center text-[10px] font-black uppercase tracking-widest text-foreground/60">
                       {p.nombre}
                     </th>
                   ))}
@@ -737,18 +939,18 @@ export default function RenovarMembresia({ onRenovado }) {
               </thead>
               <tbody>
                 {DISCIPLINAS.map((disc, filaIdx) => (
-                  <tr key={disc} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                    <td className="py-3 pr-4 text-foreground/60 font-medium">{disc}</td>
+                  <tr key={disc} className="border-b border-border hover:bg-foreground/5">
+                    <td className="py-3 pr-4 text-foreground/70 font-medium">{disc}</td>
                     {planesOrdenados.map((p, colIdx) => {
                       const val = valorTabla(filaIdx, colIdx, p)
                       return (
                         <td key={p.idPlan} className="py-3 px-2 text-center">
                           {val.ok ? (
-                            <span className="font-semibold text-foreground/70">
-                              {val.text || <Check className="h-3.5 w-3.5 inline text-lime-400" />}
+                            <span className="font-semibold text-foreground/80">
+                              {val.text || <Check className="h-3.5 w-3.5 inline text-lime-600 dark:text-lime-400" />}
                             </span>
                           ) : (
-                            <span className="text-foreground/20">—</span>
+                            <span className="text-foreground/30">—</span>
                           )}
                         </td>
                       )
@@ -765,21 +967,21 @@ export default function RenovarMembresia({ onRenovado }) {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* FAQ */}
         <div className="lg:col-span-3 space-y-2">
-          <p className="text-[11px] font-black uppercase tracking-widest text-foreground/40 mb-3">
+          <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55 mb-3">
             ? PREGUNTAS FRECUENTES
           </p>
           {FAQS.map((faq, i) => (
             <div key={i} className="border border-border rounded-xl overflow-hidden">
               <button
                 onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-foreground/[0.02] transition-colors"
+                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-foreground/5 transition-colors"
               >
                 <span className="text-sm font-semibold text-foreground">{faq.q}</span>
-                <ChevronDown className={`h-4 w-4 shrink-0 text-foreground/40 transition-transform ${faqOpen === i ? "rotate-180" : ""}`} />
+                <ChevronDown className={`h-4 w-4 shrink-0 text-foreground/50 transition-transform ${faqOpen === i ? "rotate-180" : ""}`} />
               </button>
               {faqOpen === i && (
                 <div className="px-4 pb-4 border-t border-border">
-                  <p className="text-xs text-foreground/60 leading-relaxed pt-3">{faq.a}</p>
+                  <p className="text-xs text-foreground/65 leading-relaxed pt-3">{faq.a}</p>
                 </div>
               )}
             </div>
@@ -789,51 +991,51 @@ export default function RenovarMembresia({ onRenovado }) {
         {/* Medios de pago + soporte */}
         <div className="lg:col-span-2 space-y-4">
           <div className="border border-border rounded-xl p-4 space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">
               MEDIOS DE PAGO OFICIALES
             </p>
-            <div className="flex items-center gap-3 py-2 border-b border-border/50">
+            <div className="flex items-center gap-3 py-2 border-b border-border">
               <div className="h-9 w-14 shrink-0 rounded-lg bg-[#1a1169] flex items-center justify-center px-1">
                 <MPLogo className="h-6 w-auto" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground">Mercado Pago</p>
-                <p className="text-[11px] text-foreground/40">Tarjeta, Débito, Dinero en cuenta</p>
+                <p className="text-[11px] text-foreground/55">Tarjeta, Débito, Dinero en cuenta</p>
               </div>
-              <span className="shrink-0 text-[10px] bg-lime-400/10 text-lime-400 font-bold px-2 py-0.5 border border-lime-400/30 rounded-full">
+              <span className="shrink-0 text-[10px] bg-lime-400/15 text-lime-700 dark:text-lime-400 font-bold px-2 py-0.5 border border-lime-500/30 dark:border-lime-400/30 rounded-full">
                 Inmediato
               </span>
             </div>
             <div className="flex items-center gap-3 py-2">
-              <div className="h-9 w-14 shrink-0 rounded-lg bg-foreground/[0.06] flex items-center justify-center">
-                <Banknote className="h-4 w-4 text-foreground/40" />
+              <div className="h-9 w-14 shrink-0 rounded-lg bg-foreground/[0.08] flex items-center justify-center">
+                <Banknote className="h-4 w-4 text-foreground/50" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground">Transferencia Bancaria</p>
                 {configBanco.alias || configBanco.cbu ? (
-                  <p className="text-[11px] text-foreground/40 truncate">
+                  <p className="text-[11px] text-foreground/55 truncate">
                     {configBanco.alias ? `Alias: ${configBanco.alias}` : configBanco.cbu}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-foreground/25">Configurar en Admin</p>
+                  <p className="text-[11px] text-foreground/40">Configurar en Admin</p>
                 )}
               </div>
-              <span className="shrink-0 text-[10px] text-foreground/30 font-medium">10-30 min</span>
+              <span className="shrink-0 text-[10px] text-foreground/50 font-medium">10-30 min</span>
             </div>
           </div>
 
           <div className="border border-border rounded-xl p-4 space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">
               ATENCIÓN AL ALUMNO
             </p>
-            <p className="text-xs text-foreground/50">
+            <p className="text-xs text-foreground/60">
               ¿Tenés dudas con tu facturación? Contactate con nuestro equipo de soporte.
             </p>
             <a
               href="https://wa.me/549XXXXXXXXXX"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-lime-400 hover:text-lime-300 transition-colors"
+              className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-300 transition-colors"
             >
               <MessageCircle className="h-3.5 w-3.5" />
               WHATSAPP SOPORTE BRAVOS
@@ -847,6 +1049,7 @@ export default function RenovarMembresia({ onRenovado }) {
         plan={planModal}
         open={!!planModal}
         onClose={() => setPlanModal(null)}
+        onRenovado={onRenovado}
         configBanco={configBanco}
       />
     </div>

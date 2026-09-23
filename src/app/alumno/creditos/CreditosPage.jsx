@@ -25,16 +25,16 @@ function MovimientoRow({ mov }) {
 
   const estadoMeta = (() => {
     const e = mov.estado
-    if (e === "Histórico")                      return { label: "Recarga",        color: "text-lime-400",       bg: "bg-lime-400/10 border-lime-400/20", Icon: Zap }
-    if (e === "Cancelada (Devuelto)")            return { label: "Devuelto",        color: "text-emerald-400",    bg: "bg-emerald-400/10 border-emerald-400/20", Icon: RotateCcw }
-    if (e === "Cancelada (Fuera de término)")    return { label: "Sin devolución",  color: "text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
-    if (e === "No asistió")                      return { label: "No asistió",      color: "text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
+    if (e === "Histórico")                      return { label: "Recarga",        color: "text-lime-700 dark:text-lime-400",       bg: "bg-lime-400/10 border-lime-400/20", Icon: Zap }
+    if (e === "Cancelada (Devuelto)")            return { label: "Devuelto",        color: "text-emerald-700 dark:text-emerald-400",    bg: "bg-emerald-400/10 border-emerald-400/20", Icon: RotateCcw }
+    if (e === "Cancelada (Fuera de término)")    return { label: "Sin devolución",  color: "text-orange-700 dark:text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
+    if (e === "No asistió")                      return { label: "No asistió",      color: "text-red-700 dark:text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
     if (e === "Próxima")                         return { label: "Próxima",         color: "text-foreground/40",  bg: "bg-foreground/5 border-border", Icon: Clock }
-    if (e === "Completada")                      return { label: "Completada",      color: "text-sky-400",        bg: "bg-sky-400/10 border-sky-400/20", Icon: CheckCircle2 }
+    if (e === "Completada")                      return { label: "Completada",      color: "text-sky-700 dark:text-sky-400",        bg: "bg-sky-400/10 border-sky-400/20", Icon: CheckCircle2 }
     return { label: e, color: "text-foreground/60", bg: "bg-foreground/5 border-border", Icon: CheckCircle2 }
   })()
 
-  const creditoColor = esRecarga ? "text-lime-400" : esNeg || esCero ? "text-red-400" : "text-foreground/50"
+  const creditoColor = esRecarga ? "text-lime-700 dark:text-lime-400" : esNeg || esCero ? "text-red-700 dark:text-red-400" : "text-foreground/50"
 
   return (
     <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border last:border-0 hover:bg-foreground/[0.02] transition-colors">
@@ -60,18 +60,33 @@ export default function CreditosPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
-  const cargar = () => {
-    setLoading(true)
+  const cargar = (silencioso = false) => {
+    if (!silencioso) setLoading(true)
     apiClient.get("/reservas/mis-creditos-movimientos")
       .then(r => setDatos(r.data?.data || r.data))
-      .catch(() => setError("No pudimos cargar tu información de créditos."))
-      .finally(() => setLoading(false))
+      .catch(() => { if (!silencioso) setError("No pudimos cargar tu información de créditos.") })
+      .finally(() => { if (!silencioso) setLoading(false) })
   }
 
   useEffect(() => { cargar() }, [])
 
+  // Quien paga puede escanear el QR desde otro dispositivo (el celular) mientras
+  // esta pantalla sigue abierta en la compu: nunca se oculta ni pierde el foco,
+  // así que hace falta preguntar sola cada tanto en vez de esperar un evento.
+  useEffect(() => {
+    const interval = setInterval(() => cargar(true), 8000)
+    const alVolver = () => { if (document.visibilityState === "visible") cargar(true) }
+    document.addEventListener("visibilitychange", alVolver)
+    window.addEventListener("focus", alVolver)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener("visibilitychange", alVolver)
+      window.removeEventListener("focus", alVolver)
+    }
+  }, [])
+
   if (loading) return <div className="flex items-center justify-center min-h-[400px]"><GymLoader text="Cargando créditos..." /></div>
-  if (error)   return <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-sm text-red-400">{error}</div>
+  if (error)   return <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-sm text-red-700 dark:text-red-400">{error}</div>
   if (!datos)  return null
 
   const { abono, movimientos } = datos
@@ -96,9 +111,9 @@ export default function CreditosPage() {
       {sinAbono && (
         <>
           <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-            <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+            <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-bold text-red-400">Sin membresía vigente</p>
+              <p className="text-sm font-bold text-red-700 dark:text-red-400">Sin membresía vigente</p>
               <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para volver a reservar clases.</p>
             </div>
           </div>
@@ -111,7 +126,7 @@ export default function CreditosPage() {
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Disponibles</p>
-            <p className="text-7xl font-black text-lime-400 leading-none tabular-nums">{disponibles}</p>
+            <p className="text-7xl font-black text-lime-700 dark:text-lime-400 leading-none tabular-nums">{disponibles}</p>
             <p className="text-sm text-foreground/40 mt-2">de {total} créditos · {abono?.nombrePlan || "—"}</p>
           </div>
           <div className="text-right shrink-0">

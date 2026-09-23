@@ -21,7 +21,7 @@ export default function PagoExitosoPage() {
         }
       `}</style>
 
-      <div className="circle-pop w-24 h-24 rounded-full bg-lime-400/10 border-2 border-lime-400 flex items-center justify-center">
+      <div className="circle-pop w-24 h-24 rounded-full bg-lime-400/10 border-2 border-lime-600 dark:border-lime-400 flex items-center justify-center">
         <svg viewBox="0 0 52 52" className="w-12 h-12" fill="none">
           <polyline
             className="check-draw"

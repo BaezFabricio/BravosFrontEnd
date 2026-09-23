@@ -26,7 +26,7 @@ import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 
 const navigation = [
-  { name: "Dashboard", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
+  { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
   { name: "Usuarios", mobileLabel: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta" },
@@ -174,19 +174,19 @@ export default function AdminLayout({ children }) {
                   to={item.href}
                   className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
                     isActive
-                      ? "border-l-2 border-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-400"
+                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   }`}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-400" : ""}`} />
+                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
                   {item.name}
                 </Link>
               )
             })}
           </nav>
 
-          
+
 
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2">
@@ -205,7 +205,7 @@ export default function AdminLayout({ children }) {
               <button
                 onClick={handleLogout}
                 title="Cerrar sesión"
-                className="shrink-0 p-1.5 text-sidebar-foreground/30 hover:text-red-400 transition-colors rounded"
+                className="shrink-0 p-1.5 text-sidebar-foreground/30 hover:text-red-700 dark:hover:text-red-400 transition-colors rounded"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -275,7 +275,7 @@ export default function AdminLayout({ children }) {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-400" : "text-sidebar-foreground/50"}`}
+                    className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
                     <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>

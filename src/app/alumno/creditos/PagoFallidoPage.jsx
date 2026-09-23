@@ -30,7 +30,7 @@ export default function PagoFallidoPage() {
         }
       `}</style>
 
-      <div className="circle-pop-err w-24 h-24 rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center">
+      <div className="circle-pop-err w-24 h-24 rounded-full bg-red-500/10 border-2 border-red-600 dark:border-red-500 flex items-center justify-center">
         <svg viewBox="0 0 52 52" className="w-12 h-12" fill="none">
           <line className="x-line-1" x1="14" y1="14" x2="38" y2="38" stroke="#f87171" strokeWidth="4.5" strokeLinecap="round"/>
           <line className="x-line-2" x1="38" y1="14" x2="14" y2="38" stroke="#f87171" strokeWidth="4.5" strokeLinecap="round"/>
