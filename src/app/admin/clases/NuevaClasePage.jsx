@@ -138,16 +138,15 @@ export default function NuevaClasePage() {
     }
     if (!tieneAcceso) { navigate("/admin/clases"); return }
 
-    const token = localStorage.getItem("token")
-    const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const headers = { "Content-Type": "application/json" }
 
-    fetch("http://localhost:3001/api/vv1/profesores", { headers })
+    fetch("/api/vv1/profesores", { headers })
       .then(r => r.json())
       .then(r => { if (r.success) setProfesores(r.data) })
       .catch(err => toast.error("Error al cargar profesores", { description: err.message }))
       .finally(() => setLoadingProfesores(false))
 
-    fetch("http://localhost:3001/api/vv1/planes", { headers })
+    fetch("/api/vv1/planes", { headers })
       .then(r => r.json())
       .then(r => setPlanes(r.data || []))
       .catch(err => console.error("Error al cargar planes:", err))
@@ -200,7 +199,6 @@ export default function NuevaClasePage() {
         ? new Date(formData.publicarDatetime).toISOString().slice(0, 19).replace('T', ' ')
         : null
 
-      const token = localStorage.getItem("token")
       const payload = {
         nombreClase: formData.nombre,
         tipoClase: "Grupal",
@@ -224,9 +222,9 @@ export default function NuevaClasePage() {
         },
       }
 
-      const response = await fetch("http://localhost:3001/api/vv1/clases", {
+      const response = await fetch("/api/vv1/clases", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
       const result = await response.json()

@@ -3,7 +3,7 @@ import { PlayCircle, X } from "lucide-react"
 
 const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL
   ? import.meta.env.VITE_API_BASE_URL.replace('/api/vv1', '')
-  : 'http://localhost:3001'
+  : ''
 
 function getYoutubeEmbedUrl(url) {
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)

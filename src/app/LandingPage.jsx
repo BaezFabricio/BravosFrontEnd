@@ -1,3 +1,4 @@
+import { haySesion, cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -128,7 +129,6 @@ function LandingPage() {
 
   useEffect(() => {
     let isMounted = true
-    const token = localStorage.getItem("token")
     const storedUser = localStorage.getItem("usuario")
     const storedAvatar = localStorage.getItem("avatarUrl")
     const storedPermisos = localStorage.getItem("permisos")
@@ -143,7 +143,7 @@ function LandingPage() {
       }
     }
 
-    if (token) {
+    if (haySesion()) {
       setIsLoggedIn(true)
       if (storedUser) {
         try {
@@ -228,7 +228,7 @@ function LandingPage() {
       .finally(() => {
         if (isMounted) setConfigLoaded(true)
       })
-    fetch("http://localhost:3001/api/vv1/clases/disponibles")
+    fetch("/api/vv1/clases/disponibles")
       .then((res) => res.json())
       .then((result) => {
         if (isMounted) {
@@ -259,7 +259,7 @@ function LandingPage() {
   }, [heroImages])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
+    cerrarSesionEnServidor()
     localStorage.removeItem('usuario')
     localStorage.removeItem('avatarUrl')
     localStorage.removeItem('permisos')

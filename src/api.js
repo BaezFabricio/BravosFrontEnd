@@ -1,3 +1,4 @@
+import { cerrarSesionEnServidor } from './lib/sesion'
 import axios from 'axios'
 
 // URL base configurable para evitar hardcodear localhost (soporta móvil/LAN)
@@ -71,21 +72,8 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // la sesión viaja en una cookie httpOnly
 })
-
-apiClient.interceptors.request.use(
-  (config) => {
-    // ✨ SOLUCIÓN: Cambiado a 'token' para que coincida exactamente con lo que guardás en el Login
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
 
 // Interceptor para manejo de errores global
 apiClient.interceptors.response.use(
@@ -258,9 +246,6 @@ export const eliminarUsuario = async (id) => {
 export const registroUsuario = async (datosRegistro) => {
   try {
     const response = await apiClient.post('/auth/registro', datosRegistro)
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token)
-    }
     return response.data
   } catch (error) {
     console.error('Error al registrar usuario:', error)
@@ -305,12 +290,8 @@ export const loginUsuario = async (correo, password) => {
     // Ajustado a 'correo' para que coincida con tu req.body de Node.js
     const response = await apiClient.post('/auth/login', { correo, password })
     
-    // Si viene la info anidada en data, guardamos el token
     const data = response.data.data || response.data;
     
-    if (data.token) {
-      localStorage.setItem('token', data.token)
-    }
     return data
   } catch (error) {
     console.error('Error al iniciar sesión:', error)
@@ -322,8 +303,7 @@ export const loginUsuario = async (correo, password) => {
  * Logout del usuario
  */
 export const logoutUsuario = () => {
-  localStorage.removeItem('token')
-  window.location.href = '/login'
+  cerrarSesionEnServidor().finally(() => { window.location.href = '/login' })
 }
 
 // ============================================
@@ -372,14 +352,13 @@ export const resetearContrasena = async (email, code, password) => {
   }
 }
 
-const buildApiRoute = (endpoint) => `http://localhost:3001/api/vv1${endpoint}`
+const buildApiRoute = (endpoint) => `/api/vv1${endpoint}`
 
 export const getAbonosUsuario = async (idUsuario) => {
-  const token = localStorage.getItem('token')
 
   const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos`), {
     headers: {
-      Authorization: `Bearer ${token}`,
+      
     },
   })
 
@@ -397,13 +376,11 @@ export const getAbonosUsuario = async (idUsuario) => {
 }
 
 export const crearAbonoUsuario = async (idUsuario, abono) => {
-  const token = localStorage.getItem('token')
 
   const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos`), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(abono),
   })
@@ -418,13 +395,11 @@ export const crearAbonoUsuario = async (idUsuario, abono) => {
 }
 
 export const editarAbonoUsuario = async (idUsuario, idCredito, abono) => {
-  const token = localStorage.getItem('token')
 
   const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos/${idCredito}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(abono),
   })
@@ -439,12 +414,11 @@ export const editarAbonoUsuario = async (idUsuario, idCredito, abono) => {
 }
 
 export const cancelarAbonoUsuario = async (idUsuario, idCredito) => {
-  const token = localStorage.getItem('token')
 
   const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos/${idCredito}`), {
     method: 'DELETE',
     headers: {
-      Authorization: `Bearer ${token}`,
+      
     },
   })
 

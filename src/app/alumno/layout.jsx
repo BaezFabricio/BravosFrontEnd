@@ -1,3 +1,4 @@
+import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
@@ -163,6 +164,7 @@ export default function AlumnoLayout({ children }) {
   }
 
   const handleLogout = () => {
+    cerrarSesionEnServidor()
     localStorage.clear()
     navigate("/login", { replace: true })
   }

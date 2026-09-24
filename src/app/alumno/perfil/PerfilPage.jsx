@@ -84,10 +84,8 @@ export default function PerfilPage() {
     let mounted = true
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token')
         const response = await apiClient.get('/auth/me', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
+                  })
         const data = response.data?.data || response.data
         const usuario = data?.usuario || data
 
@@ -218,7 +216,6 @@ export default function PerfilPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
         },
         body: JSON.stringify({ avatarData: value }),
       })
@@ -289,12 +286,10 @@ export default function PerfilPage() {
 
     setPasswordLoading(true)
     try {
-      const token = localStorage.getItem("token")
-      const response = await fetch("http://localhost:3001/api/vv1/auth/cambiar-contrasena", {
+      const response = await fetch("/api/vv1/auth/cambiar-contrasena", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           contrasenaActual: passwordForm.currentPassword,

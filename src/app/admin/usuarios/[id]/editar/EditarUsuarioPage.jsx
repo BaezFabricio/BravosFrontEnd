@@ -59,10 +59,9 @@ export default function EditarUsuarioPage() {
     const cargarTodo = async () => {
       try {
         setIsLoading(true)
-        const token = localStorage.getItem("token")
 
-        const resPerfiles = await fetch("http://localhost:3001/api/vv1/perfiles", {
-          headers: { Authorization: `Bearer ${token}` },
+        const resPerfiles = await fetch("/api/vv1/perfiles", {
+          headers: {  },
         })
         const datosPerfiles = await resPerfiles.json()
         if (datosPerfiles.success && Array.isArray(datosPerfiles.data)) {
@@ -107,7 +106,6 @@ export default function EditarUsuarioPage() {
     if (!validateForm()) return
     setIsSaving(true)
     try {
-      const token = localStorage.getItem("token")
       const payload = {
         nombre: formData.nombre.trim(),
         dni: formData.dni.trim(),
@@ -117,9 +115,9 @@ export default function EditarUsuarioPage() {
         idPerfil: formData.idPerfil ? parseInt(formData.idPerfil) : null,
         estado: formData.estado,
       }
-      const res = await fetch(`http://localhost:3001/api/vv1/usuarios/${id}`, {
+      const res = await fetch(`/api/vv1/usuarios/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
       const resultado = await res.json()

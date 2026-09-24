@@ -1,3 +1,4 @@
+import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
@@ -74,6 +75,7 @@ export default function ProfesorLayout({ children }) {
   }, [])
 
   const handleLogout = () => {
+    cerrarSesionEnServidor()
     localStorage.clear();
     navigate("/login");
   }

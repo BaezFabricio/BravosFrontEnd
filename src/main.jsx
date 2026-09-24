@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import './lib/sesion'
 import './index.css'
 import App from './App.jsx'
 // 1. Importamos el provider que ya tenés creado

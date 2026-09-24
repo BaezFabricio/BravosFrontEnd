@@ -62,7 +62,6 @@ export default function LoginPage() {
         return
       }
 
-      if (data.data?.token) localStorage.setItem("token", data.data.token)
       localStorage.setItem("usuario", JSON.stringify(data.data.usuario))
       const listadoPermisos = data.data?.permisos || []
       localStorage.setItem("permisos", JSON.stringify(listadoPermisos))

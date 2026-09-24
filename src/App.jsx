@@ -1,3 +1,4 @@
+import { haySesion } from './lib/sesion'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import LandingPage from './app/LandingPage.jsx'
@@ -46,10 +47,9 @@ import DetalleRutinaPage from './app/profesor/rutinas/[id]/DetalleRutinaPage.jsx
 
 // 🟢 GUARDIÁN DE RUTAS DINÁMICO POR PERMISOS
 function RequireAuth({ children, allowedRoles }) {
-  const token = localStorage.getItem('token')
   const permisosRaw = localStorage.getItem('permisos')
 
-  if (!token) {
+  if (!haySesion()) {
     return <Navigate to="/login" replace />
   }
 

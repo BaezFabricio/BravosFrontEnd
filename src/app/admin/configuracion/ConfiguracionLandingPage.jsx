@@ -239,7 +239,7 @@ function ConfiguracionLandingPage() {
       // El servidor exige sesión y permiso de configuración para guardar (no se fija Content-Type: lo arma el navegador para FormData)
       const res = await fetch('/landing/config', {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
+        headers: {  },
         body: fd,
       })
       if (!res.ok) throw new Error()

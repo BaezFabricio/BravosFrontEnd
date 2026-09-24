@@ -1,3 +1,4 @@
+import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
@@ -28,14 +29,27 @@ import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 
+// Grupos del menú, en el orden en que se dibujan. El primero va sin título.
+const GRUPOS = [
+  { key: "inicio", titulo: null },
+  { key: "gestion", titulo: "Gestión" },
+  { key: "sistema", titulo: "Sistema" },
+]
+
+// Título de cada grupo
+const TituloGrupo = ({ titulo }) =>
+  titulo ? (
+    <p className="px-3 pb-1 pt-4 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
+  ) : null
+
 const navigation = [
-  { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
-  { name: "Usuarios y Abonos", mobileLabel: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
-  { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
-  { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta" },
-  { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta" },
-  { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta" },
-  { name: "Configuración", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta" },
+  { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta", grupo: "inicio" },
+  { name: "Usuarios y Abonos", mobileLabel: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta", grupo: "gestion" },
+  { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta", grupo: "gestion" },
+  { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta", grupo: "gestion" },
+  { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
+  { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },
+  { name: "Configuración", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
 ]
 
 export default function AdminLayout({ children }) {
@@ -124,7 +138,7 @@ export default function AdminLayout({ children }) {
   const avatarFallback = getIniciales(userData.nombrecompleto)
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
+    cerrarSesionEnServidor()
     localStorage.removeItem("usuario")
     localStorage.removeItem("avatarUrl")
     localStorage.removeItem("permisos")
@@ -163,28 +177,36 @@ export default function AdminLayout({ children }) {
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-0.5">
-            {navigation.map((item) => {
-              const tieneAcceso =
-                permisos.includes(item.requiredPermission) ||
-                permisos.includes(item.requiredPermission.replace(':consulta', ':ver'));
-
-              if (!tieneAcceso) return null;
-
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+            {GRUPOS.map((g) => {
+              const visibles = navigation.filter((item) =>
+                item.grupo === g.key &&
+                (permisos.includes(item.requiredPermission) ||
+                  permisos.includes(item.requiredPermission.replace(':consulta', ':ver')))
+              )
+              if (visibles.length === 0) return null
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
-                    isActive
-                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                      : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                  }`}
-                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
-                >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
-                  {item.name}
-                </Link>
+                <div key={g.key} className="space-y-0.5">
+                  <TituloGrupo titulo={g.titulo} />
+                  {visibles.map((item) => {
+                    // "/admin" (Resumen) solo se marca en su propia página, no en todas las de adentro
+                    const isActive = item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/")
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                          isActive
+                            ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                            : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                        }`}
+                        onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+                      >
+                        <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
+                        {item.name}
+                      </Link>
+                    )
+                  })}
+                </div>
               )
             })}
           </nav>
@@ -274,7 +296,7 @@ export default function AdminLayout({ children }) {
               .filter(item => permisos.includes(item.requiredPermission) || permisos.includes(item.requiredPermission.replace(':consulta', ':ver')))
               .slice(0, 5)
               .map(item => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                const isActive = item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/")
                 return (
                   <Link
                     key={item.name}

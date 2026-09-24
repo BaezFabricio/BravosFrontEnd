@@ -129,17 +129,16 @@ export default function GestionAbonosPage() {
   // Comprobantes por abono existente (idAbono → array de docs)
   const [comprobantesAbonos, setComprobantesAbonos] = useState({})
 
-  const getToken = () => localStorage.getItem("token")
-  const getHeaders = () => ({ Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" })
+  const getHeaders = () => ({  "Content-Type": "application/json" })
 
   useEffect(() => {
     const permisos = (() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } })()
     if (!permisos.includes("membresias:alta")) { navigate("/admin/usuarios"); return }
 
-    const h = { Authorization: `Bearer ${getToken()}` }
+    const h = {  }
     Promise.all([
-      fetch("http://localhost:3001/api/vv1/planes",   { headers: h }).then(r => r.json()),
-      fetch("http://localhost:3001/api/vv1/usuarios", { headers: h }).then(r => r.json()),
+      fetch("/api/vv1/planes",   { headers: h }).then(r => r.json()),
+      fetch("/api/vv1/usuarios", { headers: h }).then(r => r.json()),
     ]).then(([rP, rU]) => {
       setPlanes(Array.isArray(rP.data) ? rP.data : [])
       const lista = Array.isArray(rU.data || rU) ? (rU.data || rU) : []
@@ -163,8 +162,8 @@ export default function GestionAbonosPage() {
     try {
       const url = usuarioPreId
         ? `/api/vv1/usuarios/${usuarioPreId}/abonos`
-        : "http://localhost:3001/api/vv1/usuarios/abonos/todos"
-      const r = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } })
+        : "/api/vv1/usuarios/abonos/todos"
+      const r = await fetch(url, { headers: {  } })
       const json = await r.json()
       const lista = Array.isArray(json.data) ? json.data : []
       setAbonos(lista.map(a => ({
@@ -196,7 +195,7 @@ export default function GestionAbonosPage() {
     setGuardando(true)
     try {
       const r = await fetch(
-        `http://localhost:3001/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
+        `/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
         { method: "PUT", headers: getHeaders(), body: JSON.stringify({
           fechaInicio:      formEdit.fechaInicio,
           fechaVencimiento: formEdit.fechaVencimiento,
@@ -218,7 +217,7 @@ export default function GestionAbonosPage() {
     setGuardando(true)
     try {
       const r = await fetch(
-        `http://localhost:3001/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
+        `/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
         { method: "DELETE", headers: getHeaders() }
       )
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || "Error") }
@@ -235,7 +234,7 @@ export default function GestionAbonosPage() {
     setGuardando(true)
     try {
       const r = await fetch(
-        `http://localhost:3001/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
+        `/api/vv1/usuarios/${abono.idUsuario}/abonos/${abono.id}`,
         { method: "PUT", headers: getHeaders(), body: JSON.stringify({ estado: "ACTIVO" }) }
       )
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || "Error") }
@@ -293,7 +292,7 @@ export default function GestionAbonosPage() {
   const cargarComprobantes = async (filaId, idUsuario) => {
     if (!idUsuario) return
     try {
-      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: {  } })
       const json = await r.json()
       setComprobantesMap(prev => ({ ...prev, [filaId]: json.data || [] }))
     } catch { setComprobantesMap(prev => ({ ...prev, [filaId]: [] })) }
@@ -302,7 +301,7 @@ export default function GestionAbonosPage() {
   const cargarComprobantesAbono = async (abonoId, idUsuario) => {
     if (!idUsuario || comprobantesAbonos[abonoId] !== undefined) return
     try {
-      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: { Authorization: `Bearer ${getToken()}` } })
+      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`, { headers: {  } })
       const json = await r.json()
       setComprobantesAbonos(prev => ({ ...prev, [abonoId]: json.data || [] }))
     } catch { setComprobantesAbonos(prev => ({ ...prev, [abonoId]: [] })) }
@@ -594,13 +593,13 @@ export default function GestionAbonosPage() {
         return (
           <div className="border border-border bg-card">
             {/* Cabecera con navegación de mes */}
-            <div className="border-b border-border px-5 py-3 flex items-center justify-between gap-4">
+            <div className="border-b border-border px-5 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresías</p>
                 <p className="text-xs text-foreground/40 mt-0.5">Agrupadas por mes de inicio · los comprobantes son los subidos en el mes elegido.</p>
               </div>
 
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-1 sm:shrink-0">
                 <button
                   onClick={() => moverMes(-1)}
                   className="w-7 h-7 flex items-center justify-center text-foreground/40 hover:text-foreground border border-border hover:border-foreground/30 transition-colors text-sm"

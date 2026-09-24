@@ -35,10 +35,9 @@ export default function ProfesorPerfilPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      const token = localStorage.getItem("token")
       const res = await fetch('/api/profesores/perfil', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
       if (!res.ok) throw new Error('Error al guardar')

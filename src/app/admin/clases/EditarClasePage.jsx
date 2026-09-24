@@ -108,12 +108,11 @@ export default function EditarClasePage() {
     try { ok = JSON.parse(storedPermisos || "[]").includes("clases:modificacion") } catch {}
     if (!ok) { navigate("/admin/clases"); return }
 
-    const token = localStorage.getItem("token")
-    const h = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    const h = { "Content-Type": "application/json" }
 
     Promise.all([
-      fetch(`http://localhost:3001/api/vv1/clases/${id}`, { headers: h }).then(r => r.json()),
-      fetch("http://localhost:3001/api/vv1/profesores", { headers: h }).then(r => r.json()),
+      fetch(`/api/vv1/clases/${id}`, { headers: h }).then(r => r.json()),
+      fetch("/api/vv1/profesores", { headers: h }).then(r => r.json()),
       apiClient.get("/planes").then(r => r.data).catch(() => ({ success: false })),
     ]).then(([resClase, resProfes, resPlanes]) => {
       if (resPlanes.success) setPlanes(resPlanes.data || [])
@@ -211,7 +210,6 @@ export default function EditarClasePage() {
         ? new Date(formData.publicarDatetime).toISOString().slice(0, 19).replace('T', ' ')
         : null
 
-      const token = localStorage.getItem("token")
       const payload = {
         nombreClase: formData.nombre,
         tipoClase: "Grupal",
@@ -232,9 +230,9 @@ export default function EditarClasePage() {
         },
       }
 
-      const response = await fetch(`http://localhost:3001/api/vv1/clases/${id}`, {
+      const response = await fetch(`/api/vv1/clases/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
       const result = await response.json()

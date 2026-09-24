@@ -87,10 +87,9 @@ export default function PerfilesPage() {
   const cargarPerfiles = async () => {
     setIsLoading(true)
     try {
-      const token = localStorage.getItem("token")
       const [resPerfiles, resUsuarios] = await Promise.all([
-        fetch("http://localhost:3001/api/vv1/perfiles", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("http://localhost:3001/api/vv1/usuarios",  { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        fetch("/api/vv1/perfiles", { headers: {  } }),
+        fetch("/api/vv1/usuarios",  { headers: {  } }).catch(() => null),
       ])
       const datos = await resPerfiles.json()
       const arrayReal = Array.isArray(datos?.data) ? datos.data : Array.isArray(datos) ? datos : []
@@ -209,10 +208,9 @@ export default function PerfilesPage() {
     if (editDialog.isNew) {
       setIsLoading(true)
       try {
-        const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:3001/api/vv1/perfiles", {
+        const res = await fetch("/api/vv1/perfiles", {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
         })
         if (!res.ok) throw new Error("Error al guardar")
@@ -233,10 +231,9 @@ export default function PerfilesPage() {
           : p
       ))
       try {
-        const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:3001/api/vv1/perfiles", {
+        const res = await fetch("/api/vv1/perfiles", {
           method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idPerfil: perfilOriginal?.idPerfil, nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
         })
         if (!res.ok) throw new Error("Error al guardar")
@@ -255,8 +252,7 @@ export default function PerfilesPage() {
     setDeleteDialog({ open: false, perfil: null })
     setPerfiles(prev => prev.filter(p => (p.idPerfil || p.id_perfil) !== id))
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`http://localhost:3001/api/vv1/perfiles/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } })
+      const res = await fetch(`/api/vv1/perfiles/${id}`, { method: "DELETE", headers: {  } })
       if (!res.ok) throw new Error("Error al eliminar")
       toast.success("Perfil eliminado")
     } catch {

@@ -33,9 +33,8 @@ export default function NuevoUsuarioPage() {
   useEffect(() => {
     const cargarPerfiles = async () => {
       try {
-        const token = localStorage.getItem("token")
-        const response = await fetch("http://localhost:3001/api/vv1/perfiles", {
-          headers: { "Authorization": `Bearer ${token}` }
+        const response = await fetch("/api/vv1/perfiles", {
+          headers: {  }
         })
         const datos = await response.json()
         if (datos.success && Array.isArray(datos.data)) {

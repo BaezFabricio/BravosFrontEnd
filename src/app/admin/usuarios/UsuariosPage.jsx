@@ -97,11 +97,10 @@ export default function UsuariosPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const token = localStorage.getItem("token")
 
       // 🟢 FETCH DIRECTO AL BACKEND: Saltamos getUsuarios() para evitar filtros fantasmas
-      const res = await fetch("http://localhost:3001/api/vv1/usuarios", {
-        headers: { "Authorization": `Bearer ${token}` }
+      const res = await fetch("/api/vv1/usuarios", {
+        headers: {  }
       })
       const resultado = await res.json()
       
@@ -281,7 +280,7 @@ export default function UsuariosPage() {
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">DNI</th>
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Teléfono</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Perfil</th>
+                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Perfil</th>
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Membresía</th>
                     <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Créditos</th>
@@ -291,7 +290,7 @@ export default function UsuariosPage() {
                 <tbody className="divide-y divide-border">
                   {filteredUsers.map((user) => (
                     <tr key={user.idUsuario || user.id} className="group hover:bg-foreground/3 transition-colors cursor-pointer" onClick={(e) => { if (!e.target.closest('[data-no-navigate]')) navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${user.idUsuario || user.id}`) }}>
-                      <td className="px-4 py-3">
+                      <td className="relative px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
                             {user.avatarUrl
@@ -300,10 +299,14 @@ export default function UsuariosPage() {
                             }
                           </div>
                           <div>
-                            <p className="font-semibold text-sm text-foreground">{user.nombre}</p>
-                            <p className="text-xs text-foreground/40">{user.email}</p>
+                            <p className="max-w-[170px] truncate font-semibold text-sm text-foreground sm:max-w-none">{user.nombre}</p>
+                            <p className="max-w-[170px] truncate text-xs text-foreground/40 sm:max-w-none">{user.email}</p>
+                            {/* En celular y tablet no hay "pasar el mouse": el acceso a los abonos se ve siempre */}
+                            <span className="mt-1.5 inline-block whitespace-nowrap border border-lime-400/30 bg-lime-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 xl:hidden">
+                              Ver Abonos →
+                            </span>
                           </div>
-                          <span className="ml-1 overflow-hidden max-w-0 group-hover:max-w-[120px] transition-all duration-300 ease-out opacity-0 group-hover:opacity-100">
+                          <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 xl:block">
                             <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
                               Ver Abonos →
                             </span>
@@ -316,7 +319,7 @@ export default function UsuariosPage() {
                       <td className="px-4 py-3 hidden lg:table-cell">
                         <span className="text-sm text-foreground">{user.telefono}</span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         <span className="text-sm font-semibold text-foreground">
                           {user.nombrePerfil || user.perfil || "Sin Perfil"}
                         </span>
