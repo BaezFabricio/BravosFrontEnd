@@ -23,8 +23,10 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
+import SelectorPanel from "@/components/SelectorPanel"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
+import BravoChat from "@/components/BravoChat"
 
 const navigation = [
   { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
@@ -225,6 +227,7 @@ export default function AdminLayout({ children }) {
             <div className="flex-1" />
             
             <div className="flex items-center gap-4">
+              <SelectorPanel actual="admin" />
               <ModeToggle />
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
                 <Home className="h-4 w-4" /> 
@@ -287,6 +290,8 @@ export default function AdminLayout({ children }) {
           </div>
         </nav>
       </div>
+
+      <BravoChat rol="admin" />
     </div>
   )
 }

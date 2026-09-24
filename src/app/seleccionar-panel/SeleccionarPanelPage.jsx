@@ -1,12 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { LayoutDashboard, Dumbbell, GraduationCap } from "lucide-react"
-import { panelesPermitidos } from "@/lib/paneles"
-
-const PANELES = [
-  { key: "admin", label: "Administrador", descripcion: "Gestión del gimnasio", icon: LayoutDashboard, href: "/admin" },
-  { key: "alumno", label: "Alumno", descripcion: "Tu panel de clases y abonos", icon: Dumbbell, href: "/alumno" },
-  { key: "profesor", label: "Profesor", descripcion: "Tus rutinas y clases", icon: GraduationCap, href: "/profesor" },
-]
+import { PANELES, panelesPermitidos } from "@/lib/paneles"
 
 export default function SeleccionarPanelPage() {
   const navigate = useNavigate()

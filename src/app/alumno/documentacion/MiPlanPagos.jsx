@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
-import { CreditCard, Plus, AlertCircle, CalendarClock } from "lucide-react"
+import { CreditCard, Plus, AlertCircle, CalendarClock, History } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import RenovarMembresia, { PagarPlanModal } from "@/components/RenovarMembresia"
 import { useMiPlan, fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
@@ -10,8 +10,10 @@ import { useMiPlan, fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
  * muestra el/los plan(es) vigentes, permite pagar el mes cuando está por vencer
  * (o ya venció) y contratar otro plan, cuyos créditos se suman a los actuales.
  */
-export default function MiPlanPagos() {
-  const { data, cargando, recargar } = useMiPlan()
+export default function MiPlanPagos({ onActualizado, onVerHistorial }) {
+  const { data, cargando, recargar: recargarPlan } = useMiPlan()
+  // Al renovar o contratar se actualiza el plan y se avisa a la página (por ejemplo, para refrescar el historial)
+  const recargar = () => { recargarPlan(); onActualizado?.() }
   const [pagando, setPagando] = useState(false)
   const [verPlanes, setVerPlanes] = useState(false)
   const { hash } = useLocation()
@@ -44,11 +46,23 @@ export default function MiPlanPagos() {
       <div className="border border-border bg-card">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-3">
           <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Mi membresía y pagos</p>
-          {vigente && (
-            <span className="text-[10px] font-bold text-foreground/40">
-              {totalDisponibles} de {totalCreditos} créditos disponibles
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {vigente && (
+              <span className="text-[10px] font-bold text-foreground/40">
+                {totalDisponibles} de {totalCreditos} créditos disponibles
+              </span>
+            )}
+            {onVerHistorial && (
+              <button
+                type="button"
+                onClick={onVerHistorial}
+                className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-foreground/60 transition-colors hover:border-lime-400/50 hover:bg-lime-400/5 hover:text-foreground"
+              >
+                <History className="h-3.5 w-3.5" />
+                Historial
+              </button>
+            )}
+          </div>
         </div>
 
         {vigente ? (

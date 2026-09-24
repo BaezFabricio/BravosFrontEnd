@@ -25,22 +25,37 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
+import SelectorPanel from "@/components/SelectorPanel"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
+import BravoChat from "@/components/BravoChat"
+
+// Grupos del menú, en el orden en que se dibujan. El primero va sin título.
+const GRUPOS = [
+  { key: "inicio", titulo: null },
+  { key: "entrenamiento", titulo: "Entrenamiento" },
+  { key: "cuenta", titulo: "Mi cuenta" },
+]
 
 const navigation = [
-  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard, principal: true },
-  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true },
-  { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true },
-  { name: "Mi Membresía", mobileLabel: "Membresía", href: "/alumno/plan", icon: Wallet, principal: true },
-  { name: "Mis Créditos", mobileLabel: "Créditos", href: "/alumno/creditos", icon: CreditCard },
-  { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy },
-  { name: "Calculadora RM", mobileLabel: "RM", href: "/alumno/calculadora-rm", icon: Calculator },
-  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true },
-  { name: "Documentos y Comprobantes", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen },
+  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard, principal: true, grupo: "inicio" },
+  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, grupo: "entrenamiento" },
+  { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true, grupo: "entrenamiento" },
+  { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy, grupo: "entrenamiento" },
+  { name: "Calculadora RM", mobileLabel: "RM", href: "/alumno/calculadora-rm", icon: Calculator, grupo: "entrenamiento" },
+  { name: "Mi Membresía", mobileLabel: "Membresía", href: "/alumno/plan", icon: Wallet, principal: true, grupo: "cuenta" },
+  { name: "Mis Créditos", mobileLabel: "Créditos", href: "/alumno/creditos", icon: CreditCard, grupo: "cuenta" },
+  { name: "Documentos y Comprobantes", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen, grupo: "cuenta" },
+  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true, grupo: "cuenta" },
 ]
+
+// Título de cada grupo (mismo estilo en el menú lateral y en el desplegable del celular)
+const TituloGrupo = ({ titulo }) =>
+  titulo ? (
+    <p className="px-3 pb-1 pt-4 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
+  ) : null
 
 export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
@@ -172,7 +187,10 @@ export default function AlumnoLayout({ children }) {
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-0.5">
-            {navigation.map((item) => {
+            {GRUPOS.map((g) => (
+              <div key={g.key} className="space-y-0.5">
+                <TituloGrupo titulo={g.titulo} />
+                {navigation.filter((item) => item.grupo === g.key).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
                 <Link
@@ -189,7 +207,9 @@ export default function AlumnoLayout({ children }) {
                   {item.name}
                 </Link>
               )
-            })}
+                })}
+              </div>
+            ))}
           </nav>
 
           <div className="p-4 border-t border-sidebar-border">
@@ -219,6 +239,7 @@ export default function AlumnoLayout({ children }) {
             )}
             <div className="flex-1" />
             <div className="flex items-center gap-3">
+              <SelectorPanel actual="alumno" />
               <ModeToggle />
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
                 <Home className="h-4 w-4" />
@@ -266,7 +287,10 @@ export default function AlumnoLayout({ children }) {
             aria-hidden={!menuMovilAbierto}
           >
             <nav className="max-h-[80vh] overflow-y-auto px-3 py-3 space-y-0.5">
-              {navigation.map((item) => {
+              {GRUPOS.map((g) => (
+                <div key={g.key} className="space-y-0.5">
+                  <TituloGrupo titulo={g.titulo} />
+                  {navigation.filter((item) => item.grupo === g.key).map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
                 return (
                   <Link
@@ -284,7 +308,9 @@ export default function AlumnoLayout({ children }) {
                     {item.name}
                   </Link>
                 )
-              })}
+                  })}
+                </div>
+              ))}
             </nav>
           </div>
         </header>
@@ -339,6 +365,8 @@ export default function AlumnoLayout({ children }) {
           </div>
         </nav>
       </div>
+
+      <BravoChat rol="alumno" />
     </div>
   )
 }

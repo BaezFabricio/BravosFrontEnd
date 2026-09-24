@@ -8,7 +8,8 @@ import {
   Flame,
   Trophy,
   Users,
-  TrendingUp
+  TrendingUp,
+  Calculator
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -197,9 +198,6 @@ export default function AlumnoDashboard() {
       <LogroCelebracion logros={logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
       <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[url('/logo.jpg')] bg-center bg-no-repeat bg-contain opacity-10" />
-        </div>
         <div className="relative p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
@@ -326,7 +324,12 @@ export default function AlumnoDashboard() {
         </div>
       </div>
 
-      {/* BOTONES DE ACCESO RÁPIDO */}
+      {/* BOTONES DE ACCESO RÁPIDO (en el celular llevan título para separarlos del resto) */}
+      <section className="space-y-3">
+      <div className="lg:hidden flex items-center gap-3">
+        <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Accesos rápidos</h2>
+        <span className="h-px flex-1 bg-border" />
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/alumno/reservar" className="group">
           <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
@@ -352,30 +355,31 @@ export default function AlumnoDashboard() {
           </Card>
         </Link>
 
-        <Link to="/alumno/creditos" className="group">
+        <Link to="/alumno/calculadora-rm" className="group">
           <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <CreditCard className="h-7 w-7 text-primary" />
+                <Calculator className="h-7 w-7 text-primary" />
               </div>
-              <h3 className="font-bold text-foreground">Créditos</h3>
-              <p className="text-sm text-muted-foreground mt-1">{loadingReservas ? "..." : creditosReales} disponibles</p>
+              <h3 className="font-bold text-foreground">Calculadora RM</h3>
+              <p className="text-sm text-muted-foreground mt-1">Calculá tu 1RM</p>
             </CardContent>
           </Card>
         </Link>
 
-        <Link to="/alumno/perfil" className="group">
+        <Link to="/alumno/marcas" className="group">
           <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Trophy className="h-7 w-7 text-accent" />
               </div>
-              <h3 className="font-bold text-foreground">Logros</h3>
-              <p className="text-sm text-muted-foreground mt-1">{logros.filter(l => l.completado).length}/{logros.length}</p>
+              <h3 className="font-bold text-foreground">Mis Marcas</h3>
+              <p className="text-sm text-muted-foreground mt-1">{statsMarcas.totalMarcas} {statsMarcas.totalMarcas === 1 ? "registrada" : "registradas"}</p>
             </CardContent>
           </Card>
         </Link>
       </div>
+      </section>
 
       {/* SECCIÓN DOBLE: CLASES DISPONIBLES VS MIS RESERVAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

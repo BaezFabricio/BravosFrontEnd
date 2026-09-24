@@ -175,7 +175,7 @@ export default function NotificacionesBell() {
 
         {/* Popups — salen desde la campanita, se apilan hacia abajo */}
         {popups.length > 0 && !open && (
-          <div className="absolute right-0 mt-3 z-[100] flex flex-col gap-2 w-72">
+          <div className="fixed inset-x-3 top-[4.25rem] w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-72 z-[100] flex flex-col gap-2">
             {popups.map(p => {
               const Icono = ICONOS_TIPO[p.tipo] || Info
               const color = COLORES_TIPO[p.tipo] || 'text-muted-foreground'
@@ -202,7 +202,7 @@ export default function NotificacionesBell() {
         )}
 
         {open && (
-          <div className="absolute right-0 mt-3 w-80 rounded-xl border border-border bg-card shadow-2xl z-50 overflow-hidden">
+          <div className="fixed inset-x-3 top-[4.25rem] w-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-80 rounded-xl border border-border bg-card shadow-2xl z-50 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <span className="text-sm font-bold text-foreground uppercase tracking-wide">Notificaciones</span>
               {noLeidas > 0 && (

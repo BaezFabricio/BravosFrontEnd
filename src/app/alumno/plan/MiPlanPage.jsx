@@ -1,6 +1,10 @@
+import { useState } from "react"
 import MiPlanPagos from "../documentacion/MiPlanPagos"
+import HistorialMembresias from "./HistorialMembresias"
 
 export default function MiPlanPage() {
+  const [verHistorial, setVerHistorial] = useState(false)
+
   return (
     <div className="space-y-6">
       <div>
@@ -8,7 +12,9 @@ export default function MiPlanPage() {
         <p className="text-sm text-foreground/50 mt-1">Tu membresía, tus créditos y tus renovaciones.</p>
       </div>
 
-      <MiPlanPagos />
+      <MiPlanPagos onVerHistorial={() => setVerHistorial(true)} />
+
+      <HistorialMembresias open={verHistorial} onClose={() => setVerHistorial(false)} />
     </div>
   )
 }
