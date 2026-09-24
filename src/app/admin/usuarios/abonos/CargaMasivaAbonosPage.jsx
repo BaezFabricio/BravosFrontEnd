@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
 import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText } from "lucide-react"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from "@/lib/notificar"
@@ -60,8 +60,16 @@ function calcularMonto(precioBase, metodoPago) {
 
 export default function GestionAbonosPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const usuarioPreId = searchParams.get("usuario")
+
+  // Volver a donde se estaba (la lista o el perfil, según de dónde se llegó). Si
+  // la página se abrió directo, sin historial previo, cae al perfil / la lista.
+  const volver = () => {
+    if (location.key !== "default") navigate(-1)
+    else navigate(usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios")
+  }
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -81,6 +89,7 @@ export default function GestionAbonosPage() {
 
   // Navegación por mes
   const hoyRef = new Date()
+  const [compAbiertos, setCompAbiertos] = useState({})
   const [mesFiltro, setMesFiltro] = useState({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })
 
   const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
@@ -391,9 +400,9 @@ export default function GestionAbonosPage() {
 
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Link to={usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios"} className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
+        <button type="button" onClick={volver} aria-label="Volver" className="mt-1 p-1.5 text-foreground/30 hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
         <div className="flex-1">
           <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
           <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
@@ -517,9 +526,15 @@ export default function GestionAbonosPage() {
                 {/* Sub-fila de comprobantes cuando método = Transferencia */}
                 {f.metodoPago === "Transferencia" && f.idUsuario && (() => {
                   const docs = (comprobantesMap[f._id] || []).filter(d => d.tipo === "comprobante_transferencia")
-                  // Filtrar por fecha: comprobantes desde la fecha de inicio del abono
-                  const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
-                  const filtrados = desde ? docs.filter(d => !d.creadoEn || new Date(d.creadoEn) >= desde) : docs
+                  // Comprobantes subidos en el mes de la fecha de inicio del abono
+                  const desde = f.fechaInicio ? new Date(f.fechaInicio + "T12:00:00") : null
+                  const filtrados = desde
+                    ? docs.filter(d => {
+                        if (!d.creadoEn) return true
+                        const c = new Date(d.creadoEn)
+                        return c.getFullYear() === desde.getFullYear() && c.getMonth() === desde.getMonth()
+                      })
+                    : docs
                   return (
                     <tr key={`comp-${f._id}`} className="bg-lime-400/3">
                       <td colSpan={10} className="px-4 py-3 border-t border-dashed border-lime-400/20">
@@ -582,7 +597,7 @@ export default function GestionAbonosPage() {
             <div className="border-b border-border px-5 py-3 flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresías</p>
-                <p className="text-xs text-foreground/40 mt-0.5">Agrupadas por mes de inicio · editá fechas, créditos o cancelá.</p>
+                <p className="text-xs text-foreground/40 mt-0.5">Agrupadas por mes de inicio · los comprobantes son los subidos en el mes elegido.</p>
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
@@ -665,9 +680,9 @@ export default function GestionAbonosPage() {
                     if (ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
                     const docsAbono = (comprobantesAbonos[ab.id] || []).filter(d => {
                       if (d.tipo !== "comprobante_transferencia") return false
-                      if (!ab.inicio) return true
-                      const desde = new Date(ab.inicio.split("T")[0] + "T00:00:00")
-                      return !d.creadoEn || new Date(d.creadoEn) >= desde
+                      if (!d.creadoEn) return true
+                      const f = new Date(d.creadoEn)
+                      return f.getFullYear() === mesFiltro.year && f.getMonth() === mesFiltro.month
                     })
                     return (
                     <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
@@ -701,29 +716,49 @@ export default function GestionAbonosPage() {
                       </td>
                       <td className="px-4 py-3">
                         {docsAbono.length > 0 && (
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {docsAbono.map((doc) => (
-                              <div key={doc.idDocumento} className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-start gap-1">
+                            <button
+                              onClick={() => setCompAbiertos(p => ({ ...p, [ab.id]: !p[ab.id] }))}
+                              className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors whitespace-nowrap ${
+                                docsAbono.every(d => d.estado === "aprobado")
+                                  ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                                  : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
+                              }`}
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              {docsAbono.length} comprobante{docsAbono.length !== 1 ? "s" : ""}
+                              <span className={`inline-block transition-transform duration-300 ${compAbiertos[ab.id] ? "rotate-180" : ""}`}>▾</span>
+                            </button>
+                            <div
+                              className={`grid transition-all duration-300 ease-out ${compAbiertos[ab.id] ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+                              aria-hidden={!compAbiertos[ab.id]}
+                            >
+                            <div className="overflow-hidden min-h-0 flex flex-col items-start gap-1 pt-1">
+                            {[...docsAbono].sort((a, b) => new Date(b.creadoEn || 0) - new Date(a.creadoEn || 0)).map((doc, i) => (
+                              <div key={doc.idDocumento} className="flex items-center gap-1.5 whitespace-nowrap"
+                                style={{ transform: compAbiertos[ab.id] ? "translateY(0)" : "translateY(-6px)", transition: `transform 300ms ease-out ${i * 60}ms` }}>
                                 <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
-                                  className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 border transition-colors ${
+                                  className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors ${
                                     doc.estado === "aprobado"
                                       ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                                       : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
                                   }`}>
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                  <CheckCircle2 className="h-3 w-3" />
                                   {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : "Ver"}
                                   {doc.estado === "aprobado" ? " ✓" : " ↗"}
                                 </a>
                                 {doc.estado !== "aprobado" && (
                                   <button
                                     onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
-                                    className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 border border-lime-400/30 text-lime-700 dark:text-lime-400 hover:bg-lime-400/10 transition-colors"
+                                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border border-lime-400/30 text-lime-700 dark:text-lime-400 hover:bg-lime-400/10 transition-colors"
                                   >
                                     Aprobar
                                   </button>
                                 )}
                               </div>
                             ))}
+                            </div>
+                            </div>
                           </div>
                         )}
                       </td>

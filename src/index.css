@@ -196,6 +196,15 @@
 }
 
 @layer base {
+  /* Listas de los <select> nativos: el navegador pinta el fondo del desplegable
+     en blanco pero hereda el texto claro del campo en modo oscuro (ilegible).
+     Se fijan con los colores del tema, así sirve en claro y en oscuro. */
+  select option,
+  select optgroup {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
+
   /* Estilo base para el calendario */
   .rdp {
     --rdp-cell-size: 40px;

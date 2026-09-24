@@ -14,7 +14,7 @@ import { toast } from '@/lib/notificar'
 
 const modulosAdminConfig = [
   { id: "dashboard",     nombre: "Resumen",       icon: LayoutDashboard },
-  { id: "usuarios",      nombre: "Usuarios",      icon: Users },
+  { id: "usuarios",      nombre: "Usuarios y Abonos", icon: Users },
   { id: "clases",        nombre: "Clases",        icon: Calendar },
   { id: "reservas",      nombre: "Reservas",      icon: Calendar },
   { id: "creditos",      nombre: "Créditos",      icon: CreditCard },

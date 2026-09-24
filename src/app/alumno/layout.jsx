@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
+import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -18,6 +19,9 @@ import {
   Dumbbell,
   ClipboardCheck,
   FolderOpen,
+  Trophy,
+  Calculator,
+  Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -27,17 +31,21 @@ import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
 
 const navigation = [
-  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard },
-  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar },
-  { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History },
+  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard, principal: true },
+  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true },
+  { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true },
+  { name: "Mi Membresía", mobileLabel: "Membresía", href: "/alumno/plan", icon: Wallet, principal: true },
   { name: "Mis Créditos", mobileLabel: "Créditos", href: "/alumno/creditos", icon: CreditCard },
-  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User },
-  { name: "Documentación", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen },
+  { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy },
+  { name: "Calculadora RM", mobileLabel: "RM", href: "/alumno/calculadora-rm", icon: Calculator },
+  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true },
+  { name: "Documentos y Comprobantes", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen },
 ]
 
 export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
   const menuRef = useRef(null)
   
   const [userData, setUserData] = useState({
@@ -151,7 +159,7 @@ export default function AlumnoLayout({ children }) {
       )}
 
 
-      <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
             <Link to="/alumno" className="flex items-center gap-3">
@@ -204,7 +212,11 @@ export default function AlumnoLayout({ children }) {
       <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-            {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
+            {!sidebarOpen && (
+              <div className="hidden lg:block">
+                <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
+              </div>
+            )}
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               <ModeToggle />
@@ -231,15 +243,56 @@ export default function AlumnoLayout({ children }) {
                   userMenuOpen={userMenuOpen}
                   setUserMenuOpen={setUserMenuOpen}
                   handleLogout={handleLogout}
-                  tieneModulosAdmin={true}
-                  tieneModulosAlumno={true}
-                  tieneModulosProfesor={true}
+                  tieneModulosAdmin={panelesPermitidos().admin}
+                  tieneModulosAlumno={panelesPermitidos().alumno}
+                  tieneModulosProfesor={panelesPermitidos().profesor}
                   puedeAccederPanel={true}
                 />
               </div>
+
+              <HamburgerButton
+                isOpen={menuMovilAbierto}
+                onClick={() => setMenuMovilAbierto((v) => !v)}
+                className="lg:hidden text-foreground"
+              />
             </div>
           </div>
+
+          {/* Menú desplegable del celular: se abre hacia abajo desde el botón de arriba a la derecha */}
+          <div
+            className={`lg:hidden absolute left-0 right-0 top-full overflow-hidden border-b border-border bg-sidebar shadow-lg transition-all duration-300 ease-out ${
+              menuMovilAbierto ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0 pointer-events-none border-transparent"
+            }`}
+            aria-hidden={!menuMovilAbierto}
+          >
+            <nav className="max-h-[80vh] overflow-y-auto px-3 py-3 space-y-0.5">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setMenuMovilAbierto(false)}
+                    tabIndex={menuMovilAbierto ? 0 : -1}
+                    className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                      isActive
+                        ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                        : "px-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    }`}
+                  >
+                    <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
         </header>
+
+        {/* Toca fuera del menú del celular para cerrarlo */}
+        {menuMovilAbierto && (
+          <div className="lg:hidden fixed inset-0 z-10" onClick={() => setMenuMovilAbierto(false)} />
+        )}
 
         <main className="p-4 lg:p-6 pb-20 lg:pb-6">
           {validandoAcceso ? (
@@ -267,16 +320,15 @@ export default function AlumnoLayout({ children }) {
           )}
         </main>
 
-        {/* Mobile Bottom Navigation */}
+        {/* Barra de abajo (celular): solo los accesos principales; el resto está en el menú de arriba a la derecha */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
           <div className="flex items-center justify-around">
-            {navigation.map(item => {
+            {navigation.filter((item) => item.principal).map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                   className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />

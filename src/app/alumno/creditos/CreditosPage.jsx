@@ -170,7 +170,8 @@ export default function CreditosPage() {
           "Cada reserva consume 1 crédito.",
           "Si no asistís, el crédito se descuenta igual.",
           "Cancelar con +2hs de anticipación devuelve el crédito.",
-          "Los créditos no se acumulan al renovar.",
+          "Si contratás otra membresía, sus créditos se suman a los que ya tenés.",
+          "Los créditos de cada plan vencen junto con su membresía.",
         ].map((t, i) => (
           <div key={i} className="flex items-start gap-2">
             <span className="mt-1 h-1.5 w-1.5 rounded-full bg-lime-400/60 shrink-0" />

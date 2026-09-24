@@ -31,12 +31,16 @@ export default function ClasesPage() {
     try {
       setLoading(true)
       setError("")
-      const [resClases, resPlanes] = await Promise.all([
+      // Los planes son opcionales: /planes exige el permiso de Membresías, que
+      // un perfil con solo "Clases" no tiene. Con Promise.all, ese 403 tumbaba
+      // toda la pantalla aunque /clases sí estuviera permitido.
+      const [resClases, resPlanes] = await Promise.allSettled([
         apiClient.get("/clases"),
         apiClient.get("/planes"),
       ])
-      setClases(resClases.data?.data || resClases.data || [])
-      const listaPlanes = resPlanes.data?.data || []
+      if (resClases.status === "rejected") throw resClases.reason
+      setClases(resClases.value.data?.data || resClases.value.data || [])
+      const listaPlanes = resPlanes.status === "fulfilled" ? (resPlanes.value.data?.data || []) : []
       setPlanes(listaPlanes)
       const expandido = {}
       listaPlanes.forEach(p => { expandido[p.idPlan] = true })

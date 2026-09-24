@@ -1,47 +1,21 @@
 import { useNavigate } from "react-router-dom"
 import { LayoutDashboard, Dumbbell, GraduationCap } from "lucide-react"
+import { panelesPermitidos } from "@/lib/paneles"
 
 const PANELES = [
-  {
-    key: "admin",
-    label: "Administrador",
-    descripcion: "Gestión del gimnasio",
-    icon: LayoutDashboard,
-    href: "/admin",
-    check: (permisos) => permisos.some(p =>
-      p.startsWith("usuarios:") || p.startsWith("dashboard:") ||
-      p.startsWith("perfiles:") || p.startsWith("membresias:") ||
-      p.startsWith("clases:") || p.startsWith("configuracion:")
-    ),
-  },
-  {
-    key: "alumno",
-    label: "Alumno",
-    descripcion: "Tu panel de clases y abonos",
-    icon: Dumbbell,
-    href: "/alumno",
-    check: (permisos) => permisos.some(p => p.startsWith("alumno")),
-  },
-  {
-    key: "profesor",
-    label: "Profesor",
-    descripcion: "Tus rutinas y clases",
-    icon: GraduationCap,
-    href: "/profesor",
-    check: (permisos) => permisos.some(p => p.startsWith("profesor")),
-  },
+  { key: "admin", label: "Administrador", descripcion: "Gestión del gimnasio", icon: LayoutDashboard, href: "/admin" },
+  { key: "alumno", label: "Alumno", descripcion: "Tu panel de clases y abonos", icon: Dumbbell, href: "/alumno" },
+  { key: "profesor", label: "Profesor", descripcion: "Tus rutinas y clases", icon: GraduationCap, href: "/profesor" },
 ]
 
 export default function SeleccionarPanelPage() {
   const navigate = useNavigate()
-  const permisos = (() => {
-    try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] }
-  })()
+  const permitidos = panelesPermitidos()
   const usuario = (() => {
     try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} }
   })()
 
-  const disponibles = PANELES.filter(p => p.check(permisos))
+  const disponibles = PANELES.filter(p => permitidos[p.key])
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">

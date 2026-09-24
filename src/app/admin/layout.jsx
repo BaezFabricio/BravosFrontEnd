@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 import UserMenu from "@/components/UserMenu"
+import { panelesPermitidos } from "@/lib/paneles"
 import {
   LayoutDashboard,
   Users,
@@ -27,7 +28,7 @@ import NotificacionesBell from "@/components/NotificacionesBell"
 
 const navigation = [
   { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta" },
-  { name: "Usuarios", mobileLabel: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
+  { name: "Usuarios y Abonos", mobileLabel: "Usuarios", href: "/admin/usuarios", icon: Users, requiredPermission: "usuarios:consulta" },
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta" },
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta" },
@@ -252,9 +253,9 @@ export default function AdminLayout({ children }) {
                   userMenuOpen={userMenuOpen}
                   setUserMenuOpen={setUserMenuOpen}
                   handleLogout={handleLogout}
-                  tieneModulosAdmin={true}
-                  tieneModulosAlumno={true}
-                  tieneModulosProfesor={true}
+                  tieneModulosAdmin={panelesPermitidos().admin}
+                  tieneModulosAlumno={panelesPermitidos().alumno}
+                  tieneModulosProfesor={panelesPermitidos().profesor}
                   puedeAccederPanel={true}
                 />
               </div>

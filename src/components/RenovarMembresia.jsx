@@ -96,10 +96,15 @@ function getFeaturesForTier(tier, plan) {
 
 // Todos los planes vencen el próximo día 10 (ver proximoDia10 en el backend),
 // sin importar cuándo se pagaron. Nada de "30 días" / "45 días": no es real.
-function getTierMeta(tier) {
+// El plan destacado ("más popular") ya no es el del medio por precio sino el más
+// comprado, así que "RECOMENDADO" va con él y no con una posición fija.
+function getTierMeta(tier, esDestacado = false) {
+  if (esDestacado) {
+    return { label: "RECOMENDADO", sub: "Renovación mensual · vence el 10", subColor: "text-lime-600 dark:text-lime-400" }
+  }
   const meta = [
     { label: "INICIAL", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
-    { label: "RECOMENDADO", sub: "Renovación mensual · vence el 10", subColor: "text-lime-600 dark:text-lime-400" },
+    { label: "ESTÁNDAR", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
     { label: "INTERMEDIO", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
     { label: "LARGO PLAZO", sub: "Ahorra 15% · vence el 10", subColor: "text-lime-600 dark:text-lime-400" },
   ]
@@ -739,12 +744,12 @@ function valorTabla(filaIdx, tier, plan) {
 
 // ── Componente principal ──────────────────────────────────────────────────────
 
-export default function RenovarMembresia({ onRenovado }) {
+// Planes disponibles y datos bancarios para transferencia: los usa el catálogo
+// completo y también el modal de pago suelto ("Pagar el mes").
+function useDatosPago() {
   const [planes, setPlanes]           = useState([])
   const [loading, setLoading]         = useState(true)
   const [configBanco, setConfigBanco] = useState({ banco: "", titular: "", cuit: "", cbu: "", alias: "" })
-  const [planModal, setPlanModal]     = useState(null)
-  const [faqOpen, setFaqOpen]         = useState(null)
 
   useEffect(() => {
     apiClient
@@ -768,6 +773,32 @@ export default function RenovarMembresia({ onRenovado }) {
       .catch(() => {})
   }, [])
 
+  return { planes, loading, configBanco }
+}
+
+/**
+ * Abre directamente el modal de pago de un plan ya conocido (por ejemplo, para
+ * pagar el mes del plan que el alumno ya tiene), sin pasar por el catálogo.
+ */
+export function PagarPlanModal({ idPlan, open, onClose, onRenovado }) {
+  const { planes, configBanco } = useDatosPago()
+  const plan = planes.find((p) => p.idPlan === idPlan) || null
+  return (
+    <ModalPago
+      plan={open ? plan : null}
+      open={open && !!plan}
+      onClose={onClose}
+      onRenovado={onRenovado}
+      configBanco={configBanco}
+    />
+  )
+}
+
+export default function RenovarMembresia({ onRenovado }) {
+  const { planes, loading, configBanco } = useDatosPago()
+  const [planModal, setPlanModal]     = useState(null)
+  const [faqOpen, setFaqOpen]         = useState(null)
+
   if (loading)
     return (
       <div className="flex items-center justify-center py-20">
@@ -777,7 +808,19 @@ export default function RenovarMembresia({ onRenovado }) {
 
   const planesOrdenados = [...planes].sort((a, b) => Number(a.precio) - Number(b.precio))
   const total = planesOrdenados.length
-  const idxRecomendado = total > 1 ? Math.floor(total / 2) : 0
+
+  // El contenido de cada tarjeta (beneficios, precio por clase, etiqueta) depende
+  // de su posición por precio, no de dónde se dibuje. Por eso el nivel se guarda
+  // aparte antes de mover el más popular al centro.
+  const tierPorPlan = new Map(planesOrdenados.map((p, i) => [p.idPlan, i]))
+  const planesTarjetas = (() => {
+    const lista = [...planesOrdenados]
+    const iPopular = lista.findIndex((p) => p.masPopular)
+    if (iPopular === -1 || total < 3) return lista
+    const [popular] = lista.splice(iPopular, 1)
+    lista.splice(Math.floor(total / 2), 0, popular)
+    return lista
+  })()
 
   return (
     <div className="space-y-10">
@@ -806,10 +849,10 @@ export default function RenovarMembresia({ onRenovado }) {
             : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
         }`}
       >
-        {planesOrdenados.map((p, idx) => {
-          const esRec    = idx === idxRecomendado && total > 1
-          const tier     = idx
-          const meta     = getTierMeta(tier)
+        {planesTarjetas.map((p) => {
+          const esRec    = !!p.masPopular && total > 1
+          const tier     = tierPorPlan.get(p.idPlan)
+          const meta     = getTierMeta(tier, esRec)
           const features = getFeaturesForTier(tier, p)
           const subprice = getSubPrice(tier, p)
 
@@ -830,7 +873,7 @@ export default function RenovarMembresia({ onRenovado }) {
               <div className={`flex-1 flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden ${
                 esRec
                   ? "border-lime-400/60 bg-[#0d150d] shadow-[0_0_40px_rgba(163,230,53,0.18)] hover:shadow-[0_0_60px_rgba(163,230,53,0.35)] hover:border-lime-400"
-                  : "border-border bg-card shadow-sm hover:shadow-lg hover:border-foreground/20"
+                  : "border-border bg-card shadow-sm hover:border-lime-500 dark:hover:border-lime-400 hover:bg-lime-400/5 hover:shadow-[0_0_40px_rgba(163,230,53,0.22)]"
               }`}>
                 <div className="flex-1 flex flex-col p-6 gap-5 min-h-[500px]">
 

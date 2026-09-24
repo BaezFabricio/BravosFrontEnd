@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
+import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -154,9 +155,9 @@ export default function ProfesorLayout({ children }) {
                   userMenuOpen={userMenuOpen}
                   setUserMenuOpen={setUserMenuOpen}
                   handleLogout={handleLogout}
-                  tieneModulosAdmin={true}
-                  tieneModulosAlumno={true}
-                  tieneModulosProfesor={true}
+                  tieneModulosAdmin={panelesPermitidos().admin}
+                  tieneModulosAlumno={panelesPermitidos().alumno}
+                  tieneModulosProfesor={panelesPermitidos().profesor}
                   puedeAccederPanel={true}
                 />
               </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { 
   Calendar, 
   CreditCard, 
@@ -15,13 +15,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
 import apiClient from "@/api" 
-
-const logros = [
-  { nombre: "Primera Clase", icono: Trophy, completado: true },
-  { nombre: "Racha 5 días", icono: Flame, completado: true },
-  { nombre: "10 WODs RX", icono: Trophy, completado: false },
-  { nombre: "Primer PR", icono: TrendingUp, completado: true },
-]
+import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
+import LogroCelebracion from "@/components/LogroCelebracion"
+import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 
 export default function AlumnoDashboard() {
   // ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
@@ -32,17 +28,39 @@ export default function AlumnoDashboard() {
   const [loadingReservas, setLoadingReservas] = useState(true)
   const [loadingClases, setLoadingClases] = useState(true)
   const [membresia, setMembresia] = useState(null)
-
-  // Datos estáticos temporales para las tarjetas de progreso
-  const userStats = {
-    racha: 5,
-    totalClases: 47,
-  }
+  const navigate = useNavigate()
+  const { data: miPlan } = useMiPlan()
+  const [marcasCargadas, setMarcasCargadas] = useState(false)
+  const [logrosNuevos, setLogrosNuevos] = useState([])
+  const [statsMarcas, setStatsMarcas] = useState({ totalMarcas: 0, superaciones: 0, ejerciciosDistintos: 0, maxPeso: 0 })
 
   const hoyDate = new Date()
 
   // Buscar el mes con más actividad: si hay completadas, usar su mes; si no, usar el mes actual
   const todasCompletadas = reservasReales.filter(r => r.estadoReserva?.toLowerCase() === "completada")
+
+  // Racha: días consecutivos con clase completada, contando hasta hoy (o ayer si hoy aún no asistió)
+  const calcularRacha = () => {
+    const dias = new Set(todasCompletadas.map(r => String(r.fechaReserva).slice(0, 10)))
+    const aStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    const cursor = new Date()
+    cursor.setHours(12, 0, 0, 0)
+    if (!dias.has(aStr(cursor))) cursor.setDate(cursor.getDate() - 1)
+    let racha = 0
+    while (dias.has(aStr(cursor))) {
+      racha++
+      cursor.setDate(cursor.getDate() - 1)
+    }
+    return racha
+  }
+
+  // Estadísticas reales, derivadas del historial de reservas completadas
+  const userStats = {
+    racha: calcularRacha(),
+    totalClases: todasCompletadas.length,
+    ...statsMarcas,
+  }
+  const logros = logrosConEstado(userStats)
   const mesReferencia = todasCompletadas.length > 0
     ? new Date(todasCompletadas[0].fechaReserva)
     : hoyDate
@@ -106,6 +124,23 @@ export default function AlumnoDashboard() {
     fetchDashboardData()
   }, [])
 
+  // Estadísticas de marcas personales (para los logros del módulo de marcas)
+  useEffect(() => {
+    apiClient.get("/marcas/resumen")
+      .then((r) => setStatsMarcas(r.data?.data || r.data))
+      .catch(() => {})
+      .finally(() => setMarcasCargadas(true))
+  }, [])
+
+  // Registrar logros cumplidos: los recién desbloqueados disparan la celebración y la notificación
+  const codigosCumplidos = logros.filter(l => l.completado).map(l => l.codigo).join(",")
+  useEffect(() => {
+    if (loadingReservas || !marcasCargadas || !codigosCumplidos) return
+    sincronizarLogros(codigosCumplidos.split(",")).then((nuevos) => {
+      if (nuevos.length) setLogrosNuevos((prev) => [...prev, ...nuevos])
+    })
+  }, [loadingReservas, marcasCargadas, codigosCumplidos])
+
   // EFECTO 2: TRAER LAS CLASES OFRECIDAS HOY EN EL BOX
   useEffect(() => {
     const fetchClasesHoy = async () => {
@@ -159,6 +194,7 @@ export default function AlumnoDashboard() {
 
   return (
     <div className="space-y-6">
+      <LogroCelebracion logros={logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
       <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
         <div className="absolute inset-0 opacity-20">
@@ -170,7 +206,7 @@ export default function AlumnoDashboard() {
               <div className="flex items-center gap-3">
                 <Badge className="bg-lime-400/20 text-lime-700 dark:text-lime-400 border border-lime-400/30 font-bold px-3 py-1">
                   <Flame className="w-3 h-3 mr-1" />
-                  {userStats.racha} dias de racha
+                  {userStats.racha === 0 ? "Sin racha" : `${userStats.racha} ${userStats.racha === 1 ? "dia" : "dias"} de racha`}
                 </Badge>
                 <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio." className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
               </div>
@@ -190,8 +226,38 @@ export default function AlumnoDashboard() {
                   </Button>
                 </Link>
               </div>
+              <div className="pt-1">
+                <p className="text-xs font-bold text-sidebar-foreground/50 uppercase tracking-wider mb-2">Tus logros</p>
+                <div className="flex gap-3">
+                  {logros.map((logro) => (
+                    <div key={logro.codigo} className="group relative">
+                      <button
+                        type="button"
+                        aria-label={logro.nombre}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-lime-400 ${
+                          logro.completado
+                            ? "bg-lime-400/20 text-lime-700 dark:text-lime-400"
+                            : "bg-sidebar-accent text-sidebar-foreground/30"
+                        }`}
+                      >
+                        <logro.icono className="h-4 w-4" />
+                      </button>
+                      <div
+                        role="tooltip"
+                        className="pointer-events-none absolute bottom-full left-0 mb-2 z-20 w-52 rounded-lg border border-sidebar-border bg-sidebar px-3 py-2 text-left shadow-lg opacity-0 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0"
+                      >
+                        <p className="text-xs font-black uppercase tracking-wide text-sidebar-foreground">{logro.nombre}</p>
+                        <p className="mt-0.5 text-xs text-sidebar-foreground/60">{logro.descripcion}</p>
+                        <p className={`mt-1.5 text-[10px] font-black uppercase tracking-widest ${logro.completado ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/40"}`}>
+                          {logro.completado ? "✓ Desbloqueado" : "Bloqueado"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            
+
             <div className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-sidebar-accent border border-sidebar-border rounded-xl p-4 text-center relative">
@@ -209,24 +275,52 @@ export default function AlumnoDashboard() {
                   <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Clases</p>
                 </div>
               </div>
-              {membresia && (
-                <div className={`rounded-xl px-4 py-2.5 flex items-center justify-between border ${
-                  membresia === 'activa' || membresia === 'vigente'
-                    ? 'bg-lime-400/10 border-lime-400/30'
-                    : 'bg-red-500/10 border-red-500/30'
-                }`}>
-                  <span className={`text-xs font-black uppercase tracking-widest ${
-                    membresia === 'activa' || membresia === 'vigente' ? 'text-lime-700 dark:text-lime-400' : 'text-red-700 dark:text-red-400'
-                  }`}>
-                    Membresía {membresia === 'activa' || membresia === 'vigente' ? 'activa' : 'vencida'}
-                  </span>
-                  {membresia !== 'activa' && membresia !== 'vigente' && (
-                    <a href="/alumno/documentacion" className="text-[10px] font-bold uppercase tracking-wide text-red-700 dark:text-red-400 hover:text-red-300 transition-colors underline underline-offset-2">
-                      Regularizar →
-                    </a>
-                  )}
-                </div>
-              )}
+              {(miPlan || membresia) && (() => {
+                // El estado sale del plan real (créditos vigentes); si todavía no cargó, del dato general del usuario.
+                const estado = miPlan
+                  ? (!miPlan.vigente ? 'vencida' : miPlan.porVencer ? 'por_vencer' : 'activa')
+                  : (membresia === 'por_vencer' ? 'por_vencer' : (membresia === 'activa' || membresia === 'vigente') ? 'activa' : 'vencida')
+                const meta = {
+                  activa:     { label: 'Activa',     cls: 'bg-lime-400/10 border-lime-400/30 text-lime-700 dark:text-lime-400', dot: 'bg-lime-500 dark:bg-lime-400' },
+                  por_vencer: { label: 'Por vencer', cls: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
+                  vencida:    { label: 'Vencida',    cls: 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400', dot: 'bg-red-500' },
+                }[estado]
+                const nombrePlanes = miPlan?.vigente ? [...new Set(miPlan.planes.map((pl) => pl.nombrePlan))].join(' + ') : null
+                return (
+                  <div className="rounded-xl p-4 border border-sidebar-border bg-sidebar-accent space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/50">Mi membresía</p>
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest border rounded-full px-2.5 py-0.5 ${meta.cls}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+                        {meta.label}
+                      </span>
+                    </div>
+
+                    <div>
+                      {nombrePlanes ? (
+                        <>
+                          <p className="text-base font-black uppercase tracking-tight text-sidebar-foreground truncate">{nombrePlanes}</p>
+                          <p className="text-[11px] text-sidebar-foreground/50">Vence el {fmtFechaPlan(miPlan.proximoVencimiento)}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-base font-black uppercase tracking-tight text-sidebar-foreground">Sin membresía vigente</p>
+                          <p className="text-[11px] text-sidebar-foreground/50">
+                            {miPlan?.ultimoPlan ? `Tu última membresía fue ${miPlan.ultimoPlan.nombrePlan}` : 'Contratá una membresía para reservar clases'}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() => navigate('/alumno/plan')}
+                      className="w-full bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wide"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      {estado !== 'activa' ? 'Renovar membresía' : 'Renovar / contratar membresía'}
+                    </Button>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
@@ -409,24 +503,6 @@ export default function AlumnoDashboard() {
               </div>
             )}
 
-            <div className="mt-6 pt-6 border-t border-border">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">TUS LOGROS</h3>
-              <div className="flex gap-3">
-                {logros.map((logro, index) => (
-                  <div
-                    key={index}
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                      logro.completado 
-                        ? "bg-accent/20 text-accent" 
-                        : "bg-muted/20 text-muted-foreground opacity-50"
-                    }`}
-                    title={logro.nombre}
-                  >
-                    <logro.icono className="h-5 w-5" />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </Card>
       </div>

@@ -49,6 +49,7 @@ const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
   por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
   vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  sin_membresia: { label: "Sin membresía", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 export default function PerfilPage() {
@@ -66,6 +67,9 @@ export default function PerfilPage() {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [abonoData, setAbonoData] = useState({ vencimiento: null, creditos: 0 });
+  // Hasta que no responde /abonos no se sabe si hay membresía: sin esto, el
+  // perfil mostraba "Vigente" un instante (o para siempre si el pedido fallaba).
+  const [abonoCargado, setAbonoCargado] = useState(false);
 
   useEffect(() => {
     const handleAvatarUpdated = (event) => {
@@ -94,11 +98,14 @@ export default function PerfilPage() {
               const activo = abonos.find(a => a.estado === 'ACTIVO')
               if (activo) {
                 const creditosValue = activo.turnos !== undefined ? activo.turnos : 0
-                setAbonoData({ 
-                  vencimiento: activo.vencimiento, 
+                setAbonoData({
+                  vencimiento: activo.vencimiento,
                   creditos: creditosValue
                 })
+              } else {
+                setAbonoData({ vencimiento: null, creditos: 0 })
               }
+              setAbonoCargado(true)
             })
             .catch(() => {})
         }
@@ -136,7 +143,6 @@ export default function PerfilPage() {
             telefono: findValue(usuario, ['telefono', 'phone', 'celular', 'mobile', 'cel']) || '',
             perfil: (usuario.perfil || usuario.nombrePerfil || usuario.rol || 'usuario').toLowerCase(),
             estado: (usuario.estado || 'inactivo').toLowerCase(),
-            membresia: usuario.estado === 'activo' ? 'vigente' : usuario.estado,
             vencimientoMembresia: usuario.vencimiento || usuario.fecha_vencimiento || usuario.vencimientoMembresia || '',
             fechaRegistro: findValue(usuario, ['fecha_registro', 'fechaRegistro', 'miembroDesde', 'createdAt', 'created_at']) || '',  
             creditos: usuario.creditos || 0,
@@ -243,7 +249,8 @@ export default function PerfilPage() {
 
   // Calcular estado real de membresía en base a la fecha de vencimiento del abono
   const membershipStatus = (() => {
-    if (!abonoData.vencimiento) return userData.membresia
+    if (!abonoCargado) return null
+    if (!abonoData.vencimiento) return 'sin_membresia'
     const hoy = new Date()
     hoy.setHours(0, 0, 0, 0)
     const venc = new Date(abonoData.vencimiento)
