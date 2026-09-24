@@ -432,26 +432,26 @@ export default function GestionAbonosPage() {
           </div>
         )}
 
-        <div className="border border-border bg-card overflow-x-auto">
-          <table className="w-full text-xs min-w-[1050px]">
-            <thead>
+        <div className="border border-border bg-card md:overflow-x-auto">
+          <table className="w-full text-xs block md:table md:min-w-[1050px]">
+            <thead className="hidden md:table-header-group">
               <tr className="border-b border-border bg-background/50">
                 {["","Alumno","Plan","Créd.","Horario","Inicio","Vencimiento","Método Pago","Monto",""].map((h, i) => (
                   <th key={i} className="px-3 py-2 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="block md:table-row-group divide-y divide-border">
               {filas.map((f) => (
                 <React.Fragment key={f._id}>
-                <tr className={`transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
-                  <td className="px-3 py-2 w-8 text-center">
+                <tr className={`grid grid-cols-2 gap-x-3 gap-y-2 p-3 md:table-row md:p-0 transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
+                  <td data-label="" className="px-3 py-2 md:w-8 text-center  ">
                     {f.estado === "cargando" && <Loader2 className="h-4 w-4 animate-spin text-foreground/40 mx-auto" />}
                     {f.estado === "ok"       && <CheckCircle2 className="h-4 w-4 text-lime-700 dark:text-lime-400 mx-auto" />}
                     {f.estado === "error"    && <AlertCircle  className="h-4 w-4 text-red-700 dark:text-red-400 mx-auto" title={f.mensajeError} />}
                   </td>
 
-                  <td className="px-3 py-2 min-w-[180px]">
+                  <td data-label="Alumno" className="px-3 py-2 md:min-w-[180px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
                     <input
                       className={inp}
                       placeholder="Buscar alumno..."
@@ -467,7 +467,7 @@ export default function GestionAbonosPage() {
                     />
                   </td>
 
-                  <td className="px-3 py-2 min-w-[150px]">
+                  <td data-label="Plan" className="px-3 py-2 md:min-w-[150px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
                     <select className={inp} value={f.idPlan} disabled={f.estado === "ok"}
                       onChange={e => seleccionarPlan(f._id, e.target.value)}>
                       <option value="">Seleccionar...</option>
@@ -475,16 +475,16 @@ export default function GestionAbonosPage() {
                     </select>
                   </td>
 
-                  <td className="px-3 py-2 w-20">
+                  <td data-label="Créditos" className="px-3 py-2 md:w-20 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input className={inp + " text-center bg-muted/40 cursor-default"} value={f.creditos} readOnly />
                   </td>
 
-                  <td className="px-3 py-2 min-w-[110px]">
+                  <td data-label="Horario" className="px-3 py-2 md:min-w-[110px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input className={inp} placeholder="Lun/Mié 18hs" value={f.horario} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "horario", e.target.value)} />
                   </td>
 
-                  <td className="px-3 py-2 min-w-[130px]">
+                  <td data-label="Inicio" className="px-3 py-2 md:min-w-[130px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="date" className={inp} value={f.fechaInicio} disabled={f.estado === "ok"}
                       onChange={e => {
                         const val = e.target.value
@@ -496,24 +496,24 @@ export default function GestionAbonosPage() {
                       }} />
                   </td>
 
-                  <td className="px-3 py-2 min-w-[130px]">
+                  <td data-label="Vencimiento" className="px-3 py-2 md:min-w-[130px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="date" className={inp} value={f.fechaVencimiento} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "fechaVencimiento", e.target.value)} />
                   </td>
 
-                  <td className="px-3 py-2 min-w-[140px]">
+                  <td data-label="Método de pago" className="px-3 py-2 md:min-w-[140px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <select className={inp} value={f.metodoPago} disabled={f.estado === "ok"}
                       onChange={e => cambiarMetodo(f._id, e.target.value)}>
                       {METODOS.map(m => <option key={m}>{m}</option>)}
                     </select>
                   </td>
 
-                  <td className="px-3 py-2 min-w-[90px]">
+                  <td data-label="Monto" className="px-3 py-2 md:min-w-[90px] before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="number" className={inp} value={f.monto} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "monto", e.target.value)} />
                   </td>
 
-                  <td className="px-3 py-2 w-10 text-center">
+                  <td data-label="" className="px-3 py-2 md:w-10 text-center  ">
                     {f.estado !== "ok" && (
                       <button onClick={() => setFilas(prev => prev.filter(r => r._id !== f._id))}
                         className="text-foreground/20 hover:text-red-700 dark:hover:text-red-400 transition-colors">
@@ -535,8 +535,8 @@ export default function GestionAbonosPage() {
                       })
                     : docs
                   return (
-                    <tr key={`comp-${f._id}`} className="bg-lime-400/3">
-                      <td colSpan={10} className="px-4 py-3 border-t border-dashed border-lime-400/20">
+                    <tr key={`comp-${f._id}`} className="block md:table-row bg-lime-400/3">
+                      <td colSpan={10} className="block md:table-cell px-4 py-3 border-t border-dashed border-lime-400/20">
                         <div className="flex items-center gap-3 flex-wrap">
                           <span className="text-xs font-black uppercase tracking-widest text-lime-700/70 dark:text-lime-400/70 shrink-0">
                             Comprobantes de transferencia
@@ -649,21 +649,21 @@ export default function GestionAbonosPage() {
               </div>
             )}
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[900px]">
-                <thead>
+            <div className="md:overflow-x-auto">
+              <table className="w-full text-sm block md:table md:min-w-[900px]">
+                <thead className="hidden md:table-header-group">
                   <tr className="border-b border-border">
                     {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados","Disponibles","Estado","Método Pago","","Comprobante"].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="block md:table-row-group divide-y divide-border">
                   {cargandoAbonos ? (
-                    <tr><td colSpan="10" className="p-8 text-center text-foreground/40 animate-pulse text-xs">Cargando...</td></tr>
+                    <tr className="block md:table-row"><td colSpan="10" className="block md:table-cell p-8 text-center text-foreground/40 animate-pulse text-xs">Cargando...</td></tr>
                   ) : delMes.length === 0 ? (
-                    <tr>
-                      <td colSpan="10" className="p-10 text-center">
+                    <tr className="block md:table-row">
+                      <td colSpan="10" className="block md:table-cell p-10 text-center">
                         <p className="text-xs text-foreground/30">Sin membresías en {labelMes(mesFiltro)}.</p>
                         {!esMesActual && (
                           <button onClick={() => setMesFiltro({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })}
@@ -684,16 +684,16 @@ export default function GestionAbonosPage() {
                       return f.getFullYear() === mesFiltro.year && f.getMonth() === mesFiltro.month
                     })
                     return (
-                    <tr key={ab.id} className="hover:bg-foreground/[0.02] transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs text-foreground/40">{ab.id}</td>
-                      <td className="px-4 py-3 font-semibold text-foreground text-xs">{nombreMostrar}</td>
-                      <td className="px-4 py-3 text-foreground/70 text-xs">{ab.abono}</td>
-                      <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.inicio)}</td>
-                      <td className="px-4 py-3 text-foreground/60 text-xs">{fmt(ab.vencimiento)}</td>
-                      <td className="px-4 py-3 text-center text-foreground/60 text-xs">{ab.turnos}</td>
-                      <td className="px-4 py-3 text-center text-foreground/40 text-xs">{ab.usados || 0}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-lime-700 dark:text-lime-400 text-xs">{ab.disponibles}</td>
-                      <td className="px-4 py-3 text-xs">
+                    <tr key={ab.id} className="grid grid-cols-2 gap-x-3 gap-y-2 p-3 md:table-row md:p-0 hover:bg-foreground/[0.02] transition-colors">
+                      <td data-label="N.º" className="px-4 py-3 font-mono text-xs text-foreground/40 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.id}</td>
+                      <td data-label="Alumno" className="px-4 py-3 font-semibold text-foreground text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{nombreMostrar}</td>
+                      <td data-label="Plan" className="px-4 py-3 text-foreground/70 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{ab.abono}</td>
+                      <td data-label="Inicio" className="px-4 py-3 text-foreground/60 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{fmt(ab.inicio)}</td>
+                      <td data-label="Vencimiento" className="px-4 py-3 text-foreground/60 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{fmt(ab.vencimiento)}</td>
+                      <td data-label="Créditos" className="px-4 py-3 text-center text-foreground/60 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.turnos}</td>
+                      <td data-label="Usados" className="px-4 py-3 text-center text-foreground/40 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.usados || 0}</td>
+                      <td data-label="Disponibles" className="px-4 py-3 text-center font-semibold text-lime-700 dark:text-lime-400 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.disponibles}</td>
+                      <td data-label="Estado" className="px-4 py-3 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
                           ab.estado === "VENCIDO"  ? "bg-foreground/5 text-foreground/40 border-foreground/10"
                           : ab.estado === "PAUSADO" ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
@@ -702,8 +702,8 @@ export default function GestionAbonosPage() {
                           {ab.estado}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-foreground/60">{ab.metodoPago || "-"}</td>
-                      <td className="px-4 py-3">
+                      <td data-label="Método de pago" className="px-4 py-3 text-xs text-foreground/60 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.metodoPago || "-"}</td>
+                      <td data-label="Acciones" className="px-4 py-3 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                         <div className="flex items-center gap-1">
                           <button onClick={() => abrirEditar(ab)} className="p-1.5 text-foreground/40 hover:text-foreground transition-colors" title="Editar">
                             <Pencil className="h-3.5 w-3.5" />
@@ -713,7 +713,7 @@ export default function GestionAbonosPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td data-label="Comprobantes" className="px-4 py-3 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
                         {docsAbono.length > 0 && (
                           <div className="flex flex-col items-start gap-1">
                             <button
@@ -815,26 +815,26 @@ export default function GestionAbonosPage() {
             </button>
 
             {historialVisible && (
-              <div className="overflow-x-auto border-t border-border border-dashed">
-                <table className="w-full text-sm min-w-[900px]">
-                  <thead>
+              <div className="md:overflow-x-auto border-t border-border border-dashed">
+                <table className="w-full text-sm block md:table md:min-w-[900px]">
+                  <thead className="hidden md:table-header-group">
                     <tr className="border-b border-border border-dashed">
                       {["#","Alumno","Plan","Inicio","Vencimiento","Créditos","Usados",""].map(h => (
                         <th key={h} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border divide-dashed">
+                  <tbody className="block md:table-row-group divide-y divide-border divide-dashed">
                     {cancelados.map(ab => (
-                      <tr key={ab.id} className="opacity-60 hover:opacity-100 transition-opacity">
-                        <td className="px-4 py-3 font-mono text-xs text-foreground/30">{ab.id}</td>
-                        <td className="px-4 py-3 text-foreground/70 text-xs font-semibold">{ab.nombreAlumno}</td>
-                        <td className="px-4 py-3 text-foreground/50 text-xs">{ab.abono}</td>
-                        <td className="px-4 py-3 text-foreground/40 text-xs">{fmt(ab.inicio)}</td>
-                        <td className="px-4 py-3 text-foreground/40 text-xs">{fmt(ab.vencimiento)}</td>
-                        <td className="px-4 py-3 text-center text-foreground/40 text-xs">{ab.turnos}</td>
-                        <td className="px-4 py-3 text-center text-foreground/30 text-xs">{ab.usados || 0}</td>
-                        <td className="px-4 py-3">
+                      <tr key={ab.id} className="grid grid-cols-2 gap-x-3 gap-y-2 p-3 md:table-row md:p-0 opacity-60 hover:opacity-100 transition-opacity">
+                        <td data-label="N.º" className="px-4 py-3 font-mono text-xs text-foreground/30 before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.id}</td>
+                        <td data-label="Alumno" className="px-4 py-3 text-foreground/70 text-xs font-semibold before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{ab.nombreAlumno}</td>
+                        <td data-label="Plan" className="px-4 py-3 text-foreground/50 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{ab.abono}</td>
+                        <td data-label="Inicio" className="px-4 py-3 text-foreground/40 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{fmt(ab.inicio)}</td>
+                        <td data-label="Vencimiento" className="px-4 py-3 text-foreground/40 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{fmt(ab.vencimiento)}</td>
+                        <td data-label="Créditos" className="px-4 py-3 text-center text-foreground/40 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.turnos}</td>
+                        <td data-label="Usados" className="px-4 py-3 text-center text-foreground/30 text-xs before:mb-1 before:block before:text-[10px] before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.usados || 0}</td>
+                        <td data-label="" className="px-4 py-3  col-span-2 md:col-span-1">
                           <button
                             onClick={() => setRestoreDialog({ open: true, abono: ab })}
                             className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-500 hover:text-lime-700 dark:hover:text-lime-400 border border-lime-500/30 hover:border-lime-600/50 dark:hover:border-lime-400/50 px-2.5 py-1 transition-colors"
