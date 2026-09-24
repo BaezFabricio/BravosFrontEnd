@@ -1,3 +1,4 @@
+import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from "react"
 import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -213,13 +214,13 @@ export default function ReservasPage() {
                     {desc && (
                       <div
                         className="text-sm text-foreground/80 leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-black prose-strong:text-foreground"
-                        dangerouslySetInnerHTML={{ __html: desc }}
+                        dangerouslySetInnerHTML={{ __html: sanitizarHtml(desc) }}
                       />
                     )}
                     {contenidoRutina && (
                       <div
                         className="text-sm text-foreground/80 leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-headings:font-black prose-strong:text-foreground bg-muted/40 rounded-lg p-4 border border-border"
-                        dangerouslySetInnerHTML={{ __html: contenidoRutina }}
+                        dangerouslySetInnerHTML={{ __html: sanitizarHtml(contenidoRutina) }}
                       />
                     )}
                     {ejerciciosTxt && (

@@ -1,3 +1,4 @@
+import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useMemo, useState } from "react"
 import { Clock, User, ChevronLeft, ChevronRight, Loader2, AlertCircle, ChevronDown, Lock, CheckCircle2, XCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -442,7 +443,7 @@ export default function ReservarClasePage() {
                                 {clase.descripcion && (
                                   <div
                                     className="text-xs text-muted-foreground mb-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground"
-                                    dangerouslySetInnerHTML={{ __html: clase.descripcion }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizarHtml(clase.descripcion) }}
                                   />
                                 )}
                                 {clase.rutina && (
@@ -457,7 +458,7 @@ export default function ReservarClasePage() {
                                     {expandida && (
                                       <div
                                         className="mt-2 text-xs text-foreground/70 bg-foreground/5 rounded-lg p-3 border border-border [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground"
-                                        dangerouslySetInnerHTML={{ __html: typeof clase.rutina === "string" ? clase.rutina : JSON.stringify(clase.rutina) }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizarHtml(typeof clase.rutina === "string" ? clase.rutina : JSON.stringify(clase.rutina)) }}
                                       />
                                     )}
                                   </>

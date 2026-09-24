@@ -1,3 +1,4 @@
+import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Clock, Users, Loader2, Dumbbell } from 'lucide-react'
@@ -93,7 +94,7 @@ export default function DetalleRutinaPage() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
                     <div
                       className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
-                      dangerouslySetInnerHTML={{ __html: descHtml }}
+                      dangerouslySetInnerHTML={{ __html: sanitizarHtml(descHtml) }}
                     />
                   </div>
                 )}
@@ -102,7 +103,7 @@ export default function DetalleRutinaPage() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Rutina</p>
                     <div
                       className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
-                      dangerouslySetInnerHTML={{ __html: rutinaHtml }}
+                      dangerouslySetInnerHTML={{ __html: sanitizarHtml(rutinaHtml) }}
                     />
                   </div>
                 )}
