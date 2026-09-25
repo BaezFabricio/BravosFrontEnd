@@ -330,6 +330,41 @@ export default function GestionAbonosPage() {
     }
   }
 
+  // Crea el abono de una fila y, si se pagó por transferencia, aprueba el comprobante del alumno.
+  // Devuelve el id del comprobante aprobado (o null). Lanza un error si el servidor rechaza el abono.
+  const guardarFila = async (f, docs) => {
+    const sesion = (() => { try { return JSON.parse(localStorage.getItem("usuario") || localStorage.getItem("user") || "{}") } catch { return {} } })()
+    let docIdAprobado = null
+    const plan = planes.find(p => String(p.idPlan) === String(f.idPlan))
+    const r = await fetch(`/api/vv1/usuarios/${f.idUsuario}/abonos`, {
+      method: "POST", headers: getHeaders(),
+      body: JSON.stringify({
+        tipoAbono:         plan?.nombre,
+        fechaInicio:       f.fechaInicio,
+        fechaVencimiento:  f.fechaVencimiento || undefined,
+        metodoPago:        f.metodoPago,
+        importe:           f.monto ? parseFloat(f.monto) : undefined,
+        idUsuarioOperador: sesion.idUsuario,
+      })
+    })
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || "Error") }
+
+    // Si el pago es Transferencia y hay comprobante del alumno, aprobarlo automáticamente
+    if (f.metodoPago === "Transferencia" && f.idUsuario) {
+      const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
+      const filtrados = desde
+        ? docs.filter(d => d.tipo === "comprobante_transferencia" && (!d.creadoEn || new Date(d.creadoEn) >= desde))
+        : docs.filter(d => d.tipo === "comprobante_transferencia")
+      if (filtrados.length > 0) {
+        const docId = filtrados[0].idDocumento
+        await fetch(`/api/vv1/documentos/${docId}/aprobar`, { method: "PATCH", headers: getHeaders() }).catch(() => {})
+        docIdAprobado = docId
+      }
+    }
+
+    return docIdAprobado
+  }
+
   const enviar = async () => {
     const pendientes = filas.filter(f => f.estado !== "ok")
     if (pendientes.filter(f => !f.idUsuario || !f.idPlan || !f.fechaInicio).length > 0) {
@@ -337,41 +372,16 @@ export default function GestionAbonosPage() {
       return
     }
     setEnviando(true)
-    const sesion = (() => { try { return JSON.parse(localStorage.getItem("usuario") || localStorage.getItem("user") || "{}") } catch { return {} } })()
 
     for (const f of pendientes) {
       upd(f._id, "estado", "cargando")
       try {
-        const plan = planes.find(p => String(p.idPlan) === String(f.idPlan))
-        const r = await fetch(`/api/vv1/usuarios/${f.idUsuario}/abonos`, {
-          method: "POST", headers: getHeaders(),
-          body: JSON.stringify({
-            tipoAbono:         plan?.nombre,
-            fechaInicio:       f.fechaInicio,
-            fechaVencimiento:  f.fechaVencimiento || undefined,
-            metodoPago:        f.metodoPago,
-            importe:           f.monto ? parseFloat(f.monto) : undefined,
-            idUsuarioOperador: sesion.idUsuario,
-          })
-        })
-        if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || "Error") }
-
-        // Si el pago es Transferencia y hay comprobante del alumno, aprobarlo automáticamente
-        if (f.metodoPago === "Transferencia" && f.idUsuario) {
-          const docs = comprobantesMap[f._id] || []
-          const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
-          const filtrados = desde
-            ? docs.filter(d => d.tipo === "comprobante_transferencia" && (!d.creadoEn || new Date(d.creadoEn) >= desde))
-            : docs.filter(d => d.tipo === "comprobante_transferencia")
-          if (filtrados.length > 0) {
-            const docId = filtrados[0].idDocumento
-            await fetch(`/api/vv1/documentos/${docId}/aprobar`, { method: "PATCH", headers: getHeaders() }).catch(() => {})
-            // Actualizar el estado local del comprobante
-            setComprobantesMap(prev => ({
-              ...prev,
-              [f._id]: (prev[f._id] || []).map(d => d.idDocumento === docId ? { ...d, estado: "aprobado" } : d)
-            }))
-          }
+        const docIdAprobado = await guardarFila(f, comprobantesMap[f._id] || [])
+        if (docIdAprobado) {
+          setComprobantesMap(prev => ({
+            ...prev,
+            [f._id]: (prev[f._id] || []).map(d => d.idDocumento === docIdAprobado ? { ...d, estado: "aprobado" } : d)
+          }))
         }
 
         upd(f._id, "estado", "ok")
@@ -383,6 +393,82 @@ export default function GestionAbonosPage() {
     setEnviando(false)
     toast.success("Carga completada")
     cargarAbonos()
+  }
+
+  // ── Modal "Nuevo abono" (celular): un abono por vez, con controles grandes ─────
+  const [modalAbono, setModalAbono] = useState(false)
+  const [formM, setFormM] = useState(filaVacia())
+  const [docsM, setDocsM] = useState([])
+  const [guardandoM, setGuardandoM] = useState(false)
+
+  const abrirModalAbono = () => {
+    const base = filaVacia()
+    const u = usuarioPreId ? usuarios.find(x => String(x.idUsuario || x.id) === String(usuarioPreId)) : null
+    if (u) {
+      const nombre = u.nombre || u.nombrecompleto || ""
+      Object.assign(base, { idUsuario: u.idUsuario || u.id, nombreAlumno: nombre, busqueda: nombre })
+    }
+    setFormM(base)
+    setDocsM([])
+    setModalAbono(true)
+  }
+
+  const cargarDocsM = async (idUsuario) => {
+    if (!idUsuario) return
+    try {
+      const r = await fetch(`/api/vv1/documentos/usuario/${idUsuario}`)
+      const json = await r.json()
+      setDocsM(json.data || [])
+    } catch { setDocsM([]) }
+  }
+
+  const sugerenciasM = (() => {
+    const q = formM.busqueda.trim().toLowerCase()
+    if (!q || formM.idUsuario) return []
+    return usuarios.filter(u =>
+      (u.nombre || u.nombrecompleto || "").toLowerCase().includes(q) ||
+      (u.email || u.correo || "").toLowerCase().includes(q) ||
+      String(u.dni || "").includes(q)
+    ).slice(0, 5)
+  })()
+
+  const elegirAlumnoM = (u) => {
+    const nombre = u.nombre || u.nombrecompleto || ""
+    setFormM(p => ({ ...p, idUsuario: u.idUsuario || u.id, nombreAlumno: nombre, busqueda: nombre }))
+    if (formM.metodoPago === "Transferencia") cargarDocsM(u.idUsuario || u.id)
+  }
+
+  const elegirPlanM = (idPlan) => {
+    const plan = planes.find(p => String(p.idPlan) === String(idPlan))
+    setFormM(p => ({
+      ...p, idPlan,
+      precioBase: plan?.precio || 0,
+      creditos: plan ? String(plan.cantidadCreditos || "") : p.creditos,
+      monto: plan ? calcularMonto(plan.precio, p.metodoPago) : p.monto,
+    }))
+  }
+
+  const elegirMetodoM = (metodoPago) => {
+    setFormM(p => ({ ...p, metodoPago, monto: p.precioBase ? calcularMonto(p.precioBase, metodoPago) : p.monto }))
+    if (metodoPago === "Transferencia") cargarDocsM(formM.idUsuario)
+  }
+
+  const guardarModalAbono = async () => {
+    if (!formM.idUsuario || !formM.idPlan || !formM.fechaInicio) {
+      toast.error("Completá los datos obligatorios", { description: "Alumno, plan y fecha de inicio." })
+      return
+    }
+    setGuardandoM(true)
+    try {
+      await guardarFila(formM, docsM)
+      toast.success("Abono cargado")
+      setModalAbono(false)
+      cargarAbonos()
+    } catch (e) {
+      toast.error(e.message || "No se pudo cargar el abono")
+    } finally {
+      setGuardandoM(false)
+    }
   }
 
   const resumen = {
@@ -408,8 +494,20 @@ export default function GestionAbonosPage() {
         </div>
       </div>
 
-      {/* ── CARGA MASIVA ─────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
+      {/* ── CELULAR: botón que abre el modal de nuevo abono ─────────────────── */}
+      <div className="md:hidden">
+        <button
+          type="button"
+          onClick={abrirModalAbono}
+          className="flex w-full items-center justify-center gap-2 bg-lime-400 px-5 py-4 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
+        >
+          <Plus className="h-5 w-5" />
+          Cargar abono
+        </button>
+      </div>
+
+      {/* ── CARGA MASIVA (escritorio y tablet) ───────────────────────────────── */}
+      <div className="hidden space-y-3 md:block">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-foreground">Nueva Carga</p>
@@ -852,6 +950,115 @@ export default function GestionAbonosPage() {
           </div>
         )
       })()}
+
+      {/* ── MODAL NUEVO ABONO (celular) ─────────────────────────────────────── */}
+      <Dialog open={modalAbono} onOpenChange={setModalAbono}>
+        <DialogContent className="bg-card border border-border w-[calc(100%-1.5rem)] max-h-[92vh] overflow-y-auto p-4 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="uppercase text-sm font-black tracking-widest">Nuevo abono</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Alumno */}
+            <div>
+              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumno</label>
+              {formM.idUsuario ? (
+                <div className="flex items-center justify-between gap-2 border border-lime-400/30 bg-lime-400/10 px-3 py-3">
+                  <span className="min-w-0 truncate text-base font-semibold text-foreground">{formM.nombreAlumno}</span>
+                  <button type="button" className="shrink-0 text-xs font-black uppercase tracking-widest text-lime-700 dark:text-lime-400"
+                    onClick={() => setFormM(p => ({ ...p, idUsuario: "", nombreAlumno: "", busqueda: "" }))}>
+                    Cambiar
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <input className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" placeholder="Nombre, DNI o email" value={formM.busqueda}
+                    onChange={e => setFormM(p => ({ ...p, busqueda: e.target.value }))} />
+                  {sugerenciasM.length > 0 && (
+                    <ul className="mt-1 divide-y divide-border border border-border">
+                      {sugerenciasM.map(u => (
+                        <li key={u.idUsuario || u.id}>
+                          <button type="button" onClick={() => elegirAlumnoM(u)} className="block w-full px-3 py-3 text-left hover:bg-foreground/5">
+                            <span className="block text-sm font-semibold text-foreground">{u.nombre || u.nombrecompleto}</span>
+                            <span className="block text-xs text-foreground/40">{u.dni ? "DNI " + u.dni : (u.email || u.correo)}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Plan */}
+            <div>
+              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</label>
+              <select className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
+                <option value="">Seleccionar plan...</option>
+                {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
+              </select>
+              {formM.creditos && <p className="mt-1 text-xs text-foreground/50">Incluye {formM.creditos} créditos</p>}
+            </div>
+
+            {/* Método de pago */}
+            <div>
+              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Método de pago</label>
+              <div className="grid grid-cols-2 gap-2">
+                {METODOS.map(m => (
+                  <button key={m} type="button" onClick={() => elegirMetodoM(m)}
+                    className={`border px-2 py-3 text-xs font-black uppercase tracking-wide transition-colors ${
+                      formM.metodoPago === m
+                        ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400"
+                        : "border-border text-foreground/50 hover:bg-foreground/5"
+                    }`}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+              {formM.metodoPago === "Tarjeta Crédito" && <p className="mt-1 text-xs text-foreground/50">Incluye 10% de recargo por tarjeta de crédito.</p>}
+              {formM.metodoPago === "Transferencia" && formM.idUsuario && (
+                <p className="mt-1 text-xs text-foreground/50">
+                  {docsM.filter(d => d.tipo === "comprobante_transferencia").length > 0
+                    ? "El alumno subió un comprobante: se aprueba solo al guardar."
+                    : "El alumno todavía no subió ningún comprobante."}
+                </p>
+              )}
+            </div>
+
+            {/* Monto */}
+            <div>
+              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Monto ($)</label>
+              <input type="number" inputMode="decimal" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.monto}
+                onChange={e => setFormM(p => ({ ...p, monto: e.target.value }))} />
+            </div>
+
+            {/* Fechas */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Inicio</label>
+                <input type="date" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.fechaInicio}
+                  onChange={e => { const v = e.target.value; setFormM(p => ({ ...p, fechaInicio: v, fechaVencimiento: v ? diezDelMesSiguiente(v) : p.fechaVencimiento })) }} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vencimiento</label>
+                <input type="date" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.fechaVencimiento}
+                  onChange={e => setFormM(p => ({ ...p, fechaVencimiento: e.target.value }))} />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-2 flex-col gap-2 sm:flex-col">
+            <button type="button" onClick={guardarModalAbono} disabled={guardandoM}
+              className="flex w-full items-center justify-center gap-2 bg-lime-400 px-5 py-4 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-40">
+              {guardandoM && <Loader2 className="h-4 w-4 animate-spin" />}
+              {guardandoM ? "Guardando..." : "Guardar abono"}
+            </button>
+            <button type="button" onClick={() => setModalAbono(false)} className="w-full py-2 text-xs font-black uppercase tracking-widest text-foreground/50">
+              Cancelar
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── MODAL EDITAR ─────────────────────────────────────────────────────── */}
       <Dialog open={editDialog.open} onOpenChange={open => !open && setEditDialog({ open: false, abono: null })}>
