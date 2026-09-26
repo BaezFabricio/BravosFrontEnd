@@ -21,6 +21,7 @@ import {
   Home,
   User,
   BarChart3,
+  MessageCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -48,6 +49,7 @@ const navigation = [
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta", grupo: "gestion" },
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
+  { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: MessageCircle, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },
   { name: "Configuración", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
 ]

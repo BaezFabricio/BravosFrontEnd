@@ -20,6 +20,7 @@ import NuevaClasePage from './app/admin/clases/NuevaClasePage.jsx'
 import TurnosPage from "./app/admin/clases/TurnosPage.jsx";
 import PlanesPage from "./app/admin/planes/PlanesPage.jsx";
 import ReportesPage from "./app/admin/reportes/ReportesPage.jsx";
+import AvisosPage from "./app/admin/avisos/AvisosPage.jsx";
 
 
 import AlumnoLayout from './app/alumno/layout.jsx'
@@ -161,6 +162,7 @@ function App() {
         <Route path="/admin/clases/turnos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><TurnosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/planes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PlanesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/reportes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><ReportesPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/avisos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AvisosPage /></AdminLayout></RequireAuth>} />
         {/* RUTAS DE ALUMNO */}
         <Route path="/alumno" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDashboard /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/reservar" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoReservarPage /></AlumnoLayout></RequireAuth>} />

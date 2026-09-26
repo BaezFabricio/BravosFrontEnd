@@ -990,14 +990,19 @@ export default function GestionAbonosPage() {
               )}
             </div>
 
-            {/* Plan */}
-            <div>
-              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</label>
-              <select className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
-                <option value="">Seleccionar plan...</option>
-                {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
-              </select>
-              {formM.creditos && <p className="mt-1 text-xs text-foreground/50">Incluye {formM.creditos} créditos</p>}
+            {/* Plan y créditos en la misma fila */}
+            <div className="grid grid-cols-[1fr_4.5rem] gap-3">
+                <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</label>
+                <select className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/25" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
+                  <option value="">Seleccionar plan...</option>
+                  {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créd.</label>
+                <input className="w-full cursor-default border border-border bg-muted/40 px-1 py-3 text-center text-base text-foreground outline-none" value={formM.creditos} readOnly placeholder="-" />
+              </div>
             </div>
 
             {/* Método de pago */}
