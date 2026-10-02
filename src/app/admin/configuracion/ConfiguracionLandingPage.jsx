@@ -93,6 +93,7 @@ function ConfiguracionLandingPage() {
   const [telefono, setTelefono] = useState('')
   const [email, setEmail] = useState('')
   const [instagram, setInstagram] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
@@ -145,6 +146,7 @@ function ConfiguracionLandingPage() {
       setTelefono(d.telefono || '')
       setEmail(d.email || '')
       setInstagram(d.instagram || '')
+      setWhatsapp(d.whatsapp || '')
       setHorarioSemana(d.horario_semana || 'Lun-Vie: 6:00 - 22:00')
       setHorarioSabado(d.horario_sabado || 'Sábado: 8:00 - 14:00')
       setHorarioDomingo(d.horario_domingo || 'Domingo: Cerrado')
@@ -226,6 +228,7 @@ function ConfiguracionLandingPage() {
       fd.append('telefono', telefono)
       fd.append('email', email)
       fd.append('instagram', instagram)
+      fd.append('whatsapp', whatsapp)
       fd.append('horario_semana', horarioSemana)
       fd.append('horario_sabado', horarioSabado)
       fd.append('horario_domingo', horarioDomingo)
@@ -481,6 +484,10 @@ function ConfiguracionLandingPage() {
                     <span className="flex items-center rounded-l-lg border border-r-0 border-zinc-700 bg-zinc-800 px-3 text-sm text-muted-foreground">@</span>
                     <input disabled={!puedeModificar} type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="bravosbox" className={inputCls + " rounded-l-none"} />
                   </div>
+                </Field>
+                <Field label="WhatsApp (botón flotante de la página)">
+                  <input disabled={!puedeModificar} type="tel" inputMode="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="5493704123456" className={inputCls} />
+                  <p className="mt-1 text-xs text-muted-foreground">Con código de país y de área, sin el 0 ni el 15. Ej.: 54 9 370 4123456. Si queda vacío, el botón no se muestra.</p>
                 </Field>
               </div>
             </SectionCard>

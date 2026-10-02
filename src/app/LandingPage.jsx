@@ -81,6 +81,7 @@ function LandingPage() {
   // Contacto
   const [direccion, setDireccion] = useState('Eva Perón 552')
   const [telefono, setTelefono] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [emailContacto, setEmailContacto] = useState('')
   const [instagram, setInstagram] = useState('')
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
@@ -214,6 +215,7 @@ function LandingPage() {
         // Contacto
         if (data?.direccion) setDireccion(data.direccion)
         if (data?.telefono) setTelefono(data.telefono)
+        if (data?.whatsapp) setWhatsapp(data.whatsapp)
         if (data?.email) setEmailContacto(data.email)
         if (data?.instagram) setInstagram(data.instagram)
         if (data?.horario_semana) setHorarioSemana(data.horario_semana)
@@ -305,6 +307,20 @@ function LandingPage() {
       <LandingPageSkeleton />
     )
   }
+
+  const irAlContenido = () => {
+    document.getElementById('contenido')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // Número de WhatsApp solo con dígitos, como lo pide wa.me
+  // wa.me pide el número completo: 549 + característica + número (sin 0 ni 15).
+  const whatsappDigitos = (() => {
+    let d = (whatsapp || telefono || '').replace(/\D/g, '')
+    if (!d) return ''
+    if (d.startsWith('549')) return d
+    if (d.startsWith('54')) return '549' + d.slice(2)
+    return '549' + d.replace(/^0/, '')
+  })()
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-foreground selection:bg-emerald-500 selection:text-black">
@@ -495,7 +511,17 @@ function LandingPage() {
           </div>
         ))}
 
-        <div className="absolute right-8 bottom-8 z-20 flex gap-2">
+        <button
+          type="button"
+          onClick={irAlContenido}
+          aria-label="Ver más contenido"
+          className="group absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 text-white/70 transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
+        >
+          <span className="h-10 w-px bg-gradient-to-b from-transparent to-current" />
+          <ChevronDown className="h-7 w-7 motion-safe:animate-bounce" />
+        </button>
+
+        <div className="absolute right-24 bottom-8 z-20 flex gap-2">
           {heroImages.map((_, index) => (
             <button key={index} type="button" onClick={() => setCurrentImageIndex(index)} className={`h-2 rounded-full transition-all ${index === currentImageIndex ? 'w-6 bg-accent' : 'w-2 bg-white/50'}`} />
           ))}
@@ -537,7 +563,7 @@ function LandingPage() {
             </p>
 
             {/* MÁS INFO */}
-            <button className="group mt-3 flex items-center gap-2 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400">
+            <button type="button" onClick={irAlContenido} className="group mt-3 flex items-center gap-2 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400">
               <span>MÁS INFO</span>
               <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
             </button>
@@ -546,7 +572,7 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN FRASE MOTIVACIONAL */}
-      <section className="bg-black py-12 md:py-16">
+      <section id="contenido" className="scroll-mt-16 bg-black py-12 md:py-16">
         <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
           <blockquote className="text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
             {'"EL ÚNICO ENTRENAMIENTO MALO'} <br />
@@ -750,6 +776,19 @@ function LandingPage() {
           </div>
         </div>
       </footer>
+      {whatsappDigitos && (
+        <a
+          href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Escribinos por WhatsApp"
+          className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/40 transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        >
+          <svg viewBox="0 0 32 32" className="h-8 w-8" fill="currentColor" aria-hidden="true">
+            <path d="M16.04 3C8.86 3 3.04 8.82 3.04 16c0 2.29.6 4.53 1.74 6.5L3 29l6.68-1.75A12.94 12.94 0 0 0 16.04 29C23.22 29 29 23.18 29 16S23.22 3 16.04 3Zm0 23.62c-1.98 0-3.92-.53-5.61-1.53l-.4-.24-3.96 1.04 1.06-3.86-.26-.4A10.6 10.6 0 0 1 5.42 16c0-5.86 4.76-10.62 10.62-10.62 5.85 0 10.6 4.76 10.6 10.62 0 5.86-4.75 10.62-10.6 10.62Zm5.82-7.95c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.71.16-.21.32-.82 1.03-1 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.55-1.57-.94-.84-1.58-1.88-1.76-2.2-.18-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.09-1.11 2.65s1.14 3.07 1.3 3.28c.16.21 2.24 3.42 5.43 4.8.76.33 1.35.52 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z" />
+          </svg>
+        </a>
+      )}
     </div>
   )
 }
