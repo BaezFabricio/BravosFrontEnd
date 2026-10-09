@@ -23,6 +23,8 @@ import ReportesPage from "./app/admin/reportes/ReportesPage.jsx";
 import AvisosPage from "./app/admin/avisos/AvisosPage.jsx";
 
 
+import { PrivacidadPage, TerminosPage, CookiesPage, ReembolsosPage } from './app/legal/PaginasLegales.jsx'
+import ArrepentimientoPage from './app/legal/ArrepentimientoPage.jsx'
 import AlumnoLayout from './app/alumno/layout.jsx'
 import AlumnoDashboard from './app/alumno/AlumnoDashboard.jsx'
 import AlumnoReservarPage from './app/alumno/reservar/ReservarPage.jsx'
@@ -145,6 +147,12 @@ function App() {
         <Route path="/registro" element={<RegistroPage />} />
         <Route path="/verificar-cuenta" element={<VerificarCuentaPage />} />
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />
+        {/* Páginas legales: públicas */}
+        <Route path="/privacidad" element={<PrivacidadPage />} />
+        <Route path="/terminos" element={<TerminosPage />} />
+        <Route path="/cookies" element={<CookiesPage />} />
+        <Route path="/reembolsos" element={<ReembolsosPage />} />
+        <Route path="/arrepentimiento" element={<ArrepentimientoPage />} />
         <Route path="/seleccionar-panel" element={<RequireAuth><SeleccionarPanelPage /></RequireAuth>} />
 
         {/* RUTAS DE ADMINISTRADOR */}

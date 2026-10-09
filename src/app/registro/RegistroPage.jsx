@@ -65,6 +65,8 @@ function RegistroPage() {
     nombre: '', dni: '', email: '', telefono: '', password: '', confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
+  const [aceptaTerminos, setAceptaTerminos] = useState(false)
+  const [errorTerminos, setErrorTerminos] = useState('')
 
   const set = (field) => (e) => {
     const value = e.target.value
@@ -97,7 +99,8 @@ function RegistroPage() {
       Object.keys(formData).map(k => [k, validateField(k, formData[k], formData)])
     )
     setErrors(newErrors)
-    if (Object.values(newErrors).some(Boolean)) return
+    if (!aceptaTerminos) setErrorTerminos('Para crear la cuenta tenés que aceptar los términos y la política de privacidad')
+    if (Object.values(newErrors).some(Boolean) || !aceptaTerminos) return
 
     setIsLoading(true)
     try {
@@ -108,6 +111,7 @@ function RegistroPage() {
         telefono: formData.telefono,
         username: formData.email,
         password: formData.password,
+        aceptaTerminos: true,
       })
       const idAsignado = response?.data?.usuario?.idUsuario || response?.usuario?.idUsuario || response?.idUsuario
       setUsuarioId(idAsignado)
@@ -411,6 +415,26 @@ function RegistroPage() {
                   </div>
                   {errors.confirmPassword && touched.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                   {isValid('confirmPassword') && <p className="text-xs text-lime-700 dark:text-lime-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Las contraseñas coinciden</p>}
+                </div>
+
+                {/* Consentimiento: el servidor también lo exige y guarda la constancia */}
+                <div className="space-y-1.5 pt-1">
+                  <label htmlFor="aceptaTerminos" className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      id="aceptaTerminos" type="checkbox"
+                      checked={aceptaTerminos}
+                      onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked) setErrorTerminos('') }}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-lime-500 cursor-pointer"
+                    />
+                    <span className="text-sm leading-snug text-muted-foreground">
+                      Leí y acepto los{' '}
+                      <Link to="/terminos" target="_blank" className="font-semibold text-foreground underline underline-offset-2 hover:text-lime-700 dark:hover:text-lime-400">Términos y condiciones</Link>
+                      {' '}y la{' '}
+                      <Link to="/privacidad" target="_blank" className="font-semibold text-foreground underline underline-offset-2 hover:text-lime-700 dark:hover:text-lime-400">Política de privacidad</Link>.
+                      {' '}Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.
+                    </span>
+                  </label>
+                  {errorTerminos && <p className="text-xs text-destructive">{errorTerminos}</p>}
                 </div>
 
                 <Button

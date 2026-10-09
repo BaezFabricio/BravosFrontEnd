@@ -16,6 +16,7 @@ const TIPOS = [
     label: "Certificado Médico",
     descripcion: "Certificado médico de aptitud física para la práctica deportiva.",
     Icon: Stethoscope,
+    salud: true,
     accept: "image/*,application/pdf",
   },
   {
@@ -23,6 +24,7 @@ const TIPOS = [
     label: "Declaración Jurada",
     descripcion: "Declaración jurada o contrato de membresía firmado.",
     Icon: FileText,
+    salud: true,
     accept: "image/*,application/pdf",
   },
 ]
@@ -53,6 +55,9 @@ function EstadoBadge({ ultimo }) {
 }
 
 function DocCard({ tipo, documentos, onUpload, uploading }) {
+  // Datos de salud = datos sensibles (Ley 25.326, art. 7): hace falta autorización expresa
+  const [consiente, setConsiente] = useState(false)
+  const bloqueado = tipo.salud && !consiente
   const fileRef = useRef(null)
   const [historialAbierto, setHistorialAbierto] = useState(false)
   const docs = documentos.filter(d => d.tipo === tipo.key)
@@ -67,7 +72,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
       toast.error("El archivo no puede superar los 10 MB")
       return
     }
-    await onUpload(tipo.key, file)
+    await onUpload(tipo.key, file, tipo.salud ? consiente : undefined)
     e.target.value = ""
   }
 
@@ -162,9 +167,25 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
       {/* Botón subir */}
       <div className="px-5 py-4 border-t border-border mt-auto">
         <input ref={fileRef} type="file" accept={tipo.accept} className="hidden" onChange={handleFile} />
+        {tipo.salud && (
+          <label className="mb-3 flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consiente}
+              onChange={(e) => setConsiente(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-lime-500 cursor-pointer"
+            />
+            <span className="text-xs leading-snug text-foreground/60">
+              Autorizo a Bravos Box a guardar este documento con datos de mi salud para controlar mi aptitud física,
+              según la{" "}
+              <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground/80">Política de privacidad</a>.
+            </span>
+          </label>
+        )}
         <button
           onClick={() => fileRef.current?.click()}
-          disabled={uploading === tipo.key}
+          disabled={uploading === tipo.key || bloqueado}
+          title={bloqueado ? "Primero marcá la autorización" : undefined}
           className="w-full flex items-center justify-center gap-2 border border-dashed border-border hover:border-foreground/40 py-4 text-sm font-bold uppercase tracking-wide text-foreground/40 hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {uploading === tipo.key ? (
@@ -194,12 +215,13 @@ export default function DocumentacionPage() {
       .finally(() => setCargando(false))
   }, [])
 
-  const handleUpload = async (tipo, file) => {
+  const handleUpload = async (tipo, file, consienteDatosSalud) => {
     setUploading(tipo)
     try {
       const form = new FormData()
       form.append("archivo", file)
       form.append("tipo", tipo)
+      if (consienteDatosSalud !== undefined) form.append("consienteDatosSalud", String(consienteDatosSalud))
       const r = await apiClient.post("/documentos/subir", form, {
         headers: { "Content-Type": "multipart/form-data" }
       })

@@ -42,7 +42,7 @@ const GRUPOS = [
 
 const navigation = [
   { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard, principal: true, grupo: "inicio" },
-  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, grupo: "entrenamiento" },
+  { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, centro: true, grupo: "entrenamiento" },
   { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true, grupo: "entrenamiento" },
   { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy, grupo: "entrenamiento" },
   { name: "Calculadora RM", mobileLabel: "RM", href: "/alumno/calculadora-rm", icon: Calculator, grupo: "entrenamiento" },
@@ -239,6 +239,9 @@ export default function AlumnoLayout({ children }) {
                 <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
               </div>
             )}
+            <Link to="/alumno" className="lg:hidden" aria-label="Inicio">
+              <img src="/logo.jpg" alt="Bravos Box" width={36} height={36} className="rounded-lg" />
+            </Link>
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               <SelectorPanel actual="alumno" />
@@ -322,7 +325,7 @@ export default function AlumnoLayout({ children }) {
           <div className="lg:hidden fixed inset-0 z-10" onClick={() => setMenuMovilAbierto(false)} />
         )}
 
-        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
+        <main className="p-4 lg:p-6 pb-28 lg:pb-6">
           {validandoAcceso ? (
             <div className="flex items-center justify-center min-h-[50vh]">
               <p className="text-sm text-muted-foreground animate-pulse">Sincronizando credenciales de acceso con Bravos Box...</p>
@@ -350,9 +353,25 @@ export default function AlumnoLayout({ children }) {
 
         {/* Barra de abajo (celular): solo los accesos principales; el resto está en el menú de arriba a la derecha */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
-          <div className="flex items-center justify-around">
-            {navigation.filter((item) => item.principal).map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+          <div className="flex items-end justify-around">
+            {(() => {
+              // La acción principal (Reservar) va en el medio, con las demás repartidas a los costados
+              const items = navigation.filter((item) => item.principal && !item.centro)
+              const centro = navigation.find((item) => item.centro)
+              const mitad = Math.ceil(items.length / 2)
+              return [...items.slice(0, mitad), centro, ...items.slice(mitad)]
+            })().map((item) => {
+              const isActive = item.href === "/alumno" ? pathname === "/alumno" : (pathname === item.href || pathname.startsWith(item.href + "/"))
+              if (item.centro) {
+                return (
+                  <Link key={item.name} to={item.href} className="flex flex-1 min-w-0 flex-col items-center gap-1 pb-2">
+                    <span className={`-mt-6 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-500/20 transition-transform active:scale-95 ${isActive ? "ring-2 ring-lime-500" : ""}`}>
+                      <item.icon className="h-6 w-6" />
+                    </span>
+                    <span className={`text-[9px] font-black uppercase tracking-wide leading-none ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/70"}`}>{item.mobileLabel}</span>
+                  </Link>
+                )
+              }
               return (
                 <Link
                   key={item.name}

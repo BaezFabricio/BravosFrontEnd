@@ -19,6 +19,7 @@ import apiClient from "@/api"
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
+import DashboardMovil from "./DashboardMovil"
 
 export default function AlumnoDashboard() {
   // ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
@@ -62,18 +63,17 @@ export default function AlumnoDashboard() {
     ...statsMarcas,
   }
   const logros = logrosConEstado(userStats)
-  const mesReferencia = todasCompletadas.length > 0
-    ? new Date(todasCompletadas[0].fechaReserva)
-    : hoyDate
-  const mesRef      = mesReferencia.getUTCMonth()
-  const anioRef     = mesReferencia.getUTCFullYear()
+  // Progreso mensual: siempre el mes actual (antes tomaba el mes de la primera clase de la lista)
+  const mesRef      = hoyDate.getMonth()
+  const anioRef     = hoyDate.getFullYear()
   const diasEnMes   = new Date(anioRef, mesRef + 1, 0).getDate()
   const nombreMes   = new Date(anioRef, mesRef, 1).toLocaleDateString("es-AR", { month: "long" })
+  const mesActualTxt = `${anioRef}-${String(mesRef + 1).padStart(2, "0")}`
 
-  const clasesCompletadasEsteMes = todasCompletadas.filter(r => {
-    const f = new Date(r.fechaReserva)
-    return f.getUTCFullYear() === anioRef && f.getUTCMonth() === mesRef
-  }).length
+  // Se compara el texto "AAAA-MM" de la fecha: con new Date() la zona horaria puede correr el día al mes anterior
+  const clasesCompletadasEsteMes = todasCompletadas.filter(r =>
+    String(r.fechaReserva || "").slice(0, 7) === mesActualTxt
+  ).length
 
   // Progreso semanal: lunes a viernes de la semana actual
   const lunesActual = (() => {
@@ -193,9 +193,44 @@ export default function AlumnoDashboard() {
 
   const proximasReservadas = reservasReales.filter(r => r.estadoReserva === 'proxima')
 
+  // Estado de la membresía para la versión del celular (la de escritorio lo calcula en su tarjeta)
+  const estadoMembresia = (miPlan || membresia)
+    ? (miPlan
+        ? (!miPlan.vigente ? 'vencida' : miPlan.porVencer ? 'por_vencer' : 'activa')
+        : (membresia === 'por_vencer' ? 'por_vencer' : (membresia === 'activa' || membresia === 'vigente') ? 'activa' : 'vencida'))
+    : null
+  const nombrePlanesMovil = miPlan?.vigente ? [...new Set(miPlan.planes.map((pl) => pl.nombrePlan))].join(' + ') : null
+
   return (
-    <div className="space-y-6">
+    <>
       <LogroCelebracion logros={logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
+
+      {/* CELULAR: diseño propio (DashboardMovil.jsx) */}
+      <div className="lg:hidden">
+        <DashboardMovil
+          nombreUsuario={nombreUsuario}
+          racha={userStats.racha}
+          creditos={creditosReales}
+          cargando={loadingReservas}
+          agendadas={proximasReservadas.length}
+          estadoMembresia={estadoMembresia}
+          nombrePlanes={nombrePlanesMovil}
+          miPlan={miPlan}
+          logros={logros}
+          clasesHoy={clasesHoy}
+          cargandoClases={loadingClases}
+          proximasReservadas={proximasReservadas}
+          clasesSemanales={clasesSemanales}
+          metaSemanal={metaSemanal}
+          clasesMes={clasesCompletadasEsteMes}
+          diasEnMes={diasEnMes}
+          nombreMes={nombreMes}
+          totalMarcas={statsMarcas.totalMarcas}
+        />
+      </div>
+
+      {/* ESCRITORIO */}
+    <div className="hidden lg:block space-y-6">
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
       <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
         <div className="relative p-6 lg:p-8">
@@ -560,5 +595,6 @@ export default function AlumnoDashboard() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }

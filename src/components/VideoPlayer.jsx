@@ -7,7 +7,7 @@ const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL
 
 function getYoutubeEmbedUrl(url) {
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)
-  return match ? `https://www.youtube.com/embed/${match[1]}` : null
+  return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : null
 }
 
 function isYoutube(url) {

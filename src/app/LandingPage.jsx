@@ -87,6 +87,7 @@ function LandingPage() {
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
+  const [mapaVisible, setMapaVisible] = useState(false)
   const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
 
   const showLogoSkeleton = !logoUrl || logoFailed || !logoImgLoaded
@@ -752,6 +753,19 @@ function LandingPage() {
 
             {/* Columna de Mapa */}
             <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-lg">
+              {!mapaVisible ? (
+                <button
+                  type="button"
+                  onClick={() => setMapaVisible(true)}
+                  className="flex h-full w-full flex-col items-center justify-center gap-3 bg-muted/40 px-6 text-center transition-colors hover:bg-muted/70"
+                >
+                  <MapPin className="h-10 w-10 text-bravos-green" />
+                  <span className="text-sm font-black uppercase tracking-widest text-foreground">Ver mapa</span>
+                  <span className="max-w-xs text-xs text-foreground/50">
+                    El mapa lo muestra Google Maps, que puede guardar cookies propias.
+                  </span>
+                </button>
+              ) : (
               <iframe
                 src={mapaUrl}
                 width="100%"
@@ -762,6 +776,7 @@ function LandingPage() {
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Mapa de ubicación"
               />
+              )}
             </div>
           </div>
         </div>
@@ -772,7 +787,29 @@ function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
-            <p className="text-sm text-foreground/40">2026 Bravos Box. Todos los derechos reservados.</p>
+            <nav aria-label="Información legal" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/60">
+              <Link to="/terminos" className="hover:text-white">Términos y condiciones</Link>
+              <Link to="/privacidad" className="hover:text-white">Privacidad</Link>
+              <Link to="/cookies" className="hover:text-white">Cookies</Link>
+              <Link to="/reembolsos" className="hover:text-white">Reembolsos</Link>
+              <Link
+                to="/arrepentimiento"
+                className="rounded border border-white/40 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white hover:border-bravos-green hover:text-bravos-green"
+              >
+                Botón de arrepentimiento
+              </Link>
+            </nav>
+          </div>
+          <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 md:flex-row">
+            <p>2026 Bravos Box. Todos los derechos reservados.</p>
+            <a
+              href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-white"
+            >
+              Defensa de las y los consumidores. Para reclamos ingresá aquí.
+            </a>
           </div>
         </div>
       </footer>

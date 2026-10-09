@@ -145,6 +145,8 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
   const [pagando, setPagando]           = useState(false)
   const [pagoConfirmado, setPagoConfirmado]     = useState(false)
   const [yaPagadoAntes, setYaPagadoAntes]       = useState(false)
+  // Consentimiento previo al pago (Términos + Política de reembolsos). El servidor también lo exige.
+  const [acepto, setAcepto]             = useState(false)
   const fileRef       = useRef(null)
   const pagandoRef    = useRef(false)
   // idPago que ya existía al abrir el modal. undefined = todavía no se cargó.
@@ -242,7 +244,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
         window.location.href = mpUrl
         return
       }
-      const res = await apiClient.post("/pagos/procesar-tarjeta", { formData, idPlan: plan.idPlan })
+      const res = await apiClient.post("/pagos/procesar-tarjeta", { formData, idPlan: plan.idPlan, aceptaCondiciones: true })
       const { status } = res.data?.data || {}
       const frontendUrl = window.location.origin
       if (status === "approved" || status === "in_process" || status === "pending") {
@@ -275,14 +277,18 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
     setYaPagadoAntes(false)
     idPagoBaseRef.current = undefined
     pagoListoParaMostrarRef.current = false
-    setLoadingUrl(true)
+    setAcepto(false)
 
     apiClient.get(`/pagos/estado/${plan.idPlan}`)
       .then((r) => { idPagoBaseRef.current = r.data?.data?.idPago ?? null })
       .catch(() => { idPagoBaseRef.current = null })
+  }, [open, plan?.idPlan])
 
+  // El QR y el formulario de tarjeta se preparan recién cuando el alumno aceptó las condiciones
+  useEffect(() => {
+    if (!open || !plan || !acepto || preferenceId) return
     apiClient
-      .post("/pagos/crear-preferencia", { idPlan: plan.idPlan })
+      .post("/pagos/crear-preferencia", { idPlan: plan.idPlan, aceptaCondiciones: true })
       .then((r) => {
         const { id, init_point, sandbox_init_point, qrData } = r.data?.data || {}
         setPreferenceId(id || null)
@@ -294,7 +300,8 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
         else toast.error("No se pudo cargar el formulario de pago")
       })
       .finally(() => setLoadingUrl(false))
-  }, [open, plan?.idPlan])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, plan?.idPlan, acepto])
 
   const subirComprobante = async (file) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("El archivo no puede superar 10 MB"); return }
@@ -347,6 +354,34 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
 
         {/* Contenido scrolleable */}
         <div className="overflow-y-auto flex-1">
+
+        <div className="px-6 pt-4">
+          <label className="flex items-start gap-3 rounded-lg border border-border bg-foreground/[0.03] p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acepto}
+              onChange={(e) => {
+                setAcepto(e.target.checked)
+                // la preferencia se pide en el efecto de abajo; mientras tanto, cargando
+                if (e.target.checked && !preferenceId) setLoadingUrl(true)
+              }}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-lime-500 cursor-pointer"
+            />
+            <span className="text-sm leading-snug text-foreground/70">
+              Acepto los{" "}
+              <a href="/terminos" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-2">Términos y condiciones</a>
+              {" "}y la{" "}
+              <a href="/reembolsos" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-2">Política de reembolsos</a>.
+              {" "}Puedo arrepentirme de la compra dentro de los 10 días.
+            </span>
+          </label>
+        </div>
+
+        {!acepto ? (
+          <p className="px-6 py-10 text-center text-sm text-foreground/50">
+            Marcá la casilla de arriba para ver las opciones de pago.
+          </p>
+        ) : (<>
 
         {/* Tabs método */}
         <div className="px-6 pt-4">
@@ -695,6 +730,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
             </button>
           </div>
         )}
+        </>)}
         </div>{/* fin scroll */}
       </DialogContent>
     </Dialog>

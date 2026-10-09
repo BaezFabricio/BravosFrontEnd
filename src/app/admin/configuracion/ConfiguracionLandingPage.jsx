@@ -94,6 +94,10 @@ function ConfiguracionLandingPage() {
   const [email, setEmail] = useState('')
   const [instagram, setInstagram] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  // Titular del servicio, para Términos y Privacidad
+  const [legalTitular, setLegalTitular] = useState('')
+  const [legalCuit, setLegalCuit] = useState('')
+  const [legalDomicilio, setLegalDomicilio] = useState('')
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
@@ -147,6 +151,9 @@ function ConfiguracionLandingPage() {
       setEmail(d.email || '')
       setInstagram(d.instagram || '')
       setWhatsapp(d.whatsapp || '')
+      setLegalTitular(d.legalTitular || '')
+      setLegalCuit(d.legalCuit || '')
+      setLegalDomicilio(d.legalDomicilio || '')
       setHorarioSemana(d.horario_semana || 'Lun-Vie: 6:00 - 22:00')
       setHorarioSabado(d.horario_sabado || 'Sábado: 8:00 - 14:00')
       setHorarioDomingo(d.horario_domingo || 'Domingo: Cerrado')
@@ -229,6 +236,9 @@ function ConfiguracionLandingPage() {
       fd.append('email', email)
       fd.append('instagram', instagram)
       fd.append('whatsapp', whatsapp)
+      fd.append('legalTitular', legalTitular)
+      fd.append('legalCuit', legalCuit)
+      fd.append('legalDomicilio', legalDomicilio)
       fd.append('horario_semana', horarioSemana)
       fd.append('horario_sabado', horarioSabado)
       fd.append('horario_domingo', horarioDomingo)
@@ -502,6 +512,20 @@ function ConfiguracionLandingPage() {
                 </Field>
                 <Field label="Domingo">
                   <input disabled={!puedeModificar} type="text" value={horarioDomingo} onChange={e => setHorarioDomingo(e.target.value)} placeholder="Cerrado" className={inputCls} />
+                </Field>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Datos legales" subtitle="Aparecen en los Términos y condiciones y en la Política de privacidad. La ley exige identificar a quien presta el servicio.">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Titular o razón social" hint="Nombre de la persona o empresa dueña del gimnasio.">
+                  <input disabled={!puedeModificar} type="text" value={legalTitular} onChange={e => setLegalTitular(e.target.value)} placeholder="BRAVOS FITNESS S.R.L." className={inputCls} />
+                </Field>
+                <Field label="CUIT">
+                  <input disabled={!puedeModificar} type="text" value={legalCuit} onChange={e => setLegalCuit(e.target.value)} placeholder="30-71649283-9" className={inputCls} />
+                </Field>
+                <Field label="Domicilio legal" hint="Si lo dejás vacío se usa la dirección de contacto.">
+                  <input disabled={!puedeModificar} type="text" value={legalDomicilio} onChange={e => setLegalDomicilio(e.target.value)} placeholder="Eva Perón 552, Formosa" className={inputCls} />
                 </Field>
               </div>
             </SectionCard>

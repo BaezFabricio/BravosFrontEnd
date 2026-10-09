@@ -11,6 +11,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from '@/lib/notificar'
 import apiClient from "@/api"
+import ReservarMovil from "./ReservarMovil"
 
 const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 const mapaDiasBD = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIERCOLES", 4: "JUEVES", 5: "VIERNES", 6: "SABADO" }
@@ -25,6 +26,17 @@ function horaEnTurno(hora, turnoId) {
   const t = TURNOS.find(t => t.id === turnoId)
   if (!t) return true
   return hora >= t.desde && hora < t.hasta
+}
+
+// ¿La clase se da ese día? (activa, del día de la semana o de esa fecha única, y del plan del alumno)
+function claseEsDelDia(clase, date, idPlanAlumno) {
+  if (clase.estado !== 'Activo') return false
+  if (idPlanAlumno && clase.idPlan && clase.idPlan !== idPlanAlumno) return false
+  if (clase.fechaEspecifica) {
+    const fechaStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    return clase.fechaEspecifica.split('T')[0] === fechaStr
+  }
+  return (clase.dia ? clase.dia.toUpperCase().trim() : "") === mapaDiasBD[date.getDay()]
 }
 
 function rutinaPublicada(publicarEn) {
@@ -76,6 +88,7 @@ export default function ReservarClasePage() {
   const [rutinaExpandida, setRutinaExpandida] = useState({})
   const [turnoFiltro, setTurnoFiltro]         = useState(null)
   const [idPlanAlumno, setIdPlanAlumno]       = useState(null)
+  const [vencimientoAbono, setVencimientoAbono] = useState(null)
   // mapa: `${idHorario}-${fechaISO}` → idReserva (solo reservas "proxima")
   const [reservasMap, setReservasMap]         = useState({})
 
@@ -147,6 +160,7 @@ export default function ReservarClasePage() {
           })
           setCreditosReales(abonoActivo?.disponibles ?? 0)
           if (abonoActivo?.idPlan) setIdPlanAlumno(abonoActivo.idPlan)
+          setVencimientoAbono(abonoActivo?.vencimiento ?? null)
         }
 
         await cargarReservas()
@@ -278,8 +292,54 @@ export default function ReservarClasePage() {
 
   const toggleRutina = (id) => setRutinaExpandida(prev => ({ ...prev, [id]: !prev[id] }))
 
+  // Para la fila de días del celular: ¿ese día tiene clases del plan del alumno?
+  const hayClasesEn = (d) => clasesOriginales.some(c => claseEsDelDia(c, d, idPlanAlumno))
+
+  // "Ver próximos días disponibles": salta al siguiente día con clases (hasta 4 semanas) y quita el filtro de turno
+  const irAProximoDiaConClases = () => {
+    const d = new Date(selectedDate)
+    for (let i = 1; i <= 28; i++) {
+      d.setDate(d.getDate() + 1)
+      if (clasesOriginales.some(c => claseEsDelDia(c, d, idPlanAlumno))) {
+        setTurnoFiltro(null)
+        setSelectedDate(new Date(d))
+        return
+      }
+    }
+    toast.info("No hay clases programadas en las próximas 4 semanas")
+  }
+
+  const nombrePlan = (idPlan) => planes.find(p => p.idPlan === idPlan)?.nombre || null
+
   return (
-    <div className="space-y-6">
+    <>
+      {/* CELULAR: diseño propio (ReservarMovil.jsx) */}
+      <div className="lg:hidden">
+        <ReservarMovil
+          creditos={creditosReales}
+          cargandoCreditos={loadingCreditos}
+          vencimiento={vencimientoAbono}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          hayClasesEn={hayClasesEn}
+          turnos={TURNOS}
+          turnoFiltro={turnoFiltro}
+          setTurnoFiltro={setTurnoFiltro}
+          clases={[...clasesFiltradas].sort((a, b) => a.hora.localeCompare(b.hora))}
+          nombrePlan={nombrePlan}
+          cargando={pageLoading}
+          puedeReservar={puedeReservar}
+          puedeCancelar={puedeCancelar}
+          rutinaPublicada={rutinaPublicada}
+          fechaPublicacion={formatearFechaPublicacion}
+          onReservar={(clase) => { setSelectedClass(clase); setConfirmDialog(true) }}
+          onCancelar={(clase) => setCancelDialog({ open: true, clase })}
+          irAProximoDiaConClases={irAProximoDiaConClases}
+        />
+      </div>
+
+      {/* ESCRITORIO */}
+    <div className="hidden lg:block space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Reservar Clase</h1>
         <p className="text-muted-foreground">Seleccioná una clase para reservar</p>
@@ -526,8 +586,9 @@ export default function ReservarClasePage() {
           ))
         )}
       </div>
+    </div>
 
-      {/* DIÁLOGO CONFIRMAR RESERVA */}
+      {/* DIÁLOGO CONFIRMAR RESERVA (lo usan las dos versiones) */}
       <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -610,6 +671,6 @@ export default function ReservarClasePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
