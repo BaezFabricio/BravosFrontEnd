@@ -32,6 +32,8 @@ function verMovimiento(mov) {
   switch (mov.estado) {
     case "Histórico":
       return { titulo: mov.descripcion, sub: fecha, Icon: Zap, tono: "lime" }
+    case "Anulado":
+      return { titulo: mov.descripcion, sub: `${fecha} · abono anulado, no suma créditos`, Icon: CircleSlash, tono: "gris" }
     case "Cancelada (Devuelto)":
       return { titulo: "Devolución por cancelación anticipada", sub: `${clase} · ${conHora}`, Icon: RotateCcw, tono: "lime" }
     case "Cancelada (Fuera de término)":

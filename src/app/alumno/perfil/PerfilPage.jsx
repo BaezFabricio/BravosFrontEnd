@@ -285,8 +285,10 @@ export default function PerfilPage() {
       toast.error("Ingresa tu nueva contraseña")
       return
     }
-    if (passwordForm.newPassword.length < 6) {
-      toast.error("La nueva contraseña debe tener al menos 6 caracteres")
+    // Misma regla que exige el servidor
+    const nueva = passwordForm.newPassword
+    if (nueva.length < 8 || !/[A-Z]/.test(nueva) || !/[a-z]/.test(nueva) || !/[0-9]/.test(nueva)) {
+      toast.error("La nueva contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número")
       return
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -314,7 +316,7 @@ export default function PerfilPage() {
         return
       }
 
-      toast.success("Contraseña cambiada exitosamente")
+      toast.success("Contraseña cambiada", { description: "Se cerraron las sesiones abiertas en otros dispositivos." })
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" })
       setShowChangePassword(false)
     } catch {
@@ -640,7 +642,7 @@ export default function PerfilPage() {
               <Label htmlFor="new-password">Nueva Contraseña</Label>
               <div className="relative">
                 <Input id="new-password" type={showPasswords.new ? "text" : "password"} value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} placeholder="Mínimo 6 caracteres" className="pr-10" />
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} placeholder="8+ caracteres, mayúscula, minúscula y número" className="pr-10" />
                 <button type="button" onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

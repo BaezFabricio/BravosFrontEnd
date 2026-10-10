@@ -117,10 +117,11 @@ export default function ReservasPage() {
 
     const abrirRutina = async () => {
       setRutinaDialog(true)
-      if (rutina === null && reserva.idClase) {
+      if (rutina === null && reserva.idReserva) {
         setLoadingRutina(true)
         try {
-          const res = await apiClient.get(`/profesores/clases/${reserva.idClase}/rutina`)
+          // Solo responde si la reserva es del alumno de la sesión
+          const res = await apiClient.get(`/reservas/${reserva.idReserva}/rutina`)
           setRutina(res.data?.data || false)
         } catch {
           setRutina(false)
@@ -207,7 +208,7 @@ export default function ReservasPage() {
               {!loadingRutina && rutina && (() => {
                 // descripcion puede ser JSON {desc, rutina} (rich text) o plain text (viejo)
                 let desc = rutina.descripcion || ""
-                let contenidoRutina = ""
+                let contenidoRutina = rutina.contenido || ""
                 try {
                   const p = JSON.parse(rutina.descripcion || "")
                   if (p && typeof p.rutina !== "undefined") {

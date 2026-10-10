@@ -27,6 +27,7 @@ function MovimientoRow({ mov }) {
   const estadoMeta = (() => {
     const e = mov.estado
     if (e === "Histórico")                      return { label: "Recarga",        color: "text-lime-700 dark:text-lime-400",       bg: "bg-lime-400/10 border-lime-400/20", Icon: Zap }
+    if (e === "Anulado")                         return { label: "Anulado",         color: "text-foreground/50",  bg: "bg-foreground/5 border-border", Icon: XCircle }
     if (e === "Cancelada (Devuelto)")            return { label: "Devuelto",        color: "text-emerald-700 dark:text-emerald-400",    bg: "bg-emerald-400/10 border-emerald-400/20", Icon: RotateCcw }
     if (e === "Cancelada (Fuera de término)")    return { label: "Sin devolución",  color: "text-orange-700 dark:text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
     if (e === "No asistió")                      return { label: "No asistió",      color: "text-red-700 dark:text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
@@ -35,7 +36,8 @@ function MovimientoRow({ mov }) {
     return { label: e, color: "text-foreground/60", bg: "bg-foreground/5 border-border", Icon: CheckCircle2 }
   })()
 
-  const creditoColor = esRecarga ? "text-lime-700 dark:text-lime-400" : esNeg || esCero ? "text-red-700 dark:text-red-400" : "text-foreground/50"
+  // Un abono anulado no es una pérdida del alumno: el 0 va en gris, no en rojo
+  const creditoColor = esRecarga ? "text-lime-700 dark:text-lime-400" : mov.estado === "Anulado" ? "text-foreground/50" : esNeg || esCero ? "text-red-700 dark:text-red-400" : "text-foreground/50"
 
   return (
     <div className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border last:border-0 hover:bg-foreground/[0.02] transition-colors">
