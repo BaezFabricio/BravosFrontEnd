@@ -25,11 +25,19 @@ const CENTRO_X = ((290 + 992) / 2 / 1024) * ANCHO_IMG
 
 function MascotaEnCaja() {
   return (
-    <div className="relative mt-[64px] h-[52px] w-[68px]" role="img" aria-label="Bravo se asoma sobre el cuadrito">
+    <div className="bravo-caja relative mt-[64px] h-[52px] w-[68px]" role="img" aria-label="Bravo se asoma sobre el cuadrito">
       <style>{`
         @keyframes bravo-asoma { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        /* Saltito sutil cada 3 segundos: Bravo y el cuadrito suben juntos, se estiran y vuelven a apoyarse */
+        @keyframes bravo-salta {
+          0%, 70%, 100% { transform: translateY(0) scale(1, 1); }
+          76% { transform: translateY(1px) scale(1.03, .97); }
+          84% { transform: translateY(-6px) scale(.98, 1.03); }
+          92% { transform: translateY(0) scale(1.02, .98); }
+        }
         .bravo-asoma { animation: bravo-asoma .6s cubic-bezier(.22,1.2,.36,1) .1s both; transform-origin: bottom center; }
-        @media (prefers-reduced-motion: reduce) { .bravo-asoma { animation: none; } }
+        .bravo-caja { animation: bravo-salta 3s ease-in-out 1.2s infinite; transform-origin: bottom center; }
+        @media (prefers-reduced-motion: reduce) { .bravo-asoma, .bravo-caja { animation: none; } }
       `}</style>
       {/* Cuadrito verde */}
       <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-lime-400 pt-2 text-black shadow-lg shadow-lime-500/20">

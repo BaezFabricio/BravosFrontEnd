@@ -4,6 +4,9 @@ import { Eye, EyeOff, Mail, Lock, Loader2, ArrowLeft, Zap, Shield, Users, UserX 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from '@/lib/notificar'
+import BravoAvatar from '@/components/BravoAvatar'
+import { BotonTema } from '@/components/BotonTema'
+import { ultimaRutaPublica } from '@/lib/ultimaRutaPublica'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
 
@@ -15,11 +18,16 @@ const FEATURES = [
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  // Vuelve a la última pantalla pública que visitó (landing, registro, legales…). No usa el "atrás"
+  // del navegador: después de cerrar sesión, atrás es un panel que ya no abre y rebota al login.
+  const volver = () => navigate(ultimaRutaPublica())
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({})
   const [cuentaDesactivada, setCuentaDesactivada] = useState(false)
+  // Después de una contraseña incorrecta, Bravo ofrece recuperarla
+  const [pistaOlvido, setPistaOlvido] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -57,7 +65,11 @@ export default function LoginPage() {
           setIsLoading(false)
           return
         }
-        toast.error(data.message || "Error al iniciar sesión")
+        if (data.errorCode === 'INVALID_CREDENTIALS') {
+          setPistaOlvido(true)
+        } else {
+          toast.error(data.message || "Error al iniciar sesión")
+        }
         setIsLoading(false)
         return
       }
@@ -91,7 +103,7 @@ export default function LoginPage() {
 
   if (cuentaDesactivada) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0c0d09] p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="w-full max-w-md border border-border bg-card p-8 text-center space-y-5">
           <div className="flex justify-center">
             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-full">
@@ -116,10 +128,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#0c0d09]">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
 
       {/* ── Panel izquierdo — branding ── */}
-      <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden anim-from-left">
+      <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden bg-[#0c0d09] anim-from-left">
         {/* Fondo con logo */}
         <div
           className="absolute inset-0 opacity-[0.07]"
@@ -139,8 +151,7 @@ export default function LoginPage() {
         <div className="relative z-10 flex items-center gap-4">
           <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
           <div>
-            <p className="text-xs font-bold tracking-[0.3em] text-lime-700 dark:text-lime-400 uppercase">Bravos</p>
-            <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
+            <p className="text-lg font-black tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
           </div>
         </div>
 
@@ -175,46 +186,84 @@ export default function LoginPage() {
       </div>
 
       {/* ── Panel derecho — formulario ── */}
-      <div className="flex-1 flex flex-col min-h-screen lg:min-h-0 bg-background anim-from-right">
+      <div className="relative flex-1 flex flex-col min-h-screen lg:min-h-0 bg-background anim-from-right">
+        {/* Modo claro / oscuro — escritorio */}
+        <div className="absolute right-6 top-6 z-10 hidden lg:block"><BotonTema /></div>
+
         {/* Header mobile */}
-        <div className="flex items-center justify-between p-5 lg:hidden border-b border-border">
+        <div className="flex items-center justify-between px-4 py-2.5 lg:hidden border-b border-border">
           <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            type="button"
+            onClick={volver}
+            className="flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="Bravos" className="h-7 w-7 rounded-lg" />
+          <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            <img src="/logo.jpg" alt="" className="h-7 w-7 rounded-lg" />
             <span className="text-sm font-black tracking-widest text-foreground">BRAVOS</span>
-          </div>
-          <div className="w-16" />
+          </Link>
+          <div className="flex w-[88px] justify-end"><BotonTema /></div>
         </div>
 
         {/* Formulario centrado */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="flex-1 flex items-center justify-center px-5 py-3 lg:p-12">
           <div className="w-full max-w-sm anim-fade-up anim-delay-100">
 
             {/* Volver — solo desktop */}
             <button
-              onClick={() => navigate(-1)}
-              className="hidden lg:flex mb-8 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              type="button"
+              onClick={volver}
+              className="hidden lg:inline-flex mb-6 flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver al sitio
             </button>
 
+            {/* Tarjeta: Bravo se asoma con las patas sobre el borde de arriba (misma imagen que en Reservar) */}
+            <div className="relative mt-[94px] rounded-2xl border border-border bg-card px-5 pb-5 pt-6 shadow-xl">
+              <style>{`
+                @keyframes bravo-login { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+                .bravo-login { animation: bravo-login .6s cubic-bezier(.22,1.2,.36,1) .35s both; }
+                @media (prefers-reduced-motion: reduce) { .bravo-login { animation: none; } }
+              `}</style>
+              <img
+                src="/bravo_asomado.webp"
+                alt=""
+                draggable={false}
+                className="bravo-login pointer-events-none absolute w-[108px] max-w-none select-none"
+                // Centrado: el borde dibujado de la imagen (y = 87,5 %) queda sobre el filo de la tarjeta
+                // y el centro del cuerpo (x = 62,6 % de la imagen) en el medio
+                style={{ top: -94, left: "calc(50% - 68px)" }}
+              />
+
             {/* Cabecera */}
-            <div className="mb-8 anim-fade-up anim-delay-150">
-              <h2 className="text-3xl font-black text-foreground tracking-tight">Bienvenido</h2>
+            <div className="mb-4 anim-fade-up anim-delay-150">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">Bienvenido</h2>
               <p className="mt-1 text-muted-foreground text-sm">
                 Ingresá con tu cuenta para continuar
               </p>
             </div>
 
+            {/* Contraseña incorrecta: Bravo ofrece ayuda */}
+            {pistaOlvido && (
+              <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl border border-lime-500/40 bg-lime-400/10 p-3">
+                <BravoAvatar size={36} className="rounded-full" />
+                <div className="min-w-0 text-sm leading-snug">
+                  <p className="font-bold text-foreground">El correo o la contraseña no coinciden.</p>
+                  <p className="mt-0.5 text-foreground/70">
+                    ¿La olvidaste?{" "}
+                    <Link to="/recuperar-contrasena" className="font-bold text-lime-700 underline underline-offset-2 dark:text-lime-400">
+                      Te ayudo a recuperarla
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Email */}
               <div className="space-y-1.5">
                 <label htmlFor="email" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
@@ -227,7 +276,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="tu@email.com"
                     autoComplete="email"
-                    className={`pl-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.email ? "border-destructive" : ""}`}
+                    className={`pl-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.email ? "border-destructive" : ""}`}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
@@ -255,9 +304,9 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    className={`pl-10 pr-10 h-12 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.password ? "border-destructive" : ""}`}
+                    className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 transition-colors ${errors.password ? "border-destructive" : ""}`}
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPistaOlvido(false) }}
                   />
                   <button
                     type="button"
@@ -273,7 +322,7 @@ export default function LoginPage() {
               {/* Submit */}
               <Button
                 type="submit"
-                className="w-full h-12 mt-2 bg-lime-400 hover:bg-lime-300 text-black font-black tracking-wider uppercase text-sm transition-all active:scale-[0.98]"
+                className="w-full h-12 mt-1 bg-lime-400 hover:bg-lime-300 text-black font-black tracking-wider uppercase text-sm transition-all active:scale-[0.98]"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -283,9 +332,10 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
+            </div>
 
             {/* Divider */}
-            <div className="relative my-6">
+            <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
               </div>
@@ -297,7 +347,7 @@ export default function LoginPage() {
             {/* Registro */}
             <Link
               to="/registro"
-              className="flex items-center justify-center w-full h-11 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              className="flex items-center justify-center w-full h-11 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
             >
               Crear una cuenta nueva
             </Link>

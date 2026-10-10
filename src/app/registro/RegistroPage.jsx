@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy, XCircle } from 'lucide-react'
+import { BotonTema } from '@/components/BotonTema'
+import { CheckCircle2, ChevronRight, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
@@ -50,6 +51,16 @@ function validateField(field, value, formData) {
 
 function RegistroPage() {
   const navigate = useNavigate()
+  // Vuelve a la última pantalla del sitio en la que estuvo la persona. React Router guarda la
+  // posición (idx); si es 0 pero se llegó desde otra página del sitio con recarga completa, se usa
+  // el historial del navegador. Si se entró directo (sin nada atrás), va al inicio para no quedarse trabado.
+  const volver = () => {
+    if ((window.history.state?.idx ?? 0) > 0) return navigate(-1)
+    let vieneDelSitio = false
+    try { vieneDelSitio = !!document.referrer && new URL(document.referrer).origin === window.location.origin } catch { /* referrer inválido */ }
+    if (vieneDelSitio && window.history.length > 1) return window.history.back()
+    navigate("/inicio")
+  }
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -145,13 +156,13 @@ function RegistroPage() {
   // ── Pantalla de éxito ──
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-[#0c0d09]">
+      <div className="relative min-h-screen flex items-center justify-center p-6 bg-background">
         <div
           className="absolute inset-0 opacity-[0.05]"
           style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '50%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
         />
         <div className="relative z-10 w-full max-w-md">
-          <div className="rounded-2xl border border-lime-400/20 bg-background p-8 shadow-2xl text-center space-y-5">
+          <div className="rounded-2xl border border-lime-400/30 bg-card p-8 shadow-2xl text-center space-y-5">
             <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
               <CheckCircle2 className="h-10 w-10 text-lime-700 dark:text-lime-400" />
             </div>
@@ -206,10 +217,10 @@ function RegistroPage() {
 
   // ── Formulario ──
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#0c0d09]">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
 
       {/* Panel izquierdo — branding */}
-      <div className="relative hidden lg:flex lg:w-5/12 flex-col justify-between p-12 overflow-hidden flex-shrink-0 anim-from-left">
+      <div className="relative hidden lg:flex lg:w-5/12 flex-col justify-between p-12 overflow-hidden flex-shrink-0 bg-[#0c0d09] anim-from-left">
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '60%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
@@ -219,8 +230,7 @@ function RegistroPage() {
         <div className="relative z-10 flex items-center gap-4">
           <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
           <div>
-            <p className="text-xs font-bold tracking-[0.3em] text-lime-700 dark:text-lime-400 uppercase">Bravos</p>
-            <p className="text-[10px] tracking-[0.2em] text-white/40 uppercase">Box & Gym</p>
+            <p className="text-lg font-black tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
           </div>
         </div>
         <div className="relative z-10 space-y-6">
@@ -250,21 +260,25 @@ function RegistroPage() {
       </div>
 
       {/* Panel derecho — formulario */}
-      <div className="flex-1 flex flex-col bg-background min-h-screen lg:min-h-0 anim-from-right">
+      <div className="relative flex-1 flex flex-col bg-background min-h-screen lg:min-h-0 anim-from-right">
+        {/* Modo claro / oscuro — escritorio */}
+        <div className="absolute right-6 top-6 z-10 hidden lg:block"><BotonTema /></div>
+
         {/* Header mobile */}
-        <div className="flex items-center justify-between p-5 lg:hidden border-b border-border">
+        <div className="flex items-center justify-between px-4 py-2.5 lg:hidden border-b border-border">
           <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            type="button"
+            onClick={volver}
+            className="flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="Bravos" className="h-7 w-7 rounded-lg" />
+          <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            <img src="/logo.jpg" alt="" className="h-7 w-7 rounded-lg" />
             <span className="text-sm font-black tracking-widest text-foreground">BRAVOS</span>
-          </div>
-          <div className="w-16" />
+          </Link>
+          <div className="flex w-[88px] justify-end"><BotonTema /></div>
         </div>
 
         {/* Formulario scrolleable */}
@@ -273,18 +287,23 @@ function RegistroPage() {
             <div className="w-full max-w-sm py-2">
 
               <button
-                onClick={() => navigate(-1)}
-                className="hidden lg:flex mb-8 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                type="button"
+                onClick={volver}
+                className="hidden lg:inline-flex mb-6 flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Volver al sitio
               </button>
 
-              <div className="mb-7 anim-fade-up anim-delay-150">
-                <h2 className="text-3xl font-black text-foreground tracking-tight">Crear cuenta</h2>
+              <div className="mb-5 anim-fade-up anim-delay-150">
+                <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
+                  Crear cuenta<span className="text-lime-500 dark:text-lime-400">.</span>
+                </h2>
                 <p className="mt-1 text-muted-foreground text-sm">Completá tus datos para registrarte</p>
               </div>
 
+              {/* El formulario va dentro de una tarjeta */}
+              <div className="rounded-2xl border border-border bg-card p-5 shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Nombre */}
@@ -424,7 +443,7 @@ function RegistroPage() {
                       id="aceptaTerminos" type="checkbox"
                       checked={aceptaTerminos}
                       onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked) setErrorTerminos('') }}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-lime-500 cursor-pointer"
+                      className="mt-0.5 h-5 w-5 shrink-0 accent-lime-500 cursor-pointer"
                     />
                     <span className="text-sm leading-snug text-muted-foreground">
                       Leí y acepto los{' '}
@@ -444,11 +463,12 @@ function RegistroPage() {
                 >
                   {isLoading ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando cuenta...</>
-                  ) : 'Crear mi cuenta'}
+                  ) : <>Crear mi cuenta <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" /></>}
                 </Button>
               </form>
+              </div>
 
-              <div className="relative my-6">
+              <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border" />
                 </div>

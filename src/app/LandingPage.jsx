@@ -9,9 +9,6 @@ import {
   X,
   LogOut,
   User,
-  Dumbbell,
-  Shield,
-  ClipboardCheck,
   Clock,
   Phone,
   Mail,
@@ -27,16 +24,7 @@ import NotificacionesBell from '@/components/NotificacionesBell'
 
 const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
-  {
-    name: 'CLASES',
-    href: '#clases',
-    hasDropdown: true,
-    items: [
-      { name: 'Funcional', href: '#clases' },
-      { name: 'WOD Intensivo', href: '#clases' },
-      { name: 'Open Box', href: '#clases' },
-    ],
-  },
+  { name: 'CLASES', href: '#clases', hasDropdown: true },
   { name: 'HORARIOS', href: '#horarios', hasDropdown: false },
   { name: 'NOSOTROS', href: '#nosotros', hasDropdown: false },
   { name: 'CONTACTO', href: '#contacto', hasDropdown: false },
@@ -48,9 +36,20 @@ const defaultHeroImages = [
   'https://images.unsplash.com/photo-1571731956672-f2b94d7db0cb?q=80&w=1920'  
 ]
 
+// En el celular la foto horizontal se recorta a los costados: para algunas fotos se elige qué parte
+// queda a la vista (posición horizontal). Se reconocen por el nombre del archivo en Cloudinary.
+const ENFOQUE_MOVIL = {
+  davcsvmbrdsoditcgyyb: '60% center', // soldado al que cargan sus compañeros
+}
+const enfoqueMovil = (url) => {
+  const clave = Object.keys(ENFOQUE_MOVIL).find((id) => url.includes(id))
+  return clave ? ENFOQUE_MOVIL[clave] : undefined
+}
+
 function LandingPage() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [clasesAbiertas, setClasesAbiertas] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -89,6 +88,9 @@ function LandingPage() {
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaVisible, setMapaVisible] = useState(false)
   const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
+
+  // Submenú de CLASES: una entrada por tarjeta, con el mismo nombre, que lleva a esa tarjeta
+  const subItemsClases = claseCards.map((clase, idx) => ({ name: clase.titulo, href: `#clase-${idx + 1}` }))
 
   const showLogoSkeleton = !logoUrl || logoFailed || !logoImgLoaded
   const pageLoading = !configLoaded || (!!logoUrl && !logoImgLoaded && !logoFailed)
@@ -279,6 +281,8 @@ function LandingPage() {
   const tieneModulosAlumno = permisos.some(p => p.startsWith('alumno'));
   const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor')); 
   const puedeAccederPanel = permisos.length > 0 && userData.estado === 'activo';
+  const panelesDisponibles = [tieneModulosAlumno && '/alumno', tieneModulosProfesor && '/profesor', tieneModulosAdmin && '/admin'].filter(Boolean);
+  const rutaMiPanel = panelesDisponibles.length === 1 ? panelesDisponibles[0] : '/seleccionar-panel';
 
   const getIniciales = (name) => {
     if (!name || name === 'Usuario Bravos') return 'UB'
@@ -367,8 +371,8 @@ function LandingPage() {
 
                     {item.hasDropdown && activeDropdown === item.name && (
                       <div className="absolute top-full left-0 w-48 border border-lime-400/20 border-t-2 border-t-lime-400 bg-black shadow-xl shadow-black/50">
-                        {item.items?.map((subItem) => (
-                          <a key={subItem.name} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-400">
+                        {subItemsClases.map((subItem) => (
+                          <a key={subItem.href} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-400">
                             {subItem.name}
                           </a>
                         ))}
@@ -427,104 +431,135 @@ function LandingPage() {
                 )}
               </div>
 
-              <button type="button" className="p-2 text-foreground lg:hidden" onClick={() => setMobileMenuOpen((previous) => !previous)}>
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
+              <div className="flex items-center gap-2 lg:hidden">
+                {!mobileMenuOpen && (!isLoggedIn ? (
+                  <Link to="/login" className="flex h-9 items-center rounded-full border border-white/25 px-4 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                    INGRESAR
+                  </Link>
+                ) : puedeAccederPanel && (
+                  <Link to={rutaMiPanel} aria-label="Ir a mi panel" className="flex h-9 items-center gap-2 rounded-full border border-white/25 pl-1 pr-3 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                    <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-[10px] text-black">
+                      {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(userData.nombrecompleto)}
+                    </span>
+                    MI PANEL
+                  </Link>
+                ))}
+                <button type="button" aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={mobileMenuOpen} className="p-2 text-foreground" onClick={() => setMobileMenuOpen((previous) => !previous)}>
+                  {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="border-b border-border bg-black lg:hidden">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex flex-col gap-1">
+          // Menú del celular a pantalla completa: arriba las secciones del sitio, abajo la cuenta
+          <div className="fixed inset-x-0 top-[66px] bottom-0 flex flex-col overflow-y-auto overscroll-contain bg-black lg:hidden">
+            <nav aria-label="Secciones del sitio" className="px-6 pt-4">
+              <ul>
                 {navigation.map((item) => (
-                  <div key={item.name}>
-                    <a href={item.href} className="flex items-center justify-between py-3 text-sm font-semibold tracking-wide text-white/80 hover:text-white" onClick={() => !item.hasDropdown && setMobileMenuOpen(false)}>
-                      {item.name}
-                      {item.hasDropdown && <ChevronDown className="h-4 w-4" />}
-                    </a>
-                    {item.hasDropdown && (
-                      <div className="ml-2 border-l border-border pl-4">
-                        {item.items?.map((subItem) => (
-                          <a key={subItem.name} href={subItem.href} className="block py-2 text-sm text-foreground/60 hover:text-white" onClick={() => setMobileMenuOpen(false)}>
-                            {subItem.name}
-                          </a>
-                        ))}
-                      </div>
+                  <li key={item.name}>
+                    {item.hasDropdown ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setClasesAbiertas((v) => !v)}
+                          aria-expanded={clasesAbiertas}
+                          className="flex min-h-[52px] w-full items-center justify-between text-left text-xl font-black tracking-wide text-white transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
+                        >
+                          {item.name}
+                          <ChevronDown className={`h-5 w-5 text-white/40 transition-transform ${clasesAbiertas ? 'rotate-180 text-lime-400' : ''}`} aria-hidden="true" />
+                        </button>
+                        {clasesAbiertas && (
+                          <ul className="pb-2">
+                            {subItemsClases.map((subItem) => (
+                              <li key={subItem.href}>
+                                <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[40px] items-center text-[15px] font-medium text-white/60 transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none">
+                                  {subItem.name}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <a href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[52px] items-center text-xl font-black tracking-wide text-white transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none">
+                        {item.name}
+                      </a>
                     )}
-                  </div>
+                  </li>
                 ))}
+              </ul>
+            </nav>
 
-                <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-                  {!isLoggedIn ? (
-                    <>
-                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full border-white/30 text-foreground hover:bg-white/10">
-                          INGRESAR
-                        </Button>
-                      </Link>
-                      <Link to="/registro" onClick={() => setMobileMenuOpen(false)}>
-                        <Button className="w-full bg-accent font-bold text-accent-foreground hover:bg-accent/90">
-                          UNIRSE
-                        </Button>
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      {tieneModulosAdmin && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-foreground hover:bg-foreground/5">
-                          <Shield className="h-4 w-4 text-muted-foreground" />
-                          PANEL DE CONTROL
-                        </Button>
-                      )}
-                      {tieneModulosAlumno && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/alumno'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-emerald-400 hover:bg-foreground/5">
-                          <Dumbbell className="h-4 w-4 text-emerald-400" />
-                          PANEL DE ALUMNO
-                        </Button>
-                      )}
-                      {tieneModulosProfesor && puedeAccederPanel && (
-                        <Button onClick={() => { setMobileMenuOpen(false); navigate('/profesor'); }} variant="outline" className="w-full flex items-center justify-center gap-2 border-border text-violet-400 hover:bg-foreground/5">
-                          <ClipboardCheck className="h-4 w-4 text-violet-400" />
-                          PANEL DE PROFESOR
-                        </Button>
-                      )}
-                      <Button onClick={() => { setMobileMenuOpen(false); handleLogout(); }} variant="destructive" className="w-full flex items-center justify-center gap-2 font-bold bg-red-600 hover:bg-red-700 text-foreground">
-                        <LogOut className="h-4 w-4" />
-                        CERRAR SESIÓN
-                      </Button>
-                    </>
-                  )}
+            <div className="mt-auto border-t border-white/10 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
+              {!isLoggedIn ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-white/25 text-sm font-bold tracking-wider text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                    INGRESAR
+                  </Link>
+                  <Link to="/registro" onClick={() => setMobileMenuOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-accent text-sm font-black tracking-wider text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                    UNIRSE
+                  </Link>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-sm font-black text-black">
+                      {avatarUrl
+                        ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                        : (userData.nombrecompleto || '?').trim().charAt(0).toUpperCase()}
+                    </div>
+                    <p className="min-w-0 flex-1 truncate text-sm font-bold capitalize text-white">{userData.nombrecompleto}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setMobileMenuOpen(false); handleLogout() }}
+                    className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-red-600 text-sm font-bold text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                    CERRAR SESIÓN
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
       </header>
 
       {/* 🟢 SECCIÓN HERO - RECUPERADA CON TU FORMATO NATIVO DE CAPAS EXPANSIVAS */}
-      <section className="relative flex min-h-screen items-end pb-8 sm:pb-12">
+      <section className="relative flex min-h-[85svh] items-end pb-8 sm:min-h-screen sm:pb-12">
         {heroImages.map((imageSource, index) => (
           <div key={imageSource} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
-            <ImgConSkeleton src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover" containerClassName="h-full w-full" loading={index === 0 ? 'eager' : 'lazy'} />
+            <ImgConSkeleton src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover object-[var(--enfoque-movil,center)] sm:object-center" containerClassName="h-full w-full" style={enfoqueMovil(imageSource) ? { '--enfoque-movil': enfoqueMovil(imageSource) } : undefined} loading={index === 0 ? 'eager' : 'lazy'} />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
           </div>
         ))}
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-40 bg-gradient-to-b from-transparent via-black/70 to-black" aria-hidden="true" />
 
         <button
           type="button"
           onClick={irAlContenido}
           aria-label="Ver más contenido"
-          className="group absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 text-white/70 transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
+          className="group absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-1 text-white/70 sm:flex transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
         >
           <span className="h-10 w-px bg-gradient-to-b from-transparent to-current" />
           <ChevronDown className="h-7 w-7 motion-safe:animate-bounce" />
         </button>
 
-        <div className="absolute right-24 bottom-8 z-20 flex gap-2">
+        <div className="absolute right-2 bottom-5 z-20 flex sm:right-24 sm:bottom-6">
           {heroImages.map((_, index) => (
-            <button key={index} type="button" onClick={() => setCurrentImageIndex(index)} className={`h-2 rounded-full transition-all ${index === currentImageIndex ? 'w-6 bg-accent' : 'w-2 bg-white/50'}`} />
+            <button
+              key={index}
+              type="button"
+              onClick={() => setCurrentImageIndex(index)}
+              aria-label={`Ver foto ${index + 1} de ${heroImages.length}`}
+              aria-current={index === currentImageIndex ? 'true' : undefined}
+              className="group flex h-11 items-center px-1.5 focus-visible:outline-none"
+            >
+              <span className={`block h-2 rounded-full transition-all group-focus-visible:ring-2 group-focus-visible:ring-lime-400 ${index === currentImageIndex ? 'w-6 bg-accent' : 'w-2 bg-white/50'}`} />
+            </button>
           ))}
         </div>
 
@@ -563,8 +598,17 @@ function LandingPage() {
               {titulo}
             </p>
 
+            {/* Botón para sumarse — solo celular y sin sesión (con sesión, "Mi panel" está en la barra de arriba) */}
+            {!isLoggedIn && (
+              <div className="mt-4 w-full lg:hidden">
+                <Link to="/registro" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-lime-400 text-sm font-black tracking-widest text-black transition-colors hover:bg-lime-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                  UNIRME <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+
             {/* MÁS INFO */}
-            <button type="button" onClick={irAlContenido} className="group mt-3 flex items-center gap-2 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400">
+            <button type="button" onClick={irAlContenido} className="group mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 sm:mt-3">
               <span>MÁS INFO</span>
               <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
             </button>
@@ -587,6 +631,8 @@ function LandingPage() {
         <div className="absolute inset-0">
           <ImgConSkeleton src={imagenNosotros} alt="Interior del Box" className="h-full w-full object-cover" containerClassName="h-full w-full" />
           <div className="absolute inset-0 bg-black/80" />
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black to-transparent" aria-hidden="true" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" aria-hidden="true" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
@@ -622,7 +668,7 @@ function LandingPage() {
           <h2 className="mb-12 text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
           <div className="grid gap-6 md:grid-cols-3">
             {claseCards.map((clase, idx) => (
-              <div key={idx} className="group relative aspect-[4/5] cursor-pointer overflow-hidden">
+              <div key={idx} id={`clase-${idx + 1}`} className="group relative aspect-[4/5] scroll-mt-20 cursor-pointer overflow-hidden">
                 <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" containerClassName="h-full w-full absolute inset-0" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">

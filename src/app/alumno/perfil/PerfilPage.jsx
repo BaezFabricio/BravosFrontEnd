@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home, Eye, EyeOff } from "lucide-react"
+import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home, Eye, EyeOff, Lock, LogOut } from "lucide-react"
+import { cerrarSesionEnServidor } from "@/lib/sesion"
+import { panelesPermitidos } from "@/lib/paneles"
+import { fmtFechaPlan } from "@/lib/miPlan"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -263,6 +266,13 @@ export default function PerfilPage() {
     navigate("/");
   }
 
+  // Mismo cierre de sesión que el menú de los paneles
+  const handleLogout = () => {
+    cerrarSesionEnServidor()
+    localStorage.clear()
+    navigate("/login", { replace: true })
+  }
+
   const handleChangePassword = async (e) => {
     e.preventDefault()
 
@@ -325,8 +335,133 @@ export default function PerfilPage() {
     inactivo:  'bg-foreground/5 text-muted-foreground border border-border',
   }
 
+  // Fechas "AAAA-MM-DD…" mostradas sin pasar por la zona horaria (evita que se corran un día)
+  const fechaCorta = (f) => (f ? fmtFechaPlan(String(f).slice(0, 10)) : "—")
+  const puedeRenovar = panelesPermitidos().alumno
+
   return (
     <div className="space-y-6">
+
+      {/* ── CELULAR ─────────────────────────────────────────────────────────── */}
+      <div className="space-y-4 lg:hidden">
+        <div>
+          <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
+          <p className="mt-1.5 text-sm text-foreground/60">Información personal y estado de membresía</p>
+        </div>
+
+        {(membershipStatus === "por_vencer" || membershipStatus === "vencida") && (
+          <div className={`flex items-center gap-3 rounded-2xl border p-3 ${
+            membershipStatus === "vencida" ? "border-red-500/40 bg-red-500/10" : "border-yellow-500/40 bg-yellow-500/10"
+          }`}>
+            <AlertTriangle className={`h-5 w-5 shrink-0 ${membershipStatus === "vencida" ? "text-red-700 dark:text-red-400" : "text-yellow-700 dark:text-yellow-400"}`} aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-black uppercase tracking-wide ${membershipStatus === "vencida" ? "text-red-700 dark:text-red-400" : "text-yellow-700 dark:text-yellow-400"}`}>
+                {membershipStatus === "vencida" ? "Membresía vencida" : "Membresía por vencer"}
+              </p>
+              <p className="text-xs text-foreground/70">{membershipStatus === "vencida" ? "Venció" : "Vence"} el {fechaCorta(abonoData.vencimiento)}</p>
+            </div>
+            {puedeRenovar && (
+              <button type="button" onClick={() => navigate("/alumno/plan")}
+                className={`min-h-[40px] shrink-0 rounded-lg border border-yellow-600/50 px-3 text-xs font-black uppercase text-yellow-800 dark:border-yellow-400/50 dark:text-yellow-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+                Renovar
+              </button>
+            )}
+          </div>
+        )}
+        {userData.estado === "suspendido" && (
+          <div className="flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700 dark:text-red-400" aria-hidden="true" />
+            <p className="text-sm text-foreground/80"><span className="font-black text-red-700 dark:text-red-400">Cuenta suspendida.</span> Regularizá tu membresía para volver a reservar clases.</p>
+          </div>
+        )}
+
+        {/* Foto, nombre y correo */}
+        <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+          <div className="flex h-20 w-20 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-2xl font-black text-black ring-4 ring-lime-400/25">
+            {avatarUrl && avatarUrl.trim()
+              ? <img src={avatarUrl} alt={nombreVisible} className="h-full w-full object-cover" />
+              : getIniciales(nombreVisible)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="rounded bg-lime-400/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
+            <h2 className="mt-1 truncate text-xl font-black uppercase leading-tight text-foreground">{nombreVisible}</h2>
+            <p className="truncate text-xs text-foreground/60">{correoVisible}</p>
+            <label className={`mt-2 inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-[11px] font-bold uppercase tracking-wide text-foreground/80 focus-within:ring-2 focus-within:ring-lime-500`}>
+              <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+              {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
+              <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+            </label>
+          </div>
+        </div>
+        {avatarError && <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">{avatarError}</p>}
+
+        {/* Créditos y estado */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
+            <p className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-3xl font-black tabular-nums text-lime-700 dark:text-lime-400">{abonoData.vencimiento ? abonoData.creditos || 0 : 0}</span>
+              <span className="text-xs font-bold text-foreground/55">clases</span>
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Estado</p>
+            <p className="mt-1 flex items-center gap-2">
+              <span className="text-xl font-black uppercase text-foreground">{status.label}</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${userData.estado === "activo" ? "bg-lime-500" : userData.estado === "suspendido" ? "bg-red-500" : "bg-foreground/30"}`} aria-hidden="true" />
+            </p>
+          </div>
+        </div>
+
+        {/* Información personal */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-info-personal">
+          <h2 id="titulo-info-personal" className="border-b border-border px-4 py-3 text-xs font-black uppercase tracking-widest text-foreground/60">Información personal</h2>
+          <dl className="divide-y divide-border">
+            {[
+              { icon: CreditCard, label: "Documento", value: (isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || "—") },
+              { icon: Phone, label: "Teléfono", value: (isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || "—") },
+              { icon: Mail, label: "Correo", value: correoVisible || "—" },
+              { icon: Calendar, label: "Miembro desde", value: fechaCorta(userData.fechaRegistro) },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="flex shrink-0 items-center gap-2 text-sm text-foreground/65"><Icon className="h-4 w-4" aria-hidden="true" />{label}</dt>
+                <dd className="min-w-0 truncate text-right text-sm font-bold text-foreground">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Estado de la cuenta */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-estado-cuenta">
+          <h2 id="titulo-estado-cuenta" className="border-b border-border px-4 py-3 text-xs font-black uppercase tracking-widest text-foreground/60">Estado de cuenta</h2>
+          <dl className="divide-y divide-border">
+            {[
+              { label: "Usuario", badge: status.label, style: statusBadgeStyle[userData.estado] || statusBadgeStyle.inactivo },
+              { label: "Membresía", badge: membership?.label || "—", style: membershipBadgeStyle[membershipStatus] || "text-foreground/60 border border-border" },
+              { label: "Perfil", badge: userData.perfil || perfilVisible, style: "text-foreground/70 border border-border" },
+            ].map(({ label, badge, style }) => (
+              <div key={label} className="flex items-center justify-between gap-3 px-4 py-3">
+                <dt className="text-sm text-foreground/65">{label}</dt>
+                <dd><span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${style}`}>{badge}</span></dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <div className="space-y-2.5">
+          <button type="button" onClick={() => setShowChangePassword(true)}
+            className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-black uppercase tracking-wide text-foreground active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+            <Lock className="h-4 w-4" aria-hidden="true" /> Cambiar contraseña
+          </button>
+          <button type="button" onClick={handleLogout}
+            className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-red-500/50 bg-red-500/10 text-sm font-black uppercase tracking-wide text-red-700 active:bg-red-500/20 dark:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+            <LogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
+          </button>
+        </div>
+      </div>
+
+      {/* ── ESCRITORIO ──────────────────────────────────────────────────────── */}
+      <div className="hidden space-y-6 lg:block">
 
       {/* Título */}
       <div>
@@ -479,6 +614,7 @@ export default function PerfilPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Modal cambiar contraseña */}

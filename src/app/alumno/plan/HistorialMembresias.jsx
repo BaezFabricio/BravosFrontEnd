@@ -21,7 +21,7 @@ function Dato({ etiqueta, valor, destacado = false }) {
   )
 }
 
-function TarjetaMembresia({ m }) {
+export function TarjetaMembresia({ m }) {
   const estado = ESTADOS[m.estado] || ESTADOS.CANCELADO
   // En una membresía vencida los créditos que sobraron ya no se pueden usar
   const sinUsar = m.estado === "VENCIDO" ? m.disponibles : 0

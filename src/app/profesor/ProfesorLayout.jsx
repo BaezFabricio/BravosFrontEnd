@@ -23,7 +23,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
-import SelectorPanel from "@/components/SelectorPanel"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
@@ -125,7 +124,7 @@ export default function ProfesorLayout({ children }) {
             <div className="flex-1" />
             
             <div className="flex items-center gap-4"> {/* Ajustamos el gap aquí */}
-              <SelectorPanel actual="profesor" />
+              
               <ModeToggle />
               
               <Button 
@@ -155,6 +154,7 @@ export default function ProfesorLayout({ children }) {
                 </button>
 
                 <UserMenu
+                  panelActual="profesor"
                   userData={{ nombrecompleto: usuario.nombre, correo: usuario.email }}
                   avatarUrl={avatarUrl}
                   userMenuOpen={userMenuOpen}

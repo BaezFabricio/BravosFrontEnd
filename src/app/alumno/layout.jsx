@@ -4,7 +4,6 @@ import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
-  LayoutDashboard,
   Calendar,
   History,
   CreditCard,
@@ -26,7 +25,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
-import SelectorPanel from "@/components/SelectorPanel"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import apiClient from "@/api"
@@ -41,7 +39,7 @@ const GRUPOS = [
 ]
 
 const navigation = [
-  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: LayoutDashboard, principal: true, grupo: "inicio" },
+  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: Home, principal: true, grupo: "inicio" },
   { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, centro: true, grupo: "entrenamiento" },
   { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true, grupo: "entrenamiento" },
   { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy, grupo: "entrenamiento" },
@@ -239,12 +237,12 @@ export default function AlumnoLayout({ children }) {
                 <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
               </div>
             )}
-            <Link to="/alumno" className="lg:hidden" aria-label="Inicio">
+            <Link to="/inicio" className="lg:hidden" aria-label="Ir a la página principal">
               <img src="/logo.jpg" alt="Bravos Box" width={36} height={36} className="rounded-lg" />
             </Link>
             <div className="flex-1" />
             <div className="flex items-center gap-3">
-              <SelectorPanel actual="alumno" />
+              
               <ModeToggle />
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
                 <Home className="h-4 w-4" />
@@ -264,6 +262,7 @@ export default function AlumnoLayout({ children }) {
                 </button>
 
                 <UserMenu
+                  panelActual="alumno"
                   userData={userData}
                   avatarUrl={avatarUrl}
                   userMenuOpen={userMenuOpen}
@@ -316,6 +315,18 @@ export default function AlumnoLayout({ children }) {
                   })}
                 </div>
               ))}
+              {/* Cerrar sesión, separado del resto para no tocarlo sin querer */}
+              <div className="mt-2 border-t border-sidebar-border pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setMenuMovilAbierto(false); handleLogout() }}
+                  tabIndex={menuMovilAbierto ? 0 : -1}
+                  className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
+                >
+                  <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  Cerrar sesión
+                </button>
+              </div>
             </nav>
           </div>
         </header>

@@ -3,6 +3,7 @@ import { CheckCircle2, XCircle, Clock, Zap, RotateCcw, AlertCircle } from "lucid
 import apiClient from "@/api"
 import { GymLoader } from "@/components/GymLoader"
 import RenovarMembresia from "@/components/RenovarMembresia"
+import CreditosMovil from "./CreditosMovil"
 
 const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
 
@@ -103,7 +104,7 @@ export default function CreditosPage() {
   return (
     <div className="space-y-5">
 
-      <div>
+      <div className="hidden lg:block">
         <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Mis Créditos</h1>
         <p className="text-sm text-foreground/40 mt-0.5">Estado de tu cuenta y movimientos</p>
       </div>
@@ -121,6 +122,15 @@ export default function CreditosPage() {
         </>
       )}
 
+      {/* CELULAR: diseño propio (CreditosMovil.jsx) */}
+      {!sinAbono && (
+        <div className="lg:hidden">
+          <CreditosMovil abono={abono} movimientos={movimientos} />
+        </div>
+      )}
+
+      {/* ESCRITORIO */}
+      <div className="hidden space-y-5 lg:block">
       {/* Hero: número grande + barra de puntos */}
       <div className="border border-border bg-card p-6">
         <div className="flex items-end justify-between gap-4 mb-6">
@@ -193,6 +203,7 @@ export default function CreditosPage() {
         ) : (
           movimientos.map((mov, i) => <MovimientoRow key={i} mov={mov} />)
         )}
+      </div>
       </div>
 
     </div>

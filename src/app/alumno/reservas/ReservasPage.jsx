@@ -20,6 +20,7 @@ import {
 
 import apiClient from "@/api"
 import VideoPlayer from "@/components/VideoPlayer"
+import ReservasMovil from "./ReservasMovil"
 
 const estadoConfig = {
   proxima: { label: "Próxima", className: "bg-primary/10 text-primary border-primary/20", icon: Calendar },
@@ -28,11 +29,30 @@ const estadoConfig = {
   inasistencia: { label: "No asistió", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
 }
 
+const formatFechaFront = (fechaStr) => {
+  if (!fechaStr) return ""
+  const [anio, mes, dia] = fechaStr.split('-')
+  const date = new Date(anio, mes - 1, dia)
+  return date.toLocaleDateString("es-AR", { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 export default function ReservasPage() {
   const [proximas, setProximas] = useState([])
   const [historial, setHistorial] = useState([])
   const [loading, setLoading] = useState(true)
-  const [cancelDialog, setCancelDialog] = useState({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })
+  const [cancelDialog, setCancelDialog] = useState({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })
+  // Mismo criterio que el servidor: con 2 horas o más de anticipación se devuelve el crédito
+  const devuelveCredito = cancelDialog.fecha
+    ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
+    : true
+  const abrirCancelar = (reserva) => setCancelDialog({
+    open: true,
+    idReserva: reserva.idReserva,
+    claseNombre: reserva.clase,
+    fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`,
+    fecha: reserva.fecha,
+    hora: reserva.hora,
+  })
   const [isLoadingCancel, setIsLoadingCancel] = useState(false)
 
   // 1. 🟢 FETCH: Trae el listado completo de reservas del alumno
@@ -52,6 +72,8 @@ export default function ReservasPage() {
         estado: r.estadoReserva || 'proxima',
         fecha: r.fechaReserva ? r.fechaReserva.substring(0, 10) : "",
         hora: r.horaInicio ? r.horaInicio.substring(0, 5) : "00:00",
+        horaFin: r.horaFin ? r.horaFin.substring(0, 5) : null,
+        tipo: r.tipoClase || null,
         coach: r.nombreProfesor || "Staff Bravos"
       }))
       
@@ -81,16 +103,10 @@ export default function ReservasPage() {
     } catch {
     } finally {
       setIsLoadingCancel(false)
-      setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })
+      setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })
     }
   }
 
-  const formatFechaFront = (fechaStr) => {
-    if (!fechaStr) return ""
-    const [anio, mes, dia] = fechaStr.split('-')
-    const date = new Date(anio, mes - 1, dia)
-    return date.toLocaleDateString("es-AR", { day: 'numeric', month: 'short', year: 'numeric' })
-  }
 
   const ReservaCard = ({ reserva, showCancelButton = false }) => {
     const config = estadoConfig[reserva.estado] || estadoConfig.cancelada
@@ -156,12 +172,7 @@ export default function ReservasPage() {
                   className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setCancelDialog({
-                      open: true,
-                      idReserva: reserva.idReserva,
-                      claseNombre: reserva.clase,
-                      fechaStr: `${formatFechaFront(reserva.fecha)} a las ${reserva.hora}`
-                    })
+                    abrirCancelar(reserva)
                   }}
                 >
                   <X className="mr-1.5 h-4 w-4 stroke-[3]" />
@@ -240,6 +251,13 @@ export default function ReservasPage() {
 
   return (
     <div className="space-y-6">
+      {/* CELULAR: diseño propio (ReservasMovil.jsx) */}
+      <div className="lg:hidden">
+        <ReservasMovil proximas={proximas} historial={historial} cargando={loading} onCancelar={abrirCancelar} />
+      </div>
+
+      {/* ESCRITORIO */}
+      <div className="hidden space-y-6 lg:block">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Mis Reservas</h1>
         <p className="text-muted-foreground">Gestiona tus reservas de clases</p>
@@ -298,6 +316,7 @@ export default function ReservasPage() {
           </>
         )}
       </Tabs>
+      </div>
 
       <Dialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog({ ...cancelDialog, open })}>
         <DialogContent className="bg-card border-border">
@@ -311,15 +330,24 @@ export default function ReservasPage() {
             <p className="text-sm text-muted-foreground mt-1">{cancelDialog.fechaStr} hs</p>
           </div>
 
-          <Alert className="bg-green-500/10 border-green-500/20">
-            <AlertTriangle className="h-4 w-4 text-green-700 dark:text-green-500" />
-            <AlertDescription className="text-green-700/80 dark:text-green-500/80">
-              Si cancelas con más de 2 horas de anticipación, tu crédito será devuelto automáticamente.
-            </AlertDescription>
-          </Alert>
+          {devuelveCredito ? (
+            <Alert className="bg-green-500/10 border-green-500/20">
+              <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-500" />
+              <AlertDescription className="text-green-700/80 dark:text-green-500/80">
+                Faltan 2 horas o más: tu crédito se devuelve automáticamente.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert className="bg-red-500/10 border-red-500/20">
+              <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-500" />
+              <AlertDescription className="text-red-700/80 dark:text-red-500/80">
+                Faltan menos de 2 horas para la clase: el crédito <strong>no</strong> se devuelve.
+              </AlertDescription>
+            </Alert>
+          )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "" })}>Volver</Button>
+            <Button variant="outline" onClick={() => setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })}>Volver</Button>
             <Button variant="destructive" onClick={handleCancelar} disabled={isLoadingCancel}>
               {isLoadingCancel ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cancelando...</>

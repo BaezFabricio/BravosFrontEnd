@@ -19,11 +19,16 @@ const bienvenida = (nombre, rol) => ({
   sugerencias: SUGERENCIAS[rol] || SUGERENCIAS.alumno,
 })
 
-// Ciclo del globito de saludo (ms): aparece a los 5 s, se queda un rato, se va,
-// y vuelve a aparecer cada 10 s mientras el chat esté cerrado.
-const GLOBO_PRIMERA_VEZ = 5000
+// Ciclo del globito de saludo (ms): aparece a los 8 s, se queda 6 s, se va,
+// y vuelve a aparecer cada 2 minutos mientras el chat esté cerrado (antes era cada 10 s y cansaba).
+const GLOBO_PRIMERA_VEZ = 8000
 const GLOBO_VISIBLE = 6000
-const GLOBO_OCULTO = 10000
+const GLOBO_OCULTO = 120000
+// Cada pantalla del panel vuelve a montar el chat: se recuerda cuándo salió el globito por última vez
+// para no mostrarlo de nuevo con cada cambio de pantalla.
+const CLAVE_GLOBO = "bravoGloboUltimaVez"
+const leerUltimaVez = () => { try { return Number(sessionStorage.getItem(CLAVE_GLOBO)) || 0 } catch { return 0 } }
+const anotarUltimaVez = () => { try { sessionStorage.setItem(CLAVE_GLOBO, String(Date.now())) } catch { /* sin almacenamiento */ } }
 
 export default function BravoChat({ rol = "alumno" }) {
   // La mascota se elige al cargar según el día de la semana (ver lib/mascotas.js)
@@ -59,9 +64,10 @@ export default function BravoChat({ rol = "alumno" }) {
   useEffect(() => {
     if (globoDescartado || abierto) return
     let timer
-    const mostrar = () => { setGlobo(true); timer = setTimeout(ocultar, GLOBO_VISIBLE) }
+    const mostrar = () => { setGlobo(true); anotarUltimaVez(); timer = setTimeout(ocultar, GLOBO_VISIBLE) }
     const ocultar = () => { setGlobo(false); timer = setTimeout(mostrar, GLOBO_OCULTO) }
-    timer = setTimeout(mostrar, GLOBO_PRIMERA_VEZ)
+    const ultima = leerUltimaVez()
+    timer = setTimeout(mostrar, ultima ? Math.max(GLOBO_PRIMERA_VEZ, ultima + GLOBO_OCULTO - Date.now()) : GLOBO_PRIMERA_VEZ)
     return () => { clearTimeout(timer); setGlobo(false) }
   }, [globoDescartado, abierto])
 

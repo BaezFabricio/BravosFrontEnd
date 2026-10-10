@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react"
-import { Upload, FileText, Stethoscope, CreditCard, CheckCircle2, Clock, Eye, AlertCircle, ChevronDown } from "lucide-react"
+import { Upload, FileText, Stethoscope, CreditCard, CheckCircle2, Clock, Eye, Info, ChevronDown, Hourglass } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import apiClient from "@/api"
 
@@ -29,30 +29,19 @@ const TIPOS = [
   },
 ]
 
+// Estado del documento: sin subir, subido y esperando revisión, o aprobado por el administrador
 function EstadoBadge({ ultimo }) {
+  const base = "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-wide"
   if (!ultimo) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-border text-foreground/40 rounded-md">
-        <Clock className="h-3.5 w-3.5" />
-        Pendiente
-      </span>
-    )
+    return <span className={`${base} border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400`}><Clock className="h-3.5 w-3.5" aria-hidden="true" /> Pendiente</span>
   }
   if (ultimo.estado === "aprobado") {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400 rounded-md">
-        <CheckCircle2 className="h-3.5 w-3.5" />
-        Aprobado
-      </span>
-    )
+    return <span className={`${base} border-lime-500/50 bg-lime-400/10 text-lime-700 dark:text-lime-400`}><CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Aprobado</span>
   }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1 border border-yellow-600/40 dark:border-yellow-500/40 bg-yellow-500/8 text-yellow-700 dark:text-yellow-400 rounded-md">
-      <Clock className="h-3.5 w-3.5" />
-      En revisión
-    </span>
-  )
+  return <span className={`${base} border-yellow-500/40 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400`}><Hourglass className="h-3.5 w-3.5" aria-hidden="true" /> En revisión</span>
 }
+
+const fechaCorta = (f) => f ? new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }) : ""
 
 function DocCard({ tipo, documentos, onUpload, uploading }) {
   // Datos de salud = datos sensibles (Ley 25.326, art. 7): hace falta autorización expresa
@@ -64,6 +53,8 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
   const ultimo = docs[0]
   const anteriores = docs.slice(1)
   const { Icon } = tipo
+  const subiendo = uploading === tipo.key
+  const idHistorial = `historial-${tipo.key}`
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0]
@@ -77,129 +68,113 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
   }
 
   return (
-    <div className="border border-border bg-card flex flex-col">
-      {/* Header */}
-      <div className="p-5 flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="shrink-0 w-10 h-10 border border-border flex items-center justify-center text-foreground/50">
-            <Icon className="h-5 w-5" />
+    <section className="flex flex-col rounded-2xl border border-border bg-card" aria-labelledby={`titulo-${tipo.key}`}>
+      {/* Encabezado */}
+      <div className="flex items-start gap-3 p-4">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <h3 id={`titulo-${tipo.key}`} className="text-base font-black uppercase leading-tight tracking-tight text-foreground">{tipo.label}</h3>
+            <EstadoBadge ultimo={ultimo} />
           </div>
-          <div>
-            <h3 className="font-black text-base uppercase tracking-tight text-foreground leading-tight">
-              {tipo.label}
-            </h3>
-            <p className="text-sm text-foreground/50 mt-1 leading-snug">{tipo.descripcion}</p>
-          </div>
-        </div>
-        <div className="shrink-0 mt-0.5">
-          <EstadoBadge ultimo={ultimo} />
+          <p className="mt-1 text-sm leading-snug text-foreground/60">{tipo.descripcion}</p>
         </div>
       </div>
 
       {/* Archivo más reciente */}
       {ultimo && (
-        <div className="border-t border-border bg-foreground/[0.02]">
-          <div className="px-5 py-2.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <FileText className="h-3.5 w-3.5 text-foreground/35 shrink-0" />
-              <span className="text-sm text-foreground/70 truncate">{ultimo.nombreArchivo}</span>
-              {ultimo.creadoEn && (
-                <span className="text-xs text-foreground/35 shrink-0">
-                  {new Date(ultimo.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
-              )}
-              {ultimo.estado === "aprobado" && (
-                <span className="shrink-0 text-[10px] font-bold text-lime-700 dark:text-lime-400">✓</span>
-              )}
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-foreground/[0.03] px-3 py-2.5">
+            <FileText className="h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">{ultimo.nombreArchivo}</p>
+              {ultimo.creadoEn && <p className="text-xs text-foreground/55">Subido el {fechaCorta(ultimo.creadoEn)}</p>}
             </div>
             <a
               href={ultimo.urlArchivo}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-foreground/40 hover:text-foreground transition-colors"
+              aria-label={`Ver ${ultimo.nombreArchivo}`}
+              className={`flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-black uppercase tracking-wide text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
             >
-              <Eye className="h-3.5 w-3.5" />
-              Ver
+              <Eye className="h-4 w-4" aria-hidden="true" /> Ver
             </a>
           </div>
 
-          {/* Toggle historial anterior */}
           {anteriores.length > 0 && (
             <>
               <button
+                type="button"
                 onClick={() => setHistorialAbierto(v => !v)}
-                className="w-full px-5 py-1.5 flex items-center gap-1.5 text-xs text-foreground/30 hover:text-foreground/50 transition-colors border-t border-dashed border-border"
+                aria-expanded={historialAbierto}
+                aria-controls={idHistorial}
+                className={`mt-2 flex min-h-[36px] items-center gap-1.5 rounded-md text-xs font-bold text-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
               >
-                <ChevronDown className={`h-3 w-3 transition-transform ${historialAbierto ? "rotate-180" : ""}`} />
-                {historialAbierto ? "Ocultar" : `Ver historial (${anteriores.length})`}
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${historialAbierto ? "rotate-180" : ""}`} aria-hidden="true" />
+                {historialAbierto ? "Ocultar historial" : `Ver historial (${anteriores.length})`}
               </button>
               {historialAbierto && (
-                <div className="divide-y divide-border border-t border-dashed border-border">
+                <ul id={idHistorial} className="mt-1 divide-y divide-border rounded-xl border border-dashed border-border">
                   {anteriores.map((doc, i) => (
-                    <div key={doc.idDocumento || i} className="px-5 py-2 flex items-center justify-between gap-3 opacity-50">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <FileText className="h-3.5 w-3.5 text-foreground/35 shrink-0" />
-                        <span className="text-xs text-foreground/60 truncate">{doc.nombreArchivo}</span>
-                        {doc.creadoEn && (
-                          <span className="text-xs text-foreground/30 shrink-0">
-                            {new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        )}
-                      </div>
-                      <a
-                        href={doc.urlArchivo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-1 text-xs text-foreground/30 hover:text-foreground/60 transition-colors"
-                      >
-                        <Eye className="h-3 w-3" />
-                        Ver
+                    <li key={doc.idDocumento || i} className="flex items-center gap-2.5 px-3 py-2">
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-foreground/40" aria-hidden="true" />
+                      <span className="min-w-0 flex-1 truncate text-xs text-foreground/70">{doc.nombreArchivo}</span>
+                      <span className="shrink-0 text-[11px] text-foreground/50">{fechaCorta(doc.creadoEn)}</span>
+                      <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${doc.nombreArchivo}`}
+                        className={`shrink-0 rounded p-1.5 text-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}>
+                        <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                       </a>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </>
           )}
         </div>
       )}
 
-      {/* Botón subir */}
-      <div className="px-5 py-4 border-t border-border mt-auto">
+      {/* Subir o reemplazar */}
+      <div className="mt-auto border-t border-border p-4">
         <input ref={fileRef} type="file" accept={tipo.accept} className="hidden" onChange={handleFile} />
         {tipo.salud && (
-          <label className="mb-3 flex items-start gap-2.5 cursor-pointer">
+          <label className="mb-3 flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={consiente}
               onChange={(e) => setConsiente(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-lime-500 cursor-pointer"
+              className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-lime-500"
             />
-            <span className="text-xs leading-snug text-foreground/60">
+            <span className="text-xs leading-snug text-foreground/70">
               Autorizo a Bravos Box a guardar este documento con datos de mi salud para controlar mi aptitud física,
               según la{" "}
-              <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 text-foreground/80">Política de privacidad</a>.
+              <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-2">Política de privacidad</a>.
             </span>
           </label>
         )}
         <button
+          type="button"
           onClick={() => fileRef.current?.click()}
-          disabled={uploading === tipo.key || bloqueado}
+          disabled={subiendo || bloqueado}
           title={bloqueado ? "Primero marcá la autorización" : undefined}
-          className="w-full flex items-center justify-center gap-2 border border-dashed border-border hover:border-foreground/40 py-4 text-sm font-bold uppercase tracking-wide text-foreground/40 hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-black uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+            ultimo
+              ? "border-border text-foreground/80 active:bg-foreground/5"
+              : "border-lime-500/50 bg-lime-400/10 text-lime-700 active:bg-lime-400/20 dark:text-lime-400"
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
         >
-          {uploading === tipo.key ? (
-            <span className="animate-pulse text-foreground/50">Subiendo...</span>
+          {subiendo ? (
+            <span className="animate-pulse">Subiendo...</span>
           ) : (
-            <>
-              <Upload className="h-4 w-4" />
-              Subir archivo
-            </>
+            <><Upload className="h-5 w-5" aria-hidden="true" /> {ultimo ? "Reemplazar archivo" : "Subir archivo"}</>
           )}
         </button>
-        <p className="text-xs text-foreground/30 text-center mt-2">PDF, JPG o PNG · Máx. 10 MB</p>
+        <p className="mt-2 text-center text-xs text-foreground/55">
+          {bloqueado ? "Marcá la autorización para poder subirlo" : "PDF, JPG o PNG · Máx. 10 MB"}
+        </p>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -240,13 +215,13 @@ export default function DocumentacionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Documentos y Comprobantes</h1>
-        <p className="text-sm text-foreground/50 mt-1">Cargá los documentos requeridos por el gimnasio.</p>
+        <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
+        <p className="mt-1.5 text-sm text-foreground/60">Cargá los documentos que pide el gimnasio.</p>
       </div>
 
-      <div className="border border-border bg-card px-5 py-4 flex items-start gap-3">
-        <AlertCircle className="h-4 w-4 text-foreground/40 shrink-0 mt-0.5" />
-        <p className="text-sm text-foreground/50 leading-relaxed">
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
+        <Info className="mt-0.5 h-5 w-5 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+        <p className="text-sm leading-relaxed text-foreground/70">
           Los documentos son revisados por el administrador. Una vez validados, tu membresía quedará regularizada.
           Podés reemplazar cualquier documento subiendo uno nuevo en cualquier momento.
         </p>

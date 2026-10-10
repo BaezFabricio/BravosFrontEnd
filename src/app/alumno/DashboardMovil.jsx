@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Calendar, CalendarCheck, Calculator, ChevronRight, CreditCard, Flame, HelpCircle, Trophy, TrendingUp, Users } from "lucide-react"
+import { Calendar, Calculator, Dumbbell, ChevronRight, CreditCard, Flame, HelpCircle, Trophy, TrendingUp, Users } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { fmtFechaPlan } from "@/lib/miPlan"
+import MisRutinasModal from "./MisRutinasModal"
 
 /*
  * Inicio del alumno en el celular (debajo de lg). La versión de escritorio sigue en
@@ -55,9 +57,12 @@ export default function DashboardMovil({
   const completados = logros.filter((l) => l.completado).length
   const meta = estadoMembresia ? ESTADOS[estadoMembresia] : null
 
+  const [rutinasAbiertas, setRutinasAbiertas] = useState(false)
+
   const accesos = [
     { to: "/alumno/creditos", icon: CreditCard, titulo: "Mis Créditos", sub: cargando ? "…" : `${creditos} disponibles` },
-    { to: "/alumno/reservas", icon: CalendarCheck, titulo: "Mis Reservas", sub: `${agendadas} ${agendadas === 1 ? "agendada" : "agendadas"}` },
+    // Abre el modal con las rutinas de las clases reservadas (no navega)
+    { onClick: () => setRutinasAbiertas(true), icon: Dumbbell, titulo: "Mis Rutinas", sub: `${agendadas} ${agendadas === 1 ? "clase reservada" : "clases reservadas"}` },
     { to: "/alumno/calculadora-rm", icon: Calculator, titulo: "Calculadora RM", sub: "Calculá tu 1RM" },
     { to: "/alumno/marcas", icon: Trophy, titulo: "Mis Marcas", sub: `${totalMarcas} ${totalMarcas === 1 ? "registrada" : "registradas"}` },
   ]
@@ -175,17 +180,26 @@ export default function DashboardMovil({
       {/* Accesos rápidos */}
       <Seccion titulo="Accesos rápidos">
         <div className="grid grid-cols-2 gap-3">
-          {accesos.map((a) => (
-            <Link key={a.to} to={a.to} className="flex flex-col items-center rounded-xl border border-border bg-card px-3 py-5 text-center active:border-lime-500/50">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime-400/15 text-lime-700 dark:text-lime-400">
-                <a.icon className="h-6 w-6" />
-              </span>
-              <span className="mt-3 text-sm font-bold text-foreground">{a.titulo}</span>
-              <span className="mt-0.5 text-xs text-foreground/50">{a.sub}</span>
-            </Link>
-          ))}
+          {accesos.map((a) => {
+            const contenido = (
+              <>
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime-400/15 text-lime-700 dark:text-lime-400">
+                  <a.icon className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <span className="mt-3 text-sm font-bold text-foreground">{a.titulo}</span>
+                <span className="mt-0.5 text-xs text-foreground/60">{a.sub}</span>
+              </>
+            )
+            const cls = "flex flex-col items-center rounded-xl border border-border bg-card px-3 py-5 text-center active:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+            return a.to ? (
+              <Link key={a.titulo} to={a.to} className={cls}>{contenido}</Link>
+            ) : (
+              <button key={a.titulo} type="button" onClick={a.onClick} aria-haspopup="dialog" className={cls}>{contenido}</button>
+            )
+          })}
         </div>
       </Seccion>
+      <MisRutinasModal open={rutinasAbiertas} onOpenChange={setRutinasAbiertas} />
 
       {/* Clases de hoy */}
       <Seccion titulo="Clases de hoy" extra={<VerTodas to="/alumno/reservar" />}>

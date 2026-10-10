@@ -310,46 +310,25 @@ export const logoutUsuario = () => {
 // FUNCIONES DE API - RECUPERACIÓN DE CONTRASEÑA
 // ============================================
 
-/**
- * Enviar código de verificación al correo
- * POST /auth/recuperar-contrasena  { email, action: 'send_code' }
- */
-export const enviarCodigoRecuperacion = async (email) => {
-  try {
-    const response = await apiClient.post('/auth/recuperar-contrasena', { email, action: 'send_code' })
-    return response.data
-  } catch (error) {
-    console.error('Error al enviar código de recuperación:', error)
-    throw error
-  }
+// Recuperación con enlace de un solo uso: el correo trae /recuperar-contrasena?token=...
+// (el token no se escribe en la consola para que no quede en ningún registro)
+
+/** Pide el enlace. POST /auth/recuperar-contrasena { email, action: 'send_link' } */
+export const enviarEnlaceRecuperacion = async (email) => {
+  const response = await apiClient.post('/auth/recuperar-contrasena', { email, action: 'send_link' })
+  return response.data
 }
 
-/**
- * Verificar código de recuperación
- * POST /auth/recuperar-contrasena  { email, code, action: 'verify_code' }
- */
-export const verificarCodigoRecuperacion = async (email, code) => {
-  try {
-    const response = await apiClient.post('/auth/recuperar-contrasena', { email, code, action: 'verify_code' })
-    return response.data
-  } catch (error) {
-    console.error('Error al verificar código de recuperación:', error)
-    throw error
-  }
+/** ¿El enlace sigue sirviendo? POST /auth/recuperar-contrasena { token, action: 'check_token' } */
+export const verificarEnlaceRecuperacion = async (token) => {
+  const response = await apiClient.post('/auth/recuperar-contrasena', { token, action: 'check_token' })
+  return response.data
 }
 
-/**
- * Resetear la contraseña
- * POST /auth/recuperar-contrasena  { email, code, password, action: 'reset_password' }
- */
-export const resetearContrasena = async (email, code, password) => {
-  try {
-    const response = await apiClient.post('/auth/recuperar-contrasena', { email, code, password, action: 'reset_password' })
-    return response.data
-  } catch (error) {
-    console.error('Error al resetear contraseña:', error)
-    throw error
-  }
+/** Cambia la contraseña y anula el enlace. POST /auth/recuperar-contrasena { token, password, action: 'reset_password' } */
+export const resetearContrasena = async (token, password) => {
+  const response = await apiClient.post('/auth/recuperar-contrasena', { token, password, action: 'reset_password' })
+  return response.data
 }
 
 const buildApiRoute = (endpoint) => `/api/vv1${endpoint}`
