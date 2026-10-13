@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Save, Landmark, AlertCircle, Info } from 'lucide-react'
 import { toast } from '@/lib/notificar'
+import { Cargando } from '@/components/Cargando'
 
 // Datos de la cuenta del gimnasio para que los alumnos paguen por transferencia.
 // Tienen su propia ruta en el servidor: se leen con sesión (ya no viajan en la web pública)
@@ -84,7 +85,7 @@ export default function DatosBancarios({ puedeModificar }) {
   }
 
   if (cargando) {
-    return <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-foreground/50 animate-pulse">Cargando datos bancarios…</div>
+    return <Cargando filas={2} className="py-2" />
   }
 
   if (fallo) {

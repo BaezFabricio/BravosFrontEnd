@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from "react"
 import { Calendar, Clock, User, X, Loader2, CheckCircle2, XCircle, AlertTriangle, Dumbbell, ChevronRight } from "lucide-react"
@@ -198,9 +199,7 @@ export default function ReservasPage() {
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
               {loadingRutina && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                </div>
+                <Cargando filas={3} className="py-4" />
               )}
               {!loadingRutina && rutina === false && (
                 <p className="text-sm text-muted-foreground text-center py-6">Esta clase todavía no tiene una rutina asignada.</p>
@@ -271,9 +270,7 @@ export default function ReservasPage() {
         </TabsList>
         
         {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+          <Cargando filas={3} className="py-4" />
         ) : (
           <>
             <TabsContent value="proximas" className="mt-6">

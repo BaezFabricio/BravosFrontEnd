@@ -5,6 +5,7 @@ import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil
 import { toast } from '@/lib/notificar'
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import RichTextEditor from "@/components/RichTextEditor"
+import { Cargando } from '@/components/Cargando'
 
 // La descripción se guarda como JSON {desc, rutina}; las clases viejas tienen texto plano
 // o los ejercicios como lista
@@ -450,7 +451,7 @@ export default function NuevaClasePage() {
                 {profesorSel && <span className="truncate text-xs font-bold text-lime-700 dark:text-lime-400">{profesorSel.nombreProfesor}</span>}
               </div>
               {loadingProfesores ? (
-                <p className="mt-3 text-sm text-foreground/55">Cargando coaches...</p>
+                <Cargando filas={2} className="py-2" />
               ) : profesores.length === 0 ? (
                 <p className="mt-3 text-sm text-red-700 dark:text-red-400">No hay coaches cargados.</p>
               ) : (

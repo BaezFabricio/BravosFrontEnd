@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { Upload, FileText, Stethoscope, CreditCard, CheckCircle2, Clock, Eye, Info, ChevronDown, Hourglass } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import apiClient from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 const TIPOS = [
   {
@@ -228,7 +229,7 @@ export default function DocumentacionPage() {
       </div>
 
       {cargando ? (
-        <div className="text-center py-16 text-foreground/30 text-sm">Cargando...</div>
+        <Cargando filas={2} className="py-2" />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {TIPOS.map(tipo => (

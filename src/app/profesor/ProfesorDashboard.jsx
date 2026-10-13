@@ -1,3 +1,4 @@
+import { CargandoLinea } from '@/components/Cargando'
 import { useEffect, useState } from "react"
 import { Calendar as CalendarIcon, ClipboardCheck, Clock, Users, CheckCircle2, XCircle, Dumbbell, ChevronRight, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -180,7 +181,7 @@ export default function ProfesorDashboard() {
               className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-6 py-2.5 hover:bg-lime-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               {loading
-                ? <span className="animate-pulse">Cargando...</span>
+                ? <CargandoLinea ancho="w-20" className="bg-black/30" />
                 : <><ClipboardCheck className="h-4 w-4" /> Tomar Lista <ChevronRight className="h-4 w-4" /></>
               }
             </button>

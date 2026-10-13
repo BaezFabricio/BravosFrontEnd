@@ -7,6 +7,7 @@ import { toast } from "@/lib/notificar"
 import apiClient from "@/api"
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import LogroCelebracion from "@/components/LogroCelebracion"
+import { Cargando } from '@/components/Cargando'
 
 const TIPOS = [
   { value: "peso", label: "Peso (kg)" },
@@ -420,7 +421,7 @@ export default function MarcasPage() {
       </div>
 
       {cargando ? (
-        <p className="text-sm text-muted-foreground animate-pulse">Cargando tus marcas...</p>
+        <Cargando filas={2} className="py-2" />
       ) : grupos.length === 0 ? (
         <Card className="bg-card border-border p-10 text-center">
           <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground mb-3" />

@@ -3,6 +3,7 @@ import { History } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import apiClient from "@/api"
 import { fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
+import { Cargando } from '@/components/Cargando'
 
 const ESTADOS = {
   ACTIVO: { label: "Activo", cls: "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400" },
@@ -89,7 +90,7 @@ export default function HistorialMembresias({ open, onClose }) {
             No pudimos cargar tu historial. Probá de nuevo en unos minutos.
           </p>
         ) : items === null ? (
-          <p className="animate-pulse py-10 text-center text-sm text-foreground/40">Cargando historial...</p>
+          <Cargando filas={2} className="py-2" />
         ) : items.length === 0 ? (
           <p className="py-10 text-center text-sm text-foreground/50">Todavía no compraste ninguna membresía.</p>
         ) : (

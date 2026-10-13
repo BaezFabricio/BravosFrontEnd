@@ -5,6 +5,7 @@ import { Check, Pencil, Plus, Trash2, X, Settings2, DollarSign, CalendarDays, Li
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import apiClient from "@/api"
 import { featuresDelPlan, partesDescripcion, armarDescripcion, MAX_CONDICIONES } from "@/lib/planes"
+import { Cargando } from '@/components/Cargando'
 
 /**
  * Crear o editar un plan: hoja a pantalla completa en el celular, ventana grande en la computadora.
@@ -146,7 +147,7 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
               </div>
               <p className="mt-1 text-xs text-foreground/55">Los alumnos con este plan pueden reservar estas clases.</p>
               {clases === null ? (
-                <p className="mt-3 flex items-center gap-2 text-sm text-foreground/55"><Loader2 className="h-4 w-4 animate-spin" /> Cargando clases...</p>
+                <Cargando filas={2} className="py-2" />
               ) : clases.length === 0 ? (
                 <p className="mt-3 text-sm text-foreground/55">Todavía no hay clases para este plan.</p>
               ) : (

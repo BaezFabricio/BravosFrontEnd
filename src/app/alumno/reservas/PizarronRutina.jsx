@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import VideoPlayer from "@/components/VideoPlayer"
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import apiClient from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 /**
  * "Pizarrón digital": la rutina de la clase de una reserva, en versión compacta para que el
@@ -101,7 +102,7 @@ export default function PizarronRutina({ reserva, onClose }) {
           {error ? (
             <p className="py-8 text-center text-sm text-foreground/60">No pudimos cargar la rutina. Probá de nuevo en un rato.</p>
           ) : rutina === undefined ? (
-            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-lime-600" aria-label="Cargando" /></div>
+            <Cargando filas={3} className="py-4" />
           ) : rutina === null || (!rutina.contenido && !rutina.ejercicios?.length) ? (
             <div className="py-8 text-center">
               <Dumbbell className="mx-auto h-8 w-8 text-foreground/30" aria-hidden="true" />

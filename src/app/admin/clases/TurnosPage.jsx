@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
 import { BotonVolver } from "@/components/BotonVolver"
 import { Clock, Loader2, Calendar } from "lucide-react"
@@ -42,9 +43,7 @@ export default function TurnosPage() {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <Cargando filas={3} className="py-4" />
       )}
 
       {!loading && error && (

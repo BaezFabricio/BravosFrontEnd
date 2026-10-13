@@ -35,6 +35,7 @@ import apiClient, {
   getUsuarioById,
 } from "@/api"
 import { toast } from '@/lib/notificar'
+import { Cargando } from '@/components/Cargando'
 
 const statusConfig = {
   activo:   { label: "Activo",    className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
@@ -330,7 +331,7 @@ export default function DetalleUsuarioPage() {
       {/* PESTAÑA RESERVAS */}
       {vistaActiva === "reservas" && (
         cargandoReservas ? (
-          <div className="rounded-2xl border border-border bg-card p-8 text-center text-xs text-foreground/45 animate-pulse">Cargando historial de reservas…</div>
+          <Cargando filas={2} className="py-2" />
         ) : reservasReales.length === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-card px-6 py-10 text-center">
             <CalendarX className="h-8 w-8 text-foreground/25" aria-hidden="true" />
@@ -393,7 +394,7 @@ export default function DetalleUsuarioPage() {
       {vistaActiva === "documentos" && (
         <div className="divide-y divide-border rounded-2xl border border-border bg-card">
           {cargandoDocs ? (
-            <div className="p-8 text-center text-xs text-foreground/45 animate-pulse">Cargando documentos…</div>
+            <Cargando filas={2} className="py-2" />
           ) : (
             TIPOS_DOC.map(({ key, label, Icon }) => {
               const ultimo = documentos.find((d) => d.tipo === key)

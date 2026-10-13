@@ -297,8 +297,14 @@ export default function AlumnoLayout({ children }) {
 
         <main className="p-4 lg:p-6 pb-28 lg:pb-6">
           {validandoAcceso ? (
-            <div className="flex items-center justify-center min-h-[50vh]" role="status" aria-label="Cargando">
-              <div className="h-10 w-10 rounded-full border-4 border-accent/20 border-t-accent animate-spin" />
+            <div className="max-w-5xl mx-auto space-y-4 animate-pulse" role="status" aria-label="Cargando">
+              <div className="h-7 w-48 rounded bg-foreground/10" />
+              <div className="h-24 rounded-md bg-foreground/10" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-28 rounded-md bg-foreground/10" />
+                <div className="h-28 rounded-md bg-foreground/10" />
+              </div>
+              <div className="h-40 rounded-md bg-foreground/10" />
             </div>
           ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */

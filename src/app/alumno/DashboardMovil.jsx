@@ -4,6 +4,7 @@ import { Calendar, Calculator, Dumbbell, ChevronRight, CreditCard, Plus, Flame, 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { fmtFechaPlan } from "@/lib/miPlan"
 import MisRutinasModal from "./MisRutinasModal"
+import { Cargando } from '@/components/Cargando'
 
 /*
  * Inicio del alumno en el celular (debajo de lg). La versión de escritorio sigue en
@@ -209,7 +210,7 @@ export default function DashboardMovil({
       <Seccion titulo="Clases de hoy" extra={<VerTodas to="/alumno/reservar" />}>
         <div className="rounded-xl border border-border bg-card">
           {cargandoClases ? (
-            <p className="px-4 py-6 text-center text-sm text-foreground/50">Cargando…</p>
+            <Cargando filas={2} className="py-2" />
           ) : clasesHoy.length === 0 ? (
             <p className="px-4 py-6 text-center text-sm text-foreground/50">No hay más clases programadas para hoy.</p>
           ) : (
@@ -240,7 +241,7 @@ export default function DashboardMovil({
       <Seccion titulo="Mis reservas" extra={<VerTodas to="/alumno/reservas" />}>
         <div className="rounded-xl border border-border bg-card">
           {cargando ? (
-            <p className="px-4 py-6 text-center text-sm text-foreground/50">Cargando…</p>
+            <Cargando filas={2} className="py-2" />
           ) : proximasReservadas.length === 0 ? (
             <div className="flex flex-col items-center px-4 py-6 text-center">
               <Users className="h-8 w-8 text-foreground/30" />

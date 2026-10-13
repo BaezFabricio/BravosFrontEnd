@@ -10,11 +10,10 @@ import {
   LogOut,
   User,
   Clock,
-  Mail,
-  AtSign
+  Mail
 } from 'lucide-react'
 
-import { MessageCircle, ArrowRight, MoveHorizontal } from 'lucide-react'
+import { MoveHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
@@ -748,10 +747,8 @@ function LandingPage() {
               return (
                 <article key={idx} id={`clase-${idx + 1}`}
                   className={`flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
-                  <div className="relative aspect-[4/3] overflow-hidden bg-black">
-                    {/* Foto completa (sin recortar); lo que sobra se rellena con la misma foto desenfocada */}
-                    {clase.image && <img src={clase.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl" />}
-                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-contain" containerClassName="h-full w-full absolute inset-0" />
+                  <div className="relative aspect-square overflow-hidden">
+                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover" containerClassName="h-full w-full absolute inset-0" />
                     <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                       {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
                       {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
@@ -805,7 +802,7 @@ function LandingPage() {
           </div>
 
           {loadingHorarios ? (
-            <p className="text-sm text-white/40 animate-pulse">Cargando los turnos…</p>
+            <div className="space-y-3 animate-pulse" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-16 rounded-md border border-border bg-white/5" />)}</div>
           ) : clasesVisibles.length === 0 ? (
             <div className="rounded-md border border-border bg-white/5 p-6 text-center">
               <p className="text-sm text-white/50">No hay turnos los {diasSemanaMapeo.find((d) => d.value === diaSeleccionado)?.label.toLowerCase()}.</p>
@@ -839,6 +836,37 @@ function LandingPage() {
           <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
             {/* Columna de info */}
             <div className="space-y-3">
+              {/* Accesos directos a WhatsApp e Instagram (el mapa va completo, abajo) */}
+              {(whatsappDigitos || instagram) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {whatsappDigitos && (
+                    <a href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${instagram ? '' : 'col-span-2'}`}>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#25D366] text-white">
+                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.78a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88a9.82 9.82 0 0 1 6.99 2.9 9.82 9.82 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.89 9.88M20.52 3.45A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z" /></svg>
+                      </span>
+                      <span className="min-w-0 max-w-full">
+                        <span className="block text-sm font-black uppercase text-white">WhatsApp</span>
+                        <span className="block truncate text-xs text-white/55">+{whatsappDigitos.replace(/^549/, '54 ')}</span>
+                      </span>
+                    </a>
+                  )}
+                  {instagram && (
+                    <a href={`https://instagram.com/${instagram.replace(/^@/, '')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${whatsappDigitos ? '' : 'col-span-2'}`}>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-md text-white" style={{ background: 'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}>
+                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
+                      </span>
+                      <span className="min-w-0 max-w-full">
+                        <span className="block text-sm font-black uppercase text-white">Instagram</span>
+                        <span className="block truncate text-xs text-white/55">@{instagram.replace(/^@/, '')}</span>
+                      </span>
+                    </a>
+                  )}
+                </div>
+              )}
               {/* Dirección, horarios y demás datos */}
               <div className="divide-y divide-white/10 overflow-hidden rounded-md border border-border bg-foreground/5">
                 {direccion && (() => {
@@ -886,30 +914,12 @@ function LandingPage() {
                   )
                 })()}
 
-                {whatsappDigitos && (
-                  <a href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><MessageCircle className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0">
-                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">WhatsApp</span>
-                      <span className="block truncate text-sm font-bold text-white">+{whatsappDigitos.replace(/^549/, '54 ')}</span>
-                    </span>
-                  </a>
-                )}
                 {emailContacto && (
                   <a href={`mailto:${emailContacto}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Mail className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0">
                       <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Email</span>
                       <span className="block truncate text-sm font-bold text-white">{emailContacto}</span>
-                    </span>
-                  </a>
-                )}
-                {instagram && (
-                  <a href={`https://instagram.com/${instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><AtSign className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0">
-                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Instagram</span>
-                      <span className="block truncate text-sm font-bold text-white">@{instagram.replace(/^@/, '')}</span>
                     </span>
                   </a>
                 )}

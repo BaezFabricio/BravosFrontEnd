@@ -5,6 +5,7 @@ import { ElegirMembresiaDialog, PagarPlanModal } from "@/components/RenovarMembr
 import { useMiPlan, fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
 import { TarjetaMembresia } from "./HistorialMembresias"
 import apiClient from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 /*
  * Mi membresía en el celular (debajo de lg). La versión de escritorio sigue en MiPlanPagos.jsx.
@@ -89,7 +90,7 @@ function HistorialPagos() {
       .catch(() => setError(true))
   }, [])
   if (error) return <p className="py-8 text-center text-sm text-foreground/60">No pudimos cargar tu historial. Probá de nuevo en unos minutos.</p>
-  if (items === null) return <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-lime-600" aria-label="Cargando" /></div>
+  if (items === null) return <Cargando filas={3} className="py-4" />
   if (items.length === 0) return <p className="py-8 text-center text-sm text-foreground/60">Todavía no compraste ninguna membresía.</p>
   return <div className="space-y-3">{items.map((m) => <TarjetaMembresia key={m.idCredito} m={m} />)}</div>
 }
@@ -139,7 +140,7 @@ export default function MiPlanMovil() {
       {pestana === "historial" ? (
         <HistorialPagos />
       ) : cargando ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-lime-600" aria-label="Cargando" /></div>
+        <Cargando filas={3} className="py-4" />
       ) : !data ? (
         <p className="rounded-xl border border-border bg-card px-4 py-4 text-sm text-foreground/60">
           No pudimos cargar la información de tu membresía. Probá recargar la página en unos minutos.

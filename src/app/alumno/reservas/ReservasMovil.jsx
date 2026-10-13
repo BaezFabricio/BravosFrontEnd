@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { CalendarPlus, CheckCircle2, ChevronRight, Clock, Dumbbell, Loader2, Search, XCircle, Ban } from "lucide-react"
 import { useMiPlan } from "@/lib/miPlan"
 import PizarronRutina from "./PizarronRutina"
+import { Cargando } from '@/components/Cargando'
 
 /*
  * Mis reservas en el celular (debajo de lg). La versión de escritorio sigue en ReservasPage.jsx,
@@ -134,7 +135,7 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
       </div>
 
       {cargando ? (
-        <div className="flex justify-center py-12"><Loader2 className="h-7 w-7 animate-spin text-lime-600" aria-label="Cargando" /></div>
+        <Cargando filas={3} className="py-4" />
       ) : (
         <>
           {lista.length === 0 ? (

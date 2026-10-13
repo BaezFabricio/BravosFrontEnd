@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react"
 import { Users, Calendar, AlertTriangle, TrendingUp, UserCheck, Clock, DollarSign, Dumbbell } from "lucide-react"
 import apiClient from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 const AVATAR_COLORS = [
   { bg: "bg-lime-400/15",   text: "text-lime-700 dark:text-lime-400" },
@@ -110,7 +111,7 @@ export default function AdminDashboard() {
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
     <>{loading ? (
-      <p className="text-sm text-foreground/40 text-center py-8">Cargando...</p>
+      <Cargando filas={2} className="py-2" />
     ) : recentActivity.length === 0 ? (
       <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
     ) : (
@@ -170,7 +171,7 @@ export default function AdminDashboard() {
 
   const listaClases = (
     <>{loading ? (
-      <p className="text-sm text-foreground/40 text-center py-8">Sincronizando...</p>
+      <Cargando filas={2} className="py-2" />
     ) : clasesHoy.length === 0 ? (
       <div className="px-5 py-8 text-center">
         <Dumbbell className="h-8 w-8 text-foreground/15 mx-auto mb-2" />

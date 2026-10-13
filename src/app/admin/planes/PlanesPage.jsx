@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
 import { Plus, Edit2, Trash2, Loader2, CreditCard, Users } from "lucide-react"
 import {
@@ -132,9 +133,7 @@ export default function PlanesPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <Cargando filas={3} className="py-4" />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {planes.map((plan) => {

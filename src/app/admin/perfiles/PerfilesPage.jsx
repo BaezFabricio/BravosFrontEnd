@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { useState, useEffect } from "react"
 import {
   Shield, Plus, Check, Users, Calendar, CreditCard, Settings,
@@ -290,9 +291,7 @@ export default function PerfilesPage() {
 
       {/* Loading */}
       {isLoading && perfiles.length === 0 && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <Cargando filas={3} className="py-4" />
       )}
 
       {/* ── CELULAR ── */}

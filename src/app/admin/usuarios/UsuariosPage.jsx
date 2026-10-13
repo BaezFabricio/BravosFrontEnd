@@ -44,6 +44,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
 import { toast } from '@/lib/notificar'
+import { Cargando } from '@/components/Cargando'
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -419,10 +420,7 @@ export default function UsuariosPage() {
         <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55">Lista de usuarios ({filteredUsers.length})</p>
 
         {isLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="mr-2 h-6 w-6 animate-spin text-muted-foreground" />
-            <p className="text-foreground/50">Cargando usuarios...</p>
-          </div>
+          <Cargando filas={3} className="py-4" />
         ) : filteredUsers.length === 0 ? (
           <p className="rounded-2xl border border-border bg-card px-4 py-8 text-center text-sm text-foreground/60">No hay usuarios con esos filtros.</p>
         ) : (
@@ -553,10 +551,7 @@ export default function UsuariosPage() {
         </div>
         <div>
           {isLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
-              <p className="text-foreground/40">Cargando usuarios...</p>
-            </div>
+            <Cargando filas={3} className="py-4" />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

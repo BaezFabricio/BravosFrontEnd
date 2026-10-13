@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import VideoPlayer from "@/components/VideoPlayer"
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import apiClient from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 /**
  * Modal "Mis rutinas": las próximas clases que reservó el alumno, cada una con la rutina
@@ -113,7 +114,7 @@ export default function MisRutinasModal({ open, onOpenChange }) {
           {error ? (
             <p className="py-8 text-center text-sm text-foreground/60">No pudimos cargar tus rutinas. Probá de nuevo en un rato.</p>
           ) : clases === null ? (
-            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-lime-600" aria-label="Cargando" /></div>
+            <Cargando filas={3} className="py-4" />
           ) : clases.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-center">
               <CalendarClock className="h-10 w-10 text-foreground/30" aria-hidden="true" />

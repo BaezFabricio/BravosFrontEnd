@@ -21,6 +21,7 @@ import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
+import { Cargando } from '@/components/Cargando'
 
 export default function AlumnoDashboard() {
   // ESTADOS REALES DE LA BASE DE DATOS Y SESIÓN
@@ -441,7 +442,7 @@ export default function AlumnoDashboard() {
 
             <div className="space-y-3">
               {loadingClases ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Cargando grilla horaria...</p>
+                <Cargando filas={2} className="py-2" />
               ) : clasesHoy.length > 0 ? (
                 clasesHoy.map((clase) => (
                   <div
@@ -505,7 +506,7 @@ export default function AlumnoDashboard() {
             </div>
 
             {loadingReservas ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Cargando tu agenda...</p>
+              <Cargando filas={2} className="py-2" />
             ) : proximasReservadas.length > 0 ? (
               <div className="space-y-3">
                 {proximasReservadas.slice(0, 3).map((reserva) => (

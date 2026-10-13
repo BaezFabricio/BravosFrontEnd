@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
+import { Cargando } from '@/components/Cargando'
 
 export default function ClasesPage() {
   const [search, setSearch] = useState("")
@@ -314,7 +315,7 @@ export default function ClasesPage() {
       </div>
 
       {loading && (
-        <div className="rounded-2xl border border-border bg-card p-6 text-center text-foreground/50">Cargando clases...</div>
+        <Cargando filas={2} className="py-2" />
       )}
 
       {error && (

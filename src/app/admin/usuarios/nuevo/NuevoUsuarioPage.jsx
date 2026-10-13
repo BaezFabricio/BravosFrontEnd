@@ -6,6 +6,7 @@ import { toast } from '@/lib/notificar'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { crearUsuario, getUsuarios, reenviarVerificacionCuenta } from "@/api"
+import { Cargando } from '@/components/Cargando'
 
 // Misma regla que exige el servidor para cualquier contraseña
 const problemaContrasena = (p = "") =>
@@ -273,7 +274,7 @@ export default function NuevoUsuarioPage() {
                 <p className={etiqueta} id="etiqueta-perfil">Perfil asignado</p>
                 {/* Los perfiles salen de la base (los crea el admin con sus permisos), no son fijos */}
                 {loadingPerfiles ? (
-                  <p className="text-sm text-foreground/55">Cargando perfiles...</p>
+                  <Cargando filas={2} className="py-2" />
                 ) : perfiles.length === 0 ? (
                   <p className="text-sm text-red-700 dark:text-red-400">No hay perfiles creados. Creá uno en Perfiles.</p>
                 ) : (

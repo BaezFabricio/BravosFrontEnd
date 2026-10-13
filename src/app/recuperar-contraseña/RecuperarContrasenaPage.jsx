@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { BotonTema } from "@/components/BotonTema"
@@ -202,10 +203,7 @@ export default function RecuperarContrasenaPage() {
 
           {/* Comprobando el enlace */}
           {step === "checking" && (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <Loader2 className="h-7 w-7 animate-spin text-lime-600" aria-hidden="true" />
-              <p className="text-sm text-muted-foreground">Comprobando el enlace…</p>
-            </div>
+            <Cargando filas={1} className="py-6" />
           )}
 
           {/* Enlace vencido o ya usado */}

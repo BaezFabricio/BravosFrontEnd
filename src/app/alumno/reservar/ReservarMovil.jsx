@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, CalendarX2, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Info, Loader2, Lock, Plus, XCircle } from "lucide-react"
@@ -216,7 +217,7 @@ export default function ReservarMovil({
 
       {/* Clases */}
       {cargando ? (
-        <div className="flex justify-center py-10"><Loader2 className="h-7 w-7 animate-spin text-lime-600" /></div>
+        <Cargando filas={3} className="py-4" />
       ) : clases.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl border border-border bg-card px-5 py-8 text-center">
           <MascotaEnCaja />

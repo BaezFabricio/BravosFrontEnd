@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useMemo, useState } from "react"
 import { Clock, User, ChevronLeft, ChevronRight, Loader2, AlertCircle, ChevronDown, Lock, CheckCircle2, XCircle } from "lucide-react"
@@ -424,9 +425,7 @@ export default function ReservarClasePage() {
       {/* CLASES POR PLAN */}
       <div className="space-y-6">
         {pageLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+          <Cargando filas={3} className="py-4" />
         ) : clasesAgrupadas.length === 0 ? (
           <p className="text-sm text-muted-foreground py-5 border border-dashed border-border text-center">
             No hay clases{turnoFiltro ? ` de ${TURNOS.find(t => t.id === turnoFiltro)?.label.toLowerCase()}` : ""} para los {mapaDiasBD[selectedDate.getDay()].toLowerCase()}.

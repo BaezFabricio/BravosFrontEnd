@@ -1,3 +1,4 @@
+import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -23,9 +24,7 @@ export default function DetalleRutinaPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <Cargando filas={3} className="py-4" />
     )
   }
 
