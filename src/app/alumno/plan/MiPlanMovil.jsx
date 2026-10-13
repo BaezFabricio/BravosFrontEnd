@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { AlertCircle, AlertTriangle, ChevronRight, CreditCard, FileText, History, Loader2, Plus, ReceiptText, Zap } from "lucide-react"
-import RenovarMembresia, { PagarPlanModal } from "@/components/RenovarMembresia"
+import { ElegirMembresiaDialog, PagarPlanModal } from "@/components/RenovarMembresia"
 import { useMiPlan, fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
 import { TarjetaMembresia } from "./HistorialMembresias"
 import apiClient from "@/api"
@@ -177,12 +177,17 @@ export default function MiPlanMovil() {
               )}
               <button
                 type="button"
-                onClick={() => setVerPlanes((v) => !v)}
-                aria-expanded={verPlanes}
-                className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-bold uppercase tracking-wide text-foreground active:bg-foreground/5 ${FOCO}`}
+                onClick={() => setVerPlanes(true)}
+                aria-haspopup="dialog"
+                // Si es la única acción va en verde lleno; si también está "Renovar", con borde verde
+                className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl text-sm font-black uppercase tracking-wide ${FOCO} ${
+                  puedeRenovar
+                    ? "border-2 border-lime-500 bg-lime-400/10 text-lime-700 active:bg-lime-400/20 dark:border-lime-400 dark:text-lime-400"
+                    : "bg-lime-400 text-black shadow-lg shadow-lime-500/20 active:bg-lime-300"
+                }`}
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                {verPlanes ? "Ocultar membresías" : "Contratar otra membresía"}
+                Contratar otra membresía
               </button>
               {vigente && (
                 <p className="flex items-start gap-1.5 pt-1 text-xs leading-snug text-foreground/60">
@@ -193,11 +198,7 @@ export default function MiPlanMovil() {
             </div>
           </div>
 
-          {verPlanes && (
-            <div className="rounded-2xl border border-border bg-card p-4">
-              <RenovarMembresia onRenovado={recargar} />
-            </div>
-          )}
+          <ElegirMembresiaDialog open={verPlanes} onClose={() => setVerPlanes(false)} onRenovado={recargar} />
 
           {/* Gestión */}
           <section className="space-y-2.5" aria-labelledby="titulo-gestion">

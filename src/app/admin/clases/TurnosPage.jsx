@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { ArrowLeft, Clock, Loader2, Calendar } from "lucide-react"
+import { BotonVolver } from "@/components/BotonVolver"
+import { Clock, Loader2, Calendar } from "lucide-react"
 import apiClient from "@/api"
 
 export default function TurnosPage() {
@@ -28,13 +28,8 @@ export default function TurnosPage() {
 
   return (
     <div className="space-y-6">
+      <BotonVolver a="/admin/clases" texto="Volver" />
       <div className="flex items-center gap-4">
-        <Link
-          to="/admin/clases"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-secondary"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
 
         <div>
           <h1 className="text-2xl font-bold text-foreground">

@@ -1,7 +1,8 @@
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Users, Loader2, Dumbbell } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { BotonVolver } from "@/components/BotonVolver"
+import { Clock, Users, Loader2, Dumbbell } from 'lucide-react'
 import apiClient from '@/api'
 import VideoPlayer from '@/components/VideoPlayer'
 
@@ -31,12 +32,7 @@ export default function DetalleRutinaPage() {
   if (error || !rutina) {
     return (
       <div className="space-y-4">
-        <Link to="/profesor/rutinas">
-          <button type="button" className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </button>
-        </Link>
+        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" />
         <div className="border border-red-500/20 bg-card p-8 text-center">
           <p className="text-red-700 dark:text-red-400">{error || 'Rutina no encontrada.'}</p>
         </div>
@@ -47,10 +43,7 @@ export default function DetalleRutinaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/profesor/rutinas" className="inline-flex items-center text-sm text-foreground/40 hover:text-foreground transition-colors mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver a Mis Rutinas
-        </Link>
+        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">{rutina.nombre}</h1>
         {rutina.nombreClase && (
           <p className="text-sm text-foreground/40 mt-1">Clase: <span className="text-foreground font-semibold">{rutina.nombreClase}</span></p>

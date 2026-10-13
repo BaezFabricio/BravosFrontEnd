@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Phone, Save, Loader2, AlertCircle } from 'lucide-react'
+import { BotonVolver } from "@/components/BotonVolver"
+import { Mail, Phone, Save, Loader2, AlertCircle } from 'lucide-react'
 import { toast } from '@/lib/notificar'
 
 const getIniciales = (name) => {
@@ -14,7 +14,6 @@ const getIniciales = (name) => {
 const inputCls = `w-full border border-border bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-600/50 dark:focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
 
 export default function ProfesorPerfilPage() {
-  const navigate = useNavigate()
   const [formData, setFormData] = useState({ nombre: '', email: '', telefono: '' })
   const [avatarUrl, setAvatarUrl] = useState('')
   const [isEditing, setIsEditing] = useState(false)
@@ -54,15 +53,9 @@ export default function ProfesorPerfilPage() {
     <div className="space-y-6">
 
       {/* HEADER */}
+      <BotonVolver a="/profesor" texto="Volver" />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-border bg-card px-4 sm:px-5 py-4">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/profesor')}
-            className="shrink-0 border border-border p-2 text-foreground/40 hover:text-foreground hover:border-foreground/30 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
           <div>
             <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">Mi Perfil</h1>
             <p className="text-xs text-foreground/40">Información personal y datos de contacto</p>

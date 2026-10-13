@@ -8,7 +8,7 @@ import { useLocation } from "react-router-dom"
  * Se guarda solo la ruta, sin parámetros (el enlace de recuperar contraseña lleva un token).
  */
 const CLAVE = "ultimaRutaPublica"
-const PRIVADAS = ["/admin", "/alumno", "/profesor", "/perfil", "/seleccionar-panel", "/login"]
+const PRIVADAS = ["/admin", "/alumno", "/profesor", "/perfil", "/seleccionar-panel", "/login", "/crear-contrasena"]
 
 const esPrivada = (ruta) => PRIVADAS.some((p) => ruta === p || ruta.startsWith(`${p}/`))
 

@@ -88,6 +88,11 @@ apiClient.interceptors.response.use(
     
     
     if (error.response?.status === 403) {
+      // Contraseña temporal sin cambiar: el servidor solo deja crear la contraseña nueva
+      if (error.response?.data?.errorCode === "PASSWORD_CHANGE_REQUIRED" && window.location.pathname !== "/crear-contrasena") {
+        window.location.href = "/crear-contrasena";
+        return Promise.reject(error);
+      }
       console.warn("Acceso denegado: No tienes permiso para esta acción.");
       
       return Promise.reject(error);

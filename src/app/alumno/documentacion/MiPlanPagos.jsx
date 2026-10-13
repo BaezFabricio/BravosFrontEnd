@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import { CreditCard, Plus, AlertCircle, CalendarClock, History } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import RenovarMembresia, { PagarPlanModal } from "@/components/RenovarMembresia"
+import { ElegirMembresiaDialog, PagarPlanModal } from "@/components/RenovarMembresia"
 import { useMiPlan, fmtFechaPlan, fmtPrecio } from "@/lib/miPlan"
 
 /**
@@ -110,10 +110,12 @@ export default function MiPlanPagos({ onActualizado, onVerHistorial }) {
               Renovar membresía{planARenovar?.precio ? ` · ${fmtPrecio(planARenovar.precio)}` : ""}
             </Button>
           )}
-          <Button variant="outline" onClick={() => setVerPlanes((v) => !v)}
-            className="font-bold uppercase tracking-wide">
+          <Button variant={puedePagarMes ? "outline" : "default"} onClick={() => setVerPlanes(true)} aria-haspopup="dialog"
+            className={puedePagarMes
+              ? "border-2 border-lime-500 bg-lime-400/10 font-black uppercase tracking-wide text-lime-700 hover:bg-lime-400/20 dark:border-lime-400 dark:text-lime-400"
+              : "bg-lime-400 font-black uppercase tracking-wide text-black hover:bg-lime-300"}>
             <Plus className="h-4 w-4 mr-2" />
-            {verPlanes ? "Ocultar membresías" : "Contratar otra membresía"}
+            Contratar otra membresía
           </Button>
         </div>
         {vigente && (
@@ -123,11 +125,7 @@ export default function MiPlanPagos({ onActualizado, onVerHistorial }) {
         )}
       </div>
 
-      {verPlanes && (
-        <div className="border border-border bg-card p-4 sm:p-6">
-          <RenovarMembresia onRenovado={recargar} />
-        </div>
-      )}
+      <ElegirMembresiaDialog open={verPlanes} onClose={() => setVerPlanes(false)} onRenovado={recargar} />
 
       <PagarPlanModal
         idPlan={planARenovar?.idPlan}

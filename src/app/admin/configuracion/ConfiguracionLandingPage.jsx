@@ -1,58 +1,94 @@
 import { useEffect, useState } from 'react'
-import { Save, Upload, Layout, Users, Dumbbell, MapPin, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Save, Camera, ArrowLeft, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { AdminFormSkeleton } from '@/components/AdminPageSkeleton'
 import { toast } from '@/lib/notificar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
+import DatosBancarios from './DatosBancarios'
+import MenuAjustes from './MenuAjustes'
 
-const TABS = [
-  { id: 'hero',     label: 'Hero & Logo',       icon: Layout  },
-  { id: 'nosotros', label: 'Sobre Nosotros',     icon: Users   },
-  { id: 'clases',   label: 'Tarjetas de Clases', icon: Dumbbell },
-  { id: 'contacto', label: 'Contacto y Horarios',icon: MapPin  },
-]
+// Cada sección se abre desde el menú de Configuración con ?seccion=
+const SECCIONES = {
+  hero:     { grupo: 'Web pública', titulo: 'Portada y logo', detalle: 'El título, el logo y las fotos del carrusel de la portada.' },
+  nosotros: { grupo: 'Web pública', titulo: 'Sobre nosotros', detalle: 'La foto, la historia y la misión que ven los visitantes.' },
+  clases:   { grupo: 'Web pública', titulo: 'Tarjetas de clases', detalle: 'Las 3 tarjetas que presentan las disciplinas en la portada.' },
+  contacto: { grupo: 'Web pública', titulo: 'Contacto, horarios y mapa', detalle: 'Cómo encontrarte y los datos legales del gimnasio.' },
+  banco:    { grupo: 'Cobros', titulo: 'Datos bancarios', detalle: 'La cuenta a la que transfieren los alumnos.' },
+}
 
 const Field = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="block text-sm font-semibold text-zinc-200">{label}</label>
-    {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    <label className="block text-[11px] font-black uppercase tracking-widest text-foreground/60">{label}</label>
     {children}
+    {hint && <p className="text-xs text-foreground/50">{hint}</p>}
   </div>
 )
 
-const inputCls = "w-full rounded-lg border border-zinc-700 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-zinc-600 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-const textareaCls = inputCls + " resize-none"
+const inputCls = "w-full min-h-[48px] rounded-xl border border-border bg-background/60 px-3.5 py-2.5 text-base text-foreground placeholder:text-foreground/35 outline-none transition-colors focus:border-lime-500 focus:ring-2 focus:ring-lime-400/25 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+const textareaCls = inputCls + " resize-y leading-relaxed"
 
 const SectionCard = ({ title, subtitle, children }) => (
-  <div className="rounded-xl border border-border bg-muted/50 p-6 space-y-5">
-    <div className="border-b border-border pb-4">
-      <h2 className="text-base font-bold text-primary">{title}</h2>
-      {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+  <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+    <div>
+      <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground">
+        <span className="h-3.5 w-1 rounded-full bg-lime-400" aria-hidden="true" /> {title}
+      </h2>
+      {subtitle && <p className="mt-1 text-xs text-foreground/55">{subtitle}</p>}
     </div>
     {children}
+  </section>
+)
+
+// Foto con botón "Cambiar" siempre visible (en el celular no existe el "pasar el mouse")
+const ImageUpload = ({ preview, onChange, label, aspect = 'aspect-video', disabled }) => (
+  <div className={`relative ${aspect} overflow-hidden rounded-xl border border-border bg-muted`}>
+    {preview
+      ? <img src={preview} className="h-full w-full object-cover" alt="" />
+      : <div className="flex h-full items-center justify-center"><ImageIcon className="h-8 w-8 text-foreground/25" /></div>
+    }
+    {!disabled && (
+      <label className="absolute bottom-2 right-2 flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-bold text-white backdrop-blur transition-colors hover:bg-black/85 focus-within:ring-2 focus-within:ring-lime-400">
+        <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+        {label}
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onChange} className="sr-only" />
+      </label>
+    )}
   </div>
 )
 
-const ImageUpload = ({ preview, onChange, label, aspect = 'aspect-video', disabled }) => (
-  <div className={`relative ${aspect} overflow-hidden rounded-xl border border-zinc-700 bg-muted group`}>
-    {preview
-      ? <img src={preview} className="h-full w-full object-cover" alt="" />
-      : <div className="flex h-full items-center justify-center"><ImageIcon className="h-8 w-8 text-zinc-700" /></div>
-    }
-    {!disabled && (
-      <label className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-        <Upload className="h-5 w-5 text-foreground" />
-        <span className="text-xs font-bold text-foreground">{label}</span>
-        <input type="file" accept="image/*" onChange={onChange} className="hidden" />
-      </label>
-    )}
+// Selector 1 · 2 · 3 para ver de a una foto o tarjeta en el celular
+const SelectorTres = ({ valor, onChange, etiquetas, nombre }) => (
+  <div role="tablist" aria-label={nombre} className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-background/60 p-1 md:hidden">
+    {etiquetas.map((e, i) => (
+      <button key={i} type="button" role="tab" aria-selected={valor === i} onClick={() => onChange(i)}
+        className={`min-h-[40px] truncate rounded-lg px-2 text-xs font-black transition-colors ${valor === i ? 'bg-lime-400 text-black' : 'text-foreground/60'}`}>
+        {e}
+      </button>
+    ))}
   </div>
 )
 
 function ConfiguracionLandingPage() {
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
-  const [activeTab, setActiveTab] = useState('hero')
-  const [permisos, setPermisos] = useState([])
+  // Sin ?seccion= se muestra el menú general; con ?seccion= la pantalla de esa sección
+  const [searchParams] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  // Volver al menú: si se llegó desde el menú, 'atrás'; si se entró directo, se reemplaza esta página
+  // por el menú. Así no se apilan páginas y el 'Volver' del menú no rebota a la sección.
+  const volverAlMenu = () => {
+    if (location.state?.desdeMenu) navigate(-1)
+    else navigate('/admin/configuracion', { replace: true })
+  }
+  const seccionPedida = searchParams.get('seccion')
+  const activeTab = Object.prototype.hasOwnProperty.call(SECCIONES, seccionPedida) ? seccionPedida : null
+  const [fotoHero, setFotoHero] = useState(0)
+  const [tarjeta, setTarjeta] = useState(0)
+  // Permisos guardados al iniciar sesión: solo deciden si se puede editar en pantalla (el servidor controla al guardar)
+  const [permisos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('permisos') || '[]') } catch { return [] }
+  })
 
   // Hero
   const [tituloHero, setTituloHero] = useState('')
@@ -102,19 +138,12 @@ function ConfiguracionLandingPage() {
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaUrl, setMapaUrl] = useState('')
-  // Datos bancarios
-  const [bancoEntidad, setBancoEntidad]           = useState('')
-  const [titularCuenta, setTitularCuenta]         = useState('')
-  const [cuitTransferencia, setCuitTransferencia] = useState('')
-  const [cvuTransferencia, setCvuTransferencia]   = useState('')
-  const [aliasTransferencia, setAliasTransferencia] = useState('')
 
   const puedeModificar = permisos.includes('configuracion:modificacion')
   const useVectorLogo = !logoPreview || logoPreview.includes('logo-box-bravos-final.png')
 
   const cargarConfiguracion = async () => {
     try {
-      setLoading(true)
       const res = await fetch(`/landing/config?t=${Date.now()}`)
       if (!res.ok) throw new Error()
       const d = await res.json()
@@ -158,11 +187,6 @@ function ConfiguracionLandingPage() {
       setHorarioSabado(d.horario_sabado || 'Sábado: 8:00 - 14:00')
       setHorarioDomingo(d.horario_domingo || 'Domingo: Cerrado')
       setMapaUrl(d.mapaUrl || '')
-      setBancoEntidad(d.bancoEntidad || '')
-      setTitularCuenta(d.titularCuenta || '')
-      setCuitTransferencia(d.cuitTransferencia || '')
-      setCvuTransferencia(d.cvuTransferencia || '')
-      setAliasTransferencia(d.aliasTransferencia || '')
     } catch {
       toast.error('No se pudo cargar la configuración')
     } finally {
@@ -172,9 +196,10 @@ function ConfiguracionLandingPage() {
 
   useEffect(() => {
     cargarConfiguracion()
-    const stored = localStorage.getItem('permisos')
-    if (stored) { try { setPermisos(JSON.parse(stored)) } catch {} }
   }, [])
+
+  // Al entrar o salir de una sección, la pantalla arranca desde arriba
+  useEffect(() => { window.scrollTo(0, 0) }, [activeTab])
 
   const handleFileChange = (e, tipo) => {
     if (!puedeModificar) return
@@ -243,11 +268,6 @@ function ConfiguracionLandingPage() {
       fd.append('horario_sabado', horarioSabado)
       fd.append('horario_domingo', horarioDomingo)
       fd.append('mapaUrl', mapaUrl)
-      fd.append('bancoEntidad', bancoEntidad)
-      fd.append('titularCuenta', titularCuenta)
-      fd.append('cuitTransferencia', cuitTransferencia)
-      fd.append('cvuTransferencia', cvuTransferencia)
-      fd.append('aliasTransferencia', aliasTransferencia)
 
       // El servidor exige sesión y permiso de configuración para guardar (no se fija Content-Type: lo arma el navegador para FormData)
       const res = await fetch('/landing/config', {
@@ -265,51 +285,50 @@ function ConfiguracionLandingPage() {
     }
   }
 
-  if (loading) {
+  // Menú general de ajustes
+  if (!activeTab) return <MenuAjustes />
+
+  const seccion = SECCIONES[activeTab]
+  const esLanding = activeTab !== 'banco'
+
+  if (esLanding && loading) {
     return <AdminFormSkeleton />
   }
 
+  const botonGuardar = (clase, texto = 'Guardar cambios') => (
+    <button type="submit" form="form-landing" disabled={guardando}
+      className={`flex items-center justify-center gap-2 rounded-xl bg-lime-400 font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-50 ${clase}`}>
+      {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+      {guardando ? 'Guardando…' : texto}
+    </button>
+  )
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Personalización de Inicio</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Configurá lo que ven los clientes en la página pública del gimnasio.</p>
-        </div>
-        {puedeModificar && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={guardando}
-            className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-5 py-2.5 hover:bg-lime-300 disabled:opacity-50 transition-colors flex items-center gap-2 self-start shrink-0"
-          >
-            {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {guardando ? 'Guardando...' : 'Guardar cambios'}
+    <div className={`mx-auto max-w-5xl space-y-5 ${esLanding && puedeModificar ? 'pb-24 lg:pb-0' : ''}`}>
+      {/* Encabezado de la sección */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <button type="button" onClick={volverAlMenu}
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground/80 transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Configuración del Box
           </button>
+          {esLanding && puedeModificar && botonGuardar('min-h-[40px] px-4 text-xs', 'Guardar')}
+        </div>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">{seccion.titulo}</h1>
+          <p className="mt-1 text-sm text-foreground/60">{seccion.detalle}</p>
+        </div>
+        {!puedeModificar && (
+          <p className="rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground/60">Tu perfil puede ver esta sección pero no cambiarla.</p>
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 rounded-xl border border-border bg-secondary/30 p-1">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-              activeTab === id
-                ? 'bg-card text-foreground shadow-sm border border-border'
-                : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
-      </div>
+      {/* Los datos bancarios se guardan aparte (su propia ruta en el servidor) */}
+      {activeTab === 'banco' && <DatosBancarios puedeModificar={puedeModificar} />}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {esLanding && (
+      <form id="form-landing" onSubmit={handleSubmit} className="space-y-5">
 
         {/* ── HERO ── */}
         {activeTab === 'hero' && (
@@ -319,7 +338,7 @@ function ConfiguracionLandingPage() {
                 <Field label="Texto del título">
                   <input disabled={!puedeModificar} type="text" value={tituloHero} onChange={e => setTituloHero(e.target.value)} placeholder="CENTRO DE ENTRENAMIENTO" className={inputCls} />
                 </Field>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <Field label="Tamaño (px)">
                     <input disabled={!puedeModificar} type="number" min={10} max={200} value={tituloSize} onChange={e => setTituloSize(e.target.value)} className={inputCls} placeholder="48" />
                   </Field>
@@ -338,37 +357,42 @@ function ConfiguracionLandingPage() {
             </SectionCard>
 
             <SectionCard title="Logo de Navegación" subtitle="Aparece en la barra superior de la landing page.">
-              <div className="flex items-center gap-6">
-                <div className="h-24 w-56 overflow-hidden rounded-lg border border-border bg-zinc-950 flex items-center justify-center p-3">
+              <div className="grid grid-cols-[1fr_auto] items-center gap-3 sm:flex sm:gap-6">
+                {/* Fondo oscuro a propósito: así se ve el logo en la barra de la web */}
+                <div className="flex h-20 min-w-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-zinc-950 p-3 sm:h-24 sm:w-56">
                   {useVectorLogo
                     ? <LogoBoxBravos className="h-full w-full" width={200} height={60} />
-                    : <img src={logoPreview} alt="Logo" className="h-full w-full object-contain" />
+                    : <img src={logoPreview} alt="Logo actual" className="h-full w-full object-contain" />
                   }
                 </div>
                 {puedeModificar && (
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors">
-                    <Upload className="h-4 w-4" />
+                  <label className="flex min-h-[48px] cursor-pointer items-center gap-2 rounded-xl border border-dashed border-lime-500/50 bg-lime-400/10 px-4 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/15 focus-within:ring-2 focus-within:ring-lime-500 dark:text-lime-400">
+                    <Camera className="h-4 w-4" aria-hidden="true" />
                     Cambiar logo
-                    <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'logo')} className="hidden" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => handleFileChange(e, 'logo')} className="sr-only" />
                   </label>
                 )}
               </div>
             </SectionCard>
 
             <SectionCard title="Carrusel de Imágenes" subtitle="3 fotos que rotan como fondo de la sección principal. Resolución recomendada: 1920×1080.">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <SelectorTres valor={fotoHero} onChange={setFotoHero} etiquetas={['Foto 1', 'Foto 2', 'Foto 3']} nombre="Fotos del carrusel" />
+              {/* Celular: de a una foto. Computadora: las tres juntas */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {[
-                  { preview: heroPreview1, tipo: 'hero1', label: 'Foto 1' },
-                  { preview: heroPreview2, tipo: 'hero2', label: 'Foto 2' },
-                  { preview: heroPreview3, tipo: 'hero3', label: 'Foto 3' },
-                ].map(({ preview, tipo, label }) => (
-                  <ImageUpload
-                    key={tipo}
-                    preview={preview}
-                    onChange={e => handleFileChange(e, tipo)}
-                    label={label}
-                    disabled={!puedeModificar}
-                  />
+                  { preview: heroPreview1, tipo: 'hero1' },
+                  { preview: heroPreview2, tipo: 'hero2' },
+                  { preview: heroPreview3, tipo: 'hero3' },
+                ].map(({ preview, tipo }, i) => (
+                  <div key={tipo} className={i === fotoHero ? '' : 'hidden md:block'}>
+                    <p className="mb-1.5 hidden text-[11px] font-black uppercase tracking-widest text-foreground/60 md:block">Foto {i + 1}</p>
+                    <ImageUpload
+                      preview={preview}
+                      onChange={e => handleFileChange(e, tipo)}
+                      label="Cambiar"
+                      disabled={!puedeModificar}
+                    />
+                  </div>
                 ))}
               </div>
             </SectionCard>
@@ -431,11 +455,13 @@ function ConfiguracionLandingPage() {
         {/* ── CLASES ── */}
         {activeTab === 'clases' && (
           <SectionCard title="Tarjetas de clases" subtitle="Tres tarjetas que se muestran en la landing para presentar los tipos de entrenamiento disponibles.">
+            <SelectorTres valor={tarjeta} onChange={setTarjeta} etiquetas={cards.map((c, i) => c.titulo || `Tarjeta ${i + 1}`)} nombre="Tarjetas" />
+            {/* Celular: de a una tarjeta. Computadora: las tres juntas */}
             <div className="grid gap-5 md:grid-cols-3">
               {cards.map((card, i) => (
-                <div key={i} className="rounded-xl border border-border bg-zinc-950 p-4 space-y-3">
+                <div key={i} className={`space-y-3 rounded-xl border border-border bg-background/50 p-4 ${i === tarjeta ? '' : 'hidden md:block'}`}>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tarjeta {i + 1}</span>
+                    <span className="rounded-md bg-lime-400/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tarjeta {i + 1}</span>
                   </div>
 
                   <Field label="Foto de la tarjeta">
@@ -491,7 +517,7 @@ function ConfiguracionLandingPage() {
                 </Field>
                 <Field label="Instagram (usuario)">
                   <div className="flex">
-                    <span className="flex items-center rounded-l-lg border border-r-0 border-zinc-700 bg-zinc-800 px-3 text-sm text-muted-foreground">@</span>
+                    <span className="flex items-center rounded-l-xl border border-r-0 border-border bg-muted px-3 text-sm font-bold text-foreground/60">@</span>
                     <input disabled={!puedeModificar} type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="bravosbox" className={inputCls + " rounded-l-none"} />
                   </div>
                 </Field>
@@ -530,26 +556,6 @@ function ConfiguracionLandingPage() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Datos bancarios" subtitle="Datos de la cuenta bancaria del gimnasio para que los alumnos puedan hacer transferencias.">
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Banco / Entidad">
-                  <input disabled={!puedeModificar} type="text" value={bancoEntidad} onChange={e => setBancoEntidad(e.target.value)} placeholder="Banco Galicia / Cuenta Corriente" className={inputCls} />
-                </Field>
-                <Field label="Titular de la cuenta">
-                  <input disabled={!puedeModificar} type="text" value={titularCuenta} onChange={e => setTitularCuenta(e.target.value)} placeholder="BRAVOS FITNESS S.R.L." className={inputCls} />
-                </Field>
-                <Field label="CUIT">
-                  <input disabled={!puedeModificar} type="text" value={cuitTransferencia} onChange={e => setCuitTransferencia(e.target.value)} placeholder="30-71649283-9" className={inputCls} />
-                </Field>
-                <Field label="CBU" hint="22 dígitos del CBU de la cuenta.">
-                  <input disabled={!puedeModificar} type="text" value={cvuTransferencia} onChange={e => setCvuTransferencia(e.target.value)} placeholder="0000003100012345678901" className={inputCls} />
-                </Field>
-                <Field label="Alias" hint="Alias de la cuenta bancaria.">
-                  <input disabled={!puedeModificar} type="text" value={aliasTransferencia} onChange={e => setAliasTransferencia(e.target.value)} placeholder="BRAVOS.FITNESS.OFICIAL" className={inputCls} />
-                </Field>
-              </div>
-            </SectionCard>
-
             <SectionCard title="Mapa (Google Maps)" subtitle="URL del embed de Google Maps para mostrar la ubicación del gimnasio.">
               <Field label="URL del embed" hint='En Google Maps → Compartir → Insertar mapa → copiá solo el valor del atributo src del iframe.'>
                 <input disabled={!puedeModificar} type="url" value={mapaUrl} onChange={e => setMapaUrl(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." className={inputCls} />
@@ -563,20 +569,14 @@ function ConfiguracionLandingPage() {
           </>
         )}
 
-        {/* Botón bottom (acceso rápido) */}
+        {/* Guardar: en el celular queda fijo arriba de la barra de navegación (con lugar para la mascota del chat) */}
         {puedeModificar && (
-          <div className="flex justify-end pt-2 border-t border-border">
-            <button
-              type="submit"
-              disabled={guardando}
-              className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-5 py-2.5 hover:bg-lime-300 disabled:opacity-50 transition-colors flex items-center gap-2"
-            >
-              {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {guardando ? 'Guardando...' : 'Guardar cambios'}
-            </button>
+          <div className="fixed inset-x-0 bottom-[64px] z-20 border-t border-border bg-background/95 py-3 pl-4 pr-[76px] backdrop-blur lg:static lg:flex lg:justify-end lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+            {botonGuardar('min-h-[48px] w-full px-6 text-xs lg:w-auto')}
           </div>
         )}
       </form>
+      )}
     </div>
   )
 }

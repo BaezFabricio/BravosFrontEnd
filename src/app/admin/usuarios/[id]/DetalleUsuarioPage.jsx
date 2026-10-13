@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
 import {
-  ArrowLeft,
   Mail,
   Phone,
   CreditCard,
@@ -15,6 +15,8 @@ import {
   Stethoscope,
   CheckCircle2,
   Clock,
+  Plus,
+  CalendarX,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -24,8 +26,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  DialogTitle } from "@/components/ui/dialog"
 
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient, {
@@ -53,7 +54,7 @@ const formatearFecha = (fechaRaw) => {
     const fechaLimpia = fechaRaw.split('T')[0];
     const [year, month, day] = fechaLimpia.split('-');
     return `${day}/${month}/${year}`;
-  } catch (e) {
+  } catch {
     return fechaRaw;
   }
 };
@@ -64,7 +65,21 @@ const TIPOS_DOC = [
   { key: "declaracion_jurada",        label: "Declaración Jurada",           Icon: FileText },
 ]
 
+const ESTADOS_RESERVA = {
+  proxima:      { label: "Próxima",    cls: "bg-foreground/5 text-foreground/60 border-border" },
+  completada:   { label: "Asistió",    cls: "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/30" },
+  cancelada:    { label: "Cancelada",  cls: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30" },
+  inasistencia: { label: "No asistió", cls: "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/30" },
+}
+const badgeReserva = (estado) => ESTADOS_RESERVA[estado] || { label: estado || "—", cls: "bg-foreground/5 text-foreground/60 border-border" }
+
+// Permisos guardados al iniciar sesión: solo deciden qué botones se ven; el servidor los controla en cada ruta
+const leerPermisos = () => {
+  try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] }
+}
+
 export default function DetalleUsuarioPage() {
+  const [permisos] = useState(leerPermisos)
   const navigate = useNavigate()
   const { id } = useParams()
 
@@ -145,7 +160,7 @@ export default function DetalleUsuarioPage() {
       setUser((currentUser) => ({ ...currentUser, estado: newStatus }))
     } catch (statusError) {
       console.error("Error al actualizar estado:", statusError)
-      toast.error("No se pudo actualizar el estado del usuario.")
+      toast.error(statusError.response?.data?.message || "No se pudo actualizar el estado del usuario.")
     } finally {
       setIsActionLoading(false)
       setStatusDialog({ open: false, action: "" })
@@ -159,7 +174,7 @@ export default function DetalleUsuarioPage() {
       navigate("/admin/usuarios")
     } catch (deleteError) {
       console.error("Error al eliminar usuario:", deleteError)
-      toast.error("No se pudo eliminar el usuario.")
+      toast.error(deleteError.response?.data?.message || "No se pudo eliminar el usuario.")
     } finally {
       setIsActionLoading(false)
       setDeleteDialog(false)
@@ -185,107 +200,128 @@ export default function DetalleUsuarioPage() {
     return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : nombre.slice(0, 2).toUpperCase()
   }
 
-  return (
-    <div className="space-y-6">
+  const puede = (p) => permisos.includes(p)
+  // Sobre la propia cuenta no se ofrece desactivar ni eliminar (el servidor también lo rechaza)
+  const esMiCuenta = (() => {
+    try { return Number(JSON.parse(localStorage.getItem("usuario") || "{}").idUsuario) === Number(id) } catch { return false }
+  })()
+  const estaInactivo = user?.estado === "inactivo"
+  const vigente = estadoMembresia === "vigente" || estadoMembresia === "activa"
+  const claseMembresia = vigente
+    ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/30"
+    : estadoMembresia === "por_vencer"
+      ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/30"
+      : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30"
 
-      {/* BREADCRUMB + ACCIONES */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Link to="/admin/usuarios">
-            <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-          </Link>
-          <span className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Usuarios</span>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-xs text-foreground/60 uppercase tracking-widest font-semibold">Ficha</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link to={`/admin/usuarios/${id}/editar`}>
-            <button type="button" className="border border-border px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-1.5">
-              <Pencil className="h-3.5 w-3.5" /> Editar
-            </button>
-          </Link>
-          <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}
-            className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5">
-            + Cargar Abono
-          </Link>
-          {user?.estado === "inactivo" ? (
-            <button type="button" className="border border-lime-400/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:bg-lime-400/5 transition-colors flex items-center gap-1.5"
-              onClick={() => setStatusDialog({ open: true, action: "activate" })}>
-              <UserCheck className="h-3.5 w-3.5" /> Activar
-            </button>
-          ) : (
-            <button type="button" className="border border-foreground/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground/60 hover:border-foreground/20 transition-colors flex items-center gap-1.5"
-              onClick={() => setStatusDialog({ open: true, action: "deactivate" })}>
-              <UserX className="h-3.5 w-3.5" /> Desactivar
-            </button>
-          )}
-          <button type="button" className="border border-red-500/20 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors flex items-center gap-1.5"
-            onClick={() => setDeleteDialog(true)}>
-            <Trash2 className="h-3.5 w-3.5" /> Eliminar
-          </button>
-        </div>
+  const botonAccion = "flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-4 text-xs font-black uppercase tracking-widest transition-colors"
+
+  return (
+    <div className="space-y-5">
+
+      {/* VOLVER + BREADCRUMB */}
+      <div className="space-y-3">
+        <BotonVolver a="/admin/usuarios" texto="Volver" />
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Usuarios <span aria-hidden="true">/</span> <span className="text-foreground/70">Ficha</span>
+        </p>
       </div>
 
-      {/* FICHA HERO */}
-      <div className="border border-border bg-card">
-        {/* Nombre + avatar + badges en una sola fila */}
-        <div className="flex items-center gap-5 px-5 py-5 border-b border-border">
-          <div className="h-14 w-14 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-lg select-none overflow-hidden">
+      {/* ACCIONES: en el celular, grilla de 2x2. Se muestran según los permisos (el servidor vuelve a controlarlos) */}
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        {puede("usuarios:alta") && (
+          <Link to={`/admin/usuarios/abonos/carga-masiva?usuario=${id}`}
+            className={`${botonAccion} border-lime-400 bg-lime-400 text-black hover:bg-lime-300`}>
+            <Plus className="h-4 w-4" /> Cargar abono
+          </Link>
+        )}
+        {puede("usuarios:modificacion") && (
+          <Link to={`/admin/usuarios/${id}/editar`}
+            className={`${botonAccion} border-border bg-card text-foreground/80 hover:border-foreground/30 hover:text-foreground`}>
+            <Pencil className="h-4 w-4" /> Editar
+          </Link>
+        )}
+        {puede("usuarios:modificacion") && !esMiCuenta && (
+          estaInactivo ? (
+            <button type="button" onClick={() => setStatusDialog({ open: true, action: "activate" })}
+              className={`${botonAccion} border-lime-500/40 bg-card text-lime-700 dark:text-lime-400 hover:bg-lime-400/10`}>
+              <UserCheck className="h-4 w-4" /> Activar
+            </button>
+          ) : (
+            <button type="button" onClick={() => setStatusDialog({ open: true, action: "deactivate" })}
+              className={`${botonAccion} border-border bg-card text-foreground/60 hover:border-foreground/30 hover:text-foreground`}>
+              <UserX className="h-4 w-4" /> Desactivar
+            </button>
+          )
+        )}
+        {puede("usuarios:baja") && !esMiCuenta && (
+          <button type="button" onClick={() => setDeleteDialog(true)}
+            className={`${botonAccion} border-red-500/40 bg-card text-red-700 dark:text-red-400 hover:bg-red-500/10`}>
+            <Trash2 className="h-4 w-4" /> Eliminar
+          </button>
+        )}
+      </div>
+
+      {/* FICHA */}
+      <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-label="Datos del usuario">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-lg font-black text-black">
             {user?.avatarUrl
-              ? <img src={user.avatarUrl} alt={user.nombre} className="h-full w-full object-cover" />
-              : getIniciales(user?.nombre)
-            }
+              ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+              : getIniciales(user?.nombre)}
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground leading-none">{user?.nombre}</h1>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${user?.estado === "activo" ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+            <h1 className="text-xl font-black uppercase leading-tight tracking-tight text-foreground sm:text-2xl">{user?.nombre}</h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${estaInactivo ? "border-border bg-foreground/5 text-foreground/55" : "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"}`}>
                 {status.label}
               </span>
-              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border capitalize">
-                {user?.perfil || "Alumno"}
+              <span className="rounded-full border border-border bg-foreground/5 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                {user?.perfil || "Sin perfil"}
               </span>
             </div>
           </div>
           <div className="shrink-0 text-right">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créditos</p>
-            <p className="text-4xl font-black text-lime-700 dark:text-lime-400 leading-none mt-1">{user?.creditos ?? 0}</p>
+            <p className="mt-0.5 text-3xl font-black leading-none tabular-nums text-lime-700 dark:text-lime-400 sm:text-4xl">{user?.creditos ?? 0}</p>
           </div>
         </div>
 
-        {/* Grid de datos */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-border">
+        <dl className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-5">
           {[
-            { label: 'DNI', value: user?.dni, icon: CreditCard },
-            { label: 'Correo', value: user?.email, icon: Mail },
-            { label: 'Teléfono', value: user?.telefono || '—', icon: Phone },
-            { label: 'Registro', value: formatearFecha(user?.fechaRegistro), icon: Calendar },
-            { label: 'Último acceso', value: formatearFecha(user?.ultimoAcceso), icon: Calendar },
-            { label: 'Membresía', value: membership.label, isStatus: true, vigente: user?.membresia === "vigente" || user?.membresia === "activa" },
-          ].map(({ label, value, icon: Icon, isStatus, vigente }, i) => (
-            <div key={label} className={`px-4 py-3 ${i >= 3 ? 'border-t border-border' : ''} lg:border-t-0`}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</p>
-              {isStatus
-                ? <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${vigente ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"}`}>{value}</span>
-                : <p className="text-sm font-semibold text-foreground truncate">{value}</p>
-              }
+            { label: "DNI", value: user?.dni || "—", icon: CreditCard },
+            { label: "Teléfono", value: user?.telefono || "—", icon: Phone, tel: user?.telefono },
+            { label: "Correo", value: user?.email || "—", icon: Mail, ancho: true },
+            { label: "Registro", value: formatearFecha(user?.fechaRegistro), icon: Calendar },
+          ].map(({ label, value, icon: Icon, ancho, tel }) => (
+            <div key={label} className={`min-w-0 rounded-xl border border-border bg-background/50 px-3 py-2.5 ${ancho ? "col-span-2 lg:col-span-1" : ""}`}>
+              <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <Icon className="h-3 w-3" aria-hidden="true" /> {label}
+              </dt>
+              <dd className="mt-1 truncate text-sm font-semibold text-foreground">
+                {tel
+                  ? <a href={`tel:${tel}`} className="text-lime-700 hover:underline dark:text-lime-400">{value}</a>
+                  : value}
+              </dd>
             </div>
           ))}
-        </div>
-      </div>
+          <div className="rounded-xl border border-border bg-background/50 px-3 py-2.5">
+            <dt className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Membresía</dt>
+            <dd className="mt-1.5">
+              <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${claseMembresia}`}>{membership.label}</span>
+            </dd>
+          </div>
+        </dl>
+      </section>
 
-      {/* MENÚ DE PESTAÑAS */}
-      <div className="flex gap-2 border-b border-border pb-px">
+      {/* PESTAÑAS */}
+      <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1 sm:inline-grid" role="tablist">
         {[
-          { key: "reservas", label: "Historial Reservas" },
+          { key: "reservas", label: "Reservas" },
           { key: "documentos", label: "Documentos" },
         ].map(({ key, label }) => (
-          <button key={key}
-            className={`px-4 py-2 text-xs font-black tracking-widest uppercase border-b-2 transition-colors ${vistaActiva === key ? "border-lime-600 dark:border-lime-400 text-lime-700 dark:text-lime-400" : "border-transparent text-foreground/40 hover:text-foreground"}`}
-            onClick={() => setVistaActiva(key)}
-          >
+          <button key={key} type="button" role="tab" aria-selected={vistaActiva === key}
+            className={`min-h-[40px] rounded-lg px-4 text-xs font-black uppercase tracking-widest transition-colors ${vistaActiva === key ? "bg-lime-400 text-black" : "text-foreground/55 hover:text-foreground"}`}
+            onClick={() => setVistaActiva(key)}>
             {label}
           </button>
         ))}
@@ -293,97 +329,103 @@ export default function DetalleUsuarioPage() {
 
       {/* PESTAÑA RESERVAS */}
       {vistaActiva === "reservas" && (
-        <div className="border border-border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clase</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Fecha</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Hora</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Coach Asignado</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {cargandoReservas ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-foreground/40 animate-pulse text-xs">Cargando historial de reservas...</td></tr>
-                ) : reservasReales.length === 0 ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-foreground/40 text-xs">No se registran reservas para este usuario.</td></tr>
-                ) : reservasReales.map((r) => {
-                  const estadoBadge = {
-                    proxima:     { label: 'Próxima',    cls: 'bg-foreground/5 text-foreground/50 border-border' },
-                    completada:  { label: 'Asistió',    cls: 'bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20' },
-                    cancelada:   { label: 'Cancelada',  cls: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20' },
-                    inasistencia:{ label: 'No asistió', cls: 'bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20' },
-                  }[r.estadoReserva] || { label: r.estadoReserva, cls: 'bg-foreground/5 text-foreground/50 border-border' }
-                  return (
-                    <tr key={r.idReserva} className="hover:bg-foreground/3 transition-colors">
-                      <td className="px-4 py-3 font-semibold text-foreground">{r.nombreClase}</td>
-                      <td className="px-4 py-3 text-foreground/40">{formatearFecha(r.fechaReserva)}</td>
-                      <td className="px-4 py-3 font-semibold text-foreground">{r.horaInicio ? r.horaInicio.slice(0,5) : '-'} hs</td>
-                      <td className="px-4 py-3 text-foreground/40">{r.nombreProfesor || '-'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${estadoBadge.cls}`}>
-                          {estadoBadge.label}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+        cargandoReservas ? (
+          <div className="rounded-2xl border border-border bg-card p-8 text-center text-xs text-foreground/45 animate-pulse">Cargando historial de reservas…</div>
+        ) : reservasReales.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-card px-6 py-10 text-center">
+            <CalendarX className="h-8 w-8 text-foreground/25" aria-hidden="true" />
+            <p className="text-sm text-foreground/55">No se registran reservas para este usuario.</p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Celular: tarjetas */}
+            <ul className="space-y-2 md:hidden">
+              {reservasReales.map((r) => {
+                const badge = badgeReserva(r.estadoReserva)
+                return (
+                  <li key={r.idReserva} className="rounded-xl border border-border bg-card px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 font-bold text-foreground">{r.nombreClase}</p>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-foreground/60">
+                      {formatearFecha(r.fechaReserva)} · {r.horaInicio ? `${r.horaInicio.slice(0, 5)} hs` : "—"}
+                      {r.nombreProfesor ? ` · ${r.nombreProfesor}` : ""}
+                    </p>
+                  </li>
+                )
+              })}
+            </ul>
+
+            {/* Escritorio: tabla */}
+            <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    {["Clase", "Fecha", "Hora", "Coach", "Estado"].map((t) => (
+                      <th key={t} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {reservasReales.map((r) => {
+                    const badge = badgeReserva(r.estadoReserva)
+                    return (
+                      <tr key={r.idReserva} className="transition-colors hover:bg-foreground/3">
+                        <td className="px-4 py-3 font-semibold text-foreground">{r.nombreClase}</td>
+                        <td className="px-4 py-3 text-foreground/60">{formatearFecha(r.fechaReserva)}</td>
+                        <td className="px-4 py-3 font-semibold text-foreground">{r.horaInicio ? `${r.horaInicio.slice(0, 5)} hs` : "—"}</td>
+                        <td className="px-4 py-3 text-foreground/60">{r.nombreProfesor || "—"}</td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
       )}
 
       {/* PESTAÑA DOCUMENTOS */}
       {vistaActiva === "documentos" && (
-        <div className="border border-border bg-card divide-y divide-border">
-          <div className="px-5 py-3 border-b border-border">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Documentos del alumno</p>
-          </div>
+        <div className="divide-y divide-border rounded-2xl border border-border bg-card">
           {cargandoDocs ? (
-            <div className="p-8 text-center text-xs text-foreground/30 uppercase tracking-widest animate-pulse">Cargando documentos...</div>
+            <div className="p-8 text-center text-xs text-foreground/45 animate-pulse">Cargando documentos…</div>
           ) : (
             TIPOS_DOC.map(({ key, label, Icon }) => {
-              const docsDelTipo = documentos.filter(d => d.tipo === key)
-              const ultimo = docsDelTipo[0]
+              const ultimo = documentos.find((d) => d.tipo === key)
               return (
-                <div key={key} className="flex items-center justify-between px-5 py-4 gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 border border-border bg-muted/30 flex items-center justify-center shrink-0">
-                      <Icon className="h-4 w-4 text-foreground/40" />
+                <div key={key} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/30">
+                      <Icon className="h-4 w-4 text-foreground/50" aria-hidden="true" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground">{label}</p>
-                      <p className="text-[10px] text-foreground/30">
+                      <p className="text-sm font-bold text-foreground">{label}</p>
+                      <p className="text-xs text-foreground/50">
                         {ultimo ? `Subido el ${formatearFecha(ultimo.creadoEn)}` : "Sin archivo subido"}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {ultimo ? (
-                      <>
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border ${
-                          ultimo.estado === "aprobado"
-                            ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
-                            : "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
-                        }`}>
-                          {ultimo.estado === "aprobado" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                          {ultimo.estado === "aprobado" ? "Aprobado" : "En revisión"}
-                        </span>
-                        <a href={ultimo.urlArchivo} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest border border-border px-3 py-1.5 text-foreground/40 hover:text-foreground hover:border-foreground/30 transition-colors">
-                          <Eye className="h-3 w-3" /> Ver
-                        </a>
-                      </>
-                    ) : (
-                      <span className="text-[10px] text-foreground/25 border border-dashed border-border px-2.5 py-1">
-                        Sin documento
+                  {ultimo && (
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${
+                        ultimo.estado === "aprobado"
+                          ? "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                          : "border-yellow-400/30 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400"
+                      }`}>
+                        {ultimo.estado === "aprobado" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                        {ultimo.estado === "aprobado" ? "Aprobado" : "En revisión"}
                       </span>
-                    )}
-                  </div>
+                      <a href={ultimo.urlArchivo} target="_blank" rel="noopener noreferrer"
+                        className="flex min-h-[36px] items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-black uppercase tracking-widest text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground">
+                        <Eye className="h-3.5 w-3.5" /> Ver
+                      </a>
+                    </div>
+                  )}
                 </div>
               )
             })

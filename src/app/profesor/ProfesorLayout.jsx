@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
 import {
   LayoutDashboard,
   Calendar,
@@ -169,7 +170,13 @@ export default function ProfesorLayout({ children }) {
             </div>
           </div>
         </header>
-        <main className="p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
+        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
+          {/* Celular: "Volver" en Mis Rutinas (el Perfil ya trae el suyo); no en Asistencia, que es el inicio */}
+          {location.pathname === "/profesor/rutinas" && (
+            <BotonVolver a="/profesor" texto="Volver" className="mb-4 lg:hidden" />
+          )}
+          {children}
+        </main>
 
         {/* Mobile Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">

@@ -1,17 +1,30 @@
 import { useState, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
+import { Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, Check, RefreshCw } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { crearUsuario, getUsuarios, reenviarVerificacionCuenta } from "@/api"
+
+// Misma regla que exige el servidor para cualquier contraseña
+const problemaContrasena = (p = "") =>
+  p.length < 8 ? "Mínimo 8 caracteres"
+    : !/[A-Z]/.test(p) ? "Tiene que tener al menos una mayúscula"
+    : !/[a-z]/.test(p) ? "Tiene que tener al menos una minúscula"
+    : !/[0-9]/.test(p) ? "Tiene que tener al menos un número"
+    : null
+
+// Contraseña temporal al azar (generador criptográfico del navegador). Sin letras que se confunden (l, I, O, 0).
+function generarContrasena() {
+  const may = "ABCDEFGHJKLMNPQRSTUVWXYZ", min = "abcdefghijkmnopqrstuvwxyz", num = "23456789"
+  const todos = may + min + num
+  const azar = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n }
+  const letras = [may[azar(may.length)], min[azar(min.length)], num[azar(num.length)]]
+  while (letras.length < 10) letras.push(todos[azar(todos.length)])
+  for (let i = letras.length - 1; i > 0; i--) { const j = azar(i + 1); [letras[i], letras[j]] = [letras[j], letras[i]] }
+  return letras.join("")
+}
 
 export default function NuevoUsuarioPage() {
   const navigate = useNavigate()
@@ -39,10 +52,10 @@ export default function NuevoUsuarioPage() {
         const datos = await response.json()
         if (datos.success && Array.isArray(datos.data)) {
           setPerfiles(datos.data)
-          // Seleccionar automáticamente el primer perfil si existe
-          if (datos.data.length > 0) {
-            setFormData(prev => ({ ...prev, perfil: String(datos.data[0].idPerfil) }))
-          }
+          // Por defecto, el perfil de alumno (el alta más común). Nunca uno con más poder:
+          // antes quedaba elegido el primero de la lista, que era "Admin".
+          const alumno = datos.data.find(p => String(p.nombrePerfil || "").toLowerCase().includes("alumno"))
+          if (alumno) setFormData(prev => ({ ...prev, perfil: String(alumno.idPerfil) }))
         }
       } catch (error) {
         console.error("Error al cargar perfiles:", error)
@@ -63,6 +76,7 @@ export default function NuevoUsuarioPage() {
     if (!formData.telefono.trim()) newErrors.telefono = "El teléfono es requerido"
     if (!formData.perfil) newErrors.perfil = "El perfil es requerido"
     if (!formData.password) newErrors.password = "La contraseña es requerida"
+    else if (problemaContrasena(formData.password)) newErrors.password = problemaContrasena(formData.password)
     return newErrors
   }
 
@@ -178,165 +192,137 @@ export default function NuevoUsuarioPage() {
     }
   }
 
+  const etiqueta = "text-[13px] font-semibold text-foreground/85"
+  const error = (m) => m && <p className="text-xs text-red-700 dark:text-red-400">{m}</p>
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to="/admin/usuarios">
-          <button type="button" className="border border-border p-2 text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-        </Link>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Nuevo Usuario</h1>
-          <p className="text-sm text-foreground/40 mt-1">Crea un nuevo usuario en el sistema</p>
+    <div className="space-y-5">
+      {/* Encabezado: volver, título y "Crear" a mano */}
+      <BotonVolver a="/admin/usuarios" texto="Volver" />
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-black uppercase leading-tight tracking-tight text-foreground sm:text-3xl">Nuevo usuario</h1>
+          <p className="text-xs text-foreground/55 sm:text-sm">Alta rápida de usuario</p>
         </div>
+        <button type="submit" form="form-nuevo-usuario" disabled={isLoading}
+          className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+          {isLoading ? "Creando..." : "Crear"}
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="border border-border bg-card">
-            <div className="border-b border-border px-5 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+      <form id="form-nuevo-usuario" onSubmit={handleSubmit} noValidate>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+          {/* Datos personales */}
+          <section className="rounded-2xl border border-border bg-card" aria-labelledby="titulo-datos">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h2 id="titulo-datos" className="text-[11px] font-black uppercase tracking-widest text-foreground/60">Datos personales</h2>
+              <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-bold text-lime-700 dark:text-lime-400">Requeridos</span>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre Completo</Label>
+            <div className="space-y-4 p-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="nombre" className={etiqueta}>Nombre completo</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="nombre"
-                    placeholder="Juan Pérez"
-                    className={`pl-9 bg-secondary border-border ${errors.nombre ? "border-destructive" : ""}`}
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  />
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="nombre" placeholder="Juan Pérez" autoComplete="off" className={`h-11 rounded-xl bg-background/60 pl-9 ${errors.nombre ? "border-destructive" : "border-border"}`}
+                    value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} />
                 </div>
-                {errors.nombre && <p className="text-sm text-red-700 dark:text-red-400">{errors.nombre}</p>}
+                {error(errors.nombre)}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dni">DNI</Label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="dni"
-                    placeholder="12345678"
-                    className={`pl-9 bg-secondary border-border ${errors.dni ? "border-destructive" : ""}`}
-                    value={formData.dni}
-                    onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="dni" className={etiqueta}>DNI</Label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="dni" inputMode="numeric" placeholder="12345678" className={`h-11 rounded-xl bg-background/60 pl-9 ${errors.dni ? "border-destructive" : "border-border"}`}
+                      value={formData.dni} onChange={(e) => setFormData({ ...formData, dni: e.target.value })} />
+                  </div>
+                  {error(errors.dni)}
                 </div>
-                {errors.dni && <p className="text-sm text-red-700 dark:text-red-400">{errors.dni}</p>}
+                <div className="min-w-0 space-y-1.5">
+                  <Label htmlFor="telefono" className={etiqueta}>Teléfono</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="telefono" type="tel" inputMode="tel" placeholder="3704 123456" className={`h-11 rounded-xl bg-background/60 pl-9 ${errors.telefono ? "border-destructive" : "border-border"}`}
+                      value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} />
+                  </div>
+                  {error(errors.telefono)}
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className={etiqueta}>Correo electrónico</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="correo@email.com"
-                    className={`pl-9 bg-secondary border-border ${errors.email ? "border-destructive" : ""}`}
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="email" type="email" inputMode="email" autoComplete="off" placeholder="correo@email.com" className={`h-11 rounded-xl bg-background/60 pl-9 ${errors.email ? "border-destructive" : "border-border"}`}
+                    value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
-                {errors.email && <p className="text-sm text-red-700 dark:text-red-400">{errors.email}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="telefono"
-                    placeholder="+54 11 1234 5678"
-                    className={`pl-9 bg-secondary border-border ${errors.telefono ? "border-destructive" : ""}`}
-                    value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  />
-                </div>
-                {errors.telefono && <p className="text-sm text-red-700 dark:text-red-400">{errors.telefono}</p>}
+                {error(errors.email)}
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="border border-border bg-card">
-            <div className="border-b border-border px-5 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Configuración de Cuenta</p>
+          {/* Perfil y contraseña */}
+          <section className="rounded-2xl border border-border bg-card" aria-labelledby="titulo-seguridad">
+            <div className="border-b border-border px-4 py-3">
+              <h2 id="titulo-seguridad" className="text-[11px] font-black uppercase tracking-widest text-foreground/60">Perfil y seguridad</h2>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="perfil">Perfil</Label>
-                <Select
-                  value={formData.perfil}
-                  onValueChange={(value) => setFormData({ ...formData, perfil: value })}
-                  disabled={loadingPerfiles || perfiles.length === 0}
-                >
-                  <SelectTrigger className={`bg-secondary border-border ${errors.perfil ? "border-destructive" : ""}`}>
-                    <SelectValue placeholder={loadingPerfiles ? "Cargando perfiles..." : "Selecciona un perfil"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {perfiles.map((perfil) => (
-                      <SelectItem key={perfil.idPerfil} value={String(perfil.idPerfil)}>
-                        {perfil.nombrePerfil}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.perfil && <p className="text-sm text-red-700 dark:text-red-400">{errors.perfil}</p>}
+            <div className="space-y-4 p-4">
+              <div className="space-y-1.5">
+                <p className={etiqueta} id="etiqueta-perfil">Perfil asignado</p>
+                {/* Los perfiles salen de la base (los crea el admin con sus permisos), no son fijos */}
+                {loadingPerfiles ? (
+                  <p className="text-sm text-foreground/55">Cargando perfiles...</p>
+                ) : perfiles.length === 0 ? (
+                  <p className="text-sm text-red-700 dark:text-red-400">No hay perfiles creados. Creá uno en Perfiles.</p>
+                ) : (
+                  <div role="radiogroup" aria-labelledby="etiqueta-perfil" className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-background/60 p-1">
+                    {perfiles.map((p) => {
+                      const activo = formData.perfil === String(p.idPerfil)
+                      return (
+                        <button key={p.idPerfil} type="button" role="radio" aria-checked={activo}
+                          onClick={() => setFormData({ ...formData, perfil: String(p.idPerfil) })}
+                          className={`flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                            activo ? "bg-lime-400 text-black" : "text-foreground/65 hover:bg-foreground/5 hover:text-foreground"
+                          }`}>
+                          {activo && <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />}
+                          {p.nombrePerfil}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+                {error(errors.perfil)}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña Temporal</Label>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="password" className={etiqueta}>Contraseña temporal</Label>
+                  <button type="button"
+                    onClick={() => { setFormData({ ...formData, password: generarContrasena() }); setShowPassword(true) }}
+                    className="flex items-center gap-1 rounded-md px-1 text-xs font-bold text-lime-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 dark:text-lime-400">
+                    <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Auto-generar
+                  </button>
+                </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Contraseña temporal"
-                    className={`pl-9 pr-9 bg-secondary border-border ${errors.password ? "border-destructive" : ""}`}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="password" type={showPassword ? "text" : "password"} autoComplete="new-password" placeholder="Contraseña temporal"
+                    className={`${`h-11 rounded-xl bg-background/60 pl-9 ${errors.password ? "border-destructive" : "border-border"}`} pr-10 font-mono`}
+                    value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="text-sm text-red-700 dark:text-red-400">{errors.password}</p>}
-                <p className="text-xs text-muted-foreground">
-                  El usuario deberá cambiar esta contraseña en su primer inicio de sesión.
+                {error(errors.password)}
+                <p className="text-xs leading-snug text-foreground/55">
+                  Mínimo 8 caracteres, con mayúscula, minúscula y número. Pasásela al usuario: después puede cambiarla desde su perfil o con "¿Olvidaste tu contraseña?".
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-4 mt-6">
-          <Link to="/admin/usuarios">
-            <button type="button" className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
-              Cancelar
-            </button>
-          </Link>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              "Crear Usuario"
-            )}
-          </button>
+          </section>
         </div>
       </form>
     </div>

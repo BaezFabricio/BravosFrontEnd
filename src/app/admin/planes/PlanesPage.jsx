@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react"
-import { Plus, Edit2, Trash2, Loader2, CreditCard } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Plus, Edit2, Trash2, Loader2, CreditCard, Users } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -9,17 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
+import { partesDescripcion } from "@/lib/planes"
+import EditorPlan from "./EditorPlan"
 
-const FORM_VACIO = {
-  nombre: "",
-  descripcion: "",
-  precio: "",
-  cantidadCreditos: "",
-  tipo: "ClaseCross",
-}
+const leerPermisos = () => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }
 
 export default function PlanesPage() {
   const [planes, setPlanes] = useState([])
@@ -28,7 +21,6 @@ export default function PlanesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [planEditando, setPlanEditando] = useState(null)
-  const [formData, setFormData] = useState(FORM_VACIO)
   const [guardando, setGuardando] = useState(false)
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, plan: null })
@@ -54,37 +46,23 @@ export default function PlanesPage() {
     fetchPlanes()
   }, [])
 
+  const permisos = leerPermisos()
+  const [apertura, setApertura] = useState(0) // cada apertura del editor empieza de cero con los datos del plan
+
   const abrirNuevo = () => {
     setPlanEditando(null)
-    setFormData(FORM_VACIO)
+    setApertura(a => a + 1)
     setDialogOpen(true)
   }
 
   const abrirEditar = (plan) => {
     setPlanEditando(plan)
-    setFormData({
-      nombre: plan.nombre,
-      descripcion: plan.descripcion || "",
-      precio: plan.precio,
-      cantidadCreditos: plan.cantidadCreditos,
-      tipo: plan.tipo || "ClaseCross",
-    })
+    setApertura(a => a + 1)
     setDialogOpen(true)
   }
 
-  const guardarPlan = async () => {
-    if (!formData.nombre || formData.precio === "" || formData.cantidadCreditos === "") {
-      toast.error("Nombre, precio y cantidad de créditos son obligatorios.")
-      return
-    }
-
-    const payload = {
-      nombre: formData.nombre,
-      descripcion: formData.descripcion,
-      precio: Number(formData.precio),
-      cantidadCreditos: Number(formData.cantidadCreditos),
-      tipo: formData.tipo,
-    }
+  // El editor valida los campos y arma el payload; el servidor vuelve a validarlo
+  const guardarPlan = async (payload) => {
 
     if (planEditando) {
       const planOriginal = planEditando
@@ -131,22 +109,24 @@ export default function PlanesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Planes y Membresías</h1>
-          <p className="text-sm text-foreground/40 mt-1">Gestioná los planes de abono disponibles para los alumnos</p>
+          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Planes y Membresías</h1>
+          <p className="mt-1 text-sm text-foreground/55">Gestioná los planes de abono disponibles para los alumnos.</p>
         </div>
-        <button
-          onClick={abrirNuevo}
-          className="sm:self-start bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo Plan
-        </button>
+        {permisos.includes("membresias:alta") && (
+          <button
+            onClick={abrirNuevo}
+            className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:min-h-[44px] sm:self-start"
+          >
+            <Plus className="h-5 w-5" />
+            Nuevo plan
+          </button>
+        )}
       </div>
 
       {error && (
-        <div className="p-3 border border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-400 text-sm">
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
@@ -156,49 +136,63 @@ export default function PlanesPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {planes.map((plan) => (
-            <div key={plan.idPlan} className="border border-border bg-card">
-              <div className="border-b border-border px-5 py-3 flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Plan</p>
-                  <p className="font-black text-foreground text-sm mt-0.5">{plan.nombre}</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {planes.map((plan) => {
+            const corta = partesDescripcion(plan.descripcion).corta
+            const activos = Number(plan.alumnosActivos) || 0
+            const hayDatoActivos = plan.alumnosActivos !== undefined // si el servidor no lo manda, no se muestra un 0 falso
+            return (
+              <article key={plan.idPlan} className="flex flex-col rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Plan</p>
+                  <span className="shrink-0 rounded-md border border-border bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                    {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
+                  </span>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border shrink-0 rounded-md">
-                  {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
-                </span>
-              </div>
-              <div className="p-5 space-y-3">
-                {plan.descripcion && (
-                  <p className="text-sm text-foreground/40">{plan.descripcion}</p>
-                )}
-                <div className="flex items-center justify-between text-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Precio</p>
-                  <span className="font-black text-foreground">{formatearPrecio(plan.precio)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Créditos</p>
-                  <span className="font-semibold text-foreground">{plan.cantidadCreditos}</span>
+                <h2 className="mt-1 text-xl font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
+                {corta && <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">{corta}</p>}
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Precio</p>
+                    <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{formatearPrecio(plan.precio)}</p>
+                  </div>
+                  <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+                    <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{plan.cantidadCreditos} <span className="text-xs font-bold text-foreground/55">clases</span></p>
+                  </div>
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t border-border">
-                  <button
-                    onClick={() => abrirEditar(plan)}
-                    className="flex-1 border border-border px-3 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Edit2 className="h-3.5 w-3.5" />
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => setDeleteDialog({ open: true, plan })}
-                    className="border border-red-500/20 px-3 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  {hayDatoActivos ? <span className="flex items-center gap-1.5 font-semibold text-foreground/70">
+                    <Users className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+                    {activos === 0 ? "Sin alumnos activos" : `${activos} ${activos === 1 ? "alumno activo" : "alumnos activos"}`}
+                  </span> : <span />}
                 </div>
-              </div>
-            </div>
-          ))}
+
+                <div className="mt-4 flex gap-2 border-t border-border pt-4">
+                  {permisos.includes("membresias:modificacion") && (
+                    <button
+                      onClick={() => abrirEditar(plan)}
+                      className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background/60 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Editar
+                    </button>
+                  )}
+                  {permisos.includes("membresias:baja") && (
+                    <button
+                      onClick={() => setDeleteDialog({ open: true, plan })}
+                      aria-label={`Eliminar el plan ${plan.nombre}`}
+                      className="flex min-h-[44px] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 transition-colors hover:bg-red-500/20 dark:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </article>
+            )
+          })}
         </div>
       )}
 
@@ -216,89 +210,17 @@ export default function PlanesPage() {
         </div>
       )}
 
-      {/* Dialog crear/editar */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{planEditando ? "Editar Plan" : "Nuevo Plan"}</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre *</Label>
-              <Input
-                id="nombre"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                placeholder="Ej: CLASE CROSSFIT"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="descripcion">Descripción</Label>
-              <Input
-                id="descripcion"
-                value={formData.descripcion}
-                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                placeholder="Ej: Plan de entrenamiento grupal"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="precio">Precio *</Label>
-                <Input
-                  id="precio"
-                  type="number"
-                  value={formData.precio}
-                  onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
-                  placeholder="36000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="creditos">Créditos *</Label>
-                <Input
-                  id="creditos"
-                  type="number"
-                  value={formData.cantidadCreditos}
-                  onChange={(e) => setFormData({ ...formData, cantidadCreditos: e.target.value })}
-                  placeholder="20"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo</Label>
-              <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
-                <SelectTrigger id="tipo">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ClaseCross">Clase CrossFit</SelectItem>
-                  <SelectItem value="PlanificacionAtleta">Planificación Atleta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setDialogOpen(false)}
-              className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={guardarPlan}
-              disabled={guardando}
-              className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {guardando ? "Guardando..." : "Guardar"}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Crear / editar plan */}
+      <EditorPlan
+        key={apertura}
+        open={dialogOpen}
+        plan={planEditando}
+        onClose={() => setDialogOpen(false)}
+        onGuardar={guardarPlan}
+        guardando={guardando}
+        puedeVerClases={permisos.includes("clases:consulta")}
+        puedeCrearClases={permisos.includes("clases:alta")}
+      />
 
       {/* Dialog eliminar */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, plan: open ? deleteDialog.plan : null })}>

@@ -79,6 +79,12 @@ export default function LoginPage() {
       localStorage.setItem("permisos", JSON.stringify(listadoPermisos))
       if (data.data?.usuario?.avatarUrl) localStorage.setItem("avatarUrl", data.data.usuario.avatarUrl)
 
+      // Cuenta creada por un admin: antes de entrar tiene que reemplazar la contraseña temporal
+      if (data.data?.usuario?.debeCambiarContrasena) {
+        navigate("/crear-contrasena", { replace: true })
+        return
+      }
+
       const tieneAdmin = listadoPermisos.some(p =>
         p.startsWith("usuarios:") || p.startsWith("dashboard:") ||
         p.startsWith("perfiles:") || p.startsWith("membresias:") ||

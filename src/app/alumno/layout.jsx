@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
 import {
   Calendar,
   History,
@@ -358,7 +359,14 @@ export default function AlumnoLayout({ children }) {
             </div>
           ) : (
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
-            children
+            <>
+              {/* Celular: "Volver" en todas las pantallas menos el inicio del panel. Vuelve a la pantalla
+                  anterior si se llegó desde otra; si se entró directo, al inicio del panel */}
+              {pathname !== "/alumno" && (
+                <BotonVolver a="/alumno" texto="Volver" className="mb-4 lg:hidden" />
+              )}
+              {children}
+            </>
           )}
         </main>
 

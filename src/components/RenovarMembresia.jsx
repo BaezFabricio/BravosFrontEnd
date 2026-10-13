@@ -9,6 +9,8 @@ import QRCode from "react-qr-code"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { featuresDelPlan } from "@/lib/planes"
 
 initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, { locale: "es-AR" })
 
@@ -48,84 +50,21 @@ function CopyBtn({ text, label = "Copiar" }) {
   )
 }
 
-// ── Features por tier (✓ y ✗) ────────────────────────────────────────────────
+// ── Qué muestra cada plan ────────────────────────────────────────────────────
+// Solo datos reales: lo que el admin cargó en la descripción del plan (una línea por
+// beneficio) y lo que sale de sus números. No se inventan beneficios: lo que se publica
+// en una oferta obliga al gimnasio (Ley 24.240, art. 8).
 
-function getFeaturesForTier(tier, plan) {
-  // Si descripcion tiene saltos de línea, usarlos como features positivas
-  if (plan.descripcion) {
-    const lines = plan.descripcion.split("\n").map((l) => l.trim()).filter(Boolean)
-    if (lines.length > 1) {
-      return lines.slice(0, 5).map((text) => ({ text, ok: true }))
-    }
-  }
-
-  // Defaults por tier
-  const credits = plan.cantidadCreditos
-  const presets = [
-    // Tier 0 — Inicial
-    [
-      { text: `${credits} créditos para cualquier disciplina`, ok: true },
-      { text: "Acceso a seminarios y talleres", ok: true },
-      { text: "Reserva vía App hasta 24hs antes", ok: true },
-      { text: "Sin acceso a Open Box libre", ok: false },
-    ],
-    // Tier 1 — Recomendado
-    [
-      { text: "Pase libre de límite de clases diarias", ok: true },
-      { text: "Reservas prioritarias 48hs antes", ok: true },
-      { text: "Acceso a Open Box en todas las sedes", ok: true },
-      { text: "15%OFF en bebidas isotónicas & bar", ok: true },
-    ],
-    // Tier 2 — Intermedio
-    [
-      { text: `${credits} créditos multidisciplina`, ok: true },
-      { text: "Reservas habilitadas 36hs antes", ok: true },
-      { text: "Acceso a Open Box (1 crédito = 1 turno)", ok: true },
-      { text: "Cancelación flexible hasta 2hs antes", ok: true },
-    ],
-    // Tier 3+ — Largo Plazo
-    [
-      { text: "Acceso 100% ilimitado x 6 meses", ok: true },
-      { text: "Plan nutricional mensual personalizado", ok: true },
-      { text: "Remera técnica oficial BRAVOS de regalo", ok: true },
-      { text: "Opción de congelar membresía x 15 días", ok: true },
-    ],
-  ]
-  return presets[Math.min(tier, 3)]
-}
-
-// Todos los planes vencen el próximo día 10 (ver proximoDia10 en el backend),
-// sin importar cuándo se pagaron. Nada de "30 días" / "45 días": no es real.
-// El plan destacado ("más popular") ya no es el del medio por precio sino el más
-// comprado, así que "RECOMENDADO" va con él y no con una posición fija.
-function getTierMeta(tier, esDestacado = false) {
+// Todos los planes vencen el próximo día 10 (ver proximoDia10 en el backend).
+// "Recomendado" va con el plan más comprado (masPopular), que es un dato real.
+function etiquetaPlan(plan, esDestacado = false) {
   if (esDestacado) {
-    return { label: "RECOMENDADO", sub: "Renovación mensual · vence el 10", subColor: "text-lime-600 dark:text-lime-400" }
+    return { label: "RECOMENDADO", sub: "Vence el próximo día 10", subColor: "text-lime-600 dark:text-lime-400" }
   }
-  const meta = [
-    { label: "INICIAL", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
-    { label: "ESTÁNDAR", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
-    { label: "INTERMEDIO", sub: "Vence el próximo día 10", subColor: "text-foreground/55" },
-    { label: "LARGO PLAZO", sub: "Ahorra 15% · vence el 10", subColor: "text-lime-600 dark:text-lime-400" },
-  ]
-  return meta[Math.min(tier, 3)]
+  const creditos = Number(plan.cantidadCreditos) || 0
+  return { label: creditos > 0 ? `${creditos} CRÉDITOS` : "MEMBRESÍA", sub: "Vence el próximo día 10", subColor: "text-foreground/55" }
 }
 
-function getSubPrice(tier, plan) {
-  const precio = Number(plan.precio)
-  const cred = Number(plan.cantidadCreditos)
-  if (tier === 1) return "Clases ilimitadas sin cupo mensual"
-  if (tier === 3) {
-    const porMes = Math.round(precio / 6)
-    return `Equivale a ~$${porMes.toLocaleString("es-AR")} ARS / mes`
-  }
-  if (cred > 0) {
-    const porClase = Math.round(precio / cred)
-    const ahorro = tier === 2 ? " (Ahorrás 15%)" : ""
-    return `$${porClase.toLocaleString("es-AR")} ARS por clase${ahorro}`
-  }
-  return null
-}
 
 // ── Modal de pago ─────────────────────────────────────────────────────────────
 
@@ -754,28 +693,133 @@ const FAQS = [
   },
 ]
 
-const DISCIPLINAS = [
-  "CrossFit & WOD Diario",
-  "Open Box (Entrenamiento Libre)",
-  "Funcional, HIT & Movilidad",
-  "Anticipación para Reservas",
-  "Seguimiento de RM & Logros en App",
+const FILAS_COMPARATIVA = [
+  { titulo: "Créditos incluidos", valor: (p) => (Number(p.cantidadCreditos) > 0 ? `${p.cantidadCreditos} clases` : "—") },
+  { titulo: "Precio", valor: (p) => `$${Number(p.precio).toLocaleString("es-AR")}` },
+  { titulo: "Vencimiento", valor: () => "Próximo día 10" },
 ]
 
-function valorTabla(filaIdx, tier, plan) {
-  if (filaIdx === 0) return tier >= 2 ? { text: "Ilimitado", ok: true } : { text: `${plan.cantidadCreditos} clases`, ok: true }
-  if (filaIdx === 1) {
-    if (tier === 0) return { text: "—", ok: false }
-    if (tier === 1) return { text: "1 crédito/clase", ok: true }
-    return { text: "Ilimitado", ok: true }
+// Número de WhatsApp de la configuración, en el formato que pide wa.me (549 + característica + número)
+function numeroWhatsapp(crudo) {
+  const d = String(crudo || "").replace(/\D/g, "")
+  if (!d) return ""
+  if (d.startsWith("549")) return d
+  if (d.startsWith("54")) return "549" + d.slice(2)
+  return "549" + d.replace(/^0/, "")
+}
+
+const precioTxt = (p) => `$${Number(p.precio).toLocaleString("es-AR")}`
+const FOCO_PLAN = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+
+function EtiquetaPopular({ className = "" }) {
+  return (
+    <span className={`rounded-full bg-lime-400 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-black ${className}`}>
+      Más popular
+    </span>
+  )
+}
+
+function MarcaElegido({ activo }) {
+  return (
+    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${activo ? "border-lime-500 bg-lime-400 dark:border-lime-400" : "border-foreground/30"}`} aria-hidden="true">
+      {activo && <Check className="h-3 w-3 text-black" strokeWidth={3} />}
+    </span>
+  )
+}
+
+function ListaBeneficios({ plan, className = "" }) {
+  return (
+    <ul className={`space-y-2 ${className}`}>
+      {featuresDelPlan(plan).map((ft, i) => (
+        <li key={i} className="flex items-start gap-2 text-sm leading-snug">
+          {ft.ok
+            ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+            : <X className="mt-0.5 h-4 w-4 shrink-0 text-foreground/30" aria-hidden="true" />}
+          <span className={ft.ok ? "text-foreground/80" : "text-foreground/40 line-through"}>{ft.text}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// Lista de planes: uno debajo del otro con el precio a la derecha. Al abrir, todos están
+// cerrados (el más popular viene elegido). Al tocar uno se elige y se despliega lo que incluye;
+// tocar de nuevo el elegido lo cierra.
+function PlanesEnLista({ planes, plan, popular, elegir }) {
+  const [desplegado, setDesplegado] = useState(null)
+  const tocar = (idPlan) => {
+    setDesplegado((actual) => (actual === idPlan && plan.idPlan === idPlan ? null : idPlan))
+    elegir(idPlan)
   }
-  if (filaIdx === 2) return tier >= 2 ? { text: null, ok: true } : { text: "—", ok: false }
-  if (filaIdx === 3) {
-    const labels = ["24hs", "36hs", "48hs (Prioridad)", "72hs (VIP)"]
-    return { text: labels[Math.min(tier, 3)], ok: true }
-  }
-  if (filaIdx === 4) return tier >= 3 ? { text: "+ Nutrición", ok: true } : { text: "—", ok: false }
-  return { text: "—", ok: false }
+  return (
+    <div role="radiogroup" aria-label="Membresías" className="mt-5 space-y-3">
+      {planes.map((p) => {
+        const activo = p.idPlan === plan.idPlan
+        const abierto = activo && desplegado === p.idPlan
+        return (
+          <div key={p.idPlan} className={`relative rounded-2xl border-2 transition-colors ${
+            activo ? "border-lime-500 bg-lime-400/10 dark:border-lime-400" : "border-border bg-card"
+          }`}>
+            {popular?.idPlan === p.idPlan && <EtiquetaPopular className="absolute -top-2.5 right-4" />}
+            <button type="button" role="radio" aria-checked={activo} aria-expanded={abierto} onClick={() => tocar(p.idPlan)}
+              className={`flex min-h-[72px] w-full items-center gap-3 rounded-2xl px-4 py-3 text-left ${FOCO_PLAN} ${activo ? "" : "active:bg-foreground/5"}`}>
+              <MarcaElegido activo={activo} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-black uppercase leading-tight text-foreground">{p.nombre}</span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className="block text-lg font-black leading-none tabular-nums text-foreground">{precioTxt(p)}</span>
+                <span className="text-[10px] font-bold text-foreground/50">ARS</span>
+              </span>
+            </button>
+            {/* Lo que incluye: se abre solo en el plan elegido */}
+            <div className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${abierto ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`} aria-hidden={!abierto}>
+              <div className="overflow-hidden">
+                <ListaBeneficios plan={p} className="mx-4 mb-4 border-t border-border pt-3" />
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Celular: elegir membresía ────────────────────────────────────────────────
+// Los planes se eligen tocándolos y hay un solo botón para seguir (estilo "paywall").
+// En la ventana de membresías el botón queda fijo abajo.
+function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana }) {
+  const total = planesOrdenados.length
+  const popular = total > 1 ? planesOrdenados.find((p) => p.masPopular) : null
+  const [elegido, setElegido] = useState((popular || planesOrdenados[0])?.idPlan)
+  const plan = planesOrdenados.find((p) => p.idPlan === elegido) || planesOrdenados[0]
+  if (!plan) return <p className="py-10 text-center text-sm text-foreground/60 sm:hidden">No hay membresías disponibles por ahora.</p>
+
+  const props = { planes: planesOrdenados, plan, popular, elegir: setElegido }
+  return (
+    <div className="flex flex-col sm:hidden">
+      <div className="text-center">
+        <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-foreground">Elegí tu membresía</h2>
+        <p className="mt-1 text-sm text-foreground/60">Todas vencen el próximo día 10.</p>
+      </div>
+
+      <PlanesEnLista {...props} />
+
+      {/* Un solo botón para seguir; en la ventana queda fijo abajo */}
+      <div className={enVentana
+        ? "sticky bottom-0 -mx-4 mt-5 border-t border-border bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+        : "mt-5"}>
+        <button
+          type="button"
+          onClick={() => onElegir(plan)}
+          className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black transition-colors hover:bg-lime-300 active:scale-[0.99] ${FOCO_PLAN}`}
+        >
+          Continuar · {precioTxt(plan)}
+        </button>
+        <p className="mt-2 text-center text-[11px] text-foreground/55">Pagás con Mercado Pago o transferencia bancaria</p>
+      </div>
+    </div>
+  )
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -785,7 +829,7 @@ function valorTabla(filaIdx, tier, plan) {
 function useDatosPago() {
   const [planes, setPlanes]           = useState([])
   const [loading, setLoading]         = useState(true)
-  const [configBanco, setConfigBanco] = useState({ banco: "", titular: "", cuit: "", cbu: "", alias: "" })
+  const [configBanco, setConfigBanco] = useState({ banco: "", titular: "", cuit: "", cbu: "", alias: "", whatsapp: "" })
 
   useEffect(() => {
     apiClient
@@ -794,17 +838,27 @@ function useDatosPago() {
       .catch(() => toast.error("No se pudieron cargar los planes"))
       .finally(() => setLoading(false))
 
+    // Datos bancarios: ruta con sesión (no viajan en la web pública)
+    fetch("/landing/banco")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((r) => {
+        const b = r?.data || {}
+        setConfigBanco((prev) => ({
+          ...prev,
+          banco:   b.bancoEntidad       || "",
+          titular: b.titularCuenta      || "",
+          cuit:    b.cuitTransferencia  || "",
+          cbu:     b.cvuTransferencia   || "",
+          alias:   b.aliasTransferencia || "",
+        }))
+      })
+      .catch(() => {})
+    // El WhatsApp del gimnasio sí es público
     fetch("/landing/config")
       .then((r) => r.json())
       .then((d) => {
         const cfg = d?.data || d
-        setConfigBanco({
-          banco:   cfg.bancoEntidad       || "",
-          titular: cfg.titularCuenta      || "",
-          cuit:    cfg.cuitTransferencia  || "",
-          cbu:     cfg.cvuTransferencia   || "",
-          alias:   cfg.aliasTransferencia || "",
-        })
+        setConfigBanco((prev) => ({ ...prev, whatsapp: cfg.whatsapp || cfg.telefono || "" }))
       })
       .catch(() => {})
   }, [])
@@ -830,7 +884,7 @@ export function PagarPlanModal({ idPlan, open, onClose, onRenovado }) {
   )
 }
 
-export default function RenovarMembresia({ onRenovado }) {
+export default function RenovarMembresia({ onRenovado, enVentana = false }) {
   const { planes, loading, configBanco } = useDatosPago()
   const [planModal, setPlanModal]     = useState(null)
   const [faqOpen, setFaqOpen]         = useState(null)
@@ -845,10 +899,7 @@ export default function RenovarMembresia({ onRenovado }) {
   const planesOrdenados = [...planes].sort((a, b) => Number(a.precio) - Number(b.precio))
   const total = planesOrdenados.length
 
-  // El contenido de cada tarjeta (beneficios, precio por clase, etiqueta) depende
-  // de su posición por precio, no de dónde se dibuje. Por eso el nivel se guarda
-  // aparte antes de mover el más popular al centro.
-  const tierPorPlan = new Map(planesOrdenados.map((p, i) => [p.idPlan, i]))
+  // El más popular va al centro de las tarjetas
   const planesTarjetas = (() => {
     const lista = [...planesOrdenados]
     const iPopular = lista.findIndex((p) => p.masPopular)
@@ -859,7 +910,9 @@ export default function RenovarMembresia({ onRenovado }) {
   })()
 
   return (
-    <div className="space-y-10">
+    <>
+    <ListaPlanesMovil planesOrdenados={planesOrdenados} onElegir={setPlanModal} enVentana={enVentana} />
+    <div className="hidden space-y-10 sm:block">
       {/* ── Encabezado ── */}
       <div className="text-center space-y-2">
         <p className="text-[11px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
@@ -887,10 +940,8 @@ export default function RenovarMembresia({ onRenovado }) {
       >
         {planesTarjetas.map((p) => {
           const esRec    = !!p.masPopular && total > 1
-          const tier     = tierPorPlan.get(p.idPlan)
-          const meta     = getTierMeta(tier, esRec)
-          const features = getFeaturesForTier(tier, p)
-          const subprice = getSubPrice(tier, p)
+          const meta     = etiquetaPlan(p, esRec)
+          const features = featuresDelPlan(p)
 
           return (
             /* Wrapper con overflow-visible para que el badge flote encima */
@@ -943,11 +994,6 @@ export default function RenovarMembresia({ onRenovado }) {
                         {esRec ? "ARS/MES" : "ARS"}
                       </span>
                     </p>
-                    {subprice && (
-                      <p className={`text-xs mt-1 ${esRec ? "text-lime-400/70" : "text-foreground/35"}`}>
-                        {subprice}
-                      </p>
-                    )}
                   </div>
 
                   {/* Divider */}
@@ -996,10 +1042,10 @@ export default function RenovarMembresia({ onRenovado }) {
         <div>
           <div className="mb-4">
             <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55">
-              COMPARATIVA DE DISCIPLINAS Y BENEFICIOS
+              COMPARÁ LAS MEMBRESÍAS
             </p>
             <p className="text-xs text-foreground/50 mt-0.5">
-              Conocé todo lo que incluye cada nivel de suscripción en nuestra sede.
+              Créditos, precio y vencimiento de cada una.
             </p>
           </div>
           <div className="overflow-x-auto">
@@ -1007,7 +1053,7 @@ export default function RenovarMembresia({ onRenovado }) {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-3 pr-4 text-[10px] font-black uppercase tracking-widest text-foreground/55 w-[28%]">
-                    DISCIPLINA / BENEFICIO
+                    DETALLE
                   </th>
                   {planesOrdenados.map((p) => (
                     <th key={p.idPlan} className="py-3 px-2 text-center text-[10px] font-black uppercase tracking-widest text-foreground/60">
@@ -1017,23 +1063,14 @@ export default function RenovarMembresia({ onRenovado }) {
                 </tr>
               </thead>
               <tbody>
-                {DISCIPLINAS.map((disc, filaIdx) => (
-                  <tr key={disc} className="border-b border-border hover:bg-foreground/5">
-                    <td className="py-3 pr-4 text-foreground/70 font-medium">{disc}</td>
-                    {planesOrdenados.map((p, colIdx) => {
-                      const val = valorTabla(filaIdx, colIdx, p)
-                      return (
-                        <td key={p.idPlan} className="py-3 px-2 text-center">
-                          {val.ok ? (
-                            <span className="font-semibold text-foreground/80">
-                              {val.text || <Check className="h-3.5 w-3.5 inline text-lime-600 dark:text-lime-400" />}
-                            </span>
-                          ) : (
-                            <span className="text-foreground/30">—</span>
-                          )}
-                        </td>
-                      )
-                    })}
+                {FILAS_COMPARATIVA.map((fila) => (
+                  <tr key={fila.titulo} className="border-b border-border hover:bg-foreground/5">
+                    <td className="py-3 pr-4 text-foreground/70 font-medium">{fila.titulo}</td>
+                    {planesOrdenados.map((p) => (
+                      <td key={p.idPlan} className="py-3 px-2 text-center font-semibold tabular-nums text-foreground/80">
+                        {fila.valor(p)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -1110,18 +1147,24 @@ export default function RenovarMembresia({ onRenovado }) {
             <p className="text-xs text-foreground/60">
               ¿Tenés dudas con tu facturación? Contactate con nuestro equipo de soporte.
             </p>
-            <a
-              href="https://wa.me/549XXXXXXXXXX"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-300 transition-colors"
-            >
-              <MessageCircle className="h-3.5 w-3.5" />
-              WHATSAPP SOPORTE BRAVOS
-            </a>
+            {numeroWhatsapp(configBanco.whatsapp) ? (
+              <a
+                href={`https://wa.me/${numeroWhatsapp(configBanco.whatsapp)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-300 transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                WHATSAPP SOPORTE BRAVOS
+              </a>
+            ) : (
+              <p className="text-[11px] text-foreground/50">Consultá en recepción.</p>
+            )}
           </div>
         </div>
       </div>
+
+    </div>
 
       {/* Modal */}
       <ModalPago
@@ -1131,6 +1174,40 @@ export default function RenovarMembresia({ onRenovado }) {
         onRenovado={onRenovado}
         configBanco={configBanco}
       />
-    </div>
+    </>
+  )
+}
+
+/**
+ * Las membresías en su propia ventana: a pantalla completa en el celular y centrada en la
+ * computadora. Así el alumno no tiene que bajar hasta el final de la página para elegir.
+ * Al terminar un pago se cierra sola.
+ */
+export function ElegirMembresiaDialog({ open, onClose, onRenovado }) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent
+        showCloseButton={false}
+        aria-describedby={undefined}
+        className="hoja-movil flex h-[100dvh] max-h-[100dvh] w-full max-w-full flex-col gap-0 rounded-none border-0 p-0 top-0 left-0 translate-x-0 translate-y-0 sm:top-[50%] sm:left-[50%] sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl sm:border"
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
+          <DialogPrimitive.Title className="text-base font-black uppercase tracking-wide text-foreground">
+            Membresías
+          </DialogPrimitive.Title>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground/80 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-4 pt-5 sm:px-8 sm:pb-8 sm:pt-8">
+          <RenovarMembresia enVentana onRenovado={() => { onRenovado?.(); onClose() }} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

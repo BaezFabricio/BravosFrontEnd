@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Calendar, Calculator, Dumbbell, ChevronRight, CreditCard, Flame, HelpCircle, Trophy, TrendingUp, Users } from "lucide-react"
+import { Calendar, Calculator, Dumbbell, ChevronRight, CreditCard, Plus, Flame, HelpCircle, Trophy, TrendingUp, Users } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { fmtFechaPlan } from "@/lib/miPlan"
 import MisRutinasModal from "./MisRutinasModal"
@@ -139,7 +139,11 @@ export default function DashboardMovil({
               to="/alumno/plan"
               className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-lime-600/60 text-xs font-black uppercase tracking-wider text-lime-700 transition-colors active:bg-lime-400/10 dark:border-lime-400/60 dark:text-lime-400"
             >
-              <CreditCard className="h-4 w-4" /> Renovar membresía
+              {/* Mismo criterio que la pantalla de membresía: se renueva desde el día 1 del mes en que vence o si ya venció;
+                  con la membresía activa, lo que se ofrece es contratar otra */}
+              {estadoMembresia === "activa"
+                ? <><Plus className="h-4 w-4" /> Contratar otra membresía</>
+                : <><CreditCard className="h-4 w-4" /> Renovar membresía</>}
             </Link>
           </div>
       )}

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, LogOut, Check } from 'lucide-react';
+import { User, LogOut, Check, Settings } from 'lucide-react';
 import { PANELES, panelesPermitidos } from '@/lib/paneles';
 
 function Iniciales({ nombre }) {
@@ -34,6 +34,12 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
   // Todas las filas iguales: misma altura, ícono en la misma columna, texto normal
   const fila = "flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500";
   const icono = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg";
+
+  // Acceso directo a la configuración, para quien puede verla
+  // (solo decide si se muestra el enlace: el servidor controla el permiso al guardar)
+  const veConfiguracion = (() => {
+    try { return JSON.parse(localStorage.getItem('permisos') || '[]').includes('configuracion:consulta'); } catch { return false; }
+  })();
 
   return (
     <>
@@ -87,6 +93,12 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
             <span className={`${icono} bg-foreground/5`}><User className="h-4 w-4" /></span>
             Mi perfil
           </Link>
+          {veConfiguracion && (
+            <Link to="/admin/configuracion" onClick={() => setUserMenuOpen(false)} className={`${fila} text-foreground/80 hover:bg-foreground/5 hover:text-foreground`}>
+              <span className={`${icono} bg-foreground/5`}><Settings className="h-4 w-4" /></span>
+              Configuración del Box
+            </Link>
+          )}
           <button type="button" onClick={() => { setUserMenuOpen(false); handleLogout(); }} className={`${fila} text-red-600 hover:bg-red-500/10 dark:text-red-400`}>
             <span className={`${icono} bg-red-500/10`}><LogOut className="h-4 w-4" /></span>
             Cerrar sesión

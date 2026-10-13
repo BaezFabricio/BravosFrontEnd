@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react"
 import {
   Shield, Plus, Check, Users, Calendar, CreditCard, Settings,
-  LayoutDashboard, Loader2, ChevronDown, ChevronRight,
-  User, ClipboardCheck, FileText, Dumbbell, Trash2, Pencil,
+  LayoutDashboard, Loader2, ChevronDown,
+  User, ClipboardCheck, FileText, Dumbbell, Trash2, Pencil, ChevronUp, GraduationCap, X, Info, Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { toast } from '@/lib/notificar'
 
 const modulosAdminConfig = [
@@ -65,6 +64,25 @@ const PERMISOS_POR_MODULO = {
   profesor_perfil:    { alta: "—",                consulta: "Ver perfil",         modificacion: "Editar perfil",       baja: "—" },
 }
 
+const DETALLE_MODULO = {
+  dashboard: "Resumen y reportes", usuarios: "Usuarios y abonos", clases: "Clases y turnos", reservas: "Reservas de alumnos",
+  creditos: "Créditos de alumnos", membresias: "Planes y pagos", perfiles: "Perfiles y permisos", configuracion: "Datos del sitio",
+  alumno: "Inicio del alumno", alumno_reservas: "Reservar clases", alumno_creditos: "Créditos propios",
+  profesor: "Tomar asistencia", profesor_rutinas: "Rutinas", profesor_perfil: "Perfil del profe",
+}
+const LETRA_PERMISO = { alta: "A", consulta: "C", modificacion: "M", baja: "B" }
+
+// Ícono del perfil según a qué panel da acceso
+const iconoPerfil = (perfil) => {
+  const m = perfil.modulos || {}
+  const usa = (pref) => Object.keys(m).some(k => k.startsWith(pref) && Object.values(m[k].permisos || {}).some(Boolean))
+  const admin = modulosAdminConfig.some(x => Object.values(m[x.id]?.permisos || {}).some(Boolean))
+  if (admin) return Shield
+  if (usa("profesor")) return GraduationCap
+  if (usa("alumno")) return Dumbbell
+  return User
+}
+
 const crearModulosVacios = () => {
   const m = {}
   modulosConfig.forEach(mod => {
@@ -79,10 +97,9 @@ export default function PerfilesPage() {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, perfil: null })
   const [formData, setFormData] = useState({ nombre: "", descripcion: "", modulos: crearModulosVacios() })
   const [isLoading, setIsLoading] = useState(false)
-  const [expandedModulos, setExpandedModulos] = useState({})
-  const [adminMasterOpen, setAdminMasterOpen] = useState(true)
-  const [alumnoMasterOpen, setAlumnoMasterOpen] = useState(false)
-  const [profesorMasterOpen, setProfesorMasterOpen] = useState(false)
+  const [pestanaEditor, setPestanaEditor] = useState("admin")
+  const [abierto, setAbierto] = useState(null) // perfil desplegado en el celular
+  const [filtroPerfil, setFiltroPerfil] = useState("all")
 
   const cargarPerfiles = async () => {
     setIsLoading(true)
@@ -147,48 +164,36 @@ export default function PerfilesPage() {
   useEffect(() => { cargarPerfiles() }, [])
 
   const openEditDialog = (perfil) => {
-    setExpandedModulos({})
     if (perfil) {
-      const expansiones = {}
-      let abrirAdmin = false, abrirAlumno = false, abrirProfesor = false
-      if (perfil.modulos) {
-        Object.keys(perfil.modulos).forEach(key => {
-          if (Object.values(perfil.modulos[key].permisos || {}).some(v => v)) {
-            expansiones[key] = true
-            if (key.startsWith("alumno")) abrirAlumno = true
-            else if (key.startsWith("profesor")) abrirProfesor = true
-            else abrirAdmin = true
-          }
-        })
-      }
-      setExpandedModulos(expansiones)
-      setAdminMasterOpen(abrirAdmin)
-      setAlumnoMasterOpen(abrirAlumno)
-      setProfesorMasterOpen(abrirProfesor)
+      // Abre en la pestaña del panel donde el perfil tiene permisos (admin, si no tiene ninguno)
+      const m = perfil.modulos || {}
+      const tiene = (lista) => lista.some(x => Object.values(m[x.id]?.permisos || {}).some(Boolean))
+      setPestanaEditor(tiene(modulosAdminConfig) ? "admin" : tiene(modulosAlumnoConfig) ? "alumno" : tiene(modulosProfesorConfig) ? "profesor" : "admin")
       setFormData({ nombre: perfil.nombrePerfil || perfil.nombre || "", descripcion: perfil.descripcion || "", modulos: JSON.parse(JSON.stringify(perfil.modulos || crearModulosVacios())) })
       setEditDialog({ open: true, perfil, isNew: false })
     } else {
       setFormData({ nombre: "", descripcion: "", modulos: crearModulosVacios() })
-      setAdminMasterOpen(true)
-      setAlumnoMasterOpen(false)
-      setProfesorMasterOpen(false)
+      setPestanaEditor("admin")
       setEditDialog({ open: true, perfil: null, isNew: true })
     }
   }
 
-  const marcarTodosLosPermisos = () => {
-    const accesoCompleto = {}
-    const abrirTodos = {}
-    modulosConfig.forEach(m => {
-      accesoCompleto[m.id] = { activo: true, permisos: { alta: true, baja: true, consulta: true, modificacion: true } }
-      abrirTodos[m.id] = true
+  // Un permiso no aplica si su texto en PERMISOS_POR_MODULO es "—" (ej. dar de baja créditos propios)
+  const aplica = (moduloId, accion) => PERMISOS_POR_MODULO[moduloId]?.[accion] !== "—"
+
+  // Marca o desmarca todos los permisos (que apliquen) de una lista de módulos
+  const marcarModulos = (lista, valor) => {
+    setFormData(prev => {
+      const modulos = { ...prev.modulos }
+      lista.forEach(m => {
+        const permisos = {}
+        permisosConfig.forEach(p => { permisos[p.id] = valor && aplica(m.id, p.id) })
+        modulos[m.id] = { activo: Object.values(permisos).some(Boolean), permisos }
+      })
+      return { ...prev, modulos }
     })
-    setFormData(prev => ({ ...prev, modulos: accesoCompleto }))
-    setExpandedModulos(abrirTodos)
-    setAdminMasterOpen(true)
-    setAlumnoMasterOpen(true)
-    setProfesorMasterOpen(true)
   }
+  const todosMarcados = (lista) => lista.every(m => permisosConfig.every(p => !aplica(m.id, p.id) || formData.modulos[m.id]?.permisos?.[p.id]))
 
   const togglePermiso = (moduloId, tipo) => {
     setFormData(prev => {
@@ -213,12 +218,12 @@ export default function PerfilesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
         })
-        if (!res.ok) throw new Error("Error al guardar")
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "Error al guardar") }
         setEditDialog({ open: false, perfil: null, isNew: false })
         await cargarPerfiles()
         toast.success("Perfil creado exitosamente")
-      } catch {
-        toast.error("No se pudo crear el perfil")
+      } catch (err) {
+        toast.error("No se pudo crear el perfil", { description: err.message })
       } finally {
         setIsLoading(false)
       }
@@ -236,11 +241,11 @@ export default function PerfilesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idPerfil: perfilOriginal?.idPerfil, nombrePerfil: formData.nombre, descripcion: formData.descripcion, permisos }),
         })
-        if (!res.ok) throw new Error("Error al guardar")
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "Error al guardar") }
         toast.success("Perfil actualizado exitosamente")
-      } catch {
+      } catch (err) {
         setPerfiles(prev => prev.map(p => p.idPerfil === perfilOriginal?.idPerfil ? perfilOriginal : p))
-        toast.error("No se pudo guardar el perfil")
+        toast.error("No se pudo guardar el perfil", { description: err.message })
       }
     }
   }
@@ -253,64 +258,12 @@ export default function PerfilesPage() {
     setPerfiles(prev => prev.filter(p => (p.idPerfil || p.id_perfil) !== id))
     try {
       const res = await fetch(`/api/vv1/perfiles/${id}`, { method: "DELETE", headers: {  } })
-      if (!res.ok) throw new Error("Error al eliminar")
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "Error al eliminar") }
       toast.success("Perfil eliminado")
-    } catch {
+    } catch (err) {
       setPerfiles(prev => [...prev, perfilAEliminar])
-      toast.error("No se pudo eliminar el perfil")
+      toast.error("No se pudo eliminar el perfil", { description: err.message })
     }
-  }
-
-  const renderFilaModulo = (modulo) => {
-    const isExpanded = !!expandedModulos[modulo.id]
-    const permisos = formData.modulos[modulo.id]?.permisos || { alta: false, baja: false, consulta: false, modificacion: false }
-    const Icon = modulo.icon
-    const tieneAlguno = Object.values(permisos).some(Boolean)
-
-    return (
-      <div key={modulo.id} className="border-b border-border/10 last:border-0">
-        <button
-          type="button"
-          onClick={() => setExpandedModulos(prev => ({ ...prev, [modulo.id]: !prev[modulo.id] }))}
-          className={`flex items-center gap-2.5 py-2.5 px-3 rounded-lg transition-colors w-full text-left ${isExpanded ? "bg-lime-400/10 text-lime-700 dark:text-lime-400" : "hover:bg-muted text-foreground"}`}
-        >
-          {isExpanded ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
-          <Icon className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-sm font-medium flex-1">{modulo.nombre}</span>
-          {tieneAlguno && !isExpanded && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20">
-              {Object.values(permisos).filter(Boolean).length} perm.
-            </span>
-          )}
-        </button>
-
-        {isExpanded && (
-          <div className="ml-8 mb-2 grid grid-cols-2 gap-1 mt-1">
-            {permisosConfig.map(permiso => {
-              const activo = !!permisos[permiso.id]
-              const c = PERMISO_COLORS[permiso.color]
-              const etiqueta = PERMISOS_POR_MODULO[modulo.id]?.[permiso.id] || permiso.nombre
-              if (etiqueta === "—") return null
-              return (
-                <button
-                  key={permiso.id}
-                  type="button"
-                  onClick={() => togglePermiso(modulo.id, permiso.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
-                    activo ? `${c.badge} border` : "border-border/30 text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <div className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${activo ? `${c.bg} border-transparent` : "border-muted-foreground/30"}`}>
-                    {activo && <Check className={`h-2.5 w-2.5 ${c.check}`} />}
-                  </div>
-                  <span className="leading-tight">{etiqueta}</span>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    )
   }
 
   const modulosActivos = (perfil) =>
@@ -325,7 +278,12 @@ export default function PerfilesPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">Perfiles y Permisos</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Configurá el acceso de cada rol al sistema</p>
         </div>
-        <Button className="bg-lime-400 hover:bg-lime-300 text-black font-bold shrink-0 self-start sm:self-auto" onClick={() => openEditDialog(null)}>
+        {/* Celular: botón ancho arriba de la lista. Computadora: botón chico al lado del título */}
+        <button type="button" onClick={() => openEditDialog(null)}
+          className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black shadow-lg shadow-lime-500/20 hover:bg-lime-300 md:hidden">
+          <Plus className="h-5 w-5" /> Crear nuevo perfil
+        </button>
+        <Button className="hidden md:inline-flex bg-lime-400 hover:bg-lime-300 text-black font-bold shrink-0 self-start sm:self-auto" onClick={() => openEditDialog(null)}>
           <Plus className="mr-2 h-4 w-4" /> Nuevo Perfil
         </Button>
       </div>
@@ -337,9 +295,122 @@ export default function PerfilesPage() {
         </div>
       )}
 
-      {/* Grid de perfiles */}
+      {/* ── CELULAR ── */}
+      {perfiles.length > 0 && (() => {
+        const totalUsuarios = perfiles.reduce((a, p) => a + (Number(p.usuarios) || 0), 0)
+        const visibles = perfiles.filter((p, i) => filtroPerfil === "all" || String(p.id_perfil || p.idPerfil || i) === filtroPerfil)
+        return (
+          <div className="space-y-4 md:hidden">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400"><Shield className="h-5 w-5" aria-hidden="true" /></span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Perfiles</p>
+                  <p className="text-lg font-black leading-tight text-foreground">{perfiles.length} <span className="text-xs font-bold text-foreground/55">creados</span></p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/15 text-sky-700 dark:text-sky-400"><Users className="h-5 w-5" aria-hidden="true" /></span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Usuarios</p>
+                  <p className="text-lg font-black leading-tight text-foreground">{totalUsuarios} <span className="text-xs font-bold text-foreground/55">asignados</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar perfiles">
+              {[{ id: "all", nombre: `Todos (${perfiles.length})` }, ...perfiles.map((p, i) => ({ id: String(p.id_perfil || p.idPerfil || i), nombre: p.nombre || p.nombrePerfil }))].map(op => (
+                <button key={op.id} type="button" onClick={() => setFiltroPerfil(op.id)} aria-pressed={filtroPerfil === op.id}
+                  className={`min-h-[36px] shrink-0 rounded-full border px-3.5 text-xs font-black transition-colors ${filtroPerfil === op.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
+                  {op.nombre}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-foreground/60" aria-label="Permisos">
+              <span className="font-black uppercase tracking-widest text-foreground/50">Permisos:</span>
+              {permisosConfig.map(p => (
+                <span key={p.id} className="flex items-center gap-1">
+                  <span className={`flex h-4 w-4 items-center justify-center rounded text-[9px] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>
+                  {p.nombre}
+                </span>
+              ))}
+            </div>
+
+            <ul className="space-y-3">
+              {visibles.map((perfil, index) => {
+                const id = String(perfil.id_perfil || perfil.idPerfil || index)
+                const estaAbierto = abierto === id
+                const Icono = iconoPerfil(perfil)
+                const conPermisos = modulosConfig.filter(m => Object.values(perfil.modulos?.[m.id]?.permisos || {}).some(Boolean))
+                return (
+                  <li key={id} className={`overflow-hidden rounded-2xl border bg-card ${estaAbierto ? "border-lime-500/50" : "border-border"}`}>
+                    <button type="button" onClick={() => setAbierto(estaAbierto ? null : id)} aria-expanded={estaAbierto}
+                      className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400"><Icono className="h-5 w-5" aria-hidden="true" /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="text-base font-black text-foreground">{perfil.nombre || perfil.nombrePerfil || "Sin nombre"}</span>
+                          <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-400">{conPermisos.length} {conPermisos.length === 1 ? "módulo" : "módulos"}</span>
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-foreground/55">{perfil.descripcion || "Sin descripción"}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 rounded-full border border-border px-2 py-1 text-xs font-bold text-foreground/70" aria-label={`${perfil.usuarios || 0} usuarios`}>
+                        <Users className="h-3.5 w-3.5" aria-hidden="true" /> {perfil.usuarios || 0}
+                      </span>
+                      {estaAbierto ? <ChevronUp className="h-5 w-5 shrink-0 text-foreground/50" /> : <ChevronDown className="h-5 w-5 shrink-0 text-foreground/50" />}
+                    </button>
+
+                    {estaAbierto && (
+                      <div className="border-t border-border px-4 pb-4 pt-3">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Módulos y permisos</p>
+                        {conPermisos.length === 0 ? (
+                          <p className="mt-2 text-sm text-foreground/55">Este perfil todavía no tiene permisos.</p>
+                        ) : (
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            {conPermisos.map(m => {
+                              const per = perfil.modulos[m.id].permisos
+                              return (
+                                <div key={m.id} className="rounded-xl border border-border bg-background/50 p-2.5">
+                                  <p className="truncate text-sm font-bold text-foreground">{m.nombre.replace(/^Panel (Alumno|Profesor): /, "")}</p>
+                                  <p className="truncate text-[11px] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
+                                  <div className="mt-1.5 flex gap-1">
+                                    {permisosConfig.map(p => (
+                                      <span key={p.id} title={`${p.nombre}: ${per[p.id] ? "sí" : "no"}`}
+                                        className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-black ${per[p.id] ? `${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}` : "bg-foreground/5 text-foreground/25"}`}>
+                                        {LETRA_PERMISO[p.id]}<span className="sr-only">{per[p.id] ? ` ${p.nombre}` : ` sin ${p.nombre}`}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                        <div className="mt-4 flex gap-2">
+                          <button type="button" onClick={() => openEditDialog(perfil)}
+                            className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black hover:bg-lime-300">
+                            <Pencil className="h-4 w-4" /> Editar permisos
+                          </button>
+                          <button type="button" aria-label={`Eliminar el perfil ${perfil.nombre || ""}`}
+                            onClick={() => { const idReal = perfil.id_perfil || perfil.idPerfil; setDeleteDialog({ open: true, perfil: { ...perfil, id_perfil: idReal, idPerfil: idReal } }) }}
+                            className="flex min-h-[48px] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )
+      })()}
+
+      {/* ── COMPUTADORA: grilla de perfiles ── */}
       {perfiles.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="hidden grid-cols-1 gap-4 md:grid md:grid-cols-2 xl:grid-cols-3">
           {perfiles.map((perfil, index) => {
             const key = perfil.id_perfil || perfil.idPerfil || index
             const activos = modulosActivos(perfil)
@@ -415,8 +486,8 @@ export default function PerfilesPage() {
         </div>
       )}
 
-      {/* Guía de permisos */}
-      <div className="bg-card border border-border rounded-2xl p-5">
+      {/* Guía de permisos (computadora; en el celular está como leyenda arriba) */}
+      <div className="hidden bg-card border border-border rounded-2xl p-5 md:block">
         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Tipos de permisos</p>
         <div className="flex flex-wrap gap-3">
           {permisosConfig.map(p => {
@@ -433,94 +504,152 @@ export default function PerfilesPage() {
       </div>
 
       {/* Modal Crear/Editar */}
+      {/* Crear / editar perfil: hoja a pantalla completa en el celular, ventana grande en la computadora */}
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-black text-lg">
-              {editDialog.isNew ? "Crear nuevo perfil" : "Editar perfil"}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          showCloseButton={false}
+          aria-describedby={undefined}
+          className="hoja-movil flex h-[100dvh] max-h-[100dvh] w-full max-w-full flex-col gap-0 rounded-none border-0 bg-background p-0 top-0 left-0 translate-x-0 translate-y-0 sm:top-[50%] sm:left-[50%] sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl sm:border"
+        >
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
+            <button type="button" onClick={() => setEditDialog({ open: false, perfil: null, isNew: false })} aria-label="Cerrar"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground/80 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+              <X className="h-5 w-5" />
+            </button>
+            <DialogPrimitive.Title className="min-w-0 flex-1 truncate text-base font-black uppercase tracking-wide text-foreground">
+              {editDialog.isNew ? "Nuevo perfil" : "Editar perfil"}
+            </DialogPrimitive.Title>
+            {/* Guardar arriba, siempre a la vista */}
+            <button type="button" onClick={handleSave} disabled={isLoading || !formData.nombre.trim()}
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-lime-400 px-4 text-xs font-black uppercase tracking-wide text-black shadow-lg shadow-lime-500/20 hover:bg-lime-300 disabled:opacity-50">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+              {editDialog.isNew ? "Crear perfil" : "Guardar"}
+            </button>
+          </div>
 
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="nombre" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nombre del Perfil</Label>
-                <Input id="nombre" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 h-10"
-                  value={formData.nombre} onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))} />
+          <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
+            {/* Identidad */}
+            <section className="rounded-2xl border border-border bg-card p-4" aria-labelledby="sec-identidad">
+              <div className="flex items-center justify-between gap-2">
+                <h2 id="sec-identidad" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground"><User className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Identidad del perfil</h2>
+                <span className="text-[10px] font-bold text-foreground/50">El nombre es obligatorio</span>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="descripcion" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descripción</Label>
-                <Input id="descripcion" className="bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 h-10"
-                  value={formData.descripcion} onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Módulos y Permisos</Label>
-                <Button type="button" variant="outline" size="sm" className="h-7 text-xs border-lime-600/40 dark:border-lime-400/40 text-lime-700 dark:text-lime-500 hover:bg-lime-400/10 hover:text-lime-700 dark:hover:text-lime-400" onClick={marcarTodosLosPermisos}>
-                  Acceso completo
-                </Button>
-              </div>
-
-              <div className="bg-muted/30 rounded-xl border border-border/50 overflow-hidden">
-
-                {/* Admin */}
+              <div className="mt-3 space-y-3">
                 <div>
-                  <button type="button" onClick={() => setAdminMasterOpen(!adminMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-lime-700 dark:text-lime-400 bg-lime-400/5 border-b border-lime-400/10 hover:bg-lime-400/10 transition-colors">
-                    {adminMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
-                    <Settings className="h-4 w-4 shrink-0" />
-                    <span>Panel Administrador</span>
-                  </button>
-                  {adminMasterOpen && (
-                    <div className="px-3 py-2 space-y-0.5 border-b border-border/20">
-                      {modulosAdminConfig.map(renderFilaModulo)}
-                    </div>
-                  )}
+                  <label htmlFor="perfil-nombre" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Nombre del perfil</label>
+                  <input id="perfil-nombre" maxLength={60} value={formData.nombre} onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))} placeholder="Ej: Recepción"
+                    className="h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-base text-foreground outline-none focus:border-lime-500" />
                 </div>
-
-                {/* Alumno */}
                 <div>
-                  <button type="button" onClick={() => setAlumnoMasterOpen(!alumnoMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-blue-700 dark:text-blue-400 bg-blue-400/5 border-b border-blue-400/10 hover:bg-blue-400/10 transition-colors">
-                    {alumnoMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
-                    <Shield className="h-4 w-4 shrink-0" />
-                    <span>Panel Alumno</span>
-                  </button>
-                  {alumnoMasterOpen && (
-                    <div className="px-3 py-2 space-y-0.5 border-b border-border/20">
-                      {modulosAlumnoConfig.map(renderFilaModulo)}
-                    </div>
-                  )}
+                  <label htmlFor="perfil-desc" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Para qué sirve</label>
+                  <textarea id="perfil-desc" maxLength={255} rows={2} value={formData.descripcion} onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))} placeholder="Ej: Carga abonos y toma reservas en el mostrador"
+                    className="w-full resize-none rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground outline-none focus:border-lime-500" />
                 </div>
-
-                {/* Profesor */}
-                <div>
-                  <button type="button" onClick={() => setProfesorMasterOpen(!profesorMasterOpen)}
-                    className="flex items-center gap-2.5 py-3 px-4 w-full text-left font-bold text-sm text-amber-700 dark:text-amber-400 bg-amber-400/5 hover:bg-amber-400/10 transition-colors">
-                    {profesorMasterOpen ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
-                    <Dumbbell className="h-4 w-4 shrink-0" />
-                    <span>Panel Profesor</span>
-                  </button>
-                  {profesorMasterOpen && (
-                    <div className="px-3 py-2 space-y-0.5">
-                      {modulosProfesorConfig.map(renderFilaModulo)}
-                    </div>
-                  )}
-                </div>
-
               </div>
+            </section>
+
+            {/* Acceso maestro: todo en todos los paneles */}
+            {(() => {
+              const completo = todosMarcados(modulosConfig)
+              return (
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400"><Sparkles className="h-5 w-5" aria-hidden="true" /></span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-foreground">Acceso total</p>
+                    <p className="text-xs text-foreground/55">Todos los permisos de los tres paneles</p>
+                  </div>
+                  <button type="button" role="switch" aria-checked={completo} aria-label="Acceso total" onClick={() => marcarModulos(modulosConfig, !completo)}
+                    className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${completo ? "bg-lime-400" : "bg-foreground/15"}`}>
+                    <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${completo ? "left-[22px]" : "left-0.5"}`} />
+                  </button>
+                </div>
+              )
+            })()}
+
+            {/* Módulos y permisos por panel */}
+            <section className="rounded-2xl border border-border bg-card p-4" aria-labelledby="sec-permisos">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="sec-permisos" className="text-sm font-black uppercase tracking-wide text-foreground">Módulos y permisos</h2>
+                <span className="text-[11px] font-semibold text-foreground/50">Tocá las letras para activarlas</span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-foreground/60">
+                {permisosConfig.map(p => (
+                  <span key={p.id} className="flex items-center gap-1">
+                    <span className={`flex h-4 w-4 items-center justify-center rounded text-[9px] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>{p.nombre}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-background/60 p-1" role="tablist" aria-label="Panel">
+                {[["admin", "Admin", Settings], ["alumno", "Alumno", User], ["profesor", "Profesor", GraduationCap]].map(([id, txt, Ic]) => (
+                  <button key={id} type="button" role="tab" aria-selected={pestanaEditor === id} onClick={() => setPestanaEditor(id)}
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-black uppercase tracking-wide transition-colors ${pestanaEditor === id ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60"}`}>
+                    <Ic className="h-4 w-4" aria-hidden="true" /> {txt}
+                  </button>
+                ))}
+              </div>
+
+              {(() => {
+                const lista = pestanaEditor === "alumno" ? modulosAlumnoConfig : pestanaEditor === "profesor" ? modulosProfesorConfig : modulosAdminConfig
+                const titulo = pestanaEditor === "alumno" ? "Panel del alumno" : pestanaEditor === "profesor" ? "Panel del profesor" : "Panel de administración"
+                const todo = todosMarcados(lista)
+                return (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between gap-2 pb-2">
+                      <p className="text-xs font-black uppercase tracking-wide text-foreground/70">{titulo}</p>
+                      <button type="button" onClick={() => marcarModulos(lista, !todo)}
+                        className="rounded-lg border border-lime-500/40 bg-lime-400/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-lime-700 dark:text-lime-400">
+                        {todo ? "Quitar todo" : "Marcar todo"}
+                      </button>
+                    </div>
+                    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                      {lista.map(m => {
+                        const Icon = m.icon
+                        const per = formData.modulos[m.id]?.permisos || {}
+                        return (
+                          <li key={m.id} className="flex items-center gap-2.5 bg-background/40 px-3 py-2.5">
+                            <Icon className="h-4 w-4 shrink-0 text-foreground/50" aria-hidden="true" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-bold text-foreground">{m.nombre.replace(/^Panel (Alumno|Profesor): /, "")}</p>
+                              <p className="truncate text-[11px] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              {permisosConfig.map(p => {
+                                const vale = aplica(m.id, p.id)
+                                const activo = vale && !!per[p.id]
+                                return (
+                                  <button key={p.id} type="button" disabled={!vale} onClick={() => togglePermiso(m.id, p.id)}
+                                    aria-pressed={activo} aria-label={`${p.nombre} en ${m.nombre}${vale ? "" : " (no aplica)"}`}
+                                    title={vale ? PERMISOS_POR_MODULO[m.id]?.[p.id] : "No aplica"}
+                                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                                      !vale ? "cursor-not-allowed bg-foreground/[0.03] text-foreground/15"
+                                        : activo ? `${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`
+                                        : "border border-border bg-background text-foreground/45"
+                                    }`}>
+                                    {LETRA_PERMISO[p.id]}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )
+              })()}
+            </section>
+
+            {/* Cómo se aplican los cambios (lo que pasa de verdad) */}
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-400" aria-hidden="true" />
+              <p className="text-xs leading-relaxed text-foreground/65">
+                Los permisos se aplican al instante en el sistema: lo que quites deja de funcionar enseguida. Los menús de cada persona
+                se actualizan la próxima vez que inicie sesión. No podés dar permisos de gestión que vos no tengas.
+              </p>
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, perfil: null, isNew: false })}>Cancelar</Button>
-            <Button className="bg-lime-400 hover:bg-lime-300 text-black font-bold" onClick={handleSave} disabled={isLoading || !formData.nombre}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editDialog.isNew ? "Crear perfil" : "Guardar cambios"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

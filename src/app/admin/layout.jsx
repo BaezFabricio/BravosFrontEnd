@@ -1,6 +1,7 @@
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
 import { Link, useLocation } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
 import { useNavigate } from "react-router-dom"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
@@ -50,7 +51,7 @@ const navigation = [
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
   { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: MessageCircle, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },
-  { name: "Configuración", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
+  { name: "Configuración del Box", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
 ]
 
 export default function AdminLayout({ children }) {
@@ -247,6 +248,11 @@ export default function AdminLayout({ children }) {
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
             {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
+            {/* Celular: marca y a qué panel se entró */}
+            <Link to="/admin" aria-label="Ir al resumen" className="ml-2 flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 lg:hidden">
+              <span className="text-base font-black tracking-wide text-foreground">BRVS</span>
+              <span className="rounded-md bg-lime-400 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-black">Admin</span>
+            </Link>
             <div className="flex-1" />
             
             <div className="flex items-center gap-4">
@@ -289,7 +295,14 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
         </header>
-        <main className="p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
+        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
+          {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
+          {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
+          {location.pathname !== "/admin" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
+            <BotonVolver a="/admin" texto="Volver" className="mb-4 lg:hidden" />
+          )}
+          {children}
+        </main>
 
         {/* Mobile Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">

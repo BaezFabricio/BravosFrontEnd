@@ -25,15 +25,17 @@ const COLORES_TIPO = {
   info:        'text-blue-700 dark:text-blue-400',
 }
 
+// Fondo sólido (antes era casi transparente y se mezclaba con el texto de la página)
+// y una franja de color a la izquierda según el tipo
 const BG_POPUP = {
-  exito:       'border-lime-400/30 bg-lime-400/5',
-  error:       'border-red-400/30 bg-red-400/5',
-  advertencia: 'border-yellow-400/30 bg-yellow-400/5',
-  info:        'border-blue-400/30 bg-blue-400/5',
-  reserva:     'border-lime-400/30 bg-lime-400/5',
-  asistencia:  'border-blue-400/30 bg-blue-400/5',
-  credito:     'border-yellow-400/30 bg-yellow-400/5',
-  sistema:     'border-zinc-600/30 bg-muted',
+  exito:       'border-border border-l-lime-500',
+  error:       'border-border border-l-red-500',
+  advertencia: 'border-border border-l-yellow-500',
+  info:        'border-border border-l-blue-500',
+  reserva:     'border-border border-l-lime-500',
+  asistencia:  'border-border border-l-blue-500',
+  credito:     'border-border border-l-yellow-500',
+  sistema:     'border-border border-l-zinc-500',
 }
 
 function parsearFecha(raw) {
@@ -184,7 +186,7 @@ export default function NotificacionesBell() {
                 <div
                   key={p.pid}
                   onClick={() => p.link && handleClickPopup(p)}
-                  className={`flex items-start gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-sm animate-in slide-in-from-top-2 fade-in duration-300 ${bg} ${p.link ? 'cursor-pointer' : ''}`}
+                  className={`flex items-start gap-3 rounded-xl border border-l-4 bg-card px-4 py-3 shadow-2xl shadow-black/40 animate-in slide-in-from-top-2 fade-in duration-300 ${bg} ${p.link ? 'cursor-pointer' : ''}`}
                 >
                   <Icono className={`h-4 w-4 mt-0.5 flex-shrink-0 ${color}`} />
                   <div className="flex-1 min-w-0">

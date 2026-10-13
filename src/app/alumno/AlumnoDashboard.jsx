@@ -9,7 +9,8 @@ import {
   Trophy,
   Users,
   TrendingUp,
-  Calculator
+  Calculator,
+  Plus
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -348,8 +349,9 @@ export default function AlumnoDashboard() {
                       onClick={() => navigate('/alumno/plan')}
                       className="w-full bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wide"
                     >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      {estado !== 'activa' ? 'Renovar membresía' : 'Renovar / contratar membresía'}
+                      {estado !== 'activa'
+                        ? <><CreditCard className="mr-2 h-4 w-4" />Renovar membresía</>
+                        : <><Plus className="mr-2 h-4 w-4" />Contratar otra membresía</>}
                     </Button>
                   </div>
                 )

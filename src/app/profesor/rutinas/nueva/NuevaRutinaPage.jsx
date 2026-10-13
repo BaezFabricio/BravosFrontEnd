@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Save } from 'lucide-react'
+import { BotonVolver } from "@/components/BotonVolver"
+import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -56,10 +57,7 @@ export default function NuevaRutinaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/profesor/rutinas" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver a Rutinas
-        </Link>
+        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
         <h1 className="text-2xl font-bold text-foreground">Crear Nueva Rutina</h1>
         <p className="text-muted-foreground">Diseña una nueva rutina de entrenamiento para tus alumnos</p>
       </div>

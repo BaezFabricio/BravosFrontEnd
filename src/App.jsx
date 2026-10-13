@@ -6,6 +6,7 @@ import LandingPage from './app/LandingPage.jsx'
 import LoginPage from './app/login/LoginPage.jsx'
 import RegistroPage from './app/registro/RegistroPage.jsx'
 import RecuperarContrasenaPage from './app/recuperar-contraseña/RecuperarContrasenaPage.jsx'
+import CrearContrasenaPage from './app/cambiar-contrasena/CrearContrasenaPage.jsx'
 import AdminLayout from './app/admin/layout.jsx'
 import AdminDashboard from './app/admin/AdminDashboard.jsx'
 import PerfilesPage from './app/admin/perfiles/PerfilesPage.jsx'
@@ -61,6 +62,10 @@ function RequireAuth({ children, allowedRoles }) {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
     if (usuario.estado === 'inactivo') {
       return <Navigate to="/" replace />
+    }
+    // Cuenta con contraseña temporal: primero tiene que crear la suya (el servidor tampoco deja otra cosa)
+    if (usuario.debeCambiarContrasena) {
+      return <Navigate to="/crear-contrasena" replace />
     }
   } catch {}
 
@@ -146,6 +151,7 @@ function App() {
         <Route path="/inicio" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
+        <Route path="/crear-contrasena" element={<CrearContrasenaPage />} />
         <Route path="/registro" element={<RegistroPage />} />
         <Route path="/verificar-cuenta" element={<VerificarCuentaPage />} />
         <Route path="/verificar-cuenta/:token" element={<VerificarCuentaPage />} />

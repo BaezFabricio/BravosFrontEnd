@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react"
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom"
-import { ArrowLeft, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText } from "lucide-react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { BotonVolver } from "@/components/BotonVolver"
+import { Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText, ChevronLeft, ChevronRight, RefreshCw, X, Check } from "lucide-react"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from "@/lib/notificar"
 import {
@@ -8,8 +9,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 const METODOS = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
@@ -60,16 +60,12 @@ function calcularMonto(precioBase, metodoPago) {
 
 export default function GestionAbonosPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const [searchParams] = useSearchParams()
   const usuarioPreId = searchParams.get("usuario")
 
   // Volver a donde se estaba (la lista o el perfil, según de dónde se llegó). Si
   // la página se abrió directo, sin historial previo, cae al perfil / la lista.
-  const volver = () => {
-    if (location.key !== "default") navigate(-1)
-    else navigate(usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios")
-  }
+  const destinoVolver = usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios"
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -504,10 +500,8 @@ export default function GestionAbonosPage() {
     <div className="space-y-6">
 
       {/* Header */}
+      <BotonVolver a={destinoVolver} texto="Volver" />
       <div className="flex items-start gap-4">
-        <button type="button" onClick={volver} aria-label="Volver" className="mt-1 p-1.5 text-foreground/50 hover:text-foreground transition-colors">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
         <div className="flex-1">
           <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
           <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
@@ -519,7 +513,7 @@ export default function GestionAbonosPage() {
         <button
           type="button"
           onClick={abrirModalAbono}
-          className="flex w-full items-center justify-center gap-2 bg-lime-400 px-5 py-4 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-4 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300"
         >
           <Plus className="h-5 w-5" />
           Cargar abono
@@ -701,6 +695,66 @@ export default function GestionAbonosPage() {
         const hoyTxt = `${hoyRef.getFullYear()}-${String(hoyRef.getMonth() + 1).padStart(2, "0")}-${String(hoyRef.getDate()).padStart(2, "0")}`
         const estaVencida = (ab) => Boolean(ab.vencimiento) && String(ab.vencimiento).split("T")[0] < hoyTxt
         const estadoVisible = (ab) => (ab.estado === "CANCELADO" ? "CANCELADO" : estaVencida(ab) ? "VENCIDO" : ab.estado)
+        const claseEstado = (ab) =>
+          estadoVisible(ab) === "VENCIDO"  ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"
+          : estadoVisible(ab) === "PAUSADO" ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
+          : "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
+        // Comprobantes de transferencia del abono subidos en el mes elegido
+        const docsDe = (ab) => {
+          if (ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
+          return (comprobantesAbonos[ab.id] || []).filter(d => {
+            if (d.tipo !== "comprobante_transferencia") return false
+            if (!d.creadoEn) return true
+            const f = new Date(d.creadoEn)
+            return f.getFullYear() === mesFiltro.year && f.getMonth() === mesFiltro.month
+          })
+        }
+        const comprobantesDe = (ab, docsAbono) => docsAbono.length > 0 ? (
+            <div className="flex flex-col items-start gap-1">
+              <button
+                onClick={() => setCompAbiertos(p => ({ ...p, [ab.id]: !p[ab.id] }))}
+                className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors whitespace-nowrap ${
+                  docsAbono.every(d => d.estado === "aprobado")
+                    ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                    : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
+                }`}
+              >
+                <CheckCircle2 className="h-3 w-3" />
+                {docsAbono.length} comprobante{docsAbono.length !== 1 ? "s" : ""}
+                <span className={`inline-block transition-transform duration-300 ${compAbiertos[ab.id] ? "rotate-180" : ""}`}>▾</span>
+              </button>
+              <div
+                className={`grid transition-all duration-300 ease-out ${compAbiertos[ab.id] ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+                aria-hidden={!compAbiertos[ab.id]}
+              >
+              <div className="overflow-hidden min-h-0 flex flex-col items-start gap-1 pt-1">
+              {[...docsAbono].sort((a, b) => new Date(b.creadoEn || 0) - new Date(a.creadoEn || 0)).map((doc, i) => (
+                <div key={doc.idDocumento} className="flex items-center gap-1.5 whitespace-nowrap"
+                  style={{ transform: compAbiertos[ab.id] ? "translateY(0)" : "translateY(-6px)", transition: `transform 300ms ease-out ${i * 60}ms` }}>
+                  <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
+                    className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors ${
+                      doc.estado === "aprobado"
+                        ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                        : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
+                    }`}>
+                    <CheckCircle2 className="h-3 w-3" />
+                    {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : "Ver"}
+                    {doc.estado === "aprobado" ? " ✓" : " ↗"}
+                  </a>
+                  {doc.estado !== "aprobado" && (
+                    <button
+                      onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
+                      className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 border border-lime-400/30 text-lime-700 dark:text-lime-400 hover:bg-lime-400/10 transition-colors"
+                    >
+                      Aprobar
+                    </button>
+                  )}
+                </div>
+              ))}
+              </div>
+              </div>
+            </div>
+          ) : null
         const activos = abonos.filter(a => a.estado !== "CANCELADO")
         const delMes  = abonosPorMes(activos)
         const prevKey = `${mesFiltro.year}-${mesFiltro.month - 1 < 0 ? 11 : mesFiltro.month - 1}`
@@ -720,19 +774,19 @@ export default function GestionAbonosPage() {
                 <p className="text-sm text-foreground/60 mt-0.5">Muestra las membresías que empiezan en el mes elegido. Cambiá de mes con las flechas.</p>
               </div>
 
-              <div className="flex items-center gap-1 sm:shrink-0">
+              <div className="flex w-full items-center gap-1.5 sm:w-auto sm:shrink-0">
                 <button
                   onClick={() => moverMes(-1)}
-                  className="w-7 h-7 flex items-center justify-center text-foreground/60 hover:text-foreground border border-border hover:border-foreground/30 transition-colors text-sm"
-                  title="Mes anterior"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground md:h-8 md:w-8"
+                  aria-label="Mes anterior"
                 >
-                  ‹
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
 
-                <div className="flex items-center gap-1.5 px-3 py-1 border border-border bg-muted/40 min-w-[150px] justify-center">
-                  <span className="text-sm font-semibold text-foreground">{labelMes(mesFiltro)}</span>
+                <div className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 md:h-8 md:min-w-[150px] md:flex-none">
+                  <span className="whitespace-nowrap text-sm font-semibold text-foreground">{labelMes(mesFiltro)}</span>
                   {esMesActual && (
-                    <span className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
+                    <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
                       Actual
                     </span>
                   )}
@@ -746,13 +800,16 @@ export default function GestionAbonosPage() {
                 <button
                   onClick={() => moverMes(1)}
                   disabled={esMesActual}
-                  className="w-7 h-7 flex items-center justify-center text-foreground/60 hover:text-foreground border border-border hover:border-foreground/30 transition-colors text-sm disabled:opacity-20 disabled:cursor-not-allowed"
-                  title="Mes siguiente"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-25 md:h-8 md:w-8"
+                  aria-label="Mes siguiente"
                 >
-                  ›
+                  <ChevronRight className="h-4 w-4" />
                 </button>
 
-                <button onClick={cargarAbonos} className="ml-2 text-sm text-foreground/50 hover:text-foreground transition-colors" title="Actualizar">↺</button>
+                <button onClick={cargarAbonos} aria-label="Actualizar la lista"
+                  className="ml-1.5 flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/60 transition-colors hover:border-foreground/30 hover:text-foreground md:h-8 md:w-8">
+                  <RefreshCw className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
@@ -768,6 +825,82 @@ export default function GestionAbonosPage() {
                   <span><span className="font-black text-yellow-700 dark:text-yellow-400">{delMes.filter(a => estadoVisible(a) === "PAUSADO").length}</span> pausadas</span>
                 )}
               </div>
+            )}
+
+            {/* CELULAR: una tarjeta por membresía */}
+            {!cargandoAbonos && delMes.length > 0 && (
+              <ul className="space-y-3 p-3 md:hidden">
+                {delMes.map((ab) => {
+                  const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
+                  const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
+                  const docsAbono = docsDe(ab)
+                  return (
+                    <li key={ab.id} className="rounded-2xl border border-border bg-background/40 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[11px] font-bold text-foreground/50">N.º {ab.id}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <p className="text-lg font-black uppercase leading-tight text-foreground">{nombreMostrar}</p>
+                            <span className={`rounded-md border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${claseEstado(ab)}`}>{estadoVisible(ab)}</span>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 gap-1.5">
+                          <button onClick={() => abrirEditar(ab)} aria-label={`Editar el abono de ${nombreMostrar}`}
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 transition-colors hover:text-foreground">
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => setDeleteDialog({ open: true, abono: ab })} aria-label={`Cancelar la membresía de ${nombreMostrar}`}
+                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 transition-colors hover:border-red-500/40 hover:text-red-700 dark:hover:text-red-400">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-foreground/50">Plan</p>
+                      <p className="text-sm font-black uppercase text-foreground">{ab.abono || "-"}</p>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Inicio</p>
+                          <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{fmt(ab.inicio)}</p>
+                        </div>
+                        <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Vencimiento</p>
+                          <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{fmt(ab.vencimiento)}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-xl bg-foreground/5 px-2 py-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+                          <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{ab.turnos}</p>
+                        </div>
+                        <div className="rounded-xl bg-foreground/5 px-2 py-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Usados</p>
+                          <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{ab.usados || 0}</p>
+                        </div>
+                        <div className="rounded-xl border border-lime-500/40 bg-lime-400/10 px-2 py-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Disponibles</p>
+                          <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{ab.disponibles}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 space-y-2.5 border-t border-border pt-3 text-sm">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Método de pago</span>
+                          <span className="font-semibold text-foreground">{ab.metodoPago || "-"}</span>
+                        </div>
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="pt-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/50">Comprobantes</span>
+                          <div className="flex min-w-0 justify-end">
+                            {docsAbono.length > 0 ? comprobantesDe(ab, docsAbono) : <span className="text-xs italic text-foreground/50">Sin comprobante</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
             )}
 
             <div className="md:overflow-x-auto">
@@ -823,15 +956,9 @@ export default function GestionAbonosPage() {
                   ) : delMes.map((ab) => {
                     const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                     const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
-                    if (ab.idUsuario) cargarComprobantesAbono(ab.id, ab.idUsuario)
-                    const docsAbono = (comprobantesAbonos[ab.id] || []).filter(d => {
-                      if (d.tipo !== "comprobante_transferencia") return false
-                      if (!d.creadoEn) return true
-                      const f = new Date(d.creadoEn)
-                      return f.getFullYear() === mesFiltro.year && f.getMonth() === mesFiltro.month
-                    })
+                    const docsAbono = docsDe(ab)
                     return (
-                    <tr key={ab.id} className="grid grid-cols-2 gap-x-3 gap-y-2 p-3 md:table-row md:p-0 hover:bg-foreground/[0.02] transition-colors">
+                    <tr key={ab.id} className="hidden md:table-row hover:bg-foreground/[0.02] transition-colors">
                       <td data-label="N.º" className="px-2.5 py-3 font-mono text-sm text-foreground/60 before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.id}</td>
                       <td data-label="Alumno" className="px-2.5 py-3 font-semibold text-foreground text-sm before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{nombreMostrar}</td>
                       <td data-label="Plan" className="px-2.5 py-3 text-foreground/70 text-sm before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">{ab.abono}</td>
@@ -841,11 +968,7 @@ export default function GestionAbonosPage() {
                       <td data-label="Usados" className="px-2.5 py-3 text-left md:text-center text-foreground/60 text-sm before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.usados || 0}</td>
                       <td data-label="Disponibles" className="px-2.5 py-3 text-left md:text-center font-semibold text-lime-700 dark:text-lime-400 text-sm before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">{ab.disponibles}</td>
                       <td data-label="Estado" className="px-2.5 py-3 text-sm before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                        <span className={`text-xs font-black uppercase tracking-widest px-2 py-0.5 border ${
-                          estadoVisible(ab) === "VENCIDO"  ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"
-                          : estadoVisible(ab) === "PAUSADO" ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20"
-                          : "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"
-                        }`}>
+                        <span className={`text-xs font-black uppercase tracking-widest px-2 py-0.5 border ${claseEstado(ab)}`}>
                           {estadoVisible(ab)}
                         </span>
                       </td>
@@ -861,52 +984,7 @@ export default function GestionAbonosPage() {
                         </div>
                       </td>
                       <td data-label="Comprobantes" className="px-2.5 py-3 before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
-                        {docsAbono.length > 0 && (
-                          <div className="flex flex-col items-start gap-1">
-                            <button
-                              onClick={() => setCompAbiertos(p => ({ ...p, [ab.id]: !p[ab.id] }))}
-                              className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors whitespace-nowrap ${
-                                docsAbono.every(d => d.estado === "aprobado")
-                                  ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                                  : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
-                              }`}
-                            >
-                              <CheckCircle2 className="h-3 w-3" />
-                              {docsAbono.length} comprobante{docsAbono.length !== 1 ? "s" : ""}
-                              <span className={`inline-block transition-transform duration-300 ${compAbiertos[ab.id] ? "rotate-180" : ""}`}>▾</span>
-                            </button>
-                            <div
-                              className={`grid transition-all duration-300 ease-out ${compAbiertos[ab.id] ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
-                              aria-hidden={!compAbiertos[ab.id]}
-                            >
-                            <div className="overflow-hidden min-h-0 flex flex-col items-start gap-1 pt-1">
-                            {[...docsAbono].sort((a, b) => new Date(b.creadoEn || 0) - new Date(a.creadoEn || 0)).map((doc, i) => (
-                              <div key={doc.idDocumento} className="flex items-center gap-1.5 whitespace-nowrap"
-                                style={{ transform: compAbiertos[ab.id] ? "translateY(0)" : "translateY(-6px)", transition: `transform 300ms ease-out ${i * 60}ms` }}>
-                                <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
-                                  className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors ${
-                                    doc.estado === "aprobado"
-                                      ? "border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                                      : "border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
-                                  }`}>
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : "Ver"}
-                                  {doc.estado === "aprobado" ? " ✓" : " ↗"}
-                                </a>
-                                {doc.estado !== "aprobado" && (
-                                  <button
-                                    onClick={() => aprobarComprobante(ab.id, doc.idDocumento)}
-                                    className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 border border-lime-400/30 text-lime-700 dark:text-lime-400 hover:bg-lime-400/10 transition-colors"
-                                  >
-                                    Aprobar
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                            </div>
-                            </div>
-                          </div>
-                        )}
+                        {comprobantesDe(ab, docsAbono)}
                       </td>
                     </tr>
                   )})}
@@ -993,30 +1071,55 @@ export default function GestionAbonosPage() {
       })()}
 
       {/* ── MODAL NUEVO ABONO (celular) ─────────────────────────────────────── */}
+      {/* En el celular es una hoja que sube desde abajo; en pantallas grandes, una ventana centrada */}
       <Dialog open={modalAbono} onOpenChange={setModalAbono}>
-        <DialogContent className="bg-card border border-border w-[calc(100%-1.5rem)] max-h-[92vh] overflow-y-auto p-4 sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="uppercase text-sm font-black tracking-widest">Nuevo abono</DialogTitle>
-          </DialogHeader>
+        <DialogContent
+          showCloseButton={false}
+          aria-describedby={undefined}
+          className="hoja-movil top-auto bottom-0 left-0 flex max-h-[92dvh] w-full max-w-full translate-x-0 translate-y-0 flex-col gap-0 rounded-b-none rounded-t-3xl border-x-0 border-b-0 border-t border-border bg-card p-0 sm:bottom-auto sm:left-[50%] sm:top-[50%] sm:max-w-md sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-2xl sm:border"
+        >
+          <div className="mx-auto mt-2.5 h-1.5 w-12 shrink-0 rounded-full bg-foreground/20 sm:hidden" aria-hidden="true" />
+          <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-3">
+            <DialogTitle className="flex items-center gap-2 text-base font-black uppercase tracking-wide">
+              <span className="h-2 w-2 rounded-full bg-lime-400" aria-hidden="true" />
+              Nuevo abono
+            </DialogTitle>
+            <button type="button" onClick={() => setModalAbono(false)} aria-label="Cerrar"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-          <div className="space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-border px-5 pb-4 pt-4">
             {/* Alumno */}
             <div>
-              <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Alumno</label>
-              {formM.idUsuario ? (
-                <div className="flex items-center justify-between gap-2 border border-lime-400/30 bg-lime-400/10 px-3 py-3">
-                  <span className="min-w-0 truncate text-base font-semibold text-foreground">{formM.nombreAlumno}</span>
-                  <button type="button" className="shrink-0 text-sm font-black uppercase tracking-widest text-lime-700 dark:text-lime-400"
-                    onClick={() => setFormM(p => ({ ...p, idUsuario: "", nombreAlumno: "", busqueda: "" }))}>
-                    Cambiar
-                  </button>
-                </div>
-              ) : (
+              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Alumno</label>
+              {formM.idUsuario ? (() => {
+                const elegido = usuarios.find(u => String(u.idUsuario || u.id) === String(formM.idUsuario))
+                const partes = String(formM.nombreAlumno || "").trim().split(/\s+/)
+                const iniciales = ((partes[0]?.[0] || "") + (partes[1]?.[0] || "")).toUpperCase() || "?"
+                return (
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-lime-400/15 text-sm font-black text-lime-700 dark:text-lime-400">{iniciales}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-base font-bold text-foreground">{formM.nombreAlumno}</p>
+                      <p className="truncate text-xs text-foreground/55">
+                        {elegido?.dni ? `DNI ${elegido.dni}` : (elegido?.email || elegido?.correo || "Alumno")}
+                      </p>
+                    </div>
+                    <button type="button"
+                      className="shrink-0 rounded-lg border border-lime-500/50 bg-lime-400/10 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-lime-700 transition-colors hover:bg-lime-400/20 dark:text-lime-400"
+                      onClick={() => setFormM(p => ({ ...p, idUsuario: "", nombreAlumno: "", busqueda: "" }))}>
+                      Cambiar
+                    </button>
+                  </div>
+                )
+              })() : (
                 <>
-                  <input className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/45" placeholder="Nombre, DNI o email" value={formM.busqueda}
+                  <input className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500" placeholder="Nombre, DNI o email" aria-label="Buscar alumno" value={formM.busqueda}
                     onChange={e => setFormM(p => ({ ...p, busqueda: e.target.value }))} />
                   {sugerenciasM.length > 0 && (
-                    <ul className="mt-1 divide-y divide-border border border-border">
+                    <ul className="mt-1.5 divide-y divide-border overflow-hidden rounded-xl border border-border">
                       {sugerenciasM.map(u => (
                         <li key={u.idUsuario || u.id}>
                           <button type="button" onClick={() => elegirAlumnoM(u)} className="block w-full px-3 py-3 text-left hover:bg-foreground/5">
@@ -1032,38 +1135,42 @@ export default function GestionAbonosPage() {
             </div>
 
             {/* Plan y créditos en la misma fila */}
-            <div className="grid grid-cols-[1fr_4.5rem] gap-3">
-                <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Plan</label>
-                <select className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/45" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
+            <div className="grid grid-cols-[1fr_5rem] gap-3">
+              <div>
+                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-plan">Plan</label>
+                <select id="m-plan" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
                   <option value="">Seleccionar plan...</option>
                   {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Créd.</label>
-                <input className="w-full cursor-default border border-border bg-muted/40 px-1 py-3 text-center text-base text-foreground outline-none" value={formM.creditos} readOnly placeholder="-" />
+                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-cred">Créd.</label>
+                <input id="m-cred" className="w-full cursor-default rounded-xl border border-border bg-foreground/5 px-1 py-3 text-center text-base font-bold text-foreground outline-none" value={formM.creditos} readOnly placeholder="-" />
               </div>
             </div>
 
             {/* Método de pago */}
             <div>
-              <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Método de pago</label>
-              <div className="grid grid-cols-2 gap-2">
-                {METODOS.map(m => (
-                  <button key={m} type="button" onClick={() => elegirMetodoM(m)}
-                    className={`border px-2 py-3 text-sm font-black uppercase tracking-wide transition-colors ${
-                      formM.metodoPago === m
-                        ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400"
-                        : "border-border text-foreground/50 hover:bg-foreground/5"
-                    }`}>
-                    {m}
-                  </button>
-                ))}
+              <p className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Método de pago</p>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Método de pago">
+                {METODOS.map(m => {
+                  const activo = formM.metodoPago === m
+                  return (
+                    <button key={m} type="button" role="radio" aria-checked={activo} onClick={() => elegirMetodoM(m)}
+                      className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-2 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                        activo
+                          ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400"
+                          : "border-border bg-background/60 text-foreground/60 hover:bg-foreground/5"
+                      }`}>
+                      {activo && <span className="h-1.5 w-1.5 rounded-full bg-lime-500 dark:bg-lime-400" aria-hidden="true" />}
+                      {m}
+                    </button>
+                  )
+                })}
               </div>
-              {formM.metodoPago === "Tarjeta Crédito" && <p className="mt-1 text-sm text-foreground/50">Incluye 10% de recargo por tarjeta de crédito.</p>}
+              {formM.metodoPago === "Tarjeta Crédito" && <p className="mt-1.5 text-xs text-foreground/55">Incluye 10% de recargo por tarjeta de crédito.</p>}
               {formM.metodoPago === "Transferencia" && formM.idUsuario && (
-                <p className="mt-1 text-sm text-foreground/50">
+                <p className="mt-1.5 text-xs text-foreground/55">
                   {docsM.filter(d => d.tipo === "comprobante_transferencia").length > 0
                     ? "El alumno subió un comprobante: se aprueba solo al guardar."
                     : "El alumno todavía no subió ningún comprobante."}
@@ -1073,36 +1180,36 @@ export default function GestionAbonosPage() {
 
             {/* Monto */}
             <div>
-              <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Monto ($)</label>
-              <input type="number" inputMode="decimal" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/45" value={formM.monto}
-                onChange={e => setFormM(p => ({ ...p, monto: e.target.value }))} />
+              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-monto">Monto ($)</label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-foreground/45" aria-hidden="true">$</span>
+                <input id="m-monto" type="number" inputMode="decimal" placeholder="0.00" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 pl-7" value={formM.monto}
+                  onChange={e => setFormM(p => ({ ...p, monto: e.target.value }))} />
+              </div>
             </div>
 
             {/* Fechas */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Inicio</label>
-                <input type="date" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/45" value={formM.fechaInicio}
+                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-inicio">Inicio</label>
+                <input id="m-inicio" type="date" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 px-2.5" value={formM.fechaInicio}
                   onChange={e => { const v = e.target.value; setFormM(p => ({ ...p, fechaInicio: v, fechaVencimiento: v ? diezDelMesSiguiente(v) : p.fechaVencimiento })) }} />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-muted-foreground">Vencimiento</label>
-                <input type="date" className="w-full bg-card border border-border text-base text-foreground px-3 py-3 outline-none focus:border-foreground/40 placeholder:text-foreground/45" value={formM.fechaVencimiento}
+                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-vence">Vencimiento</label>
+                <input id="m-vence" type="date" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 px-2.5" value={formM.fechaVencimiento}
                   onChange={e => setFormM(p => ({ ...p, fechaVencimiento: e.target.value }))} />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="mt-2 flex-col gap-2 sm:flex-col">
+          <div className="shrink-0 border-t border-border px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
             <button type="button" onClick={guardarModalAbono} disabled={guardandoM}
-              className="flex w-full items-center justify-center gap-2 bg-lime-400 px-5 py-4 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-40">
-              {guardandoM && <Loader2 className="h-4 w-4 animate-spin" />}
-              {guardandoM ? "Guardando..." : "Guardar abono"}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:opacity-40">
+              {guardandoM ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {guardandoM ? "Guardando..." : <>Guardar abono <Check className="h-4 w-4" strokeWidth={3} /></>}
             </button>
-            <button type="button" onClick={() => setModalAbono(false)} className="w-full py-2 text-sm font-black uppercase tracking-widest text-foreground/50">
-              Cancelar
-            </button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
