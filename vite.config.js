@@ -12,6 +12,12 @@ export default defineConfig({
     host: true,
     port: 5173,
     strictPort: true,
+    // Túneles para usar la app fuera de la red de casa:
+    // - ngrok con la dirección fija (ngrok http --url=crate-silica-silk.ngrok-free.dev 5173): la usan
+    //   también Mercado Pago (avisos de pago) y los links de los emails, vía FRONTEND_URL/BACKEND_URL.
+    // - Cloudflare rápido (cloudflared tunnel --url http://localhost:5173): dirección distinta cada vez.
+    // Solo se suman esas direcciones: Vite sigue rechazando cualquier otro dominio desconocido.
+    allowedHosts: ['crate-silica-silk.ngrok-free.dev', '.trycloudflare.com'],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
