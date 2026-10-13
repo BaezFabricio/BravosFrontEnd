@@ -6,11 +6,24 @@ const fetchOriginal = window.fetch.bind(window)
 window.fetch = (entrada, opciones = {}) => {
   const url = typeof entrada === "string" ? entrada : entrada?.url || ""
   const esApiPropia = url.startsWith("/") || url.startsWith("http://localhost:3001")
-  return fetchOriginal(entrada, esApiPropia && !opciones.credentials ? { ...opciones, credentials: "include" } : opciones)
+  const opcionesFinales = esApiPropia && !opciones.credentials ? { ...opciones, credentials: "include" } : opciones
+  // Túnel de ngrok (solo para pruebas): su pantalla de aviso tapa los pedidos de datos; este encabezado la saltea
+  if (url.startsWith("/") && /ngrok/i.test(location.hostname)) {
+    const encabezados = new Headers(opcionesFinales.headers || (typeof entrada !== "string" ? entrada.headers : undefined))
+    encabezados.set("ngrok-skip-browser-warning", "1")
+    return fetchOriginal(entrada, { ...opcionesFinales, headers: encabezados })
+  }
+  return fetchOriginal(entrada, opcionesFinales)
 }
 
 // Pide al servidor que borre la cookie de sesión (el navegador no puede borrarla por su cuenta).
-export function cerrarSesionEnServidor() {
+// Antes, este dispositivo deja de recibir las notificaciones push de la cuenta (se hace con la
+// sesión todavía abierta, porque el servidor solo borra dispositivos del usuario del token).
+export async function cerrarSesionEnServidor() {
+  try {
+    const { desactivarPushAlCerrarSesion } = await import("./push")
+    await desactivarPushAlCerrarSesion()
+  } catch { /* nunca impide cerrar la sesión */ }
   return fetch("/api/vv1/auth/logout", { method: "POST" }).catch(() => {})
 }
 

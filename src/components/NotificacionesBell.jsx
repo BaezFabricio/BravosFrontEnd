@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, Calendar, CheckCheck, CreditCard, Dumbbell, Info, X, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react'
 import apiClient from '@/api'
+import ActivarNotificaciones from '@/components/ActivarNotificaciones'
 
 const ICONOS_TIPO = {
   reserva: Calendar,
@@ -249,6 +250,9 @@ export default function NotificacionesBell() {
                 })
               )}
             </div>
+
+            {/* Avisos en el celular (notificaciones push) para este dispositivo */}
+            <ActivarNotificaciones />
           </div>
         )}
       </div>

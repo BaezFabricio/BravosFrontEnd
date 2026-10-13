@@ -12,15 +12,10 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Menu,
   X,
   Shield,
-  ClipboardCheck,
-  Dumbbell,
   ChevronDown,
-  Bell,
   Home,
-  User,
   BarChart3,
   MessageCircle,
 } from "lucide-react"
@@ -29,6 +24,8 @@ import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
+import InvitacionAvisos from "@/components/InvitacionAvisos"
+import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
 const GRUPOS = [
@@ -36,12 +33,6 @@ const GRUPOS = [
   { key: "gestion", titulo: "Gestión" },
   { key: "sistema", titulo: "Sistema" },
 ]
-
-// Título de cada grupo
-const TituloGrupo = ({ titulo }) =>
-  titulo ? (
-    <p className="px-3 pb-1 pt-4 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
-  ) : null
 
 const navigation = [
   { name: "Resumen", mobileLabel: "Inicio", href: "/admin", icon: LayoutDashboard, requiredPermission: "dashboard:consulta", grupo: "inicio" },
@@ -57,6 +48,7 @@ const navigation = [
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
   const [userData, setUserData] = useState({
     nombrecompleto: "Administrador",
     correo: "admin@bravos.com",
@@ -139,6 +131,12 @@ export default function AdminLayout({ children }) {
 
   const avatarFallback = getIniciales(userData.nombrecompleto)
 
+  // Opciones que el perfil puede ver (el servidor igual controla cada ruta)
+  const visibles = navigation.filter((item) =>
+    permisos.includes(item.requiredPermission) || permisos.includes(item.requiredPermission.replace(':consulta', ':ver')))
+  // "/admin" (Resumen) solo se marca en su propia página, no en todas las de adentro
+  const esActivo = (item) => item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/")
+
   const handleLogout = () => {
     cerrarSesionEnServidor()
     localStorage.removeItem("usuario")
@@ -150,26 +148,15 @@ export default function AdminLayout({ children }) {
   return (
     
     <div className="min-h-screen bg-background">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/50 dark:bg-black/50 z-40 lg:hidden"
-          style={{ top: 0 }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
+      {/* Menú lateral: solo en la computadora. En el celular se usa el desplegable de arriba a la derecha */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${
+        className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
-            <Link
-              to="/"
-              onClick={() => window.location.href = '/'}
-              className="flex items-center gap-3"
-            >
+            <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </Link>
@@ -179,19 +166,18 @@ export default function AdminLayout({ children }) {
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-0.5">
+            {/* Primero: volver al sitio público del box */}
+            <div className="mb-1 border-b border-sidebar-border pb-1">
+              <EnlacePaginaPrincipal />
+            </div>
             {GRUPOS.map((g) => {
-              const visibles = navigation.filter((item) =>
-                item.grupo === g.key &&
-                (permisos.includes(item.requiredPermission) ||
-                  permisos.includes(item.requiredPermission.replace(':consulta', ':ver')))
-              )
-              if (visibles.length === 0) return null
+              const delGrupo = visibles.filter((item) => item.grupo === g.key)
+              if (delGrupo.length === 0) return null
               return (
                 <div key={g.key} className="space-y-0.5">
                   <TituloGrupo titulo={g.titulo} />
-                  {visibles.map((item) => {
-                    // "/admin" (Resumen) solo se marca en su propia página, no en todas las de adentro
-                    const isActive = item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/")
+                  {delGrupo.map((item) => {
+                    const isActive = esActivo(item)
                     return (
                       <Link
                         key={item.name}
@@ -247,16 +233,17 @@ export default function AdminLayout({ children }) {
       <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
-            {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
-            {/* Celular: marca y a qué panel se entró */}
-            <Link to="/admin" aria-label="Ir al resumen" className="ml-2 flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 lg:hidden">
-              <span className="text-base font-black tracking-wide text-foreground">BRVS</span>
-              <span className="rounded-md bg-lime-400 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-black">Admin</span>
-            </Link>
+            {!sidebarOpen && (
+              <div className="hidden lg:block">
+                <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
+              </div>
+            )}
+            {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
+            <BotonPaginaPrincipal />
             <div className="flex-1" />
             
-            <div className="flex items-center gap-4">
-              
+            <div className="flex items-center gap-3">
+
               <ModeToggle />
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
                 <Home className="h-4 w-4" /> 
@@ -292,9 +279,27 @@ export default function AdminLayout({ children }) {
                   puedeAccederPanel={true}
                 />
               </div>
+
+              <HamburgerButton
+                isOpen={menuMovilAbierto}
+                onClick={() => setMenuMovilAbierto((v) => !v)}
+                className="lg:hidden text-foreground"
+              />
             </div>
           </div>
+
+          {/* Menú desplegable del celular: igual que en los paneles de alumno y profesor */}
+          <MenuMovil
+            abierto={menuMovilAbierto}
+            onCerrar={() => setMenuMovilAbierto(false)}
+            grupos={GRUPOS}
+            items={visibles}
+            esActivo={esActivo}
+            onLogout={handleLogout}
+          />
         </header>
+
+        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
         <main className="p-4 lg:p-6 pb-20 lg:pb-6">
           {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
           {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
@@ -307,11 +312,10 @@ export default function AdminLayout({ children }) {
         {/* Mobile Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
           <div className="flex items-center justify-around">
-            {navigation
-              .filter(item => permisos.includes(item.requiredPermission) || permisos.includes(item.requiredPermission.replace(':consulta', ':ver')))
+            {visibles
               .slice(0, 5)
               .map(item => {
-                const isActive = item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/")
+                const isActive = esActivo(item)
                 return (
                   <Link
                     key={item.name}
@@ -329,6 +333,8 @@ export default function AdminLayout({ children }) {
       </div>
 
       <BravoChat rol="admin" />
+      {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
+      <InvitacionAvisos />
     </div>
   )
 }

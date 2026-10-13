@@ -10,13 +10,12 @@ import {
   LogOut,
   User,
   Clock,
-  Phone,
   Mail,
   AtSign
 } from 'lucide-react'
 
+import { MessageCircle, ArrowRight, MoveHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import UserMenu from '@/components/UserMenu'
@@ -30,12 +29,6 @@ const navigation = [
   { name: 'CONTACTO', href: '#contacto', hasDropdown: false },
 ]
 
-const defaultHeroImages = [
-  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1920', 
-  'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1920', 
-  'https://images.unsplash.com/photo-1571731956672-f2b94d7db0cb?q=80&w=1920'  
-]
-
 // En el celular la foto horizontal se recorta a los costados: para algunas fotos se elige qué parte
 // queda a la vista (posición horizontal). Se reconocen por el nombre del archivo en Cloudinary.
 const ENFOQUE_MOVIL = {
@@ -46,6 +39,38 @@ const enfoqueMovil = (url) => {
   return clave ? ENFOQUE_MOVIL[clave] : undefined
 }
 
+/*
+ * Horarios de atención: se cargan en Configuración como texto libre ("Lun-Vie: 6:00 - 22:00",
+ * "Domingo: Cerrado"). Se separan en etiqueta y valor, y si se puede leer el rango de horas se
+ * calcula si el box está abierto ahora. Si el texto no se entiende, no se muestra nada de eso.
+ */
+function leerHorario(texto) {
+  if (!texto) return null
+  const i = texto.indexOf(':')
+  const conEtiqueta = i > 0 && !/^\s*\d/.test(texto)
+  const etiqueta = conEtiqueta ? texto.slice(0, i).trim() : ''
+  const valor = (conEtiqueta ? texto.slice(i + 1) : texto).trim()
+  if (/cerrado/i.test(valor)) return { etiqueta, valor, cerrado: true }
+  const m = valor.match(/(\d{1,2})(?::(\d{2}))?\s*(?:a|-|–|hasta)\s*(\d{1,2})(?::(\d{2}))?/i)
+  const rango = m ? { desde: +m[1] * 60 + +(m[2] || 0), hasta: +m[3] * 60 + +(m[4] || 0) } : null
+  return { etiqueta, valor, rango }
+}
+
+// true / false si se puede saber con los horarios cargados; null si no
+function estaAbiertoAhora(semana, sabado, domingo) {
+  const ahora = new Date()
+  const dia = ahora.getDay()
+  const hoy = leerHorario(dia === 0 ? domingo : dia === 6 ? sabado : semana)
+  if (!hoy) return null
+  if (hoy.cerrado) return false
+  if (!hoy.rango) return null
+  const minutos = ahora.getHours() * 60 + ahora.getMinutes()
+  return minutos >= hoy.rango.desde && minutos < hoy.rango.hasta
+}
+
+// Nivel de las tarjetas de clases, escrito completo
+const NIVELES = { TODOS: 'Todos los niveles', 'INT/AVZ': 'Intermedio y avanzado' }
+
 function LandingPage() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -53,7 +78,7 @@ function LandingPage() {
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [heroImages, setHeroImages] = useState(defaultHeroImages)
+  const [heroImages, setHeroImages] = useState([]) // sin fotos de relleno: hasta que llegan las reales se ve el skeleton
   const [titulo, setTitulo] = useState('Centro de Entrenamiento')
   const [logoUrl, setLogoUrl] = useState(null)
   const [logoFailed, setLogoFailed] = useState(false)
@@ -87,6 +112,8 @@ function LandingPage() {
   const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaVisible, setMapaVisible] = useState(false)
+  const [filtroClase, setFiltroClase] = useState('todas') // "todas" o el índice de la tarjeta
+  const [estadisticas, setEstadisticas] = useState(null) // cifras reales del box (solo cantidades)
   const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
 
   // Submenú de CLASES: una entrada por tarjeta, con el mismo nombre, que lleva a esa tarjeta
@@ -109,15 +136,19 @@ function LandingPage() {
   // 🟢 ESTADOS DE HORARIOS SCONECTADOS
   const [clasesBackend, setClasesBackend] = useState([])
   const [loadingHorarios, setLoadingHorarios] = useState(true)
-  const [diaSeleccionado, setDiaSeleccionado] = useState('LUNES')
+  // Arranca en el día de hoy (el domingo no hay clases: arranca en el lunes)
+  const [diaSeleccionado, setDiaSeleccionado] = useState(() => {
+    const hoy = ['LUNES', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'][new Date().getDay()]
+    return hoy
+  })
 
   const diasSemanaMapeo = [
-    { label: 'LUNES', value: 'LUNES' },
-    { label: 'MARTES', value: 'MARTES' },
-    { label: 'MIÉRCOLES', value: 'MIERCOLES' }, 
-    { label: 'JUEVES', value: 'JUEVES' },
-    { label: 'VIERNES', value: 'VIERNES' },
-    { label: 'SÁBADO', value: 'SABADO' }
+    { label: 'LUNES', corto: 'LUN', value: 'LUNES' },
+    { label: 'MARTES', corto: 'MAR', value: 'MARTES' },
+    { label: 'MIÉRCOLES', corto: 'MIÉ', value: 'MIERCOLES' },
+    { label: 'JUEVES', corto: 'JUE', value: 'JUEVES' },
+    { label: 'VIERNES', corto: 'VIE', value: 'VIERNES' },
+    { label: 'SÁBADO', corto: 'SÁB', value: 'SABADO' }
   ]
 
   useEffect(() => {
@@ -172,8 +203,14 @@ function LandingPage() {
 
     window.addEventListener("avatar-updated", handleAvatarUpdated)
 
-    fetch(`/landing/config?t=${new Date().getTime()}`)
-      .then((res) => res.json())
+    // Si la configuración no llega (servidor caído, conexión lenta o un error), NO se muestra la página con
+    // datos de relleno: sigue el skeleton y se vuelve a intentar solo (2 s, 4 s, 8 s… hasta 15 s entre intentos).
+    let reintento = null
+    const cargarConfig = (intento = 0) => fetch(`/landing/config?t=${new Date().getTime()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`La configuración respondió ${res.status}`)
+        return res.json()
+      })
       .then((data) => {
         if (!isMounted) return
         if (data?.tituloHero) setTitulo(data.tituloHero)
@@ -221,18 +258,18 @@ function LandingPage() {
         if (data?.whatsapp) setWhatsapp(data.whatsapp)
         if (data?.email) setEmailContacto(data.email)
         if (data?.instagram) setInstagram(data.instagram)
+        if (data?.estadisticas) setEstadisticas(data.estadisticas)
         if (data?.horario_semana) setHorarioSemana(data.horario_semana)
         if (data?.horario_sabado) setHorarioSabado(data.horario_sabado)
         if (data?.horario_domingo) setHorarioDomingo(data.horario_domingo)
         if (data?.mapaUrl) setMapaUrl(data.mapaUrl)
+        setConfigLoaded(true) // recién ahora se muestra la página
       })
       .catch((err) => {
-        console.error('Error al cargar config desde el admin:', err)
-        if (isMounted) setHeroImages(defaultHeroImages)
+        console.error('No se pudo cargar la configuración, se reintenta:', err)
+        if (isMounted) reintento = setTimeout(() => cargarConfig(intento + 1), Math.min(2000 * 2 ** intento, 15000))
       })
-      .finally(() => {
-        if (isMounted) setConfigLoaded(true)
-      })
+    cargarConfig()
     fetch("/api/vv1/clases/disponibles")
       .then((res) => res.json())
       .then((result) => {
@@ -251,6 +288,7 @@ function LandingPage() {
 
     return () => {
       isMounted = false
+      if (reintento) clearTimeout(reintento)
       window.removeEventListener("avatar-updated", handleAvatarUpdated)
     }
   }, [])
@@ -342,7 +380,7 @@ function LandingPage() {
                   <img
                     src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
                     alt="Box Bravos"
-                    className={`block h-auto w-auto max-h-[60px] max-w-[180px] object-contain ${logoImgLoaded ? '' : 'hidden'}`}
+                    className={`block h-auto w-auto max-h-[34px] max-w-[120px] object-contain sm:max-h-[48px] sm:max-w-[150px] lg:max-h-[60px] lg:max-w-[180px] ${logoImgLoaded ? '' : 'hidden'}`}
                     onLoad={() => setLogoImgLoaded(true)}
                     onError={() => setLogoFailed(true)}
                     ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
@@ -453,77 +491,78 @@ function LandingPage() {
         </div>
 
         {mobileMenuOpen && (
-          // Menú del celular a pantalla completa: arriba las secciones del sitio, abajo la cuenta
-          <div className="fixed inset-x-0 top-[66px] bottom-0 flex flex-col overflow-y-auto overscroll-contain bg-black lg:hidden">
-            <nav aria-label="Secciones del sitio" className="px-6 pt-4">
-              <ul>
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    {item.hasDropdown ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setClasesAbiertas((v) => !v)}
-                          aria-expanded={clasesAbiertas}
-                          className="flex min-h-[52px] w-full items-center justify-between text-left text-xl font-black tracking-wide text-white transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
-                        >
+          // Menú del celular: se despliega hacia abajo (no ocupa toda la pantalla) y se cierra tocando afuera
+          <>
+            <div className="fixed inset-x-0 top-[66px] bottom-0 z-30 bg-black/60 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+            <div className="fixed inset-x-0 top-[66px] z-40 max-h-[calc(100svh-66px)] overflow-y-auto overscroll-contain border-b border-white/10 bg-black shadow-2xl lg:hidden">
+              <nav aria-label="Secciones del sitio" className="px-4 py-2">
+                <ul>
+                  {navigation.map((item) => (
+                    <li key={item.name}>
+                      {item.hasDropdown ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setClasesAbiertas((v) => !v)}
+                            aria-expanded={clasesAbiertas}
+                            className="flex min-h-[44px] w-full items-center justify-between rounded-lg px-2 text-left text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none"
+                          >
+                            {item.name}
+                            <ChevronDown className={`h-4 w-4 text-white/40 transition-transform ${clasesAbiertas ? 'rotate-180 text-bravos-green' : ''}`} aria-hidden="true" />
+                          </button>
+                          {clasesAbiertas && (
+                            <ul className="pb-1 pl-3">
+                              {subItemsClases.map((subItem) => (
+                                <li key={subItem.href}>
+                                  <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[38px] items-center px-2 text-[13px] font-medium text-white/60 transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
+                                    {subItem.name}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      ) : (
+                        <a href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[44px] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
                           {item.name}
-                          <ChevronDown className={`h-5 w-5 text-white/40 transition-transform ${clasesAbiertas ? 'rotate-180 text-lime-400' : ''}`} aria-hidden="true" />
-                        </button>
-                        {clasesAbiertas && (
-                          <ul className="pb-2">
-                            {subItemsClases.map((subItem) => (
-                              <li key={subItem.href}>
-                                <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[40px] items-center text-[15px] font-medium text-white/60 transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none">
-                                  {subItem.name}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </>
-                    ) : (
-                      <a href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[52px] items-center text-xl font-black tracking-wide text-white transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none">
-                        {item.name}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
 
-            <div className="mt-auto border-t border-white/10 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
-              {!isLoggedIn ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex h-12 items-center justify-center rounded-lg border border-white/25 text-sm font-bold tracking-wider text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    INGRESAR
-                  </Link>
-                  <Link to="/registro" onClick={() => setMobileMenuOpen(false)} className="flex h-12 items-center justify-center rounded-lg bg-accent text-sm font-black tracking-wider text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    UNIRSE
-                  </Link>
-                </div>
-              ) : (
-                <>
+              <div className="border-t border-white/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+                {!isLoggedIn ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex h-11 items-center justify-center rounded-lg border border-white/25 text-xs font-bold tracking-wider text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bravos-green">
+                      INGRESAR
+                    </Link>
+                    <Link to="/registro" onClick={() => setMobileMenuOpen(false)} className="flex h-11 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-wider text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bravos-green">
+                      UNIRSE
+                    </Link>
+                  </div>
+                ) : (
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-sm font-black text-black">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bravos-green text-sm font-black text-black">
                       {avatarUrl
                         ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                         : (userData.nombrecompleto || '?').trim().charAt(0).toUpperCase()}
                     </div>
                     <p className="min-w-0 flex-1 truncate text-sm font-bold capitalize text-white">{userData.nombrecompleto}</p>
+                    <button
+                      type="button"
+                      onClick={() => { setMobileMenuOpen(false); handleLogout() }}
+                      className="flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-3 text-xs font-bold text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    >
+                      <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+                      CERRAR SESIÓN
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { setMobileMenuOpen(false); handleLogout() }}
-                    className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-red-600 text-sm font-bold text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                  >
-                    <LogOut className="h-4 w-4" aria-hidden="true" />
-                    CERRAR SESIÓN
-                  </button>
-                </>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </header>
 
@@ -574,7 +613,7 @@ function LandingPage() {
             </div>
 
             {/* Logo */}
-            <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[9px]">
+            <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[2px]">
               {showLogoSkeleton && (
                 <div className="h-full w-[220px] bg-white/5 animate-pulse rounded" />
               )}
@@ -650,14 +689,26 @@ function LandingPage() {
               ? <p className="mt-4 text-lg leading-relaxed text-foreground/70">{mision}</p>
               : <p className="mt-4 text-lg leading-relaxed text-foreground/70">Nuestro Box cuenta con equipamiento Rogue Fitness de primera línea y coaches certificados que te guiarán en cada paso de tu transformación.</p>
             }
-            <div className="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-4">
-              {[{ value: '500+', label: 'ATLETAS' }, { value: '15', label: 'COACHES' }, { value: '50+', label: 'CLASES/SEM' }, { value: '5', label: 'AÑOS' }].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-3xl font-black text-accent sm:text-4xl">{stat.value}</div>
-                  <div className="mt-1 text-xs font-semibold tracking-wider text-foreground/50 sm:text-sm">{stat.label}</div>
+            {(() => {
+              // Solo cifras reales y mayores a cero; si no hay ninguna, no se muestra el bloque
+              const n = (v, uno, varios) => (v === 1 ? uno : varios)
+              const cifras = estadisticas ? [
+                { value: estadisticas.atletas, label: n(estadisticas.atletas, 'ATLETA ACTIVO', 'ATLETAS ACTIVOS') },
+                { value: estadisticas.coaches, label: n(estadisticas.coaches, 'COACH', 'COACHES') },
+                { value: estadisticas.clasesPorSemana, label: n(estadisticas.clasesPorSemana, 'CLASE POR SEMANA', 'CLASES POR SEMANA') },
+              ].filter((c) => c.value > 0) : []
+              if (cifras.length === 0) return null
+              return (
+                <div className="mt-10 flex flex-wrap gap-x-10 gap-y-6">
+                  {cifras.map((stat) => (
+                    <div key={stat.label}>
+                      <div className="text-3xl font-black text-accent sm:text-4xl">{stat.value}</div>
+                      <div className="mt-1 text-xs font-semibold tracking-wider text-foreground/50 sm:text-sm">{stat.label}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )
+            })()}
           </div>
         </div>
       </section>
@@ -665,22 +716,54 @@ function LandingPage() {
       {/* SECCIÓN CLASES */}
       <section id="clases" className="bg-zinc-950 py-12 md:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {claseCards.map((clase, idx) => (
-              <div key={idx} id={`clase-${idx + 1}`} className="group relative aspect-[4/5] scroll-mt-20 cursor-pointer overflow-hidden">
-                <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" containerClassName="h-full w-full absolute inset-0" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                <div className="absolute inset-0 flex flex-col justify-end p-6">
-                  <h3 className="text-2xl font-black text-foreground">{clase.titulo.toUpperCase()}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-foreground/70">{clase.descripcion}</p>
-                  <div className="mt-4 flex items-center gap-4 text-xs font-semibold">
-                    <span className="bg-accent px-2 py-1 text-accent-foreground">{clase.duration}</span>
-                    <span className="text-foreground/60">{clase.level}</span>
-                  </div>
-                </div>
-              </div>
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-accent">Entrenamiento guiado</p>
+              <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
+            </div>
+            {filtroClase === 'todas' && claseCards.length > 1 && (
+              <span className="flex shrink-0 items-center gap-1 pb-1 text-xs text-white/50 md:hidden">
+                Deslizar <MoveHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            )}
+          </div>
+
+          {/* Filtro por disciplina */}
+          <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0" role="group" aria-label="Filtrar clases">
+            {[{ id: 'todas', texto: 'Todas' }, ...claseCards.map((c, i) => ({ id: i, texto: c.titulo }))].map(({ id, texto }) => (
+              <button key={id} type="button" onClick={() => setFiltroClase(id)} aria-pressed={filtroClase === id}
+                className={`min-h-[38px] shrink-0 rounded-md border px-4 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  filtroClase === id ? 'border-accent bg-accent text-black' : 'border-white/15 bg-white/5 text-white/75 hover:border-white/30'
+                }`}>
+                {texto}
+              </button>
             ))}
+          </div>
+
+          {/* Celular: tarjetas que se deslizan de costado. Computadora: las tres juntas */}
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
+            {claseCards.map((clase, idx) => {
+              if (filtroClase !== 'todas' && filtroClase !== idx) return null
+              const nivel = NIVELES[clase.level] || clase.level
+              return (
+                <article key={idx} id={`clase-${idx + 1}`}
+                  className={`flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
+                  <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                    {/* Foto completa (sin recortar); lo que sobra se rellena con la misma foto desenfocada */}
+                    {clase.image && <img src={clase.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl" />}
+                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-contain" containerClassName="h-full w-full absolute inset-0" />
+                    <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+                      {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
+                      {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <h3 className="text-xl font-black uppercase text-white">{clase.titulo}</h3>
+                    <p className="mt-2 line-clamp-4 flex-1 text-sm leading-relaxed text-white/65">{clase.descripcion}</p>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -688,51 +771,58 @@ function LandingPage() {
       {/* 🟢 SECCIÓN HORARIOS: 100% SCONECTADA Y FUNCIONANDO EN PARALELO */}
       <section id="horarios" className="relative py-12 md:py-16">
         <div className="absolute inset-0">
-          <img src="/landing-hero-2.jpg" alt="Training" className="h-full w-full object-cover" />
+          {/* Fondo decorativo: sin texto alternativo, y si el archivo no está se oculta (antes aparecía la palabra "Training") */}
+          <img src="/landing-hero-2.jpg" alt="" aria-hidden="true" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
           <div className="absolute inset-0 bg-black/90" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
-          <p className="mb-10 max-w-2xl text-foreground/60">Contamos con clases de lunes a sábado. Elige el horario que mejor se adapte a tu rutina.</p>
-          
-          <div className="mb-8 flex flex-wrap gap-2">
-            {diasSemanaMapeo.map((day) => (
-              <button
-                key={day.value}
-                type="button"
-                onClick={() => setDiaSeleccionado(day.value)}
-                className={`px-4 py-2 text-sm font-bold tracking-wide transition-all border ${
-                  diaSeleccionado === day.value
-                    ? "bg-white text-black border-white"
-                    : "bg-foreground/5 text-foreground/70 border-border hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {day.label}
-              </button>
-            ))}
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent">Calendario activo</p>
+          <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
+          <p className="mb-5 mt-2 max-w-2xl text-sm text-white/60">Tocá un día para ver los turnos.</p>
+
+          {/* Días: una sola fila, pareja, en el celular */}
+          <div className="mb-6 grid grid-cols-6 gap-1.5 sm:flex sm:flex-wrap sm:gap-2" role="group" aria-label="Día de la semana">
+            {diasSemanaMapeo.map((day) => {
+              const elegido = diaSeleccionado === day.value
+              return (
+                <button
+                  key={day.value}
+                  type="button"
+                  onClick={() => setDiaSeleccionado(day.value)}
+                  aria-pressed={elegido}
+                  aria-label={day.label}
+                  className={`min-h-[44px] rounded-md border text-xs font-black tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5 ${
+                    elegido
+                      ? 'border-accent bg-accent text-black'
+                      : 'border-border bg-white/5 text-white/75 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  <span className="sm:hidden">{day.corto}</span>
+                  <span className="hidden sm:inline">{day.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {loadingHorarios ? (
-            <p className="text-sm text-foreground/40 animate-pulse">Sincronizando grilla de disciplinas...</p>
+            <p className="text-sm text-white/40 animate-pulse">Cargando los turnos…</p>
           ) : clasesVisibles.length === 0 ? (
-            <div className="border border-white/5 bg-foreground/5 rounded-md p-6 text-center">
-              <p className="text-sm text-foreground/40">No hay turnos programados para los días {diaSeleccionado.toLowerCase()}.</p>
+            <div className="rounded-md border border-border bg-white/5 p-6 text-center">
+              <p className="text-sm text-white/50">No hay turnos los {diasSemanaMapeo.find((d) => d.value === diaSeleccionado)?.label.toLowerCase()}.</p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {clasesVisibles.map((item) => (
-                <div key={item.idHorario} className="border border-border bg-foreground/5 p-4 transition-colors hover:bg-white/10">
-                  <div className="text-lg font-bold text-accent">
-                    {item.horaInicio ? item.horaInicio.slice(0, 5) : "00:00"} - {item.horaFin ? item.horaFin.slice(0, 5) : "00:00"} Hs
+                <div key={item.idHorario} className="flex items-center gap-4 rounded-md border border-border bg-foreground/5 p-4 transition-colors hover:border-white/25">
+                  <div className="shrink-0 text-center">
+                    <p className="text-lg font-black leading-none tabular-nums text-accent">{item.horaInicio ? item.horaInicio.slice(0, 5) : '--:--'}</p>
+                    <p className="mt-1 text-[11px] tabular-nums text-white/45">a {item.horaFin ? item.horaFin.slice(0, 5) : '--:--'}</p>
                   </div>
-                  <div className="mt-1 font-bold text-foreground uppercase">{item.nombreClase || "Clase"}</div>
-                  
-                  {/* 🟢 Renderiza únicamente el nombre del profesor puro si existe en la base de datos */}
-                  {item.nombreProfesor && (
-                    <div className="mt-1 text-sm text-foreground/50">
-                      {item.nombreProfesor}
-                    </div>
-                  )}
+                  <div className="h-10 w-px shrink-0 bg-white/10" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="truncate font-black uppercase text-white">{item.nombreClase || 'Clase'}</p>
+                    {item.nombreProfesor && <p className="truncate text-sm text-white/55">{item.nombreProfesor}</p>}
+                  </div>
                 </div>
               ))}
             </div>
@@ -741,71 +831,100 @@ function LandingPage() {
       </section>
 
       {/* SECCIÓN CONTACTO */}
-      <section id="contacto" className="py-12 bg-background text-foreground">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-bravos-green mb-8 uppercase">Encontranos</h2>
+      <section id="contacto" className="bg-zinc-950 py-12 text-white md:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-[11px] font-black uppercase tracking-widest text-accent">Contacto directo</p>
+          <h2 className="mb-6 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl">Encontranos</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
             {/* Columna de info */}
-            <div className="space-y-6">
-              {direccion && (
-                <div className="flex items-start gap-4">
-                  <MapPin className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-base mb-1 uppercase">Dirección</h3>
-                    <p className="text-muted-foreground">{direccion}</p>
-                  </div>
-                </div>
-              )}
-              {(horarioSemana || horarioSabado || horarioDomingo) && (
-                <div className="flex items-start gap-4">
-                  <Clock className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-base mb-1 uppercase">Horarios</h3>
-                    {horarioSemana && <p className="text-muted-foreground text-sm">{horarioSemana}</p>}
-                    {horarioSabado && <p className="text-muted-foreground text-sm">{horarioSabado}</p>}
-                    {horarioDomingo && <p className="text-muted-foreground text-sm">{horarioDomingo}</p>}
-                  </div>
-                </div>
-              )}
-              {telefono && (
-                <div className="flex items-start gap-4">
-                  <Phone className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-base mb-1 uppercase">Teléfono / WhatsApp</h3>
-                    <p className="text-muted-foreground">{telefono}</p>
-                  </div>
-                </div>
-              )}
-              {emailContacto && (
-                <div className="flex items-start gap-4">
-                  <Mail className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-base mb-1 uppercase">Email</h3>
-                    <p className="text-muted-foreground">{emailContacto}</p>
-                  </div>
-                </div>
-              )}
-              {instagram && (
-                <div className="flex items-start gap-4">
-                  <AtSign className="h-6 w-6 text-bravos-green shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-bold text-base mb-1 uppercase">Instagram</h3>
-                    <p className="text-muted-foreground">@{instagram.replace(/^@/, '')}</p>
-                  </div>
-                </div>
-              )}
+            <div className="space-y-3">
+              {/* Dirección, horarios y demás datos */}
+              <div className="divide-y divide-white/10 overflow-hidden rounded-md border border-border bg-foreground/5">
+                {direccion && (() => {
+                  const [calle, ...resto] = direccion.split(',')
+                  return (
+                    <div className="flex items-start gap-3 p-4">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><MapPin className="h-4 w-4" aria-hidden="true" /></span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Dirección</p>
+                        <p className="font-bold text-white">{calle.trim()}</p>
+                        <p className="text-sm text-white/55">{resto.join(',').trim() || 'Formosa, Argentina'}</p>
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {(horarioSemana || horarioSabado || horarioDomingo) && (() => {
+                  const filas = [horarioSemana, horarioSabado, horarioDomingo].map(leerHorario).filter(Boolean)
+                  const abierto = estaAbiertoAhora(horarioSemana, horarioSabado, horarioDomingo)
+                  return (
+                    <div className="flex items-start gap-3 p-4">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Clock className="h-4 w-4" aria-hidden="true" /></span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Horarios del box</p>
+                          {abierto !== null && (
+                            <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+                              abierto ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/15 bg-white/5 text-white/60'
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${abierto ? 'bg-accent' : 'bg-white/40'}`} aria-hidden="true" />
+                              {abierto ? 'Abierto ahora' : 'Cerrado ahora'}
+                            </span>
+                          )}
+                        </div>
+                        <dl className="mt-2 space-y-1">
+                          {filas.map((f, i) => (
+                            <div key={i} className="flex items-baseline justify-between gap-3 text-sm">
+                              {f.etiqueta && <dt className="text-white/80">{f.etiqueta}</dt>}
+                              <dd className={`ml-auto text-right font-bold tabular-nums ${f.cerrado ? 'font-normal text-white/45' : 'text-white'}`}>{f.valor}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {whatsappDigitos && (
+                  <a href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><MessageCircle className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">WhatsApp</span>
+                      <span className="block truncate text-sm font-bold text-white">+{whatsappDigitos.replace(/^549/, '54 ')}</span>
+                    </span>
+                  </a>
+                )}
+                {emailContacto && (
+                  <a href={`mailto:${emailContacto}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Mail className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Email</span>
+                      <span className="block truncate text-sm font-bold text-white">{emailContacto}</span>
+                    </span>
+                  </a>
+                )}
+                {instagram && (
+                  <a href={`https://instagram.com/${instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><AtSign className="h-4 w-4" aria-hidden="true" /></span>
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Instagram</span>
+                      <span className="block truncate text-sm font-bold text-white">@{instagram.replace(/^@/, '')}</span>
+                    </span>
+                  </a>
+                )}
+              </div>
             </div>
 
-            {/* Columna de Mapa */}
-            <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-lg">
+            {/* Columna de Mapa (en el celular va debajo de los datos) */}
+            <div className="h-[280px] w-full overflow-hidden rounded-md border border-border shadow-lg md:h-[360px]">
               {!mapaVisible ? (
                 <button
                   type="button"
                   onClick={() => setMapaVisible(true)}
                   className="flex h-full w-full flex-col items-center justify-center gap-3 bg-muted/40 px-6 text-center transition-colors hover:bg-muted/70"
                 >
-                  <MapPin className="h-10 w-10 text-bravos-green" />
+                  <MapPin className="h-10 w-10 text-accent" />
                   <span className="text-sm font-black uppercase tracking-widest text-foreground">Ver mapa</span>
                   <span className="max-w-xs text-xs text-foreground/50">
                     El mapa lo muestra Google Maps, que puede guardar cookies propias.
@@ -829,24 +948,37 @@ function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-border bg-black py-8">
+      <footer className="border-t border-border bg-black py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
-            <nav aria-label="Información legal" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/60">
+          <div className="flex flex-col items-center gap-5 text-center">
+            <div className="flex flex-col items-center gap-2">
+              {/* El mismo logo del encabezado (se carga en Configuración → Portada y logo) */}
+              {logoUrl && !logoFailed ? (
+                <img
+                  src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
+                  alt="Bravos Box"
+                  loading="lazy"
+                  className="block h-auto max-h-[64px] w-auto max-w-[200px] object-contain"
+                />
+              ) : (
+                <span className="text-xl font-black uppercase tracking-tight text-white">Bravos Box</span>
+              )}
+              <p className="text-xs text-white/50">Centro de entrenamiento funcional y CrossFit · Formosa</p>
+            </div>
+            <nav aria-label="Información legal" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/65">
               <Link to="/terminos" className="hover:text-white">Términos y condiciones</Link>
               <Link to="/privacidad" className="hover:text-white">Privacidad</Link>
               <Link to="/cookies" className="hover:text-white">Cookies</Link>
               <Link to="/reembolsos" className="hover:text-white">Reembolsos</Link>
-              <Link
-                to="/arrepentimiento"
-                className="rounded border border-white/40 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white hover:border-bravos-green hover:text-bravos-green"
-              >
-                Botón de arrepentimiento
-              </Link>
             </nav>
+            <Link
+              to="/arrepentimiento"
+              className="flex min-h-[44px] items-center rounded-md border border-white/25 bg-white/5 px-5 text-xs font-black uppercase tracking-wider text-white transition-colors hover:border-accent hover:text-accent"
+            >
+              Botón de arrepentimiento
+            </Link>
           </div>
-          <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/40 md:flex-row">
+          <div className="mt-8 flex flex-col items-center gap-2 border-t border-border pt-6 text-center text-xs text-white/40">
             <p>2026 Bravos Box. Todos los derechos reservados.</p>
             <a
               href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario"

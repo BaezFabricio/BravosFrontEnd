@@ -10,15 +10,10 @@ import {
   CreditCard,
   User,
   LogOut,
-  Menu,
   X,
   ChevronDown,
-  Bell,
   ShieldAlert,
   Home,
-  Shield,
-  Dumbbell,
-  ClipboardCheck,
   FolderOpen,
   Trophy,
   Calculator,
@@ -31,6 +26,8 @@ import NotificacionesBell from "@/components/NotificacionesBell"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
 import BravoChat from "@/components/BravoChat"
+import InvitacionAvisos from "@/components/InvitacionAvisos"
+import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
 const GRUPOS = [
@@ -51,11 +48,9 @@ const navigation = [
   { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true, grupo: "cuenta" },
 ]
 
-// Título de cada grupo (mismo estilo en el menú lateral y en el desplegable del celular)
-const TituloGrupo = ({ titulo }) =>
-  titulo ? (
-    <p className="px-3 pb-1 pt-4 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
-  ) : null
+// "/alumno" (Dashboard) solo se marca en su propia página, no en todas las de adentro
+const esActivo = (item, pathname) =>
+  item.href === "/alumno" ? pathname === "/alumno" : pathname === item.href || pathname.startsWith(item.href + "/")
 
 export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
@@ -178,7 +173,7 @@ export default function AlumnoLayout({ children }) {
       <aside className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
-            <Link to="/alumno" className="flex items-center gap-3">
+            <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </Link>
@@ -188,11 +183,15 @@ export default function AlumnoLayout({ children }) {
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-0.5">
+            {/* Primero: volver al sitio público del box */}
+            <div className="mb-1 border-b border-sidebar-border pb-1">
+              <EnlacePaginaPrincipal />
+            </div>
             {GRUPOS.map((g) => (
               <div key={g.key} className="space-y-0.5">
                 <TituloGrupo titulo={g.titulo} />
                 {navigation.filter((item) => item.grupo === g.key).map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              const isActive = esActivo(item, pathname)
               return (
                 <Link
                   key={item.name}
@@ -238,9 +237,8 @@ export default function AlumnoLayout({ children }) {
                 <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
               </div>
             )}
-            <Link to="/inicio" className="lg:hidden" aria-label="Ir a la página principal">
-              <img src="/logo.jpg" alt="Bravos Box" width={36} height={36} className="rounded-lg" />
-            </Link>
+            {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
+            <BotonPaginaPrincipal />
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               
@@ -285,62 +283,22 @@ export default function AlumnoLayout({ children }) {
           </div>
 
           {/* Menú desplegable del celular: se abre hacia abajo desde el botón de arriba a la derecha */}
-          <div
-            className={`lg:hidden absolute left-0 right-0 top-full overflow-hidden border-b border-border bg-sidebar shadow-lg transition-all duration-300 ease-out ${
-              menuMovilAbierto ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0 pointer-events-none border-transparent"
-            }`}
-            aria-hidden={!menuMovilAbierto}
-          >
-            <nav className="max-h-[80vh] overflow-y-auto px-3 py-3 space-y-0.5">
-              {GRUPOS.map((g) => (
-                <div key={g.key} className="space-y-0.5">
-                  <TituloGrupo titulo={g.titulo} />
-                  {navigation.filter((item) => item.grupo === g.key).map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setMenuMovilAbierto(false)}
-                    tabIndex={menuMovilAbierto ? 0 : -1}
-                    className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
-                      isActive
-                        ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                        : "px-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                    }`}
-                  >
-                    <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
-                    {item.name}
-                  </Link>
-                )
-                  })}
-                </div>
-              ))}
-              {/* Cerrar sesión, separado del resto para no tocarlo sin querer */}
-              <div className="mt-2 border-t border-sidebar-border pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setMenuMovilAbierto(false); handleLogout() }}
-                  tabIndex={menuMovilAbierto ? 0 : -1}
-                  className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
-                >
-                  <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  Cerrar sesión
-                </button>
-              </div>
-            </nav>
-          </div>
+          <MenuMovil
+            abierto={menuMovilAbierto}
+            onCerrar={() => setMenuMovilAbierto(false)}
+            grupos={GRUPOS}
+            items={navigation}
+            esActivo={(item) => esActivo(item, pathname)}
+            onLogout={handleLogout}
+          />
         </header>
 
-        {/* Toca fuera del menú del celular para cerrarlo */}
-        {menuMovilAbierto && (
-          <div className="lg:hidden fixed inset-0 z-10" onClick={() => setMenuMovilAbierto(false)} />
-        )}
+        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
 
         <main className="p-4 lg:p-6 pb-28 lg:pb-6">
           {validandoAcceso ? (
-            <div className="flex items-center justify-center min-h-[50vh]">
-              <p className="text-sm text-muted-foreground animate-pulse">Sincronizando credenciales de acceso con Bravos Box...</p>
+            <div className="flex items-center justify-center min-h-[50vh]" role="status" aria-label="Cargando">
+              <div className="h-10 w-10 rounded-full border-4 border-accent/20 border-t-accent animate-spin" />
             </div>
           ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
@@ -380,7 +338,7 @@ export default function AlumnoLayout({ children }) {
               const mitad = Math.ceil(items.length / 2)
               return [...items.slice(0, mitad), centro, ...items.slice(mitad)]
             })().map((item) => {
-              const isActive = item.href === "/alumno" ? pathname === "/alumno" : (pathname === item.href || pathname.startsWith(item.href + "/"))
+              const isActive = esActivo(item, pathname)
               if (item.centro) {
                 return (
                   <Link key={item.name} to={item.href} className="flex flex-1 min-w-0 flex-col items-center gap-1 pb-2">
@@ -407,6 +365,8 @@ export default function AlumnoLayout({ children }) {
       </div>
 
       <BravoChat rol="alumno" />
+      {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
+      <InvitacionAvisos />
     </div>
   )
 }

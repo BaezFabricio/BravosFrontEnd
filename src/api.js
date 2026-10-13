@@ -75,6 +75,16 @@ const apiClient = axios.create({
   withCredentials: true, // la sesión viaja en una cookie httpOnly
 })
 
+// Túnel de ngrok (solo para pruebas desde el celular): la versión gratis contesta con una pantalla de
+// aviso a todo pedido que parece de un navegador. Este encabezado le dice que lo deje pasar.
+// Solo en pedidos a este mismo sitio y solo cuando se entra por ngrok; en producción no hace nada.
+apiClient.interceptors.request.use((config) => {
+  if (typeof location !== 'undefined' && /ngrok/i.test(location.hostname) && String(config.baseURL ?? '').startsWith('/')) {
+    config.headers.set('ngrok-skip-browser-warning', '1')
+  }
+  return config
+})
+
 // Interceptor para manejo de errores global
 apiClient.interceptors.response.use(
   (response) => response,

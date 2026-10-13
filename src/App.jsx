@@ -42,6 +42,7 @@ import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import AlumnoDocumentacionPage from './app/alumno/documentacion/DocumentacionPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 import SeleccionarPanelPage from './app/seleccionar-panel/SeleccionarPanelPage.jsx'
+import MiConfiguracionPage from './app/mi-configuracion/MiConfiguracionPage.jsx'
 
 import ProfesorLayout from './app/profesor/ProfesorLayout.jsx'
 import ProfesorDashboard from "./app/profesor/ProfesorDashboard"
@@ -193,6 +194,10 @@ function App() {
         <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/documentacion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDocumentacionPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />
+        {/* Mi configuración (preferencias de la persona): se abre dentro del panel en el que está */}
+        <Route path="/alumno/configuracion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><MiConfiguracionPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/profesor/configuracion" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><MiConfiguracionPage /></ProfesorLayout></RequireAuth>} />
+        <Route path="/mi-configuracion" element={<RequireAuth><SharedProfileRoute><MiConfiguracionPage /></SharedProfileRoute></RequireAuth>} />
 
         {/* RUTAS DE PROFESOR CORREGIDAS */}
         <Route path="/profesor" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorDashboard /></ProfesorLayout></RequireAuth>} />

@@ -1,16 +1,11 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Layout, Info, Dumbbell, MapPin, Landmark, Moon, Sun, LogOut, ChevronRight,
-} from 'lucide-react'
-import { useTheme } from '@/components/theme-provider'
-import { logoutUsuario } from '@/api'
+import { Layout, Info, Dumbbell, MapPin, Landmark, ChevronRight } from 'lucide-react'
 
 /*
- * Menú de Configuración del gimnasio (estilo apps de banco o de compras): la web pública,
- * los cobros y las preferencias. Los módulos de gestión (usuarios, clases, planes…) no van
- * acá porque ya están en el menú lateral. Cada opción se muestra solo si el perfil tiene
- * el permiso (el servidor lo vuelve a controlar en cada ruta).
+ * Menú de Configuración del gimnasio (estilo apps de banco o de compras): la web pública y
+ * los cobros. Lo personal (tema, avisos, perfil) está en "Mi configuración", en el globito;
+ * los módulos de gestión (usuarios, clases, planes…) están en el menú lateral. Cada opción se
+ * muestra solo si el perfil tiene el permiso (el servidor lo vuelve a controlar en cada ruta).
  */
 const GRUPOS = [
   {
@@ -67,16 +62,6 @@ function Grupo({ titulo, children }) {
 
 export default function MenuAjustes() {
   const permisos = leer('permisos', '[]')
-  const { setTheme } = useTheme()
-
-  // Tema que se ve de verdad (si la persona tiene "sistema", igual se refleja)
-  const esOscuro = () => document.documentElement.classList.contains('dark')
-  const [oscuro, setOscuro] = useState(esOscuro)
-  useEffect(() => {
-    const obs = new MutationObserver(() => setOscuro(esOscuro()))
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    return () => obs.disconnect()
-  }, [])
 
   const grupos = GRUPOS
     .map(g => ({ ...g, items: g.items.filter(i => permisos.includes(i.permiso) || permisos.includes(i.permiso.replace(':consulta', ':ver'))) }))
@@ -96,21 +81,6 @@ export default function MenuAjustes() {
           </Grupo>
         ))}
 
-        <Grupo titulo="Preferencias">
-          <Fila
-            icono={oscuro ? Moon : Sun}
-            texto="Modo oscuro"
-            detalle={oscuro ? 'Activado' : 'Desactivado'}
-            onClick={() => setTheme(oscuro ? 'light' : 'dark')}
-            derecha={
-              <span role="switch" aria-checked={oscuro} aria-label="Modo oscuro"
-                className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${oscuro ? 'bg-lime-400' : 'bg-foreground/15'}`}>
-                <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${oscuro ? 'left-[22px]' : 'left-0.5'}`} />
-              </span>
-            }
-          />
-          <Fila icono={LogOut} texto="Cerrar sesión" detalle="Salir en este dispositivo" onClick={logoutUsuario} peligro derecha={null} />
-        </Grupo>
       </div>
     </div>
   )

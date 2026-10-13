@@ -43,13 +43,15 @@ const pwa = VitePWA({
     navigateFallback: '/index.html',
     navigateFallbackDenylist: RUTAS_DEL_SERVIDOR,
     cleanupOutdatedCaches: true,
+    // Notificaciones push: mostrar el aviso y abrir la pantalla al tocarlo (public/push-sw.js)
+    importScripts: ['push-sw.js'],
     runtimeCaching: [
       {
         // Fotos y gráficos públicos de la app (mascotas, logos, fondos): se guardan al verse
         urlPattern: ({ url, sameOrigin }) =>
           sameOrigin && !RUTAS_DEL_SERVIDOR.some((r) => r.test(url.pathname)) && /\.(png|jpe?g|webp|gif|svg)$/i.test(url.pathname),
         handler: 'CacheFirst',
-        options: { cacheName: 'imagenes-app', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 } },
+        options: { cacheName: 'imagenes-app-v2', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 } },
       },
       {
         // Tipografías de Google

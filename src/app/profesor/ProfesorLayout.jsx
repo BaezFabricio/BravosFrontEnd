@@ -5,21 +5,11 @@ import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import {
-  LayoutDashboard,
-  Calendar,
-  History,
-  CreditCard,
   User,
-  LogOut,
-  Menu,
   X,
   ChevronDown,
-  Bell, 
   FileText,
-  ShieldAlert,
   Home,
-  Shield,
-  Dumbbell,
   ClipboardCheck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -27,16 +17,26 @@ import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
+import InvitacionAvisos from "@/components/InvitacionAvisos"
+import { MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+
+// Pocas opciones: un solo grupo, sin título
+const GRUPOS = [{ key: "inicio", titulo: null }]
 
 const navigation = [
-  { name: "Asistencia", mobileLabel: "Asistencia", href: "/profesor", icon: ClipboardCheck },
-  { name: "Mis Rutinas", mobileLabel: "Rutinas", href: "/profesor/rutinas", icon: FileText },
-  { name: "Perfil", mobileLabel: "Perfil", href: "/profesor/perfil", icon: User },
+  { name: "Asistencia", mobileLabel: "Asistencia", href: "/profesor", icon: ClipboardCheck, grupo: "inicio" },
+  { name: "Mis Rutinas", mobileLabel: "Rutinas", href: "/profesor/rutinas", icon: FileText, grupo: "inicio" },
+  { name: "Perfil", mobileLabel: "Perfil", href: "/profesor/perfil", icon: User, grupo: "inicio" },
 ]
+
+// "/profesor" (Asistencia) solo se marca en su propia página, no en Rutinas ni Perfil
+const esActivo = (item, pathname) =>
+  item.href === "/profesor" ? pathname === "/profesor" : pathname === item.href || pathname.startsWith(item.href + "/")
 
 export default function ProfesorLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
   const [usuario, setUsuario] = useState({ nombre: "Cargando...", email: "", iniciales: "??" })
   const [avatarUrl, setAvatarUrl] = useState("")
   const menuRef = useRef(null)
@@ -82,22 +82,25 @@ export default function ProfesorLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
-
-      <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Menú lateral: solo en la computadora. En el celular se usa el desplegable de arriba a la derecha */}
+      <aside className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
-            <div className="flex items-center gap-3">
-              <img src="/logo.jpg" alt="Logo" className="w-10 h-10 rounded-lg" />
+            <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
+              <img src="/logo.jpg" alt="Bravos Box" className="w-10 h-10 rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
-            </div>
+            </Link>
             <button className="text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors p-1" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
             </button>
           </div>
           <nav className="flex-1 px-3 py-4 space-y-0.5">
+            {/* Primero: volver al sitio público del box */}
+            <div className="mb-1 border-b border-sidebar-border pb-1">
+              <EnlacePaginaPrincipal />
+            </div>
             {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              const isActive = esActivo(item, pathname)
               return (
                 <Link
                   key={item.name}
@@ -121,10 +124,17 @@ export default function ProfesorLayout({ children }) {
       <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
           <div className="flex items-center justify-between h-16 px-4">
-            {!sidebarOpen && <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />}
+            {!sidebarOpen && (
+              <div className="hidden lg:block">
+                <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
+              </div>
+            )}
+            {/* Celular: logo que lleva a la página principal, como en los otros paneles */}
+            {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
+            <BotonPaginaPrincipal />
             <div className="flex-1" />
-            
-            <div className="flex items-center gap-4"> {/* Ajustamos el gap aquí */}
+
+            <div className="flex items-center gap-3">
               
               <ModeToggle />
               
@@ -167,9 +177,27 @@ export default function ProfesorLayout({ children }) {
                   puedeAccederPanel={true}
                 />
               </div>
+
+              <HamburgerButton
+                isOpen={menuMovilAbierto}
+                onClick={() => setMenuMovilAbierto((v) => !v)}
+                className="lg:hidden text-foreground"
+              />
             </div>
           </div>
+
+          {/* Menú desplegable del celular: igual que en los paneles de alumno y administrador */}
+          <MenuMovil
+            abierto={menuMovilAbierto}
+            onCerrar={() => setMenuMovilAbierto(false)}
+            grupos={GRUPOS}
+            items={navigation}
+            esActivo={(item) => esActivo(item, pathname)}
+            onLogout={handleLogout}
+          />
         </header>
+
+        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
         <main className="p-4 lg:p-6 pb-20 lg:pb-6">
           {/* Celular: "Volver" en Mis Rutinas (el Perfil ya trae el suyo); no en Asistencia, que es el inicio */}
           {location.pathname === "/profesor/rutinas" && (
@@ -182,7 +210,7 @@ export default function ProfesorLayout({ children }) {
         <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
           <div className="flex items-center justify-around">
             {navigation.map(item => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+              const isActive = esActivo(item, pathname)
               return (
                 <Link
                   key={item.name}
@@ -200,6 +228,8 @@ export default function ProfesorLayout({ children }) {
       </div>
 
       <BravoChat rol="profesor" />
+      {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
+      <InvitacionAvisos />
     </div>
   )
 }
