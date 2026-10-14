@@ -88,7 +88,7 @@ export default function ReservarClasePage() {
   const [loadingCreditos, setLoadingCreditos] = useState(true)
   const [rutinaExpandida, setRutinaExpandida] = useState({})
   const [turnoFiltro, setTurnoFiltro]         = useState(null)
-  const [idPlanAlumno, setIdPlanAlumno]       = useState(null)
+  const [idPlanAlumno]       = useState(null)
   const [vencimientoAbono, setVencimientoAbono] = useState(null)
   // mapa: `${idHorario}-${fechaISO}` → idReserva (solo reservas "proxima")
   const [reservasMap, setReservasMap]         = useState({})
@@ -142,12 +142,20 @@ export default function ReservarClasePage() {
         setPageLoading(true)
         setLoadingCreditos(true)
 
-        const [responseClases, responsePlanes] = await Promise.all([
-          apiClient.get('/clases/disponibles'),
-          apiClient.get('/planes'),
-        ])
-        setClasesOriginales(responseClases.data?.data || responseClases.data || [])
-        setPlanes(responsePlanes.data?.data || [])
+        // Solo las clases de los planes que el alumno tiene vigentes. El nombre del plan viene con cada clase:
+        // la lista general de planes (/planes) requiere un permiso que el alumno no tiene y cortaba toda la carga.
+        // Los créditos se cargan aparte: si falla la lista de clases, igual se ven los créditos del alumno.
+        try {
+          const responseClases = await apiClient.get('/clases/para-mi')
+          const filas = responseClases.data?.data || responseClases.data || []
+          setClasesOriginales(filas)
+          const vistos = new Map()
+          filas.forEach((c) => { if (c.idPlan && !vistos.has(c.idPlan)) vistos.set(c.idPlan, { idPlan: c.idPlan, nombre: c.nombrePlan }) })
+          setPlanes([...vistos.values()])
+        } catch (error) {
+          console.error("No se pudo cargar la lista de clases:", error)
+          toast.error("No se pudieron cargar las clases", { description: "Probá de nuevo en unos segundos." })
+        }
 
         if (storedUser.idUsuario) {
           const responseAbonos = await apiClient.get(`/usuarios/${storedUser.idUsuario}/abonos`)
@@ -160,7 +168,7 @@ export default function ReservarClasePage() {
             return venc >= hoy
           })
           setCreditosReales(abonoActivo?.disponibles ?? 0)
-          if (abonoActivo?.idPlan) setIdPlanAlumno(abonoActivo.idPlan)
+          // El servidor ya filtra las clases por todos los planes vigentes del alumno: no se vuelve a filtrar por uno solo
           setVencimientoAbono(abonoActivo?.vencimiento ?? null)
         }
 
@@ -253,12 +261,13 @@ export default function ReservarClasePage() {
       })
       if (response.data?.success) {
         const idReservaNueva = response.data?.data?.idReserva
-        toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}` })
+        toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}`, guardar: false })
         setCreditosReales(prev => prev - 1)
         // Actualización optimista inmediata
         const key = `${selectedClass.id}-${fechaFormateada}`
         setReservasMap(prev => ({ ...prev, [key]: idReservaNueva }))
         await cargarReservas()
+        window.dispatchEvent(new CustomEvent('bravos:reserva-creada')) // la barra de abajo marca dónde ver la reserva
       }
     } catch (error) {
       toast.error("Error de Reserva", { description: error.response?.data?.message || "Ocurrió un error inesperado." })
@@ -277,12 +286,13 @@ export default function ReservarClasePage() {
       await apiClient.patch(`/reservas/${clase.idReserva}/cancelar`)
       const devuelveCredito = puedeCancelar(selectedDate, clase.hora)
       if (devuelveCredito) {
-        toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto." })
+        toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto.", guardar: false })
         setCreditosReales(prev => prev + 1)
       } else {
-        toast.warning("Reserva cancelada", { description: "El crédito no fue devuelto porque cancelaste con menos de 2 horas de anticipación." })
+        toast.warning("Reserva cancelada", { description: "El crédito no fue devuelto porque cancelaste con menos de 2 horas de anticipación.", guardar: false })
       }
       await cargarReservas()
+      window.dispatchEvent(new CustomEvent('bravos:reservas-cambiaron'))
     } catch (error) {
       toast.error("Error al cancelar", { description: error.response?.data?.message || "Ocurrió un error inesperado." })
     } finally {

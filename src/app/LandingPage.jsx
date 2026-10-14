@@ -364,8 +364,10 @@ function LandingPage() {
     return '549' + d.replace(/^0/, '')
   })()
 
+  // La página principal es siempre oscura, aunque el celular esté en modo claro: "dark" hace que los colores del tema
+  // se vean claros sobre el fondo negro (antes el texto salía casi negro sobre negro).
   return (
-    <div className="min-h-screen overflow-x-hidden bg-black text-foreground selection:bg-emerald-500 selection:text-black">
+    <div className="dark min-h-screen overflow-x-hidden bg-black text-foreground selection:bg-emerald-500 selection:text-black">
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="bg-black/95 backdrop-blur-md border-b-2 border-lime-400/80">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

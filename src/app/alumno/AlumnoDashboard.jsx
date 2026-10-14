@@ -149,7 +149,7 @@ export default function AlumnoDashboard() {
     const fetchClasesHoy = async () => {
       try {
         setLoadingClases(true)
-        const response = await apiClient.get("/clases/disponibles")
+        const response = await apiClient.get("/clases/para-mi")
         const allClases = response.data?.data || response.data || []
         
         // Obtenemos el día de la semana real del cliente

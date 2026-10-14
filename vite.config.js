@@ -15,8 +15,8 @@ const RUTAS_DEL_SERVIDOR = [/^\/api\//, /^\/landing\//, /^\/uploads\//]
  * alumnos, pagos) ni archivos de /uploads (comprobantes, certificados médicos).
  */
 const pwa = VitePWA({
-  registerType: 'autoUpdate', // al subir una versión nueva, la app instalada se actualiza sola
-  injectRegister: 'auto',
+  registerType: 'prompt', // la página no se recarga sola al haber versión nueva (no se pierde lo que se está escribiendo)
+  injectRegister: false, // el registro lo hace src/main.jsx: busca versiones nuevas al abrir la app y al volver a ella
   manifest: {
     name: 'Bravos Box',
     short_name: 'Bravos',
@@ -43,6 +43,9 @@ const pwa = VitePWA({
     navigateFallback: '/index.html',
     navigateFallbackDenylist: RUTAS_DEL_SERVIDOR,
     cleanupOutdatedCaches: true,
+    // La versión nueva se activa sola en segundo plano; se ve al abrir la app de nuevo o al tirar para recargar
+    skipWaiting: true,
+    clientsClaim: true,
     // Notificaciones push: mostrar el aviso y abrir la pantalla al tocarlo (public/push-sw.js)
     importScripts: ['push-sw.js'],
     runtimeCaching: [

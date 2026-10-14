@@ -26,6 +26,7 @@ import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { BarraInferior } from '@/components/BarraInferior'
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
 const GRUPOS = [
@@ -310,26 +311,8 @@ export default function AdminLayout({ children }) {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
-          <div className="flex items-center justify-around">
-            {visibles
-              .slice(0, 5)
-              .map(item => {
-                const isActive = esActivo(item)
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>
-                  </Link>
-                )
-              })
-            }
-          </div>
-        </nav>
+        {/* Con 5 accesos, el del medio (Clases) va destacado */}
+        <BarraInferior items={visibles.slice(0, 5).map((item, i, arr) => ({ ...item, activo: esActivo(item), centro: arr.length === 5 && i === 2 }))} />
       </div>
 
       <BravoChat rol="admin" />

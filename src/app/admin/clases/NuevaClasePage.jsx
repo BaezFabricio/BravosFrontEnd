@@ -21,12 +21,19 @@ function leerRutina(rutina) {
   return { descripcion: raw, rutina: ejercicios }
 }
 
-// La fecha del aviso llega en UTC: se pasa a la hora local para el campo datetime-local
-function avisoLocal(fechaUTC) {
-  if (!fechaUTC) return ""
-  const d = new Date(fechaUTC + "Z")
+// La hora del aviso se guarda tal cual se eligió, en hora de Argentina (el servidor compara contra esa misma hora).
+// Antes se mandaba convertida a UTC y el aviso salía 3 horas tarde. Nunca usar toISOString() para esto.
+const dos = (n) => String(n).padStart(2, "0")
+function horaLocalComoTexto(d) {
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())} ${dos(d.getHours())}:${dos(d.getMinutes())}:00`
+}
+
+// Del servidor llega la misma fecha (como texto o como instante): se muestra en el campo datetime-local
+function avisoLocal(fecha) {
+  if (!fecha) return ""
+  const d = new Date(fecha)
   if (Number.isNaN(d.getTime())) return ""
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`
 }
 
 const DIAS = [
@@ -133,6 +140,7 @@ export default function NuevaClasePage() {
   const planIdDesdeUrl = esEdicion ? "" : (searchParams.get("planId") || "")
 
   const [cargandoClase, setCargandoClase] = useState(esEdicion)
+  const [motivosTipo, setMotivosTipo] = useState({ aRecurrente: null, aUnica: null }) // por qué NO se puede cambiar el tipo (lo informa el servidor)
   const [isLoading, setIsLoading]     = useState(false)
   const [errors, setErrors]           = useState({})
   const [profesores, setProfesores]   = useState([])
@@ -190,6 +198,7 @@ export default function NuevaClasePage() {
           const { descripcion, rutina } = leerRutina(c.rutina)
           const aviso = avisoLocal(c.fechaPublicacion)
           setEsClaseUnica(Boolean(c.fechaEspecifica))
+          setMotivosTipo({ aRecurrente: c.noSePuedePasarARecurrente || null, aUnica: c.noSePuedePasarAUnica || null })
           setPublicarProgramado(Boolean(aviso))
           setFormData({
             nombre: c.nombreClase || "",
@@ -244,6 +253,7 @@ export default function NuevaClasePage() {
     const e = {}
     if (!formData.nombre.trim()) e.nombre = "Requerido"
     if (!formData.idProfesor) e.idProfesor = "Requerido"
+    if (!formData.idPlan) e.idPlan = "Elegí el plan de la clase"
     if (!formData.horaInicio) e.horario = "Seleccioná hora de inicio"
     if (!formData.horaFin) e.horario = "Seleccioná hora de fin"
     if (formData.horaInicio && formData.horaFin && formData.horaInicio >= formData.horaFin)
@@ -272,8 +282,10 @@ export default function NuevaClasePage() {
         formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin
       ) || TURNOS[0]
 
-      const fechaPublicacion = (publicarProgramado && formData.publicarDatetime)
-        ? new Date(formData.publicarDatetime).toISOString().slice(0, 19).replace('T', ' ')
+      // Aviso activado: en la fecha elegida o, si no se eligió ninguna, apenas se guarda la clase.
+      // "Ahora" va redondeado al minuto (segundos en 00): así, al volver a editar y guardar, la fecha es la misma y no se reenvía el aviso.
+      const fechaPublicacion = publicarProgramado
+        ? horaLocalComoTexto(formData.publicarDatetime ? new Date(formData.publicarDatetime) : new Date())
         : null
 
       const payload = {
@@ -306,7 +318,7 @@ export default function NuevaClasePage() {
       })
       const result = await response.json()
       if (!result.success) throw new Error(result.message || (esEdicion ? "Error al guardar la clase" : "Error al crear la clase"))
-      toast.success(esEdicion ? "Cambios guardados" : "Clase creada exitosamente")
+      toast.success(esEdicion ? "Cambios guardados" : "Clase creada exitosamente", { guardar: esEdicion })
       navigate("/admin/clases")
     } catch (error) {
       toast.error(esEdicion ? "No se guardaron los cambios" : "Error al crear la clase", { description: error.message })
@@ -333,6 +345,7 @@ export default function NuevaClasePage() {
     if (n === 0) {
       if (!formData.nombre.trim()) e.nombre = "Poné un nombre para la clase"
       if (!formData.idProfesor) e.idProfesor = "Elegí el coach"
+      if (!formData.idPlan) e.idPlan = "Elegí el plan de la clase"
     }
     if (n === 2) {
       if (!formData.horaInicio || !formData.horaFin) e.horario = "Elegí la hora de inicio y de fin"
@@ -368,9 +381,39 @@ export default function NuevaClasePage() {
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
   const fieldError = "w-full bg-transparent border border-red-600/50 dark:border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-600 dark:focus:border-red-400 transition-colors"
 
-  // Al editar, la clase no cambia de tipo (recurrente / sesión única): el servidor tampoco lo permite
-  const tipoBloqueado = esEdicion
-  const avisoTipoBloqueado = <p className="mt-2 flex items-center gap-1.5 text-xs text-foreground/50"><Lock className="h-3 w-3" aria-hidden="true" /> El tipo de clase no se cambia al editar.</p>
+  // Cuándo se dicta la clase: dos opciones con su explicación. Al editar también se puede cambiar de una a otra
+  // (el servidor avisa si no se puede, por ejemplo si ya hay alumnos anotados).
+  const opcionesCuando = [
+    { unica: false, icono: Repeat, titulo: "Todas las semanas", texto: "Se repite en los días que elijas, sin fecha de fin. Ej.: lunes, miércoles y viernes." },
+    { unica: true, icono: CalendarDays, titulo: "Un solo día", texto: "Una clase puntual en una fecha. Pasado ese día no se repite y queda en el historial." },
+  ]
+  const elegirCuando = (unica) => {
+    if (unica === esClaseUnica || (unica ? motivosTipo.aUnica : motivosTipo.aRecurrente)) return
+    setEsClaseUnica(unica)
+    if (unica) set("diasSemana", [])
+    else set("fechaEspecifica", "")
+  }
+  const selectorCuando = (
+    <div className="mt-3 space-y-2" role="radiogroup" aria-label="Cuándo se dicta la clase">
+      {opcionesCuando.map(({ unica, icono: Icono, titulo: t, texto }) => {
+        const activa = esClaseUnica === unica
+        const motivo = !activa ? (unica ? motivosTipo.aUnica : motivosTipo.aRecurrente) : null
+        return (
+          <div key={t}>
+          <button type="button" role="radio" aria-checked={activa} aria-disabled={Boolean(motivo)} onClick={() => elegirCuando(unica)}
+            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${activa ? "border-lime-500 bg-lime-400/10" : motivo ? "cursor-not-allowed border-border bg-background/40 opacity-60" : "border-border bg-background/60 hover:border-foreground/30"}`}>
+            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${activa ? "bg-lime-400 text-black" : "bg-foreground/5 text-foreground/55"}`}><Icono className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="min-w-0">
+              <span className={`block text-sm font-black uppercase tracking-wide ${activa ? "text-lime-700 dark:text-lime-400" : "text-foreground"}`}>{t}</span>
+              <span className="mt-0.5 block text-xs leading-snug text-foreground/60">{texto}</span>
+            </span>
+          </button>
+          {motivo && <p className="mt-1.5 flex items-start gap-1.5 px-1 text-xs leading-snug text-amber-700 dark:text-amber-400"><Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{motivo}</p>}
+          </div>
+        )
+      })}
+    </div>
+  )
 
   if (cargandoClase) return <AdminFormSkeleton />
 
@@ -422,9 +465,11 @@ export default function NuevaClasePage() {
                 <label htmlFor="m-plan-clase" className={titulo}>Plan</label>
                 <select id="m-plan-clase" value={formData.idPlan} onChange={e => set("idPlan", e.target.value)}
                   className="mt-3 h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-sm text-foreground outline-none focus:border-lime-500">
-                  <option value="">Sin plan</option>
+                  <option value="" disabled>Elegí un plan</option>
                   {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
                 </select>
+                {errorTxt(errors.idPlan)}
+                <p className="mt-2 text-xs text-foreground/55">La clase solo les aparece, y solo se avisa, a los alumnos con este plan vigente.</p>
               </div>
             )}
             <div className={caja}>
@@ -548,38 +593,31 @@ export default function NuevaClasePage() {
             </div>
 
             <div className={caja}>
-              <p className={titulo}><CalendarDays className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Frecuencia</p>
-              <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/60 p-1">
-                <button type="button" disabled={tipoBloqueado} onClick={() => { setEsClaseUnica(false); set("fechaEspecifica", "") }} aria-pressed={!esClaseUnica}
-                  className={`flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-xs font-black uppercase tracking-wide disabled:cursor-not-allowed ${!esClaseUnica ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 disabled:opacity-40"}`}>
-                  <Repeat className="h-3.5 w-3.5" /> Recurrente
-                </button>
-                <button type="button" disabled={tipoBloqueado} onClick={() => { setEsClaseUnica(true); set("diasSemana", []) }} aria-pressed={esClaseUnica}
-                  className={`flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-xs font-black uppercase tracking-wide disabled:cursor-not-allowed ${esClaseUnica ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 disabled:opacity-40"}`}>
-                  <CalendarDays className="h-3.5 w-3.5" /> Sesión única
-                </button>
-              </div>
-              {tipoBloqueado && avisoTipoBloqueado}
+              <p className={titulo}><CalendarDays className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> ¿Cuándo se dicta?</p>
+              {selectorCuando}
               {esClaseUnica ? (
-                <div className="mt-3">
+                <div className="mt-4">
+                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí la fecha</p>
                   <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
-                  <p className="mt-1.5 text-xs text-foreground/50">No se repite. Pasada esa fecha queda en el historial.</p>
                 </div>
               ) : (
-                <div className="mt-3 grid grid-cols-6 gap-1.5">
-                  {DIAS.map(({ key, label }) => {
-                    const activo = formData.diasSemana.includes(key)
-                    return (
-                      <button key={key} type="button" onClick={() => toggleDia(key)} aria-pressed={activo}
-                        className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg border text-xs font-black uppercase ${activo ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background/60 text-foreground/60"}`}>
-                        {label}
-                        {activo && formData.horaInicio && <span className="text-[9px] font-bold">{formData.horaInicio}</span>}
-                      </button>
-                    )
-                  })}
+                <div className="mt-4">
+                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí los días de la semana</p>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {DIAS.map(({ key, label }) => {
+                      const activo = formData.diasSemana.includes(key)
+                      return (
+                        <button key={key} type="button" onClick={() => toggleDia(key)} aria-pressed={activo}
+                          className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg border text-xs font-black uppercase ${activo ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background/60 text-foreground/60"}`}>
+                          {label}
+                          {activo && formData.horaInicio && <span className="text-[9px] font-bold">{formData.horaInicio}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {formData.diasSemana.length > 0 && <p className="mt-2 text-xs text-foreground/55">{formData.diasSemana.length} {formData.diasSemana.length === 1 ? "día" : "días"} por semana</p>}
                 </div>
               )}
-              {!esClaseUnica && formData.diasSemana.length > 0 && <p className="mt-2 text-xs text-foreground/55">{formData.diasSemana.length} {formData.diasSemana.length === 1 ? "día" : "días"} por semana</p>}
               {errorTxt(errors.diasSemana)}
             </div>
           </>
@@ -636,12 +674,12 @@ export default function NuevaClasePage() {
               </div>
             )}
 
-            {/* Aviso a los alumnos: es por email, en la fecha y hora que se elija */}
+            {/* Aviso a los alumnos: email + notificación en el celular, en la fecha y hora que se elija (o ya, al guardar) */}
             <div className={caja}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className={titulo}><Mail className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Avisar a los alumnos</p>
-                  <p className="mt-1 text-xs leading-snug text-foreground/55">Les llega un email a los alumnos activos para que reserven, en la fecha y hora que elijas.</p>
+                  <p className="mt-1 text-xs leading-snug text-foreground/55">Les llega un email y una notificación en el celular a los alumnos activos para que reserven. Si no elegís fecha y hora, se envía apenas guardes la clase.</p>
                 </div>
                 <button type="button" role="switch" aria-checked={publicarProgramado} aria-label="Avisar por email"
                   onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
@@ -653,6 +691,9 @@ export default function NuevaClasePage() {
                 <div className="mt-3">
                   <input type="datetime-local" value={formData.publicarDatetime} onChange={e => set("publicarDatetime", e.target.value)} aria-label="Fecha y hora del aviso"
                     className="h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-sm text-foreground outline-none focus:border-lime-500" />
+                  {!formData.publicarDatetime && (
+                    <p className="mt-1.5 text-xs text-lime-700 dark:text-lime-400">Se envía apenas guardes la clase.</p>
+                  )}
                   {formData.publicarDatetime && (
                     <p className="mt-1.5 text-xs text-lime-700 dark:text-lime-400">
                       Se envía el {new Date(formData.publicarDatetime).toLocaleDateString("es-AR", { day: "numeric", month: "long" })} a las {formData.publicarDatetime.slice(11, 16)} hs
@@ -729,8 +770,8 @@ export default function NuevaClasePage() {
               <div className="p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Notificar alumnos por email</label>
-                    <p className="text-xs text-foreground/60 mt-0.5">Avisá automáticamente a todos los alumnos activos cuando la clase esté lista para reservar.</p>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Avisar a los alumnos</label>
+                    <p className="text-xs text-foreground/60 mt-0.5">Les llega un email y una notificación en el celular cuando la clase esté lista para reservar. Sin fecha, se envía apenas guardes.</p>
                   </div>
                   <button
                     type="button"
@@ -767,15 +808,17 @@ export default function NuevaClasePage() {
             {/* ── DERECHA: configuración ── */}
             <div className="border border-border divide-y divide-border sticky top-6 self-start">
 
-              {esEdicion && (
+              {(esEdicion || !planIdDesdeUrl) && (
                 <div className="p-4 space-y-3">
                   <div>
                     <label htmlFor="d-plan-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Plan</label>
                     <select id="d-plan-clase" value={formData.idPlan} onChange={e => set("idPlan", e.target.value)} style={{ colorScheme: "dark" }}
                       className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
-                      <option value="">Sin plan</option>
+                      <option value="" disabled>Elegí un plan</option>
                       {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
                     </select>
+                    {errors.idPlan && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.idPlan}</p>}
+                    <p className="mt-1.5 text-[10px] text-foreground/50">Solo los alumnos con este plan vigente ven la clase y reciben el aviso.</p>
                   </div>
                   <div>
                     <label htmlFor="d-estado-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
@@ -833,44 +876,16 @@ export default function NuevaClasePage() {
               </div>
 
               <div className="p-4">
-                {/* Toggle recurrente / única */}
-                <div className="flex items-center gap-1 mb-3">
-                  <button
-                    type="button"
-                    disabled={tipoBloqueado}
-                    onClick={() => { setEsClaseUnica(false); set("fechaEspecifica", "") }}
-                    className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors disabled:cursor-not-allowed ${
-                      !esClaseUnica
-                        ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                        : "border-border text-foreground/30 hover:text-foreground"
-                    }`}
-                  >
-                    Recurrente
-                  </button>
-                  <button
-                    type="button"
-                    disabled={tipoBloqueado}
-                    onClick={() => { setEsClaseUnica(true); set("diasSemana", []) }}
-                    className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest border transition-colors disabled:cursor-not-allowed ${
-                      esClaseUnica
-                        ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                        : "border-border text-foreground/30 hover:text-foreground"
-                    }`}
-                  >
-                    Única
-                  </button>
-                </div>
-                {tipoBloqueado && <div className="-mt-1 mb-3">{avisoTipoBloqueado}</div>}
-
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">¿Cuándo se dicta?</label>
+                {selectorCuando}
                 {esClaseUnica ? (
-                  <div>
-                    <p className="text-[10px] text-foreground/50 mb-1.5">Fecha de la clase *</p>
+                  <div className="mt-3">
+                    <p className="text-[10px] text-foreground/50 mb-1.5">Elegí la fecha *</p>
                     <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
-                    <p className="text-[10px] text-foreground/35 mt-1.5">La clase no se repetirá. Pasada esa fecha desaparece automáticamente.</p>
                   </div>
                 ) : (
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Días de la semana *</label>
+                  <div className="mt-3">
+                    <p className="text-[10px] text-foreground/50 mb-1.5">Elegí los días de la semana *</p>
                     <div className="grid grid-cols-3 gap-1">
                       {DIAS.map(({ key, label }) => (
                         <button

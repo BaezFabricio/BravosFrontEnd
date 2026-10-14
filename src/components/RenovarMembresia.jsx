@@ -193,7 +193,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
           : `${frontendUrl}/alumno/pago-pendiente`
         return
       }
-      toast.error("Pago rechazado")
+      toast.error("Pago rechazado", { guardar: true })
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || "Error al procesar el pago")
     } finally {

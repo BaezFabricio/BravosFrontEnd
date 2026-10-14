@@ -28,6 +28,7 @@ import RenovarMembresia from "@/components/RenovarMembresia"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { BarraInferior } from '@/components/BarraInferior'
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
 const GRUPOS = [
@@ -142,6 +143,38 @@ export default function AlumnoLayout({ children }) {
       document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [])
+
+  // Reservas próximas del alumno: contador en la barra de abajo (se actualiza al reservar o cancelar) y, justo
+  // después de reservar, una pista que marca dónde ver la reserva.
+  const [reservasProximas, setReservasProximas] = useState(0)
+  const [pistaReserva, setPistaReserva] = useState(false)
+  useEffect(() => {
+    let vivo = true
+    const contar = () => {
+      apiClient.get("/reservas/mis-reservas")
+        .then((res) => {
+          const lista = res.data?.data || res.data || []
+          if (vivo) setReservasProximas(lista.filter((r) => r.estadoReserva === "proxima").length)
+        })
+        .catch(() => {})
+    }
+    let temporizador = null
+    const alCrear = () => {
+      contar()
+      setPistaReserva(true)
+      clearTimeout(temporizador)
+      temporizador = setTimeout(() => setPistaReserva(false), 6000)
+    }
+    contar()
+    window.addEventListener("bravos:reserva-creada", alCrear)
+    window.addEventListener("bravos:reservas-cambiaron", contar)
+    return () => {
+      vivo = false
+      clearTimeout(temporizador)
+      window.removeEventListener("bravos:reserva-creada", alCrear)
+      window.removeEventListener("bravos:reservas-cambiaron", contar)
+    }
+  }, [pathname])
 
   useEffect(() => {
     const checkBreakpoint = () => setSidebarOpen(window.innerWidth >= 1024)
@@ -335,39 +368,21 @@ export default function AlumnoLayout({ children }) {
         </main>
 
         {/* Barra de abajo (celular): solo los accesos principales; el resto está en el menú de arriba a la derecha */}
-        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
-          <div className="flex items-end justify-around">
-            {(() => {
-              // La acción principal (Reservar) va en el medio, con las demás repartidas a los costados
-              const items = navigation.filter((item) => item.principal && !item.centro)
-              const centro = navigation.find((item) => item.centro)
-              const mitad = Math.ceil(items.length / 2)
-              return [...items.slice(0, mitad), centro, ...items.slice(mitad)]
-            })().map((item) => {
-              const isActive = esActivo(item, pathname)
-              if (item.centro) {
-                return (
-                  <Link key={item.name} to={item.href} className="flex flex-1 min-w-0 flex-col items-center gap-1 pb-2">
-                    <span className={`-mt-6 flex h-14 w-14 items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-500/20 transition-transform active:scale-95 ${isActive ? "ring-2 ring-lime-500" : ""}`}>
-                      <item.icon className="h-6 w-6" />
-                    </span>
-                    <span className={`text-[9px] font-black uppercase tracking-wide leading-none ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/70"}`}>{item.mobileLabel}</span>
-                  </Link>
-                )
-              }
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>
-                </Link>
-              )
-            })}
-          </div>
-        </nav>
+        <BarraInferior
+          items={(() => {
+            // La acción principal (Reservar) va en el medio, con las demás repartidas a los costados
+            const items = navigation.filter((item) => item.principal && !item.centro)
+            const centro = navigation.find((item) => item.centro)
+            const mitad = Math.ceil(items.length / 2)
+            return [...items.slice(0, mitad), centro, ...items.slice(mitad)].filter(Boolean).map((item) => ({
+              ...item,
+              activo: esActivo(item, pathname),
+              // En "Reservas": cuántas reservas próximas hay y, tras reservar, una pista para ir a verla
+              insignia: item.href === "/alumno/reservas" ? reservasProximas : 0,
+              pista: item.href === "/alumno/reservas" && pistaReserva && pathname !== "/alumno/reservas" ? "Tu reserva está acá" : null,
+            }))
+          })()}
+        />
       </div>
 
       <BravoChat rol="alumno" />

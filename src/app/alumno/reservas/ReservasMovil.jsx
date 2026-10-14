@@ -75,14 +75,16 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
           <Dumbbell className="h-5 w-5" aria-hidden="true" /> Ver rutina del día <ChevronRight className="ml-auto h-5 w-5" aria-hidden="true" />
         </button>
         {esProxima && (
-          <button
-            type="button"
-            onClick={() => onCancelar(r)}
-            className={`flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl text-sm font-bold text-foreground/70 active:bg-foreground/5 ${FOCO}`}
-          >
-            <XCircle className="h-4 w-4" aria-hidden="true" /> Cancelar reserva
-            <span className="font-medium text-foreground/50">· {conDevolucion ? "te devolvemos el crédito" : "sin devolución (faltan menos de 2 h)"}</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onCancelar(r)}
+              className={`flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 text-sm font-black text-red-700 active:bg-red-500/20 dark:text-red-400 ${FOCO}`}
+            >
+              <XCircle className="h-4 w-4" aria-hidden="true" /> Cancelar
+            </button>
+            <p className="text-xs leading-snug text-foreground/55">{conDevolucion ? "Si cancelás, te devolvemos el crédito." : "Si cancelás ahora no se devuelve el crédito (faltan menos de 2 h)."}</p>
+          </div>
         )}
       </div>
     </li>

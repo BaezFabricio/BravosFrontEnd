@@ -147,13 +147,13 @@ export default function NuevoUsuarioPage() {
             idUsuario: idUsuarioCreado,
             nuevoCorreo: formData.email,
           })
-          toast.success("Usuario creado y correo de verificación enviado")
+          toast.success("Usuario creado y correo de verificación enviado", { guardar: false })
         } catch (verificationError) {
           console.error("El usuario se creó, pero falló el envío de verificación:", verificationError)
-          toast.success("Usuario creado", { description: "No se pudo enviar el correo de verificación." })
+          toast.success("Usuario creado", { description: "No se pudo enviar el correo de verificación.", guardar: true })
         }
       } else {
-        toast.success("Usuario creado")
+        toast.success("Usuario creado", { guardar: false })
       }
 
       setErrors({})

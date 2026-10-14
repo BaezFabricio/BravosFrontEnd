@@ -35,7 +35,7 @@ export function BotonPaginaPrincipal() {
 // Opción "Ver la página principal": vuelve al sitio público del box sin cerrar la sesión
 export function EnlacePaginaPrincipal({ onClick, tabIndex }) {
   return (
-    <Link to="/inicio" onClick={onClick} tabIndex={tabIndex} className={claseItem(false, "min-h-[44px]")}>
+    <Link to="/inicio" onClick={onClick} tabIndex={tabIndex} className={claseItem(false, "min-h-[42px]")}>
       <Globe className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       Ver la página principal
     </Link>
@@ -53,12 +53,12 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
   const tab = abierto ? 0 : -1
   return (
       <div
-        className={`lg:hidden absolute left-0 right-0 top-full overflow-hidden border-b border-border bg-sidebar shadow-lg transition-all duration-300 ease-out ${
-          abierto ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0 pointer-events-none border-transparent"
+        className={`lg:hidden absolute right-3 top-full z-20 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-border bg-sidebar shadow-2xl shadow-black/40 transition-all duration-200 ease-out ${
+          abierto ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
         }`}
         aria-hidden={!abierto}
       >
-        <nav className="max-h-[80vh] overflow-y-auto px-3 py-3 space-y-0.5" aria-label="Menú">
+        <nav className="max-h-[75vh] overflow-y-auto p-2" aria-label="Menú">
           {/* Primero: volver al sitio público del box */}
           <div className="mb-1 border-b border-sidebar-border pb-1">
             <EnlacePaginaPrincipal onClick={onCerrar} tabIndex={tab} />
@@ -69,11 +69,11 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
             if (delGrupo.length === 0) return null
             return (
               <div key={g.key} className="space-y-0.5">
-                <TituloGrupo titulo={g.titulo} />
+                {g.titulo && <p className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/35">{g.titulo}</p>}
                 {delGrupo.map((item) => {
                   const activo = esActivo(item)
                   return (
-                    <Link key={item.name} to={item.href} onClick={onCerrar} tabIndex={tab} aria-current={activo ? "page" : undefined} className={claseItem(activo)}>
+                    <Link key={item.name} to={item.href} onClick={onCerrar} tabIndex={tab} aria-current={activo ? "page" : undefined} className={claseItem(activo, "min-h-[42px]")}>
                       <item.icon className={`h-4 w-4 flex-shrink-0 ${activo ? "text-lime-700 dark:text-lime-400" : ""}`} />
                       {item.name}
                     </Link>
@@ -89,7 +89,7 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
               type="button"
               onClick={() => { onCerrar(); onLogout() }}
               tabIndex={tab}
-              className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
+              className="flex min-h-[42px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
             >
               <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
               Cerrar sesión

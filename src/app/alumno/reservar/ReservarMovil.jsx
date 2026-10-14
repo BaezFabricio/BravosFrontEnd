@@ -259,6 +259,13 @@ export default function ReservarMovil({
                   </span>
                 </div>
 
+                {c.reservado && (
+                  <Link to="/alumno/reservas" className="mt-3 flex min-h-[40px] items-center justify-between gap-2 rounded-xl bg-lime-400/10 px-3 text-xs font-black uppercase tracking-wide text-lime-700 active:bg-lime-400/20 dark:text-lime-400">
+                    <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Ya la reservaste · Ver mi reserva</span>
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                )}
+
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime-400/15 text-xs font-black text-lime-700 dark:text-lime-400">

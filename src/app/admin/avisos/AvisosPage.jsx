@@ -66,7 +66,7 @@ export default function AvisosPage() {
     if (vacio) return
     try {
       await navigator.clipboard.writeText(mensaje)
-      toast.success("Mensaje copiado")
+      toast.success("Mensaje copiado", { guardar: false })
     } catch {
       toast.error("No se pudo copiar el mensaje")
     }

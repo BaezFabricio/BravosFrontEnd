@@ -19,6 +19,7 @@ import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import { MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { BarraInferior } from '@/components/BarraInferior'
 
 // Pocas opciones: un solo grupo, sin título
 const GRUPOS = [{ key: "inicio", titulo: null }]
@@ -207,24 +208,7 @@ export default function ProfesorLayout({ children }) {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-sidebar border-t border-sidebar-border lg:hidden">
-          <div className="flex items-center justify-around">
-            {navigation.map(item => {
-              const isActive = esActivo(item, pathname)
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
-                  className={`flex flex-col items-center gap-1 py-3 px-1 flex-1 min-w-0 transition-colors ${isActive ? "text-lime-700 dark:text-lime-400" : "text-sidebar-foreground/50"}`}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span className="text-[9px] font-bold uppercase tracking-wide leading-none">{item.mobileLabel}</span>
-                </Link>
-              )
-            })}
-          </div>
-        </nav>
+        <BarraInferior items={navigation.map(item => ({ ...item, activo: esActivo(item, pathname) }))} onNavegar={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }} />
       </div>
 
       <BravoChat rol="profesor" />
