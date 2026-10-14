@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, Calendar, CheckCheck, Trash2, CreditCard, Dumbbell, Info, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react'
 import apiClient from '@/api'
@@ -39,6 +39,9 @@ const TOAST_COLORES = {
   sistema:     { caja: 'bg-zinc-100 border-zinc-400 text-zinc-950 dark:bg-zinc-900 dark:border-zinc-500 dark:text-zinc-50',               icono: 'text-zinc-600 dark:text-zinc-300' },
 }
 
+// Avisos de acciones del propio usuario: se muestran en el momento y además quedan en la bandeja
+const TIPOS_DE_ACCION = ['exito', 'error', 'advertencia', 'info']
+
 function parsearFecha(raw) {
   if (!raw) return new Date()
   // MySQL manda "2026-08-25T03:00:00.000Z" o "2026-08-25 03:00:00" sin Z
@@ -56,6 +59,17 @@ function tiempoRelativo(raw) {
   const hs = Math.floor(min / 60)
   if (hs < 24) return `hace ${hs}h`
   return `hace ${Math.floor(hs / 24)}d`
+}
+
+// Encabezado del grupo: "Hoy", "Ayer" o el día ("martes 6 de octubre"). Se usa el día en hora local.
+function etiquetaDia(raw) {
+  const fecha = parsearFecha(raw)
+  const hoy = new Date()
+  const ayer = new Date(); ayer.setDate(ayer.getDate() - 1)
+  if (fecha.toDateString() === hoy.toDateString()) return 'Hoy'
+  if (fecha.toDateString() === ayer.toDateString()) return 'Ayer'
+  const texto = fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', ...(fecha.getFullYear() !== hoy.getFullYear() ? { year: 'numeric' } : {}) })
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
 function formatearFechaNotif(raw) {
@@ -231,9 +245,14 @@ export default function NotificacionesBell() {
                 notifs.map((n, idx) => {
                   const Icono = ICONOS_TIPO[n.tipo] || Info
                   const color = COLORES_TIPO[n.tipo] || 'text-muted-foreground'
+                  const dia = etiquetaDia(n.creadoEn)
+                  const nuevoDia = idx === 0 || dia !== etiquetaDia(notifs[idx - 1].creadoEn)
                   return (
+                    <Fragment key={n.idNotificacion}>
+                    {nuevoDia && (
+                      <div className="sticky top-0 z-10 border-b border-border bg-muted/90 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">{dia}</div>
+                    )}
                     <div
-                      key={n.idNotificacion}
                       onClick={() => handleClickNotif(n)}
                       style={limpiando ? { transitionDelay: `${Math.min(idx, 8) * 60}ms` } : undefined}
                       className={`flex gap-3 px-4 py-3 transition-all duration-300 ease-in ${limpiando ? 'translate-x-12 opacity-0' : n.leida ? 'opacity-40' : 'cursor-pointer hover:bg-muted'} ${n.link && !n.leida ? 'group' : ''}`}
@@ -253,6 +272,7 @@ export default function NotificacionesBell() {
                         </p>
                       </div>
                     </div>
+                    </Fragment>
                   )
                 })
               )}
