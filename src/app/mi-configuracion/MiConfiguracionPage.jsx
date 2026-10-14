@@ -90,7 +90,7 @@ export default function MiConfiguracionPage() {
       {panel === "alumno" && (
         <Seccion titulo="Ayuda">
           <button type="button"
-            onClick={() => { try { sessionStorage.setItem("bravos-guia-repetir", "alumno") } catch { /* nada */ } window.dispatchEvent(new CustomEvent("bravos:abrir-guia", { detail: "alumno" })) }}
+            onClick={() => { try { sessionStorage.setItem("bravos-guia-repetir", "bienvenida") } catch { /* nada */ } window.dispatchEvent(new CustomEvent("bravos:abrir-guia", { detail: "bienvenida" })) }}
             className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 text-left transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
               <Sparkles className="h-5 w-5" aria-hidden="true" />

@@ -16,19 +16,21 @@ import { GUIAS_ALUMNO, GUIA_POR_RUTA, PASOS_COMPLETOS_ALUMNO } from "@/lib/guiaA
  */
 
 const COMPLETA = { guia: "alumno", pasos: PASOS_COMPLETOS_ALUMNO, navegar: true }
+const BIENVENIDA = { guia: "alumno-bienvenida", pasos: GUIAS_ALUMNO["alumno-bienvenida"], navegar: false }
+const REPETIBLES = { alumno: COMPLETA, bienvenida: BIENVENIDA }
 
 function pidioRepetir() {
   try {
-    if (sessionStorage.getItem("bravos-guia-repetir") !== "alumno") return false
+    const pedida = REPETIBLES[sessionStorage.getItem("bravos-guia-repetir")]
     sessionStorage.removeItem("bravos-guia-repetir")
-    return true
-  } catch { return false }
+    return pedida || null
+  } catch { return null }
 }
 
 export default function GuiasAlumno({ lista }) {
   const { pathname } = useLocation()
   const [vistas, setVistas] = useState(null) // null = todavía no se consultó
-  const [manual, setManual] = useState(() => (pidioRepetir() ? COMPLETA : null)) // recorrido completo pedido a mano
+  const [manual, setManual] = useState(pidioRepetir) // recorrido completo pedido a mano
   const esCelular = typeof window !== "undefined" && !window.matchMedia?.("(min-width: 1024px)").matches
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function GuiasAlumno({ lista }) {
 
   useEffect(() => {
     if (!lista || !esCelular) return undefined
-    const abrir = (e) => { if (e.detail === "alumno") setManual(COMPLETA) }
+    const abrir = (e) => { if (REPETIBLES[e.detail]) setManual(REPETIBLES[e.detail]) }
     window.addEventListener("bravos:abrir-guia", abrir)
     return () => window.removeEventListener("bravos:abrir-guia", abrir)
   }, [lista, esCelular])
@@ -51,7 +53,7 @@ export default function GuiasAlumno({ lista }) {
   const automatica = useMemo(() => {
     if (!esCelular || vistas === null) return null
     if (!vistas.includes("alumno-bienvenida")) {
-      return { guia: "alumno-bienvenida", pasos: GUIAS_ALUMNO["alumno-bienvenida"], navegar: false }
+      return BIENVENIDA
     }
     const g = GUIA_POR_RUTA[pathname.replace(/\/+$/, "") || "/"]
     return g && !vistas.includes(g) ? { guia: g, pasos: GUIAS_ALUMNO[g], navegar: false } : null
