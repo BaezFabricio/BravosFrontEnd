@@ -57,7 +57,7 @@ const PERMISOS_POR_MODULO = {
   membresias:     { alta: "Crear membresía",      consulta: "Ver membresías",     modificacion: "Editar membresía",    baja: "Eliminar membresía" },
   perfiles:       { alta: "Crear perfil",         consulta: "Ver perfiles",       modificacion: "Editar permisos",     baja: "Eliminar perfil" },
   configuracion:  { alta: "Agregar config.",      consulta: "Ver configuración",  modificacion: "Editar configuración",baja: "Resetear config." },
-  alumno:             { alta: "Acceder al panel", consulta: "Ver dashboard",      modificacion: "Editar perfil",       baja: "Darse de baja" },
+  alumno:             { alta: "Acceder al panel", consulta: "Ver resumen",        modificacion: "Editar perfil",       baja: "Darse de baja" },
   alumno_reservas:    { alta: "Hacer reserva",    consulta: "Ver mis reservas",   modificacion: "Modificar reserva",   baja: "Cancelar reserva" },
   alumno_creditos:    { alta: "Comprar créditos", consulta: "Ver mis créditos",   modificacion: "Ver historial",       baja: "—" },
   profesor:           { alta: "Tomar asistencia", consulta: "Ver asistencias",    modificacion: "Editar asistencia",   baja: "Eliminar asistencia" },

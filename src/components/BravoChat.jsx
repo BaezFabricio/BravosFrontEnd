@@ -313,6 +313,7 @@ export default function BravoChat({ rol = "alumno" }) {
       {/* Botón flotante: círculo verde con la mascota apoyada; la cabeza asoma por arriba del círculo */}
       <button
         ref={botonRef}
+        data-guia="chat"
         onClick={alternarChat}
         onMouseEnter={() => setGloboHover(true)}
         onMouseLeave={() => setGloboHover(false)}

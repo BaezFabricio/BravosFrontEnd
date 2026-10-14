@@ -148,7 +148,7 @@ export function BarraInferior({ items, onNavegar }) {
               ? "bg-lime-400/15 text-lime-700 dark:text-lime-400"
               : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
           return (
-            <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} onClick={onNavegar} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>
+            <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} data-guia={item.guia} onClick={onNavegar} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>
               <span className="relative">
                 <Icono className="h-5 w-5 shrink-0" strokeWidth={resaltada || item.centro ? 2.5 : 2} />
                 {item.insignia > 0 && (

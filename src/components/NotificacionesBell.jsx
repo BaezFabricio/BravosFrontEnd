@@ -205,6 +205,7 @@ export default function NotificacionesBell() {
       {/* Campanita + bandeja */}
       <div className="relative" ref={ref}>
         <button
+          data-guia="campana"
           onClick={() => setOpen(o => !o)}
           className="relative p-2 rounded-full hover:bg-muted transition-colors"
         >

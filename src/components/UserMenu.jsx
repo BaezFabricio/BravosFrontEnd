@@ -63,7 +63,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
           <div className="border-b border-border p-1.5">
             <Link to="/inicio" onClick={() => setUserMenuOpen(false)} className={`${fila} text-foreground/80 hover:bg-foreground/5 hover:text-foreground`}>
               <span className={`${icono} bg-foreground/5`}><Globe className="h-4 w-4" /></span>
-              Ver la página principal
+              Página principal
             </Link>
           </div>
         )}

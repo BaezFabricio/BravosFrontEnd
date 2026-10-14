@@ -99,7 +99,7 @@ export default function ReservarMovil({
   return (
     <div className="space-y-4">
       {/* Créditos */}
-      <div className="rounded-2xl border border-border bg-card p-3">
+      <div data-guia="creditos" className="rounded-2xl border border-border bg-card p-3">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-lime-500 text-lg font-black tabular-nums text-lime-700 dark:border-lime-400 dark:text-lime-400">
             {cargandoCreditos ? "…" : creditos}
@@ -142,7 +142,7 @@ export default function ReservarMovil({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-7 gap-1.5">
+        <div data-guia="dias" className="mt-4 grid grid-cols-7 gap-1.5">
           {dias.map((d, i) => {
             const sel = d.toDateString() === selectedDate.toDateString()
             const conClases = hayClasesEn(d)
@@ -194,7 +194,7 @@ export default function ReservarMovil({
             </p>
           )}
         </div>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div data-guia="turnos" className="grid grid-cols-4 gap-1.5">
           {[{ id: null, label: "Todas" }, ...turnos].map((t) => {
             const activo = turnoFiltro === t.id
             return (
@@ -295,7 +295,7 @@ export default function ReservarMovil({
                   ) : !puedeRes ? (
                     <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-foreground/50">Cerrada<br />(2 h antes)</span>
                   ) : (
-                    <button type="button" onClick={() => onReservar(c)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-lime-400 px-3.5 py-2.5 text-xs font-black uppercase text-black active:bg-lime-300">
+                    <button type="button" data-guia="reservar" onClick={() => onReservar(c)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-lime-400 px-3.5 py-2.5 text-xs font-black uppercase text-black active:bg-lime-300">
                       Reservar <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   )}

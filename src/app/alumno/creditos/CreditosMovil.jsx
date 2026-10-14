@@ -99,7 +99,7 @@ export default function CreditosMovil({ abono, movimientos }) {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis créditos</h1>
+        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis créditos</h1>
         <p className="mt-1.5 text-sm text-foreground/60">Estado de tu cuenta y movimientos</p>
       </div>
 

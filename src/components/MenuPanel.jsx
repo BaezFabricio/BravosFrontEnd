@@ -21,7 +21,7 @@ const claseItem = (activo, extra = "") =>
 
 /*
  * Celular, arriba a la izquierda: el logo, que lleva a la página principal. La opción con
- * nombre ("Ver la página principal") va primera en el menú y en el globito.
+ * nombre ("Página principal") va primera en el menú y en el globito.
  */
 export function BotonPaginaPrincipal() {
   return (
@@ -32,12 +32,12 @@ export function BotonPaginaPrincipal() {
   )
 }
 
-// Opción "Ver la página principal": vuelve al sitio público del box sin cerrar la sesión
+// Opción "Página principal": vuelve al sitio público del box sin cerrar la sesión
 export function EnlacePaginaPrincipal({ onClick, tabIndex }) {
   return (
     <Link to="/inicio" onClick={onClick} tabIndex={tabIndex} className={claseItem(false, "min-h-[42px]")}>
       <Globe className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-      Ver la página principal
+      Página principal
     </Link>
   )
 }

@@ -157,6 +157,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
+          data-guia="doc-subir"
           disabled={subiendo || bloqueado}
           title={bloqueado ? "Primero marcá la autorización" : undefined}
           className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-black uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
@@ -216,7 +217,7 @@ export default function DocumentacionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
+        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
         <p className="mt-1.5 text-sm text-foreground/60">Cargá los documentos que pide el gimnasio.</p>
       </div>
 

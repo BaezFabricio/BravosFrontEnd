@@ -71,7 +71,7 @@ export default function DashboardMovil({
   return (
     <div className="space-y-6">
       {/* Saludo y acción principal */}
-      <div className="rounded-2xl border border-sidebar-border bg-sidebar p-5">
+      <div data-guia="res-hero" className="rounded-2xl border border-sidebar-border bg-sidebar p-5">
         <div className="flex items-center gap-1">
           <span className="inline-flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
             <Flame className="h-3 w-3" />
@@ -92,7 +92,7 @@ export default function DashboardMovil({
       </div>
 
       {/* Números rápidos */}
-      <div className="grid grid-cols-2 gap-3">
+      <div data-guia="res-numeros" className="grid grid-cols-2 gap-3">
         <div className="relative rounded-xl border border-border bg-card p-4">
           <Ayuda texto="Créditos disponibles para reservar clases. Cada clase usa uno." className="absolute right-1.5 top-1.5" />
           <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
@@ -113,7 +113,7 @@ export default function DashboardMovil({
 
       {/* Membresía */}
       {meta && (
-          <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+          <div data-guia="res-membresia" className="space-y-3 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-black uppercase tracking-widest text-foreground/60">Mi membresía</h2>
               <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${meta.cls}`}>
@@ -154,7 +154,7 @@ export default function DashboardMovil({
         titulo="Tus logros"
         extra={<span className="text-xs font-bold text-lime-700 dark:text-lime-400">{completados} de {logros.length} completados</span>}
       >
-        <div className="grid grid-cols-6 gap-2">
+        <div data-guia="res-logros" className="grid grid-cols-6 gap-2">
           {logros.map((l) => (
             <Popover key={l.codigo}>
               <PopoverTrigger asChild>
@@ -184,7 +184,7 @@ export default function DashboardMovil({
 
       {/* Accesos rápidos */}
       <Seccion titulo="Accesos rápidos">
-        <div className="grid grid-cols-2 gap-3">
+        <div data-guia="res-accesos" className="grid grid-cols-2 gap-3">
           {accesos.map((a) => {
             const contenido = (
               <>
@@ -271,7 +271,7 @@ export default function DashboardMovil({
       </Seccion>
 
       {/* Progreso semanal y mensual (mismo cálculo que la versión de escritorio) */}
-      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+      <div data-guia="res-progreso" className="space-y-4 rounded-xl border border-border bg-card p-4">
         <div>
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lime-400/15 text-lime-700 dark:text-lime-400">

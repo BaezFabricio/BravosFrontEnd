@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { Sun, Moon, MonitorSmartphone, UserCog, ChevronRight, Check } from "lucide-react"
+import { Sun, Moon, MonitorSmartphone, UserCog, ChevronRight, Check, Sparkles } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { BotonVolver } from "@/components/BotonVolver"
 import ActivarNotificaciones from "@/components/ActivarNotificaciones"
@@ -85,6 +85,24 @@ export default function MiConfiguracionPage() {
           <ChevronRight className="h-4 w-4 shrink-0 text-foreground/35" aria-hidden="true" />
         </Link>
       </Seccion>
+
+      {/* La guía de bienvenida de Bravo, para volver a verla (por ahora la del alumno, en el celular) */}
+      {panel === "alumno" && (
+        <Seccion titulo="Ayuda">
+          <button type="button"
+            onClick={() => { try { sessionStorage.setItem("bravos-guia-repetir", "alumno") } catch { /* nada */ } window.dispatchEvent(new CustomEvent("bravos:abrir-guia", { detail: "alumno" })) }}
+            className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 text-left transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
+              <Sparkles className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-foreground">Ver la guía de bienvenida</span>
+              <span className="block truncate text-xs text-foreground/55">Bravo te muestra cómo usar la app</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-foreground/35" aria-hidden="true" />
+          </button>
+        </Seccion>
+      )}
     </div>
   )
 }

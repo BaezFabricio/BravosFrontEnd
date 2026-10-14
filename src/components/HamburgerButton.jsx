@@ -1,6 +1,7 @@
 export default function HamburgerButton({ isOpen, onClick, className = "" }) {
   return (
     <button
+      data-guia="menu"
       onClick={onClick}
       aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
       className={`flex flex-col justify-center items-center w-9 h-9 gap-[5px] focus:outline-none ${className}`}

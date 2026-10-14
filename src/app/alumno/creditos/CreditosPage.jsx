@@ -107,7 +107,7 @@ export default function CreditosPage() {
     <div className="space-y-5">
 
       <div className="hidden lg:block">
-        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Mis Créditos</h1>
+        <h1 data-guia="titulo" className="text-2xl font-black uppercase tracking-tight text-foreground">Mis Créditos</h1>
         <p className="text-sm text-foreground/40 mt-0.5">Estado de tu cuenta y movimientos</p>
       </div>
 

@@ -48,7 +48,7 @@ export default function CalculadoraRMPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="text-center">
-        <h1 className="text-2xl font-black tracking-tight text-foreground uppercase">Calculadora RM</h1>
+        <h1 data-guia="titulo" className="text-2xl font-black tracking-tight text-foreground uppercase">Calculadora RM</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Estimá tu repetición máxima (1RM) a partir de una serie, sin tener que probar tu máximo real.
         </p>

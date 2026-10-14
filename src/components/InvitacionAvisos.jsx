@@ -27,11 +27,16 @@ export default function InvitacionAvisos() {
     let yaPreguntada = true
     try { yaPreguntada = localStorage.getItem(CLAVE) === "respondida" } catch { /* sin almacenamiento: no se pregunta */ }
     if (yaPreguntada || !esAppInstalada() || !("Notification" in window) || Notification.permission !== "default") return
-    // Un momento después de abrir, para no tapar la carga de la pantalla
-    const t = setTimeout(() => {
+    // Un momento después de abrir, para no tapar la carga de la pantalla. Si la guía de bienvenida está
+    // pendiente o abierta, se espera: la guía tiene su propio paso para activar los avisos.
+    const t = setInterval(() => {
+      const guia = window.__bravosGuia
+      if (guia === "pendiente" || guia === "activa") return
+      clearInterval(t)
+      try { if (localStorage.getItem(CLAVE) === "respondida") return } catch { /* sin almacenamiento */ }
       estadoPush().then((e) => { if (vigente && e === "inactivas") setVisible(true) }).catch(() => {})
     }, 1500)
-    return () => { vigente = false; clearTimeout(t) }
+    return () => { vigente = false; clearInterval(t) }
   }, [])
 
   const cerrar = () => {

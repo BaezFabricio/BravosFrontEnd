@@ -27,6 +27,7 @@ import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
+import GuiasAlumno from "@/components/GuiasAlumno"
 import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 import { BarraInferior } from '@/components/BarraInferior'
 
@@ -38,7 +39,7 @@ const GRUPOS = [
 ]
 
 const navigation = [
-  { name: "Dashboard", mobileLabel: "Inicio", href: "/alumno", icon: Home, principal: true, grupo: "inicio" },
+  { name: "Resumen", mobileLabel: "Inicio", href: "/alumno", icon: Home, principal: true, grupo: "inicio" },
   { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, centro: true, grupo: "entrenamiento" },
   { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true, grupo: "entrenamiento" },
   { name: "Mis Marcas", mobileLabel: "Marcas", href: "/alumno/marcas", icon: Trophy, grupo: "entrenamiento" },
@@ -49,7 +50,7 @@ const navigation = [
   { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true, grupo: "cuenta" },
 ]
 
-// "/alumno" (Dashboard) solo se marca en su propia página, no en todas las de adentro
+// "/alumno" (Resumen) solo se marca en su propia página, no en todas las de adentro
 const esActivo = (item, pathname) =>
   item.href === "/alumno" ? pathname === "/alumno" : pathname === item.href || pathname.startsWith(item.href + "/")
 
@@ -378,6 +379,7 @@ export default function AlumnoLayout({ children }) {
               ...item,
               activo: esActivo(item, pathname),
               // En "Reservas": cuántas reservas próximas hay y, tras reservar, una pista para ir a verla
+              guia: item.href === "/alumno/reservas" ? "reservas" : undefined,
               insignia: item.href === "/alumno/reservas" ? reservasProximas : 0,
               pista: item.href === "/alumno/reservas" && pistaReserva && pathname !== "/alumno/reservas" ? "Tu reserva está acá" : null,
             }))
@@ -387,6 +389,8 @@ export default function AlumnoLayout({ children }) {
 
       <BravoChat rol="alumno" />
       {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
+      {/* Guía de bienvenida: la primera vez, cuando ya se sabe si el alumno tiene membresía */}
+      <GuiasAlumno lista={!validandoAcceso && tieneAbonoActivo} />
       <InvitacionAvisos />
     </div>
   )

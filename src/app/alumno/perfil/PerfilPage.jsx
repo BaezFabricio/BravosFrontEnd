@@ -347,7 +347,7 @@ export default function PerfilPage() {
       {/* ── CELULAR ─────────────────────────────────────────────────────────── */}
       <div className="space-y-4 lg:hidden">
         <div>
-          <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
+          <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
           <p className="mt-1.5 text-sm text-foreground/60">Información personal y estado de membresía</p>
         </div>
 
@@ -388,7 +388,7 @@ export default function PerfilPage() {
             <span className="rounded bg-lime-400/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
             <h2 className="mt-1 truncate text-xl font-black uppercase leading-tight text-foreground">{nombreVisible}</h2>
             <p className="truncate text-xs text-foreground/60">{correoVisible}</p>
-            <label className={`mt-2 inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-[11px] font-bold uppercase tracking-wide text-foreground/80 focus-within:ring-2 focus-within:ring-lime-500`}>
+            <label data-guia="perfil-foto" className={`mt-2 inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-[11px] font-bold uppercase tracking-wide text-foreground/80 focus-within:ring-2 focus-within:ring-lime-500`}>
               <Camera className="h-3.5 w-3.5" aria-hidden="true" />
               {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
               <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />

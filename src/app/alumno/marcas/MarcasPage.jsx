@@ -411,10 +411,10 @@ export default function MarcasPage() {
       <LogroCelebracion logros={abierto || aEliminar ? [] : logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground uppercase">Mis marcas</h1>
+          <h1 data-guia="titulo" className="text-2xl font-black tracking-tight text-foreground uppercase">Mis marcas</h1>
           <p className="text-sm text-muted-foreground mt-1">Registrá tus marcas personales y mirá cómo progresás.</p>
         </div>
-        <Button onClick={() => setAbierto(true)}
+        <Button data-guia="marcas-nueva" onClick={() => setAbierto(true)}
           className="shrink-0 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wide">
           <Plus className="h-4 w-4 mr-1" /> Nueva marca
         </Button>

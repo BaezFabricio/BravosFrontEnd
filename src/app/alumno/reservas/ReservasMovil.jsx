@@ -67,6 +67,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
       <div className="space-y-2 px-4 pb-4">
         <button
           type="button"
+          data-guia={esProxima ? "rutina" : undefined}
           onClick={() => onVerRutina(r)}
           className={`flex min-h-[48px] w-full items-center gap-2 rounded-xl px-4 text-sm font-black uppercase tracking-wide ${
             esProxima ? "bg-lime-400 text-black active:bg-lime-300" : "border border-border text-foreground/80 active:bg-foreground/5"
@@ -118,7 +119,7 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
       </div>
 
       {/* Pestañas */}
-      <div role="tablist" aria-label="Mis reservas" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
+      <div data-guia="reservas-tabs" role="tablist" aria-label="Mis reservas" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
         {[{ id: "proximas", label: "Próximas", n: proximas.length }, { id: "historial", label: "Historial", n: historial.length }].map((t) => (
           <button
             key={t.id}

@@ -112,7 +112,7 @@ export default function MiPlanMovil() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi membresía</h1>
+        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi membresía</h1>
         <p className="mt-1.5 text-sm text-foreground/60">Tu membresía, tus créditos y tus renovaciones.</p>
       </div>
 
