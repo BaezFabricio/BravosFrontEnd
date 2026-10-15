@@ -281,3 +281,8 @@
 @keyframes pista-barra { 0% { opacity: 0; transform: translateY(6px); } 100% { opacity: 1; transform: translateY(0); } }
 .pista-barra { animation: pista-barra 280ms cubic-bezier(.2,.8,.3,1) both; }
 @media (prefers-reduced-motion: reduce) { .pista-barra { animation: none; } }
+
+/* Celular: el título de cada pantalla va en la barra de arriba (layout del alumno), así que el de la página se oculta */
+@media (max-width: 1023px) {
+  h1.titulo-app { display: none; }
+}

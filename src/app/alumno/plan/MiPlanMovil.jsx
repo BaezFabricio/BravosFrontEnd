@@ -112,12 +112,11 @@ export default function MiPlanMovil() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi membresía</h1>
-        <p className="mt-1.5 text-sm text-foreground/60">Tu membresía, tus créditos y tus renovaciones.</p>
+        <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi membresía</h1>
       </div>
 
       {/* Pestañas */}
-      <div role="tablist" aria-label="Mi membresía" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
+      <div data-guia="plan-pestanas" role="tablist" aria-label="Mi membresía" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
         {[
           { id: "activa", label: "Membresía activa", icon: CreditCard },
           { id: "historial", label: "Historial de pagos", icon: History },
@@ -148,7 +147,7 @@ export default function MiPlanMovil() {
       ) : (
         <>
           {/* Membresía */}
-          <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+          <div data-guia="plan-tarjeta" className="space-y-4 rounded-2xl border border-border bg-card p-4">
             {vigente ? (
               <div className="space-y-4 divide-y divide-border [&>*+*]:pt-4">
                 {planes.map((p) => <TarjetaPlan key={p.idCredito} p={p} />)}
@@ -165,7 +164,7 @@ export default function MiPlanMovil() {
               </div>
             )}
 
-            <div className="space-y-2.5 border-t border-border pt-4">
+            <div data-guia="plan-acciones" className="space-y-2.5 border-t border-border pt-4">
               {puedeRenovar && (
                 <button
                   type="button"
@@ -202,7 +201,7 @@ export default function MiPlanMovil() {
           <ElegirMembresiaDialog open={verPlanes} onClose={() => setVerPlanes(false)} onRenovado={recargar} />
 
           {/* Gestión */}
-          <section className="space-y-2.5" aria-labelledby="titulo-gestion">
+          <section data-guia="plan-gestion" className="space-y-2.5" aria-labelledby="titulo-gestion">
             <h2 id="titulo-gestion" className="text-xs font-black uppercase tracking-widest text-foreground/60">Gestión</h2>
             <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               <Opcion to="/alumno/creditos" icon={ReceiptText} titulo="Consumo de créditos" sub="Clases reservadas y créditos usados" />

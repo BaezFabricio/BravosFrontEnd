@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { CalendarPlus, CheckCircle2, ChevronRight, Clock, Dumbbell, Loader2, Search, XCircle, Ban } from "lucide-react"
-import { useMiPlan } from "@/lib/miPlan"
 import PizarronRutina from "./PizarronRutina"
 import { Cargando } from '@/components/Cargando'
 
@@ -39,7 +38,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
   const conDevolucion = esProxima && devuelveCredito(r.fecha, r.hora)
 
   return (
-    <li className={`overflow-hidden rounded-2xl border border-border bg-card ${esProxima ? "border-l-4 border-l-lime-500" : ""}`}>
+    <li data-guia="reserva-tarjeta" className={`overflow-hidden rounded-2xl border border-border bg-card ${esProxima ? "border-l-4 border-l-lime-500" : ""}`}>
       <div className="flex gap-3 p-4">
         {/* Fecha */}
         <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-foreground/[0.03] py-2" aria-hidden="true">
@@ -51,7 +50,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
           <div className="flex flex-wrap items-center gap-1.5">
             {r.tipo && <span className="rounded border border-lime-500/40 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{r.tipo}</span>}
             <span className="flex items-center gap-1 text-xs font-bold text-foreground/70"><Clock className="h-3.5 w-3.5" aria-hidden="true" />{r.hora} h</span>
-            <span className={`ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${e.cls}`}>
+            <span data-guia="reserva-estado" className={`ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${e.cls}`}>
               <e.Icon className="h-3 w-3" aria-hidden="true" /> {e.label}
             </span>
           </div>
@@ -76,7 +75,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
           <Dumbbell className="h-5 w-5" aria-hidden="true" /> Ver rutina del día <ChevronRight className="ml-auto h-5 w-5" aria-hidden="true" />
         </button>
         {esProxima && (
-          <div className="flex items-center gap-3">
+          <div data-guia="reserva-cancelar" className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => onCancelar(r)}
@@ -95,27 +94,14 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
 export default function ReservasMovil({ proximas, historial, cargando, onCancelar }) {
   const [pestana, setPestana] = useState("proximas")
   const [rutinaDe, setRutinaDe] = useState(null)
-  const { data: plan } = useMiPlan()
   // Próximas: de la más cercana a la más lejana (el servidor las manda de la más nueva a la más vieja)
   const proximasOrdenadas = [...proximas].sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`))
   const lista = pestana === "proximas" ? proximasOrdenadas : historial
-  const nombrePlan = plan?.vigente ? [...new Set(plan.planes.map((p) => p.nombrePlan))].join(" + ") : null
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis reservas</h1>
-          <p className="mt-1.5 text-sm text-foreground/60">Tus clases y sus rutinas</p>
-        </div>
-        {plan?.vigente && (
-          <div className="shrink-0 text-right">
-            <span className="inline-flex items-center gap-1 rounded-full border border-lime-500/40 bg-lime-400/10 px-2.5 py-1 text-xs font-black text-lime-700 dark:text-lime-400">
-              {plan.totalDisponibles} créditos
-            </span>
-            {nombrePlan && <p className="mt-1 max-w-[9rem] truncate text-[11px] text-foreground/55">{nombrePlan}</p>}
-          </div>
-        )}
+      <div>
+          <h1 className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis reservas</h1>
       </div>
 
       {/* Pestañas */}
@@ -159,11 +145,6 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
               <p className="mt-3 text-base font-black text-foreground">
                 {proximas.length === 0 ? "No tenés clases reservadas" : "¿Tenés espacio en tu semana?"}
               </p>
-              {plan?.vigente && (
-                <p className="mt-1 text-sm text-foreground/60">
-                  Te quedan {plan.totalDisponibles} {plan.totalDisponibles === 1 ? "crédito disponible" : "créditos disponibles"} para entrenar.
-                </p>
-              )}
               <Link
                 to="/alumno/reservar"
                 className={`mt-4 flex min-h-[44px] items-center gap-2 rounded-xl border border-lime-500/50 px-5 text-sm font-black text-lime-700 dark:text-lime-400 ${FOCO}`}

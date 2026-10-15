@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
-import { Globe, LogOut } from "lucide-react"
+import { Globe, LogOut, Moon, Sun } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
 
 /*
  * Piezas del menú que comparten los tres paneles (alumno, profesor y administrador),
@@ -49,8 +50,10 @@ export function EnlacePaginaPrincipal({ onClick, tabIndex }) {
  * - items: opciones ya filtradas por permisos, cada una con { name, href, icon, grupo }
  * - esActivo(item): si es la pantalla actual
  */
-export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout }) {
+export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout, conTema = false }) {
   const tab = abierto ? 0 : -1
+  const { theme, setTheme } = useTheme()
+  const oscuro = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches)
   return (
       <div
         className={`lg:hidden absolute right-3 top-full z-20 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-border bg-sidebar shadow-2xl shadow-black/40 transition-all duration-200 ease-out ${
@@ -84,7 +87,18 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
           })}
 
           {/* Cerrar sesión, separado del resto para no tocarlo sin querer */}
-          <div className="mt-2 border-t border-sidebar-border pt-2">
+          <div className="mt-2 space-y-0.5 border-t border-sidebar-border pt-2">
+            {conTema && (
+              <button
+                type="button"
+                onClick={() => setTheme(oscuro ? "light" : "dark")}
+                tabIndex={tab}
+                className={claseItem(false, "min-h-[42px] w-full")}
+              >
+                {oscuro ? <Sun className="h-4 w-4 flex-shrink-0" aria-hidden="true" /> : <Moon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />}
+                {oscuro ? "Modo claro" : "Modo oscuro"}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => { onCerrar(); onLogout() }}

@@ -99,12 +99,11 @@ export default function CreditosMovil({ abono, movimientos }) {
   return (
     <div className="space-y-4">
       <div>
-        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis créditos</h1>
-        <p className="mt-1.5 text-sm text-foreground/60">Estado de tu cuenta y movimientos</p>
+        <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mis créditos</h1>
       </div>
 
       {/* Disponibles */}
-      <div className="rounded-2xl border border-border bg-card p-4">
+      <div data-guia="cred-disponibles" className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-foreground/60">Disponibles</p>
@@ -135,7 +134,7 @@ export default function CreditosMovil({ abono, movimientos }) {
       </div>
 
       {/* Total y usados */}
-      <div className="grid grid-cols-2 gap-3">
+      <div data-guia="cred-totales" className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Total del plan</p>
           <p className="mt-1 text-3xl font-black tabular-nums text-foreground">{total}</p>
@@ -151,7 +150,7 @@ export default function CreditosMovil({ abono, movimientos }) {
       </div>
 
       {/* Reglas */}
-      <div className="rounded-2xl border border-border bg-card p-4">
+      <div data-guia="cred-reglas" className="rounded-2xl border border-border bg-card p-4">
         <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground">
           <Info className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Cómo funcionan los créditos
         </p>
@@ -173,7 +172,7 @@ export default function CreditosMovil({ abono, movimientos }) {
       </Link>
 
       {/* Historial */}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-historial">
+      <section data-guia="cred-historial" className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-historial">
         <div className="flex items-center justify-between gap-2 px-4 pt-4">
           <h2 id="titulo-historial" className="text-sm font-black uppercase tracking-wide text-foreground">Historial de movimientos</h2>
           <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[11px] font-bold text-foreground/60">{movimientos.length} registros</span>

@@ -69,7 +69,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
   }
 
   return (
-    <section className="flex flex-col rounded-2xl border border-border bg-card" aria-labelledby={`titulo-${tipo.key}`}>
+    <section data-guia="doc-tarjeta" className="flex flex-col rounded-2xl border border-border bg-card" aria-labelledby={`titulo-${tipo.key}`}>
       {/* Encabezado */}
       <div className="flex items-start gap-3 p-4">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
@@ -217,11 +217,11 @@ export default function DocumentacionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
-        <p className="mt-1.5 text-sm text-foreground/60">Cargá los documentos que pide el gimnasio.</p>
+        <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
+        <p className="mt-1.5 hidden text-sm text-foreground/60 lg:block">Cargá los documentos que pide el gimnasio.</p>
       </div>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
+      <div data-guia="doc-info" className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">
         <Info className="mt-0.5 h-5 w-5 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
         <p className="text-sm leading-relaxed text-foreground/70">
           Los documentos son revisados por el administrador. Una vez validados, tu membresía quedará regularizada.

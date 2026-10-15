@@ -3,8 +3,8 @@
  *
  * Cómo se muestran:
  *  - "alumno-bienvenida": la primera vez que entra a su panel (se presenta Bravo, menú, campanita, Milo, avisos).
- *  - Una guía por módulo ("alumno-<módulo>"): la primera vez que entra a ESE módulo, explica solo esa pantalla.
- *  - "alumno": el recorrido completo, que se repite a pedido desde Mi configuración.
+ *  - Una guía por submódulo ("alumno-<submódulo>"): la primera vez que entra a ESE submódulo, explica solo esa pantalla.
+ *  - "Ver la guía de bienvenida" (Mi configuración) repite la bienvenida y vuelve a explicar cada submódulo al entrar.
  * Qué guías vio cada persona se guarda en su cuenta (el servidor acepta solo las claves de GUIAS_VALIDAS).
  *
  * Cada paso: objetivo = valor de data-guia del elemento real que se ilumina (null = ninguno);
@@ -19,7 +19,7 @@ const introBienvenida = {
   puntos: [
     "Con tus créditos reservás clases en el horario que quieras.",
     "En cada pantalla te explico lo importante la primera vez que entres.",
-    "Repetís el recorrido completo desde Mi configuración.",
+    "Podés volver a ver estas guías desde Mi configuración.",
   ],
   objetivo: null,
 }
@@ -150,6 +150,18 @@ const resumen = [
 // ── Reservar clase
 const reservar = [
   {
+    titulo: "Tus créditos",
+    texto: "Cada reserva usa un crédito. Acá ves cuántos te quedan.",
+    puntos: [
+      "El número en el círculo son tus créditos disponibles.",
+      "Debajo, hasta cuándo vencen. Vencen junto con tu membresía.",
+      "Con Comprar sumás otra membresía y más créditos.",
+      "Sin créditos no se puede reservar.",
+    ],
+    objetivo: "creditos",
+    ruta: "/alumno/reservar",
+  },
+  {
     titulo: "Elegí el día",
     texto: "Arriba están los próximos días. Tocá el que te sirva.",
     puntos: [
@@ -175,10 +187,10 @@ const reservar = [
     titulo: "Reservá tu clase",
     texto: "Tocá Reservar en la clase que querés.",
     puntos: [
-      "Ves el horario, el coach y cuántos cupos quedan.",
+      "Cada clase muestra el horario, el coach, el plan y cuántos lugares quedan.",
+      "Si dice Completo, ya no hay cupos. Si ya la reservaste, aparece Ver mi reserva.",
       "Se descuenta 1 crédito de tu plan.",
       "Podés reservar hasta 2 horas antes de que empiece.",
-      "La reserva aparece enseguida en Reservas.",
     ],
     objetivo: "reservar",
     ruta: "/alumno/reservar",
@@ -192,11 +204,32 @@ const reservas = [
     texto: "Reservas es tu agenda de entrenamientos.",
     puntos: [
       "Próximas: las que vienen. Historial: las que ya pasaron.",
-      "Cancelás con 2 horas o más y te devolvemos el crédito.",
-      "Si cancelás más tarde, el crédito no se devuelve.",
       "El número verde de la barra de abajo cuenta tus reservas próximas.",
     ],
     objetivo: "reservas-tabs",
+    ruta: "/alumno/reservas",
+  },
+  {
+    titulo: "Cada reserva",
+    texto: "Una tarjeta por clase que reservaste.",
+    puntos: [
+      "A la izquierda, el día. Después el tipo de clase, la hora y la clase.",
+      "Abajo, tu coach.",
+      "Las próximas se marcan con una franja verde.",
+    ],
+    objetivo: "reserva-tarjeta",
+    ruta: "/alumno/reservas",
+  },
+  {
+    titulo: "Su estado",
+    texto: "Te dice en qué quedó cada reserva.",
+    puntos: [
+      "Confirmada: la clase todavía no se dio.",
+      "Completada: asististe.",
+      "No asististe: no fuiste, y el crédito se descuenta igual.",
+      "Cancelada: la cancelaste y quedó en tu historial.",
+    ],
+    objetivo: "reserva-estado",
     ruta: "/alumno/reservas",
   },
   {
@@ -210,6 +243,17 @@ const reservas = [
     objetivo: "rutina",
     ruta: "/alumno/reservas",
   },
+  {
+    titulo: "Cancelar una reserva",
+    texto: "Si no podés ir, cancelá a tiempo.",
+    puntos: [
+      "Con 2 horas o más de anticipación te devolvemos el crédito.",
+      "Si faltan menos de 2 horas, el crédito no se devuelve.",
+      "Debajo del botón te avisa cuál de los dos casos es el tuyo.",
+    ],
+    objetivo: "reserva-cancelar",
+    ruta: "/alumno/reservas",
+  },
 ]
 
 // ── Mis marcas y calculadora
@@ -219,19 +263,31 @@ const marcas = [
     texto: "Tu cuaderno de récords personales.",
     puntos: [
       "Registrás tus marcas y ves cómo progresás.",
-      "Elegís el ejercicio, el peso y las repeticiones.",
       "Tu primera marca desbloquea el logro Primer PR.",
     ],
     objetivo: "titulo",
     ruta: "/alumno/marcas",
   },
   {
+    titulo: "Tus ejercicios",
+    texto: "Las marcas se agrupan por ejercicio.",
+    puntos: [
+      "Cada ejercicio muestra cuántas marcas tenés y la fecha de la última.",
+      "A la derecha va tu mejor marca.",
+      "Tocá el ejercicio para abrirlo o cerrarlo.",
+      "Con Ver historial completo ves las más viejas.",
+    ],
+    objetivo: "marcas-lista",
+    ruta: "/alumno/marcas",
+  },
+  {
     titulo: "Cargá una marca",
     texto: "Con Nueva marca guardás un récord.",
     puntos: [
-      "Elegí el ejercicio de la lista o escribí otro.",
-      "Cargás peso y repeticiones, y notas si querés.",
-      "Si es tu primera marca en ese ejercicio, te lo avisamos.",
+      "Elegí el ejercicio de la lista o escribí otro nuevo y su tipo: peso, repeticiones o tiempo.",
+      "Series simple: todas iguales. Detallada: cargás cada serie por separado.",
+      "Elegís la fecha y podés sumar una nota, por ejemplo \"con cinturón\".",
+      "Una marca mal cargada se elimina desde su fila.",
     ],
     objetivo: "marcas-nueva",
     ruta: "/alumno/marcas",
@@ -241,13 +297,54 @@ const marcas = [
 const calculadora = [
   {
     titulo: "Calculadora RM",
-    texto: "Estimá tu máximo para una repetición.",
+    texto: "Estimá tu máximo para una repetición (1RM) sin tener que probarlo.",
     puntos: [
-      "Ingresá el peso que levantaste y cuántas repeticiones hiciste.",
-      "Te muestra tu 1RM estimado.",
-      "Debajo, los pesos de trabajo por porcentaje.",
+      "Sirve para saber con qué peso trabajar en cada clase.",
+      "Es una estimación: no reemplaza probar tu máximo real.",
     ],
     objetivo: "titulo",
+    ruta: "/alumno/calculadora-rm",
+  },
+  {
+    titulo: "Tus datos",
+    texto: "Cargá una serie que hayas hecho.",
+    puntos: [
+      "Peso levantado, en kilos.",
+      "Repeticiones que lograste (de 1 a 30).",
+      "Con más de 10 repeticiones la estimación pierde precisión: mejor una serie pesada y corta.",
+    ],
+    objetivo: "calc-datos",
+    ruta: "/alumno/calculadora-rm",
+  },
+  {
+    titulo: "La fórmula",
+    texto: "Podés elegir cómo se calcula.",
+    puntos: [
+      "Epley y Brzycki son dos fórmulas conocidas.",
+      "Dan resultados parecidos; si cambiás de una a otra, comparás.",
+    ],
+    objetivo: "calc-formula",
+    ruta: "/alumno/calculadora-rm",
+  },
+  {
+    titulo: "Tu 1RM estimado",
+    texto: "Acá aparece el resultado cuando cargás peso y repeticiones.",
+    puntos: [
+      "Es el peso máximo que podrías levantar una sola vez.",
+      "Debajo ves con qué datos y fórmula se calculó.",
+    ],
+    objetivo: "calc-resultado",
+    ruta: "/alumno/calculadora-rm",
+  },
+  {
+    titulo: "Pesos por porcentaje",
+    texto: "Tu 1RM convertido en pesos de trabajo.",
+    puntos: [
+      "Cada fila es un porcentaje de tu máximo y el peso que le corresponde.",
+      "A la derecha, cuántas repeticiones se hacen más o menos con ese peso.",
+      "Por ejemplo, el 80% se usa para series de unas 8 repeticiones.",
+    ],
+    objetivo: "calc-tabla",
     ruta: "/alumno/calculadora-rm",
   },
 ]
@@ -256,28 +353,91 @@ const calculadora = [
 const membresia = [
   {
     titulo: "Mi membresía",
-    texto: "Todo sobre tu plan.",
+    texto: "Todo sobre tu plan, en dos pestañas.",
     puntos: [
-      "Tu membresía activa y el historial de tus pagos.",
-      "Abajo, accesos al consumo de créditos y a tus comprobantes.",
-      "Desde acá renovás o contratás otra membresía.",
+      "Membresía activa: tu plan de hoy.",
+      "Historial de pagos: todo lo que pagaste.",
     ],
-    objetivo: "titulo",
+    objetivo: "plan-pestanas",
+    ruta: "/alumno/plan",
+  },
+  {
+    titulo: "Tu plan",
+    texto: "Los datos de tu membresía vigente.",
+    puntos: [
+      "Cada plan que tenés contratado aparece en su propia sección.",
+      "Ves hasta cuándo vence y cuántos créditos te quedan.",
+      "Si no tenés membresía vigente, te lo dice acá.",
+    ],
+    objetivo: "plan-tarjeta",
+    ruta: "/alumno/plan",
+  },
+  {
+    titulo: "Renovar o sumar otra",
+    texto: "Dos botones, según lo que necesites.",
+    puntos: [
+      "Renovar aparece cuando tu plan está por vencer o ya venció.",
+      "Contratar otra membresía suma otro plan.",
+      "Los créditos nuevos se suman a los que ya tenés y vencen con esa membresía.",
+    ],
+    objetivo: "plan-acciones",
+    ruta: "/alumno/plan",
+  },
+  {
+    titulo: "Gestión",
+    texto: "Dos atajos relacionados con tu plan.",
+    puntos: [
+      "Consumo de créditos: tus clases reservadas y los créditos usados.",
+      "Comprobantes: tus documentos y comprobantes de pago.",
+    ],
+    objetivo: "plan-gestion",
     ruta: "/alumno/plan",
   },
 ]
 
 const creditos = [
   {
-    titulo: "Mis créditos",
-    texto: "El estado de tu cuenta y tus movimientos.",
+    titulo: "Créditos disponibles",
+    texto: "Lo que te queda para reservar.",
     puntos: [
-      "Disponibles: lo que te queda de tu plan.",
-      "Cada reserva usa 1 crédito; si cancelás con 2 horas o más, vuelve.",
-      "Si no asistís, el crédito se descuenta igual.",
-      "Más abajo está el historial de movimientos.",
+      "El número grande son tus créditos de hoy.",
+      "Abajo, el porcentaje que te queda, tu plan y la fecha de vencimiento.",
+      "Las barritas se van vaciando a medida que reservás.",
     ],
-    objetivo: "titulo",
+    objetivo: "cred-disponibles",
+    ruta: "/alumno/creditos",
+  },
+  {
+    titulo: "Total y usados",
+    texto: "Cuánto trae tu plan y cuánto usaste.",
+    puntos: [
+      "Total del plan: los créditos que tenía al contratarlo.",
+      "Usados: las clases que ya consumieron un crédito.",
+    ],
+    objetivo: "cred-totales",
+    ruta: "/alumno/creditos",
+  },
+  {
+    titulo: "Cómo funcionan",
+    texto: "Las reglas de los créditos.",
+    puntos: [
+      "Cada reserva consume 1 crédito.",
+      "Cancelar con 2 horas o más te lo devuelve.",
+      "Si no asistís, se descuenta igual.",
+      "Al sumar otra membresía, los créditos se suman.",
+    ],
+    objetivo: "cred-reglas",
+    ruta: "/alumno/creditos",
+  },
+  {
+    titulo: "Historial de movimientos",
+    texto: "Cada vez que se carga o se usa un crédito.",
+    puntos: [
+      "Cargas: créditos que recibiste. Consumos: los que usaste.",
+      "Con los botones de arriba filtrás por tipo.",
+      "Con Ver más abrís los movimientos anteriores.",
+    ],
+    objetivo: "cred-historial",
     ruta: "/alumno/creditos",
   },
 ]
@@ -287,20 +447,30 @@ const documentos = [
     titulo: "Documentos y comprobantes",
     texto: "Cargás lo que pide el gimnasio.",
     puntos: [
-      "Certificado médico, declaración jurada y comprobante de transferencia.",
-      "Cada documento muestra su estado: pendiente, en revisión o aprobado.",
-      "Formatos PDF, JPG o PNG de hasta 10 MB.",
+      "El administrador los revisa; una vez validados, tu membresía queda regularizada.",
+      "Podés reemplazar cualquier documento cuando quieras.",
     ],
-    objetivo: "titulo",
+    objetivo: "doc-info",
+    ruta: "/alumno/documentacion",
+  },
+  {
+    titulo: "Un documento por tarjeta",
+    texto: "Hay tres: certificado médico, declaración jurada y comprobante de transferencia.",
+    puntos: [
+      "Arriba a la derecha ves su estado: Pendiente, En revisión o Aprobado.",
+      "Cuando subís uno, aparece el archivo con el botón Ver.",
+      "Si ya subiste varios, Ver historial muestra los anteriores.",
+    ],
+    objetivo: "doc-tarjeta",
     ruta: "/alumno/documentacion",
   },
   {
     titulo: "Subí un archivo",
     texto: "Con este botón cargás cada documento.",
     puntos: [
-      "Antes marcá la autorización de privacidad.",
-      "Podés reemplazar un archivo si te equivocaste.",
-      "El administrador lo revisa y lo aprueba.",
+      "Acepta PDF, JPG o PNG de hasta 10 MB.",
+      "En los documentos con datos de salud, antes marcás la autorización de privacidad.",
+      "Si ya subiste uno, el botón dice Reemplazar archivo.",
     ],
     objetivo: "doc-subir",
     ruta: "/alumno/documentacion",
@@ -312,9 +482,8 @@ const perfil = [
     titulo: "Mi perfil",
     texto: "Tus datos y tu seguridad.",
     puntos: [
-      "Ves tus datos, el estado de tu membresía y desde cuándo sos miembro.",
-      "Cambiás tu contraseña cuando quieras: 8 caracteres, con mayúscula, minúscula y número.",
-      "Al cambiarla se cierran tus otras sesiones abiertas.",
+      "Acá ves tu información y el estado de tu cuenta.",
+      "Y cambiás tu contraseña cuando quieras.",
     ],
     objetivo: "titulo",
     ruta: "/alumno/perfil",
@@ -323,15 +492,59 @@ const perfil = [
     titulo: "Tu foto",
     texto: "Poné tu foto para que te reconozcan.",
     puntos: [
+      "Tocá Cambiar foto y elegí una imagen de tu celular.",
       "Se ve en tu perfil y en el menú.",
-      "La cambiás cuando quieras.",
+      "La podés cambiar cuando quieras.",
     ],
     objetivo: "perfil-foto",
     ruta: "/alumno/perfil",
   },
+  {
+    titulo: "Créditos y estado",
+    texto: "Dos datos para tener a mano.",
+    puntos: [
+      "Créditos disponibles: cuántas clases podés reservar.",
+      "Estado: si tu cuenta está activa o suspendida.",
+    ],
+    objetivo: "perfil-resumen",
+    ruta: "/alumno/perfil",
+  },
+  {
+    titulo: "Información personal",
+    texto: "Los datos con los que estás registrado.",
+    puntos: [
+      "Documento, teléfono y correo.",
+      "Miembro desde: la fecha en que te sumaste al box.",
+      "Si algo está mal, avisale al box.",
+    ],
+    objetivo: "perfil-info",
+    ruta: "/alumno/perfil",
+  },
+  {
+    titulo: "Estado de cuenta",
+    texto: "El estado de tu usuario y tu membresía.",
+    puntos: [
+      "Usuario: activo, suspendido o inactivo.",
+      "Membresía: vigente, por vencer o vencida.",
+      "Si está por vencer o vencida, arriba aparece un aviso con el botón Renovar.",
+    ],
+    objetivo: "perfil-cuenta",
+    ruta: "/alumno/perfil",
+  },
+  {
+    titulo: "Cambiar contraseña",
+    texto: "Cuidá tu cuenta.",
+    puntos: [
+      "Pide tu contraseña actual y la nueva dos veces.",
+      "La nueva tiene que tener 8 caracteres, con mayúscula, minúscula y número.",
+      "Al cambiarla se cierran tus otras sesiones abiertas.",
+    ],
+    objetivo: "perfil-clave",
+    ruta: "/alumno/perfil",
+  },
 ]
 
-// Guías que se muestran solas: la bienvenida y una por módulo (la primera vez que se entra a ese módulo)
+// Guías que se muestran solas: la bienvenida y una por submódulo (la primera vez que se entra a ese submódulo)
 export const GUIAS_ALUMNO = {
   "alumno-bienvenida": [introBienvenida, menu, campanita, milo, avisos],
   "alumno-resumen": resumen,
@@ -358,7 +571,7 @@ export const GUIA_POR_RUTA = {
   "/alumno/perfil": "alumno-perfil",
 }
 
-// Recorrido completo, para repetirlo desde Mi configuración: lleva de una pantalla a otra
+// Recorrido completo (todas las pantallas una tras otra, con navegación): hoy no tiene botón propio
 export const PASOS_COMPLETOS_ALUMNO = [
   introCompleta,
   ...resumen, ...reservar, ...reservas, ...marcas, ...calculadora, ...membresia, ...creditos, ...documentos, ...perfil,

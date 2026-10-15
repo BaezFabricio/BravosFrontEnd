@@ -411,8 +411,8 @@ export default function MarcasPage() {
       <LogroCelebracion logros={abierto || aEliminar ? [] : logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 data-guia="titulo" className="text-2xl font-black tracking-tight text-foreground uppercase">Mis marcas</h1>
-          <p className="text-sm text-muted-foreground mt-1">Registrá tus marcas personales y mirá cómo progresás.</p>
+          <h1 data-guia="titulo" className="titulo-app text-2xl font-black tracking-tight text-foreground uppercase">Mis marcas</h1>
+          <p className="hidden text-sm text-muted-foreground mt-1 lg:block">Registrá tus marcas personales y mirá cómo progresás.</p>
         </div>
         <Button data-guia="marcas-nueva" onClick={() => setAbierto(true)}
           className="shrink-0 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wide">
@@ -423,13 +423,13 @@ export default function MarcasPage() {
       {cargando ? (
         <Cargando filas={2} className="py-2" />
       ) : grupos.length === 0 ? (
-        <Card className="bg-card border-border p-10 text-center">
+        <Card data-guia="marcas-lista" className="bg-card border-border p-10 text-center">
           <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
           <p className="font-bold text-foreground">Todavía no registraste marcas</p>
           <p className="text-sm text-muted-foreground mt-1">Cargá tu primera marca y desbloqueá el logro "Primer PR".</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div data-guia="marcas-lista" className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           {grupos.map((g) => {
             const abiertoG = !!expandido[g.idCatalogo]
             const visibles = g.marcas.slice(0, VISIBLES)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { CalendarClock, ChevronDown, Dumbbell, Loader2 } from "lucide-react"
+import { CalendarClock, ChevronDown, Dumbbell, Maximize2, Minimize2 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import VideoPlayer from "@/components/VideoPlayer"
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
@@ -86,6 +86,7 @@ function TarjetaClase({ clase, abiertaAlInicio }) {
 export default function MisRutinasModal({ open, onOpenChange }) {
   const [clases, setClases] = useState(null)
   const [error, setError] = useState(false)
+  const [completa, setCompleta] = useState(false)
 
   // Se pide cada vez que se abre, así refleja reservas y rutinas recién cargadas
   useEffect(() => {
@@ -99,16 +100,30 @@ export default function MisRutinasModal({ open, onOpenChange }) {
 
   const cerrarYLimpiar = (v) => {
     onOpenChange(v)
-    if (!v) { setClases(null); setError(false) }
+    if (!v) { setClases(null); setError(false); setCompleta(false) }
   }
 
   return (
     <Dialog open={open} onOpenChange={cerrarYLimpiar}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden border-border bg-background p-0 sm:max-w-lg">
-        <DialogHeader className="border-b border-border px-5 pb-3 pt-5 text-left">
+      {/* Tamaño normal, o pantalla completa (botón de arriba) para leer la rutina como una pestaña exclusiva */}
+      <DialogContent className={`flex flex-col gap-0 overflow-hidden border-border bg-background p-0 ${
+        completa
+          ? "left-0 top-0 h-dvh max-h-none w-screen max-w-none translate-x-0 translate-y-0 rounded-none border-0 sm:max-w-none"
+          : "max-h-[85vh] sm:max-w-lg"
+      }`}>
+        <DialogHeader className="border-b border-border px-5 pb-3 pt-5 pr-24 text-left">
           <DialogTitle className="text-lg font-black uppercase tracking-tight">Mis rutinas</DialogTitle>
           <DialogDescription className="text-xs">Las rutinas de las clases que tenés reservadas.</DialogDescription>
         </DialogHeader>
+        <button
+          type="button"
+          onClick={() => setCompleta((v) => !v)}
+          aria-label={completa ? "Salir de pantalla completa" : "Ver en pantalla completa"}
+          title={completa ? "Salir de pantalla completa" : "Pantalla completa"}
+          className="absolute right-12 top-3.5 flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+        >
+          {completa ? <Minimize2 className="h-4 w-4" aria-hidden="true" /> : <Maximize2 className="h-4 w-4" aria-hidden="true" />}
+        </button>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
           {error ? (

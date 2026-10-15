@@ -272,11 +272,17 @@ export default function AlumnoLayout({ children }) {
               </div>
             )}
             {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
-            <BotonPaginaPrincipal />
+            {/* Celular: en las pantallas del menú, el título va acá en lugar del logo (el logo sigue en el inicio; "Página principal" está en el menú) */}
+            {(() => {
+              const actual = pathname !== "/alumno" ? navigation.find((item) => item.href === pathname) : null
+              return actual
+                ? <h1 data-guia="titulo" className="min-w-0 line-clamp-2 text-[26px] font-black uppercase leading-[1.02] tracking-tight text-foreground lg:hidden">{actual.name === "Documentos y Comprobantes" ? "Documentos" : actual.name}</h1>
+                : <BotonPaginaPrincipal />
+            })()}
             <div className="flex-1" />
             <div className="flex items-center gap-3">
               
-              <ModeToggle />
+              <div className="hidden lg:block"><ModeToggle /></div>
               <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
                 <Home className="h-4 w-4" />
               </Button>
@@ -324,6 +330,7 @@ export default function AlumnoLayout({ children }) {
             items={navigation}
             esActivo={(item) => esActivo(item, pathname)}
             onLogout={handleLogout}
+            conTema
           />
         </header>
 
@@ -360,7 +367,7 @@ export default function AlumnoLayout({ children }) {
             <>
               {/* Celular: "Volver" en todas las pantallas menos el inicio del panel. Vuelve a la pantalla
                   anterior si se llegó desde otra; si se entró directo, al inicio del panel */}
-              {pathname !== "/alumno" && (
+              {pathname !== "/alumno" && !navigation.some((item) => (item.principal || item.centro) && item.href === pathname) && (
                 <BotonVolver a="/alumno" texto="Volver" className="mb-4 lg:hidden" />
               )}
               {children}

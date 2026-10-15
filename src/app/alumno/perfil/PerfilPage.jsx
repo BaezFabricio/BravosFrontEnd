@@ -98,7 +98,10 @@ export default function PerfilPage() {
               const abonos = res.data?.data || res.data || []
               const activo = abonos.find(a => a.estado === 'ACTIVO')
               if (activo) {
-                const creditosValue = activo.turnos !== undefined ? activo.turnos : 0
+                // Créditos que le quedan (no el total que trae el plan): se suman los de todas sus membresías activas
+                const creditosValue = abonos
+                  .filter(a => a.estado === 'ACTIVO')
+                  .reduce((suma, a) => suma + (Number(a.disponibles) || 0), 0)
                 setAbonoData({
                   vencimiento: activo.vencimiento,
                   creditos: creditosValue
@@ -347,8 +350,7 @@ export default function PerfilPage() {
       {/* ── CELULAR ─────────────────────────────────────────────────────────── */}
       <div className="space-y-4 lg:hidden">
         <div>
-          <h1 data-guia="titulo" className="text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
-          <p className="mt-1.5 text-sm text-foreground/60">Información personal y estado de membresía</p>
+          <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
         </div>
 
         {(membershipStatus === "por_vencer" || membershipStatus === "vencida") && (
@@ -378,7 +380,7 @@ export default function PerfilPage() {
         )}
 
         {/* Foto, nombre y correo */}
-        <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+        <div data-guia="perfil-cabecera" className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
           <div className="flex h-20 w-20 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-2xl font-black text-black ring-4 ring-lime-400/25">
             {avatarUrl && avatarUrl.trim()
               ? <img src={avatarUrl} alt={nombreVisible} className="h-full w-full object-cover" />
@@ -398,7 +400,7 @@ export default function PerfilPage() {
         {avatarError && <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">{avatarError}</p>}
 
         {/* Créditos y estado */}
-        <div className="grid grid-cols-2 gap-3">
+        <div data-guia="perfil-resumen" className="grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
             <p className="mt-1 flex items-baseline gap-1.5">
@@ -416,7 +418,7 @@ export default function PerfilPage() {
         </div>
 
         {/* Información personal */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-info-personal">
+        <section data-guia="perfil-info" className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-info-personal">
           <h2 id="titulo-info-personal" className="border-b border-border px-4 py-3 text-xs font-black uppercase tracking-widest text-foreground/60">Información personal</h2>
           <dl className="divide-y divide-border">
             {[
@@ -434,7 +436,7 @@ export default function PerfilPage() {
         </section>
 
         {/* Estado de la cuenta */}
-        <section className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-estado-cuenta">
+        <section data-guia="perfil-cuenta" className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-estado-cuenta">
           <h2 id="titulo-estado-cuenta" className="border-b border-border px-4 py-3 text-xs font-black uppercase tracking-widest text-foreground/60">Estado de cuenta</h2>
           <dl className="divide-y divide-border">
             {[
@@ -451,7 +453,7 @@ export default function PerfilPage() {
         </section>
 
         <div className="space-y-2.5">
-          <button type="button" onClick={() => setShowChangePassword(true)}
+          <button type="button" data-guia="perfil-clave" onClick={() => setShowChangePassword(true)}
             className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-black uppercase tracking-wide text-foreground active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
             <Lock className="h-4 w-4" aria-hidden="true" /> Cambiar contraseña
           </button>

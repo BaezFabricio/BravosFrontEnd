@@ -48,13 +48,13 @@ export default function CalculadoraRMPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="text-center">
-        <h1 data-guia="titulo" className="text-2xl font-black tracking-tight text-foreground uppercase">Calculadora RM</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 data-guia="titulo" className="titulo-app text-2xl font-black tracking-tight text-foreground uppercase">Calculadora RM</h1>
+        <p className="hidden text-sm text-muted-foreground mt-1 lg:block">
           Estimá tu repetición máxima (1RM) a partir de una serie, sin tener que probar tu máximo real.
         </p>
       </div>
 
-      <Card className="bg-card border-border p-5 sm:p-6 gap-5">
+      <Card data-guia="calc-datos" className="bg-card border-border p-5 sm:p-6 gap-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Peso levantado (kg)</label>
@@ -68,7 +68,7 @@ export default function CalculadoraRMPage() {
           </div>
         </div>
 
-        <div>
+        <div data-guia="calc-formula">
           <label className={`${labelCls} text-center`}>Fórmula</label>
           <div className="grid grid-cols-2 gap-1 p-1 bg-muted/40 border border-border rounded-md w-full sm:w-64 mx-auto">
             {Object.entries(FORMULAS).map(([key, f]) => (
@@ -91,7 +91,7 @@ export default function CalculadoraRMPage() {
 
       {rm ? (
         <>
-          <Card className="bg-card border-lime-400/30 p-6 text-center gap-1">
+          <Card data-guia="calc-resultado" className="bg-card border-lime-400/30 p-6 text-center gap-1">
             <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tu 1RM estimado</p>
             <p className="text-5xl font-black text-lime-700 dark:text-lime-400">{fmtKg(rm)}</p>
             <p className="text-xs text-muted-foreground">
@@ -99,7 +99,7 @@ export default function CalculadoraRMPage() {
             </p>
           </Card>
 
-          <Card className="bg-card border-border overflow-hidden gap-0 py-0">
+          <Card data-guia="calc-tabla" className="bg-card border-border overflow-hidden gap-0 py-0">
             <div className="px-5 py-3 border-b border-border">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pesos de trabajo por porcentaje</p>
             </div>
@@ -115,7 +115,7 @@ export default function CalculadoraRMPage() {
           </Card>
         </>
       ) : (
-        <Card className="bg-card border-border p-10 text-center">
+        <Card data-guia="calc-resultado" className="bg-card border-border p-10 text-center">
           <Calculator className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
           <p className="font-bold text-foreground">Ingresá el peso y las repeticiones</p>
           <p className="text-sm text-muted-foreground mt-1">Por ejemplo, 80 kg × 5 repeticiones.</p>
