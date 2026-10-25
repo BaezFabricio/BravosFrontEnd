@@ -3,6 +3,7 @@ import { Sun, Moon, MonitorSmartphone, UserCog, ChevronRight, Check, Sparkles } 
 import { useTheme } from "@/components/theme-provider"
 import { BotonVolver } from "@/components/BotonVolver"
 import ActivarNotificaciones from "@/components/ActivarNotificaciones"
+import InstalarApp from "@/components/InstalarApp"
 
 /*
  * Mi configuración: preferencias de la persona (no del gimnasio). Se abre desde el menú del
@@ -44,6 +45,10 @@ export default function MiConfiguracionPage() {
         <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Mi configuración</h1>
         <p className="mt-1 text-sm text-foreground/60">Tus preferencias en este dispositivo.</p>
       </div>
+
+      <Seccion titulo="Instalar la app" detalle="Para Android y iPhone. Es lo primero para poder recibir avisos.">
+        <InstalarApp />
+      </Seccion>
 
       <Seccion titulo="Avisos en el celular" detalle="Clases canceladas, pagos acreditados, vencimientos y más, aunque la app esté cerrada.">
         <ActivarNotificaciones variante="tarjeta" />
