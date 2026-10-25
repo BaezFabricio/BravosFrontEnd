@@ -99,8 +99,11 @@ export default function PerfilPage() {
               const activo = abonos.find(a => a.estado === 'ACTIVO')
               if (activo) {
                 // Créditos que le quedan (no el total que trae el plan): se suman los de todas sus membresías activas
+                // Solo las que siguen vigentes: una membresía vencida puede figurar todavía como ACTIVO en la base
+                const d = new Date()
+                const hoyLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
                 const creditosValue = abonos
-                  .filter(a => a.estado === 'ACTIVO')
+                  .filter(a => a.estado === 'ACTIVO' && (!a.vencimiento || String(a.vencimiento).slice(0, 10) >= hoyLocal))
                   .reduce((suma, a) => suma + (Number(a.disponibles) || 0), 0)
                 setAbonoData({
                   vencimiento: activo.vencimiento,

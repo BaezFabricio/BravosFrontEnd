@@ -100,9 +100,9 @@ export function BarraInferior({ items, onNavegar }) {
         onPointerCancel={() => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }}
         onClickCapture={(e) => { if (ignorarClic.current) { e.preventDefault(); e.stopPropagation() } }}
         style={{ touchAction: "none" }}
-        className="pointer-events-auto relative mx-auto flex max-w-md items-stretch gap-1 rounded-2xl border border-border bg-sidebar/95 p-1.5 shadow-xl shadow-black/30 backdrop-blur"
+        className="pointer-events-auto relative mx-auto flex max-w-md items-stretch gap-1 rounded-[2rem] border border-lime-500/25 bg-sidebar/95 p-2 shadow-xl shadow-black/30 ring-1 ring-lime-400/10 backdrop-blur"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
         {/* Brillo que sigue al dedo, con retraso (efecto gota de agua) */}
         <span
           aria-hidden="true"
@@ -136,20 +136,21 @@ export function BarraInferior({ items, onNavegar }) {
             return (
               <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} onClick={onNavegar} aria-current={item.activo ? "page" : undefined}
                 className="relative z-10 flex min-w-0 flex-[1.1] flex-col items-center justify-end gap-1 pb-1.5 focus-visible:outline-none">
-                <span className={`latido-centro -mt-7 flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-background bg-lime-400 text-black shadow-md shadow-lime-400/25 transition-transform active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
+                <span className={`latido-centro -mt-8 flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-400/30 transition-transform active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                   <Icono className="h-6 w-6" strokeWidth={2.75} />
                 </span>
                 <span className="max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-lime-700 dark:text-lime-400">{item.mobileLabel}</span>
               </Link>
             )
           }
-          const base = "relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 transition-all active:scale-95"
+          // Cada opción es una píldora redondeada; la activa se rellena de verde y su ícono sube un poquito
+          const base = "relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.4rem] py-2.5 transition-all duration-300 active:scale-95"
           const estilo = resaltada
-              ? "bg-lime-400/15 text-lime-700 dark:text-lime-400"
+              ? "bg-lime-400/20 text-lime-700 shadow-inner shadow-lime-400/10 dark:text-lime-400"
               : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
           return (
             <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} data-guia={item.guia} onClick={onNavegar} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>
-              <span className="relative">
+              <span className={`relative transition-transform duration-300 ease-out ${resaltada ? "-translate-y-0.5 scale-110" : ""}`}>
                 <Icono className="h-5 w-5 shrink-0" strokeWidth={resaltada || item.centro ? 2.5 : 2} />
                 {item.insignia > 0 && (
                   <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-lime-400 px-1 text-[9px] font-black leading-none text-black ring-2 ring-sidebar" aria-label={`${item.insignia} reservas próximas`}>
@@ -158,6 +159,8 @@ export function BarraInferior({ items, onNavegar }) {
                 )}
               </span>
               <span className="max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide">{item.mobileLabel}</span>
+              {/* Puntito verde bajo la opción activa */}
+              <span aria-hidden="true" className={`absolute bottom-[3px] h-[3px] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
               {item.pista && (
                 <span role="status" className="pista-barra pointer-events-none absolute -top-12 left-1/2 z-20 -ml-10 w-20 rounded-lg bg-lime-400 px-2 py-1.5 text-center text-[10px] font-black uppercase leading-tight tracking-wide text-black shadow-lg">
                   {item.pista}
