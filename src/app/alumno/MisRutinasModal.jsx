@@ -13,6 +13,27 @@ import { Cargando } from '@/components/Cargando'
  * clases reservadas por quien inició sesión.
  */
 
+/*
+ * Protección de la rutina (contenido solo para quienes pagan su membresía). En una página web NO se puede impedir
+ * una captura de pantalla (eso solo existe en apps nativas), así que se hace lo que sí se puede:
+ *  - marca de agua con el nombre y el correo de quien está mirando: si la rutina se filtra, se sabe de quién salió;
+ *  - se bloquea seleccionar, copiar, arrastrar, el menú del botón derecho y la impresión.
+ * El servidor, además, solo entrega la rutina de clases que la persona reservó (ver reservas.controller).
+ */
+function marcaDeAgua() {
+  let texto = ""
+  try {
+    const u = JSON.parse(localStorage.getItem("usuario") || "{}")
+    texto = [u.nombrecompleto, u.correo].filter(Boolean).join(" · ")
+  } catch { /* sin nombre: queda solo la marca de la app */ }
+  const limpio = (texto || "Bravos Box").replace(/[<>&"']/g, "")
+  const w = Math.max(300, limpio.length * 9 + 80), h = Math.round(w * 0.65) // ancho según el largo del texto, para que no se corte
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><text x="${w / 2}" y="${h / 2}" fill="rgba(128,128,128,0.2)" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle" transform="rotate(-28 ${w / 2} ${h / 2})">${limpio}</text></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+}
+
+const bloquear = (e) => e.preventDefault()
+
 const HTML_RUTINA = "text-sm text-foreground/80 [&_li]:mt-0.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-1 [&_strong]:text-foreground [&_ul]:list-disc [&_ul]:pl-5"
 
 function fechaClase(fecha, hora) {
@@ -87,6 +108,7 @@ export default function MisRutinasModal({ open, onOpenChange }) {
   const [clases, setClases] = useState(null)
   const [error, setError] = useState(false)
   const [completa, setCompleta] = useState(false)
+  const [marca] = useState(marcaDeAgua)
 
   // Se pide cada vez que se abre, así refleja reservas y rutinas recién cargadas
   useEffect(() => {
@@ -125,7 +147,11 @@ export default function MisRutinasModal({ open, onOpenChange }) {
           {completa ? <Minimize2 className="h-4 w-4" aria-hidden="true" /> : <Maximize2 className="h-4 w-4" aria-hidden="true" />}
         </button>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="relative flex min-h-0 flex-1 flex-col print:hidden">
+        <div
+          className="flex-1 select-none overflow-y-auto px-4 py-4 [-webkit-touch-callout:none]"
+          onContextMenu={bloquear} onCopy={bloquear} onCut={bloquear} onDragStart={bloquear}
+        >
           {error ? (
             <p className="py-8 text-center text-sm text-foreground/60">No pudimos cargar tus rutinas. Probá de nuevo en un rato.</p>
           ) : clases === null ? (
@@ -149,6 +175,8 @@ export default function MisRutinasModal({ open, onOpenChange }) {
               {clases.map((c, i) => <TarjetaClase key={c.idReserva} clase={c} abiertaAlInicio={i === 0} />)}
             </ul>
           )}
+        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10" style={{ backgroundImage: marca }} />
         </div>
       </DialogContent>
     </Dialog>

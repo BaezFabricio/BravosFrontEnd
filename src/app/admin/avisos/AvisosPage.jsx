@@ -1,28 +1,30 @@
 import { useState } from "react"
-import { MessageCircle, Copy, Send, Sparkles, ChevronDown, CheckCheck, Users } from "lucide-react"
+import { Copy, ChevronDown, CheckCheck, Users } from "lucide-react"
 import { toast } from "@/lib/notificar"
+import { TituloPagina } from "@/components/TituloPagina"
+import IconoWhatsApp from "@/components/IconoWhatsApp"
 
 // Modelos opcionales: solo cargan un texto de base en el mensaje, que después se edita libremente.
 // Lo que está entre [corchetes] es para reemplazar.
 const MODELOS = [
   {
     nombre: "Clase suspendida",
-    titulo: "🚫 Clase suspendida",
-    texto: "Hoy no hay clase de [clase] de las [hora] hs.\n\nDisculpen las molestias. ¡Nos vemos en la próxima! 💪\n_BravosBox_",
+    titulo: "Clase suspendida",
+    texto: "Hoy no hay clase de [clase] de las [hora] hs.\n\nDisculpen las molestias. ¡Nos vemos en la próxima!\n_BravosBox_",
   },
   {
     nombre: "Cambio de horario",
-    titulo: "🕒 Cambio de horario",
+    titulo: "Cambio de horario",
     texto: "La clase de [clase] del [día] cambia de las [hora anterior] a las [hora nueva] hs.\n\nSi ya reservaste y no podés en el nuevo horario, cancelá tu reserva desde el sistema.\n_BravosBox_",
   },
   {
     nombre: "Gimnasio cerrado",
-    titulo: "📅 Aviso",
-    texto: "El [día] el gimnasio permanecerá cerrado.\n\n¡Gracias por entender! 🙌\n_BravosBox_",
+    titulo: "Aviso",
+    texto: "El [día] el gimnasio permanecerá cerrado.\n\n¡Gracias por entender!\n_BravosBox_",
   },
   {
     nombre: "Recordatorio de pago",
-    titulo: "💳 Recordatorio de membresía",
+    titulo: "Recordatorio de membresía",
     texto: "Te recordamos renovar tu membresía antes del día 10 para seguir entrenando sin cortes.\n\nPodés pagar desde el sistema, en *Mi Membresía*.\n_BravosBox_",
   },
 ]
@@ -75,8 +77,7 @@ export default function AvisosPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Avisos por WhatsApp</h1>
-        <p className="mt-0.5 text-sm text-foreground/55">Escribí el mensaje y envialo a tu lista de difusión o grupo.</p>
+        <TituloPagina descripcion={"Escribí el mensaje y envialo a tu lista de difusión o grupo."}><span className="inline-flex items-center gap-2"><IconoWhatsApp className="h-5 w-5 shrink-0 text-foreground" />Avisos por WhatsApp</span></TituloPagina>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -86,7 +87,7 @@ export default function AvisosPage() {
             <h2 className="text-sm font-black uppercase tracking-wide text-foreground">Tu aviso</h2>
             <button type="button" onClick={() => setVerModelos((v) => !v)} aria-expanded={verModelos}
               className="flex min-h-[36px] items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 text-xs font-bold text-foreground/75 hover:border-lime-500">
-              <Sparkles className="h-3.5 w-3.5 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Usar un modelo
+              Usar un modelo
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${verModelos ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
           </div>
@@ -107,7 +108,7 @@ export default function AvisosPage() {
             <label htmlFor="titulo-aviso" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">
               Título <span className="font-bold normal-case tracking-normal text-foreground/45">(opcional, va en negrita)</span>
             </label>
-            <input id="titulo-aviso" value={titulo} maxLength={80} onChange={(e) => setTitulo(e.target.value)} placeholder="Ej: 📅 Horarios de feriado"
+            <input id="titulo-aviso" value={titulo} maxLength={80} onChange={(e) => setTitulo(e.target.value)} placeholder="Ej: Horarios de feriado"
               className="h-11 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base font-bold text-foreground outline-none transition-colors placeholder:font-normal placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm" />
           </div>
 
@@ -164,7 +165,7 @@ export default function AvisosPage() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <button type="button" onClick={enviar} disabled={vacio}
               className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40">
-              <Send className="h-4 w-4" /> Enviar por WhatsApp
+              <IconoWhatsApp className="h-4 w-4" /> Enviar por WhatsApp
             </button>
             <button type="button" onClick={copiar} disabled={vacio}
               className="flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-black uppercase tracking-widest text-foreground/75 transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40">
@@ -173,7 +174,7 @@ export default function AvisosPage() {
           </div>
 
           <p className="flex items-start gap-2 text-xs text-foreground/50">
-            <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <IconoWhatsApp className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Se abre WhatsApp con el mensaje ya escrito. Ahí elegís la lista de difusión o el grupo y lo enviás. El sistema no manda nada por su cuenta.
           </p>
         </section>

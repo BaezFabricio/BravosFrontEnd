@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, LogOut, Check, Settings, Globe } from 'lucide-react';
+import { User, LogOut, Check, Settings, Globe, ChevronDown } from 'lucide-react';
 import { PANELES, panelesPermitidos } from '@/lib/paneles';
 
 function Iniciales({ nombre }) {
@@ -16,6 +17,7 @@ function RolBadge({ tieneModulosAdmin, tieneModulosProfesor }) {
 export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [verPaneles, setVerPaneles] = useState(false);
   if (!userMenuOpen) return null;
 
   // "Mi Perfil" se abre dentro del panel en el que está la persona (alumno o profesor);
@@ -70,29 +72,58 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
 
         {/* Paneles */}
         {mostrarPaneles && (
-          <div className="border-b border-border p-1.5" role="group" aria-label={panelActual ? "Cambiar de panel" : "Ir a un panel"}>
-            <p className="px-2 pb-1 pt-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {panelActual ? "Cambiar de panel" : "Ir a un panel"}
-            </p>
-            {paneles.map((panel) => {
-              const esActual = panel.key === panelActual;
-              const IconoPanel = panel.icon;
-              return (
-                <button
-                  key={panel.key}
-                  type="button"
-                  aria-current={esActual ? "page" : undefined}
-                  onClick={() => { setUserMenuOpen(false); if (!esActual) navigate(panel.href); }}
-                  className={`${fila} ${esActual ? "bg-lime-400/10 text-foreground" : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"}`}
-                >
+          <div className="border-b border-border p-1.5">
+            {/* Lista desplegable: cerrada muestra el panel actual; al abrirla se elige el otro */}
+            <button
+              type="button"
+              aria-expanded={verPaneles}
+              onClick={() => setVerPaneles((v) => !v)}
+              className={`${fila} ${panelActual ? "bg-lime-400/10 text-foreground" : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"}`}
+            >
+              {panelActual && (() => {
+                const IconoActual = PANELES.find((p) => p.key === panelActual)?.icon;
+                return IconoActual ? (
                   <span className={`${icono} bg-lime-400/10`}>
-                    <IconoPanel className="h-4 w-4 text-lime-700 dark:text-lime-400" />
+                    <IconoActual className="h-4 w-4 text-lime-700 dark:text-lime-400" />
                   </span>
-                  <span className="flex-1">{panel.label}</span>
-                  {esActual && <Check className="h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />}
-                </button>
-              );
-            })}
+                ) : null;
+              })()}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] font-black uppercase leading-tight tracking-widest text-muted-foreground">
+                  {panelActual ? "Cambiar de panel" : "Ir a un panel"}
+                </span>
+                {panelActual && (
+                  <span className="block truncate text-sm font-black leading-tight text-foreground">
+                    {PANELES.find((p) => p.key === panelActual)?.label}
+                  </span>
+                )}
+              </span>
+              <ChevronDown className={`h-4 w-4 shrink-0 text-foreground/50 transition-transform ${verPaneles ? "rotate-180" : ""}`} aria-hidden="true" />
+            </button>
+            {verPaneles && (
+            <ul className="mt-1 border-t border-border pt-1" aria-label={panelActual ? "Cambiar de panel" : "Ir a un panel"}>
+              {paneles.map((panel) => {
+                const esActual = panel.key === panelActual;
+                const IconoPanel = panel.icon;
+                return (
+                  <li key={panel.key}>
+                    <button
+                      type="button"
+                      aria-current={esActual ? "page" : undefined}
+                      onClick={() => { setUserMenuOpen(false); setVerPaneles(false); if (!esActual) navigate(panel.href); }}
+                      className={`${fila} ${esActual ? "bg-lime-400/10 text-foreground" : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"}`}
+                    >
+                      <span className={`${icono} bg-lime-400/10`}>
+                        <IconoPanel className="h-4 w-4 text-lime-700 dark:text-lime-400" />
+                      </span>
+                      <span className="flex-1">{panel.label}</span>
+                      {esActual && <Check className="h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            )}
           </div>
         )}
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Calculator } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { TituloPagina } from "@/components/TituloPagina"
 
 // Fórmulas de 1RM estimado
 const FORMULAS = {
@@ -48,10 +49,7 @@ export default function CalculadoraRMPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="text-center">
-        <h1 data-guia="titulo" className="titulo-app text-2xl font-black tracking-tight text-foreground uppercase">Calculadora RM</h1>
-        <p className="hidden text-sm text-muted-foreground mt-1 lg:block">
-          Estimá tu repetición máxima (1RM) a partir de una serie, sin tener que probar tu máximo real.
-        </p>
+        <TituloPagina descripcion={"Estimá tu repetición máxima (1RM) a partir de una serie, sin tener que probar tu máximo real."}>Calculadora RM</TituloPagina>
       </div>
 
       <Card data-guia="calc-datos" className="bg-card border-border p-5 sm:p-6 gap-5">

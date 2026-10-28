@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { toast } from '@/lib/notificar'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const modulosAdminConfig = [
   { id: "dashboard",     nombre: "Resumen",       icon: LayoutDashboard },
@@ -126,14 +127,12 @@ export default function PerfilesPage() {
         const modulosCompletos = crearModulosVacios()
         if (perfil.modulos) {
           Object.keys(perfil.modulos).forEach(key => {
-            if (modulosCompletos[key]) modulosCompletos[key] = {
-              activo: perfil.modulos[key].activo || false,
-              permisos: {
-                alta: perfil.modulos[key].permisos?.alta || false,
-                baja: perfil.modulos[key].permisos?.baja || false,
-                consulta: perfil.modulos[key].permisos?.consulta || false,
-                modificacion: perfil.modulos[key].permisos?.modificacion || false,
-              }
+            if (modulosCompletos[key]) {
+              // Un permiso que no aplica a ese módulo (el editor no tiene casilla para marcarlo ni desmarcarlo) se descarta:
+              // si un perfil lo traía de antes, quedaba asignado y no había forma de quitarlo desde acá. Al guardar el perfil se limpia.
+              const quedan = (accion) => Boolean(perfil.modulos[key].permisos?.[accion]) && PERMISOS_POR_MODULO[key]?.[accion] !== "—"
+              const permisos = { alta: quedan('alta'), baja: quedan('baja'), consulta: quedan('consulta'), modificacion: quedan('modificacion') }
+              modulosCompletos[key] = { activo: Object.values(permisos).some(Boolean), permisos }
             }
           })
         }
@@ -276,8 +275,7 @@ export default function PerfilesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">Perfiles y Permisos</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Configurá el acceso de cada rol al sistema</p>
+          <TituloPagina descripcion={"Configurá el acceso de cada rol al sistema"}>Perfiles y Permisos</TituloPagina>
         </div>
         {/* Celular: botón ancho arriba de la lista. Computadora: botón chico al lado del título */}
         <button type="button" onClick={() => openEditDialog(null)}
@@ -644,7 +642,7 @@ export default function PerfilesPage() {
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-400" aria-hidden="true" />
               <p className="text-xs leading-relaxed text-foreground/65">
                 Los permisos se aplican al instante en el sistema: lo que quites deja de funcionar enseguida. Los menús de cada persona
-                se actualizan la próxima vez que inicie sesión. No podés dar permisos de gestión que vos no tengas.
+                se actualizan solos en menos de un minuto, o apenas vuelve a abrir la app o intenta hacer algo que ya no puede. No podés dar permisos de gestión que vos no tengas.
               </p>
             </div>
           </div>

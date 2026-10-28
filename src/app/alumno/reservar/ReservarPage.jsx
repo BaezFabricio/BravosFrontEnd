@@ -1,3 +1,4 @@
+import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useMemo, useState } from "react"
@@ -351,37 +352,37 @@ export default function ReservarClasePage() {
 
       {/* ESCRITORIO */}
     <div className="hidden lg:block space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Reservar Clase</h1>
-        <p className="text-muted-foreground">Seleccioná una clase para reservar</p>
-      </div>
+      <TituloPagina descripcion={"Seleccioná una clase para reservar"}>Reservar Clase</TituloPagina>
 
       {/* CRÉDITOS */}
-      <div className="border border-border bg-card px-4 py-3 flex items-center gap-3">
-        <div className="w-9 h-9 bg-primary/20 flex items-center justify-center shrink-0">
-          <span className="text-base font-bold text-primary">
+      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-lime-500 dark:border-lime-400">
+          <span className="text-lg font-black tabular-nums text-lime-700 dark:text-lime-400">
             {loadingCreditos ? "..." : creditosReales}
           </span>
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">Créditos Disponibles</p>
-          <p className="text-xs text-muted-foreground">Cada reserva consume 1 crédito</p>
+          <p className="text-sm font-bold text-foreground">Créditos disponibles</p>
+          <p className="text-xs text-foreground/60">Cada reserva consume 1 crédito. Si cancelás con 2 horas o más de anticipación, te lo devolvemos.</p>
         </div>
       </div>
 
       {/* CALENDARIO SEMANAL */}
-      <Card className="bg-card border-border">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 gap-2">
-          <CardTitle className="text-base sm:text-lg font-semibold capitalize leading-tight">
-            {formatDate(selectedDate)}
-          </CardTitle>
+      <Card className="rounded-2xl border-border bg-card">
+        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Elegí el día</p>
+            <CardTitle className="mt-0.5 text-xl font-black capitalize leading-tight">
+              {formatDate(selectedDate)}
+            </CardTitle>
+          </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="icon" onClick={() => {
+            <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl" onClick={() => {
               const d = new Date(selectedDate); d.setDate(d.getDate() - 7); setSelectedDate(d)
             }}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={() => {
+            <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl" onClick={() => {
               const d = new Date(selectedDate); d.setDate(d.getDate() + 7); setSelectedDate(d)
             }}>
               <ChevronRight className="h-4 w-4" />
@@ -389,7 +390,7 @@ export default function ReservarClasePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          <div className="grid grid-cols-7 gap-2">
             {weekDates.map((date, index) => {
               const isSelected = date.toDateString() === selectedDate.toDateString()
               const isToday = date.toDateString() === new Date().toDateString()
@@ -397,18 +398,22 @@ export default function ReservarClasePage() {
                 <button
                   key={index}
                   onClick={() => setSelectedDate(date)}
-                  className={`p-1.5 sm:p-3 rounded-lg text-center transition-colors ${
-                    isSelected ? "bg-primary text-primary-foreground"
-                    : isToday ? "bg-primary/20 text-primary"
-                    : "bg-secondary hover:bg-secondary/80 text-foreground"
+                  className={`flex min-h-[84px] flex-col items-center justify-center rounded-2xl border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                    isSelected ? "scale-[1.04] border-lime-400 bg-lime-400 text-black shadow-lg shadow-lime-500/30"
+                    : hayClasesEn(date) ? "border-lime-500/50 bg-lime-400/10 text-foreground hover:border-lime-400"
+                    : "border-border bg-transparent text-foreground/45 hover:border-foreground/30"
                   }`}
                 >
-                  <p className="text-[9px] sm:text-xs font-medium">{diasSemana[index]}</p>
-                  <p className="text-sm sm:text-lg font-bold">{date.getDate()}</p>
+                  <span className={`text-[11px] font-black uppercase tracking-wide ${isSelected ? "text-black/75" : isToday ? "text-lime-700 dark:text-lime-400" : ""}`}>{isToday ? "Hoy" : diasSemana[index]}</span>
+                  <span className="mt-0.5 text-2xl font-black leading-none tabular-nums">{date.getDate()}</span>
+                  <span aria-hidden="true" className={`mt-1.5 h-1.5 w-1.5 rounded-full ${hayClasesEn(date) ? (isSelected ? "bg-black" : "bg-lime-500") : "bg-transparent"}`} />
                 </button>
               )
             })}
           </div>
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-foreground/60">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-lime-500" /> Días con clases
+          </p>
         </CardContent>
       </Card>
 
@@ -418,10 +423,10 @@ export default function ReservarClasePage() {
           <button
             key={t.id}
             onClick={() => setTurnoFiltro(turnoFiltro === t.id ? null : t.id)}
-            className={`flex-1 py-2 text-xs font-black uppercase tracking-widest border transition-colors ${
+            className={`min-h-[44px] flex-1 rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
               turnoFiltro === t.id
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/20"
+                ? "border-lime-400 bg-lime-400 text-black"
+                : "border-border text-foreground/80 hover:border-lime-500/60"
             }`}
           >
             {t.label}
@@ -437,7 +442,7 @@ export default function ReservarClasePage() {
         {pageLoading ? (
           <Cargando filas={3} className="py-4" />
         ) : clasesAgrupadas.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-5 border border-dashed border-border text-center">
+          <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-foreground/60">
             No hay clases{turnoFiltro ? ` de ${TURNOS.find(t => t.id === turnoFiltro)?.label.toLowerCase()}` : ""} para los {mapaDiasBD[selectedDate.getDay()].toLowerCase()}.
           </p>
         ) : (
@@ -445,7 +450,7 @@ export default function ReservarClasePage() {
             <div key={key} className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">
+                <span className="px-2 text-xs font-black uppercase tracking-widest text-foreground/60">
                   {plan.nombre}
                 </span>
                 <div className="h-px flex-1 bg-border" />
@@ -464,19 +469,19 @@ export default function ReservarClasePage() {
                   return (
                     <Card
                       key={clase.id}
-                      className={`bg-card border-border transition-all ${
+                      className={`rounded-2xl bg-card border-border transition-all ${
                         clase.reservado
-                          ? "border-green-500/30 bg-green-500/5"
+                          ? "border-lime-500/50 bg-lime-400/5"
                           : sinCupos || sinCreditos || !puedeRes
                           ? "opacity-60"
-                          : "hover:border-primary/30"
+                          : "hover:border-lime-500/60"
                       }`}
                     >
                       <CardContent className="p-4 space-y-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-foreground">{clase.nombre}</h3>
+                              <h3 className="text-lg font-black text-foreground">{clase.nombre}</h3>
                               {clase.reservado && (
                                 <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/25 rounded-md">
                                   <CheckCircle2 className="h-3 w-3" /> Reservado
@@ -496,10 +501,10 @@ export default function ReservarClasePage() {
                           </div>
                           <Badge
                             variant="outline"
-                            className={sinCupos
+                            className={`rounded-full ${sinCupos
                               ? "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20"
-                              : "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20"
-                            }
+                              : "bg-lime-400/15 text-lime-700 dark:text-lime-400 border-lime-500/30"
+                            }`}
                           >
                             {clase.cuposDisponibles}/{clase.cuposTotales} cupos
                           </Badge>
@@ -519,7 +524,7 @@ export default function ReservarClasePage() {
                                   <>
                                     <button
                                       onClick={() => toggleRutina(clase.id)}
-                                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                                      className="flex items-center gap-1 text-xs font-semibold text-lime-700 dark:text-lime-400 hover:underline"
                                     >
                                       <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expandida ? "rotate-180" : ""}`} />
                                       {expandida ? "Ocultar rutina" : "Ver rutina"}
@@ -554,7 +559,7 @@ export default function ReservarClasePage() {
                             puedeCan ? (
                               <Button
                                 variant="outline"
-                                className="w-full border-red-500/30 text-red-700 dark:text-red-400 hover:bg-red-500/10 hover:border-red-600/50 dark:hover:border-red-500/50"
+                                className="min-h-[44px] w-full rounded-xl border-red-500/40 text-red-700 dark:text-red-400 hover:bg-red-500/10"
                                 onClick={() => setCancelDialog({ open: true, clase })}
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
@@ -579,7 +584,7 @@ export default function ReservarClasePage() {
                             </Button>
                           ) : (
                             <Button
-                              className="w-full bg-primary hover:bg-primary/90"
+                              className="min-h-[44px] w-full rounded-xl bg-lime-400 font-black text-black hover:bg-lime-300"
                               onClick={() => { setSelectedClass(clase); setConfirmDialog(true) }}
                             >
                               Reservar Clase
@@ -624,7 +629,7 @@ export default function ReservarClasePage() {
             <Button
               onClick={handleReservar}
               disabled={isLoading || creditosReales === 0}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-lime-400 text-black hover:bg-lime-300"
             >
               {isLoading
                 ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Reservando...</>

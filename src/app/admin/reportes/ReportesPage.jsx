@@ -3,6 +3,7 @@ import { Banknote, Users, Dumbbell, CalendarCheck, Download, TrendingUp, Trendin
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
 import { AdminPageSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient from "@/api"
+import { TituloPagina } from "@/components/TituloPagina"
 
 // Colores distintos entre sí (no variaciones del mismo verde), con el verde de marca como ancla
 const COLORES = ["#84cc16", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"]
@@ -159,10 +160,9 @@ export default function ReportesPage() {
       {/* Encabezado */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="flex items-center gap-2 text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">
+          <TituloPagina descripcion={"Ingresos, planes, ocupación y reservas."}>
             <span className="h-2.5 w-2.5 rounded-full bg-lime-400" aria-hidden="true" /> Reportes
-          </h1>
-          <p className="mt-1 text-sm text-foreground/55">Ingresos, planes, ocupación y reservas.</p>
+          </TituloPagina>
         </div>
         <button type="button" onClick={exportarCSV}
           className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500">

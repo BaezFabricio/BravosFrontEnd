@@ -7,10 +7,12 @@ import { toast } from "@/lib/notificar"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { TituloPagina } from "@/components/TituloPagina"
 
 const METODOS = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
 
@@ -88,6 +90,9 @@ export default function GestionAbonosPage() {
   const hoyRef = new Date()
   const [compAbiertos, setCompAbiertos] = useState({})
   const [mesFiltro, setMesFiltro] = useState({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })
+  // Ventana para elegir el mes (y el año) directamente, sin ir de a uno con las flechas
+  const [pickerMes, setPickerMes] = useState(false)
+  const [anioPicker, setAnioPicker] = useState(hoyRef.getFullYear())
 
   const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
 
@@ -417,13 +422,19 @@ export default function GestionAbonosPage() {
   const [docsM, setDocsM] = useState([])
   const [guardandoM, setGuardandoM] = useState(false)
 
-  const abrirModalAbono = () => {
+  // Fila nueva: si se entró desde un alumno ("Cargar abono" de su ficha), cada fila nueva ya viene con ese alumno
+  const filaNueva = () => {
     const base = filaVacia()
     const u = usuarioPreId ? usuarios.find(x => String(x.idUsuario || x.id) === String(usuarioPreId)) : null
     if (u) {
       const nombre = u.nombre || u.nombrecompleto || ""
       Object.assign(base, { idUsuario: u.idUsuario || u.id, nombreAlumno: nombre, busqueda: nombre })
     }
+    return base
+  }
+
+  const abrirModalAbono = () => {
+    const base = filaNueva()
     setFormM(base)
     setDocsM([])
     setModalAbono(true)
@@ -503,8 +514,7 @@ export default function GestionAbonosPage() {
       <BotonVolver a={destinoVolver} texto="Volver" />
       <div className="flex items-start gap-4">
         <div className="flex-1">
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">Gestión de Abonos</h1>
-          <p className="text-sm text-foreground/50 mt-0.5">Cargá y administrá los abonos de los alumnos.</p>
+          <TituloPagina descripcion={"Cargá y administrá los abonos de los alumnos."}>Gestión de Abonos</TituloPagina>
         </div>
       </div>
 
@@ -525,7 +535,6 @@ export default function GestionAbonosPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-black uppercase tracking-widest text-foreground">Nueva Carga</p>
-            <p className="text-sm text-foreground/60 mt-0.5">Completá las filas y guardá todos de una vez.</p>
           </div>
           <button
             onClick={enviar}
@@ -684,7 +693,7 @@ export default function GestionAbonosPage() {
           </table>
         </div>
 
-        <button onClick={() => setFilas(prev => [...prev, filaVacia()])}
+        <button onClick={() => setFilas(prev => [...prev, filaNueva()])}
           className="flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground transition-colors border border-dashed border-border px-4 py-2">
           <Plus className="h-4 w-4" /> Agregar fila
         </button>
@@ -771,7 +780,7 @@ export default function GestionAbonosPage() {
             <div className="border-b border-border px-5 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Membresías</p>
-                <p className="text-sm text-foreground/60 mt-0.5">Muestra las membresías que empiezan en el mes elegido. Cambiá de mes con las flechas.</p>
+                <p className="text-sm text-foreground/60 mt-0.5">Muestra las membresías que empiezan en el mes elegido. Cambiá de mes con las flechas o tocando el mes.</p>
               </div>
 
               <div className="flex w-full items-center gap-1.5 sm:w-auto sm:shrink-0">
@@ -783,7 +792,13 @@ export default function GestionAbonosPage() {
                   <ChevronLeft className="h-4 w-4" />
                 </button>
 
-                <div className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 md:h-8 md:min-w-[150px] md:flex-none">
+                <button
+                  type="button"
+                  onClick={() => { setAnioPicker(mesFiltro.year); setPickerMes(true) }}
+                  aria-haspopup="dialog"
+                  aria-label={`Elegir el mes. Ahora: ${labelMes(mesFiltro)}`}
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 md:h-8 md:min-w-[150px] md:flex-none"
+                >
                   <span className="whitespace-nowrap text-sm font-semibold text-foreground">{labelMes(mesFiltro)}</span>
                   {esMesActual && (
                     <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
@@ -795,7 +810,7 @@ export default function GestionAbonosPage() {
                       Archivado
                     </span>
                   )}
-                </div>
+                </button>
 
                 <button
                   onClick={() => moverMes(1)}
@@ -812,6 +827,48 @@ export default function GestionAbonosPage() {
                 </button>
               </div>
             </div>
+
+            {/* Ventana para elegir el mes: año arriba con flechas y los 12 meses abajo (no se puede ir a meses que todavía no llegaron) */}
+            <Dialog open={pickerMes} onOpenChange={setPickerMes}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Elegí el mes</DialogTitle>
+                  <DialogDescription>Se muestran las membresías que empiezan en ese mes. El punto marca los meses con membresías.</DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-between gap-2">
+                  <button type="button" onClick={() => setAnioPicker((a) => a - 1)} aria-label="Año anterior"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 hover:border-foreground/30 hover:text-foreground">
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="text-lg font-black tabular-nums text-foreground">{anioPicker}</span>
+                  <button type="button" onClick={() => setAnioPicker((a) => a + 1)} disabled={anioPicker >= hoyRef.getFullYear()} aria-label="Año siguiente"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-foreground/70 hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-25">
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2" role="group" aria-label={`Meses de ${anioPicker}`}>
+                  {MESES.map((nombre, m) => {
+                    const futuro = anioPicker > hoyRef.getFullYear() || (anioPicker === hoyRef.getFullYear() && m > hoyRef.getMonth())
+                    const elegido = mesFiltro.year === anioPicker && mesFiltro.month === m
+                    const conDatos = mesesConDatos.has(`${anioPicker}-${m}`)
+                    return (
+                      <button key={nombre} type="button" disabled={futuro} aria-pressed={elegido}
+                        onClick={() => { setMesFiltro({ year: anioPicker, month: m }); setPickerMes(false) }}
+                        className={`relative flex min-h-[48px] items-center justify-center rounded-xl border text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-30 ${
+                          elegido ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/80 hover:border-lime-500/60"
+                        }`}>
+                        {nombre.slice(0, 3)}
+                        {conDatos && <span className={`absolute right-2 top-2 h-1.5 w-1.5 rounded-full ${elegido ? "bg-black/60" : "bg-lime-500"}`} aria-hidden="true" />}
+                      </button>
+                    )
+                  })}
+                </div>
+                <button type="button" onClick={() => { setMesFiltro({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() }); setPickerMes(false) }}
+                  className="min-h-[40px] rounded-xl border border-border text-xs font-black uppercase tracking-widest text-foreground/70 hover:border-lime-500/60 hover:text-foreground">
+                  Ir al mes actual
+                </button>
+              </DialogContent>
+            </Dialog>
 
             {/* Resumen rápido del mes */}
             {delMes.length > 0 && (

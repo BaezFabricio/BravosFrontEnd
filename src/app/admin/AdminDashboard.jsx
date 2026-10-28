@@ -2,6 +2,7 @@
 import { Users, Calendar, AlertTriangle, TrendingUp, UserCheck, Clock, DollarSign, Dumbbell } from "lucide-react"
 import apiClient from "@/api"
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const AVATAR_COLORS = [
   { bg: "bg-lime-400/15",   text: "text-lime-700 dark:text-lime-400" },
@@ -211,8 +212,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Resumen</h1>
-        <p className="text-sm text-foreground/40 mt-1">Panel de administración - Bravos Gym</p>
+        <TituloPagina descripcion={"Panel de administración - Bravos Gym"}>Resumen</TituloPagina>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">

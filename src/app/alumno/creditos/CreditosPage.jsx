@@ -1,3 +1,4 @@
+import { TituloPagina } from "@/components/TituloPagina"
 import { useEffect, useState } from "react"
 import { CheckCircle2, XCircle, Clock, Zap, RotateCcw, AlertCircle } from "lucide-react"
 import apiClient from "@/api"
@@ -31,7 +32,7 @@ function MovimientoRow({ mov }) {
     if (e === "Cancelada (Devuelto)")            return { label: "Devuelto",        color: "text-emerald-700 dark:text-emerald-400",    bg: "bg-emerald-400/10 border-emerald-400/20", Icon: RotateCcw }
     if (e === "Cancelada (Fuera de término)")    return { label: "Sin devolución",  color: "text-orange-700 dark:text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
     if (e === "No asistió")                      return { label: "No asistió",      color: "text-red-700 dark:text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
-    if (e === "Próxima")                         return { label: "Próxima",         color: "text-foreground/40",  bg: "bg-foreground/5 border-border", Icon: Clock }
+    if (e === "Próxima")                         return { label: "Próxima",         color: "text-foreground/60",  bg: "bg-foreground/5 border-border", Icon: Clock }
     if (e === "Completada")                      return { label: "Completada",      color: "text-sky-700 dark:text-sky-400",        bg: "bg-sky-400/10 border-sky-400/20", Icon: CheckCircle2 }
     return { label: e, color: "text-foreground/60", bg: "bg-foreground/5 border-border", Icon: CheckCircle2 }
   })()
@@ -46,7 +47,7 @@ function MovimientoRow({ mov }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{mov.descripcion}</p>
-        <p className="text-[11px] text-foreground/40 mt-0.5">{formatFechaCorta(mov.fecha)}</p>
+        <p className="text-[11px] text-foreground/60 mt-0.5">{formatFechaCorta(mov.fecha)}</p>
       </div>
       <span className={`hidden sm:inline-flex shrink-0 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-full ${estadoMeta.bg} ${estadoMeta.color}`}>
         {estadoMeta.label}
@@ -106,10 +107,7 @@ export default function CreditosPage() {
   return (
     <div className="space-y-5">
 
-      <div className="hidden lg:block">
-        <h1 data-guia="titulo" className="text-2xl font-black uppercase tracking-tight text-foreground">Mis Créditos</h1>
-        <p className="text-sm text-foreground/40 mt-0.5">Estado de tu cuenta y movimientos</p>
-      </div>
+      <TituloPagina descripcion={"Estado de tu cuenta y movimientos"}>Mis Créditos</TituloPagina>
 
       {sinAbono && (
         <>
@@ -134,16 +132,16 @@ export default function CreditosPage() {
       {/* ESCRITORIO */}
       <div className="hidden space-y-5 lg:block">
       {/* Hero: número grande + barra de puntos */}
-      <div className="border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-6">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-1">Disponibles</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60 mb-1">Disponibles</p>
             <p className="text-7xl font-black text-lime-700 dark:text-lime-400 leading-none tabular-nums">{disponibles}</p>
-            <p className="text-sm text-foreground/40 mt-2">de {total} créditos · {abono?.nombrePlan || "—"}</p>
+            <p className="text-sm text-foreground/60 mt-2">de {total} créditos · {abono?.nombrePlan || "—"}</p>
           </div>
           <div className="text-right shrink-0">
             <p className="text-4xl font-black text-foreground/10 leading-none">{porcentaje}%</p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 mt-1">restante</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55 mt-1">restante</p>
           </div>
         </div>
 
@@ -151,33 +149,33 @@ export default function CreditosPage() {
           {Array.from({ length: totalDots }).map((_, i) => (
             <div
               key={i}
-              className={`h-3 w-3 rounded-sm transition-colors ${i < activeDots ? "bg-lime-400" : "bg-foreground/10"}`}
+              className={`h-3 w-3 rounded-full transition-colors ${i < activeDots ? "bg-lime-400" : "bg-foreground/10"}`}
             />
           ))}
         </div>
 
         {abono?.fechaVencimiento && (
-          <p className="mt-4 text-[11px] text-foreground/35 border-t border-border pt-3">
-            Vencimiento: <span className="text-foreground/50 font-semibold">{formatFechaLarga(abono.fechaVencimiento)}</span>
+          <p className="mt-4 text-[11px] text-foreground/60 border-t border-border pt-3">
+            Vencimiento: <span className="text-foreground/80 font-semibold">{formatFechaLarga(abono.fechaVencimiento)}</span>
           </p>
         )}
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="border border-border bg-card px-5 py-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Total del plan</p>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Total del plan</p>
           <p className="text-3xl font-black text-foreground mt-1 tabular-nums">{total}</p>
         </div>
-        <div className="border border-border bg-card px-5 py-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40">Usados</p>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Usados</p>
           <p className="text-3xl font-black text-foreground mt-1 tabular-nums">{usados}</p>
         </div>
       </div>
 
       {/* Reglas */}
-      <div className="border border-border bg-card px-5 py-4 space-y-1.5">
-        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/40 mb-2">Cómo funcionan</p>
+      <div className="space-y-1.5 rounded-2xl border border-border bg-card p-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60 mb-2">Cómo funcionan</p>
         {[
           "Cada reserva consume 1 crédito.",
           "Si no asistís, el crédito se descuenta igual.",
@@ -187,19 +185,19 @@ export default function CreditosPage() {
         ].map((t, i) => (
           <div key={i} className="flex items-start gap-2">
             <span className="mt-1 h-1.5 w-1.5 rounded-full bg-lime-400/60 shrink-0" />
-            <p className="text-xs text-foreground/50">{t}</p>
+            <p className="text-xs text-foreground/75">{t}</p>
           </div>
         ))}
       </div>
 
       {/* Historial */}
-      <div className="border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="px-4 sm:px-6 py-3 border-b border-border flex items-center justify-between">
           <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Historial de movimientos</p>
-          <span className="text-[10px] font-bold text-foreground/30">{movimientos.length} registros</span>
+          <span className="text-[10px] font-bold text-foreground/55">{movimientos.length} registros</span>
         </div>
         {movimientos.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-foreground/30">
+          <div className="px-6 py-10 text-center text-sm text-foreground/55">
             Todavía no tenés movimientos registrados.
           </div>
         ) : (

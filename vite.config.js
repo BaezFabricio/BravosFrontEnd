@@ -51,8 +51,10 @@ const pwa = VitePWA({
     runtimeCaching: [
       {
         // Fotos y gráficos públicos de la app (mascotas, logos, fondos): se guardan al verse
+        // OJO: Workbox copia esta función como texto dentro de sw.js, donde no existen las variables de este archivo
+        // (RUTAS_DEL_SERVIDOR daba "is not defined" en el service worker). Todo lo que use tiene que estar escrito acá adentro.
         urlPattern: ({ url, sameOrigin }) =>
-          sameOrigin && !RUTAS_DEL_SERVIDOR.some((r) => r.test(url.pathname)) && /\.(png|jpe?g|webp|gif|svg)$/i.test(url.pathname),
+          sameOrigin && !/^\/(api|landing|uploads)\//.test(url.pathname) && /\.(png|jpe?g|webp|gif|svg)$/i.test(url.pathname),
         handler: 'CacheFirst',
         options: { cacheName: 'imagenes-app-v2', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 } },
       },

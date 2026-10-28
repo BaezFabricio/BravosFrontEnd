@@ -1,5 +1,7 @@
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
+import { SlotTituloContext } from "@/lib/slotTitulo"
+import { usePermisosVivos } from "@/lib/sincronizarPermisos"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
@@ -38,6 +40,8 @@ export default function ProfesorLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+  usePermisosVivos() // el menú de paneles se actualiza solo cuando cambian los permisos
+  const [slotTitulo, setSlotTitulo] = useState(null) // lugar del título de la pantalla en la barra de arriba
   const [usuario, setUsuario] = useState({ nombre: "Cargando...", email: "", iniciales: "??" })
   const [avatarUrl, setAvatarUrl] = useState("")
   const menuRef = useRef(null)
@@ -133,11 +137,12 @@ export default function ProfesorLayout({ children }) {
             {/* Celular: logo que lleva a la página principal, como en los otros paneles */}
             {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
             <BotonPaginaPrincipal />
-            <div className="flex-1" />
+            {/* Título de la pantalla (lo escribe cada página con <TituloPagina>) */}
+            <div ref={setSlotTitulo} className="min-w-0 flex-1 px-3" />
 
             <div className="flex items-center gap-3">
               
-              <ModeToggle />
+              <div className="hidden lg:block"><ModeToggle /></div>
               
               <Button 
                 variant="ghost" 
@@ -195,6 +200,7 @@ export default function ProfesorLayout({ children }) {
             items={navigation}
             esActivo={(item) => esActivo(item, pathname)}
             onLogout={handleLogout}
+            conTema
           />
         </header>
 
@@ -204,7 +210,7 @@ export default function ProfesorLayout({ children }) {
           {location.pathname === "/profesor/rutinas" && (
             <BotonVolver a="/profesor" texto="Volver" className="mb-4 lg:hidden" />
           )}
-          {children}
+          <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
         </main>
 
         {/* Mobile Bottom Navigation */}

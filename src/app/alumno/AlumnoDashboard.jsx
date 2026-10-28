@@ -255,7 +255,7 @@ export default function AlumnoDashboard() {
               </div>
               <div className="flex flex-wrap gap-4">
                 <Link to="/alumno/reservar">
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 font-bold">
+                  <Button size="lg" className="bg-lime-400 text-black hover:bg-lime-300 font-bold">
                     <Calendar className="mr-2 h-5 w-5" />
                     RESERVAR CLASE
                   </Button>
@@ -370,10 +370,10 @@ export default function AlumnoDashboard() {
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to="/alumno/reservar" className="group">
-          <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+          <Card className="rounded-2xl bg-card border-border h-full hover:border-lime-500/60 transition-all hover:shadow-lg hover:shadow-lime-500/10">
             <CardContent className="p-6 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Calendar className="h-7 w-7 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-lime-400/15 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Calendar className="h-7 w-7 text-lime-700 dark:text-lime-400" />
               </div>
               <h3 className="font-bold text-foreground">Reservar</h3>
               <p className="text-sm text-muted-foreground mt-1">Agendar clase</p>
@@ -382,7 +382,7 @@ export default function AlumnoDashboard() {
         </Link>
 
         <Link to="/alumno/reservas" className="group">
-          <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+          <Card className="rounded-2xl bg-card border-border h-full hover:border-lime-500/60 transition-all hover:shadow-lg hover:shadow-lime-500/10">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Clock className="h-7 w-7 text-accent" />
@@ -394,10 +394,10 @@ export default function AlumnoDashboard() {
         </Link>
 
         <Link to="/alumno/calculadora-rm" className="group">
-          <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+          <Card className="rounded-2xl bg-card border-border h-full hover:border-lime-500/60 transition-all hover:shadow-lg hover:shadow-lime-500/10">
             <CardContent className="p-6 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Calculator className="h-7 w-7 text-primary" />
+              <div className="w-14 h-14 rounded-2xl bg-lime-400/15 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Calculator className="h-7 w-7 text-lime-700 dark:text-lime-400" />
               </div>
               <h3 className="font-bold text-foreground">Calculadora RM</h3>
               <p className="text-sm text-muted-foreground mt-1">Calculá tu 1RM</p>
@@ -406,7 +406,7 @@ export default function AlumnoDashboard() {
         </Link>
 
         <Link to="/alumno/marcas" className="group">
-          <Card className="bg-card border-border h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+          <Card className="rounded-2xl bg-card border-border h-full hover:border-lime-500/60 transition-all hover:shadow-lg hover:shadow-lime-500/10">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Trophy className="h-7 w-7 text-accent" />
@@ -423,17 +423,17 @@ export default function AlumnoDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* LADO IZQUIERDO: CLASES DE HOY */}
-        <Card className="bg-card border-border">
+        <Card className="rounded-2xl bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-lime-400/15 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-lime-700 dark:text-lime-400" />
                 </div>
                 <h2 className="text-lg font-bold text-foreground">CLASES DE HOY</h2>
               </div>
               <Link to="/alumno/reservar">
-                <Button variant="ghost" size="sm" className="text-primary font-semibold">
+                <Button variant="ghost" size="sm" className="text-lime-700 dark:text-lime-400 font-semibold">
                   Ver todas
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
@@ -447,7 +447,7 @@ export default function AlumnoDashboard() {
                 clasesHoy.map((clase) => (
                   <div
                     key={clase.idHorario || clase.id}
-                    className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-foreground/5 border border-border hover:border-primary/30 transition-colors gap-2"
+                    className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-foreground/5 border border-border hover:border-lime-500/60 transition-colors gap-2"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="text-center min-w-[44px]">
@@ -468,12 +468,12 @@ export default function AlumnoDashboard() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge
                         variant="outline"
-                        className={`hidden sm:inline-flex ${(clase.cupoDisponible ?? clase.cupos ?? 0) <= 3 ? "border-destructive/50 text-destructive" : "border-primary/50 text-primary"}`}
+                        className={`hidden sm:inline-flex ${(clase.cupoDisponible ?? clase.cupos ?? 0) <= 3 ? "border-destructive/50 text-destructive" : "border-lime-500/50 text-lime-700 dark:text-lime-400"}`}
                       >
                         {clase.cupoDisponible ?? clase.cupos ?? 0}
                       </Badge>
                       <Link to="/alumno/reservar">
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold text-xs px-3">
+                        <Button size="sm" className="bg-lime-400 text-black hover:bg-lime-300 font-bold text-xs px-3">
                           Reservar
                         </Button>
                       </Link>
@@ -488,7 +488,7 @@ export default function AlumnoDashboard() {
         </Card>
 
         {/* LADO DERECHO: MIS RESERVAS */}
-        <Card className="bg-card border-border">
+        <Card className="rounded-2xl bg-card border-border">
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -498,7 +498,7 @@ export default function AlumnoDashboard() {
                 <h2 className="text-lg font-bold text-foreground">MIS RESERVAS</h2>
               </div>
               <Link to="/alumno/reservas">
-                <Button variant="ghost" size="sm" className="text-primary font-semibold">
+                <Button variant="ghost" size="sm" className="text-lime-700 dark:text-lime-400 font-semibold">
                   Ver todas
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
@@ -512,11 +512,11 @@ export default function AlumnoDashboard() {
                 {proximasReservadas.slice(0, 3).map((reserva) => (
                   <div
                     key={reserva.idReserva}
-                    className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/20"
+                    className="flex items-center justify-between p-4 rounded-xl bg-lime-400/10 border border-lime-500/40"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                        <span className="text-lg font-black text-primary">
+                      <div className="w-12 h-12 rounded-xl bg-lime-400/15 flex items-center justify-center">
+                        <span className="text-lg font-black text-lime-700 dark:text-lime-400">
                           {reserva.horaInicio ? reserva.horaInicio.substring(0, 2) : "00"}
                         </span>
                       </div>
@@ -527,7 +527,7 @@ export default function AlumnoDashboard() {
                         </p>
                       </div>
                     </div>
-                    <Badge className="bg-primary/20 text-primary border-primary/30">
+                    <Badge className="bg-lime-400/15 text-lime-700 dark:text-lime-400 border-lime-500/40">
                       Confirmada
                     </Badge>
                   </div>
@@ -538,7 +538,7 @@ export default function AlumnoDashboard() {
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No tienes reservas próximas</p>
                 <Link to="/alumno/reservar">
-                  <Button className="mt-4 bg-primary hover:bg-primary/90">
+                  <Button className="mt-4 bg-lime-400 text-black hover:bg-lime-300">
                     Reservar ahora
                   </Button>
                 </Link>
@@ -550,18 +550,18 @@ export default function AlumnoDashboard() {
       </div>
 
       {/* TARJETA DE PROGRESO */}
-      <Card className="bg-card border-border">
+      <Card className="rounded-2xl bg-card border-border">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-lime-400/20 to-lime-500/20 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-lime-700 dark:text-lime-400" />
             </div>
             <div className="flex-1 min-w-0 space-y-4">
               {/* Semanal */}
               <div>
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO SEMANAL</h3>
-                  <p className="text-2xl sm:text-3xl font-black text-primary shrink-0">
+                  <p className="text-2xl sm:text-3xl font-black text-lime-700 dark:text-lime-400 shrink-0">
                     {clasesSemanales}/{metaSemanal}
                   </p>
                 </div>
@@ -570,7 +570,7 @@ export default function AlumnoDashboard() {
                 </p>
                 <div className="mt-2 w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    className="h-full bg-gradient-to-r from-lime-400 to-lime-500 rounded-full transition-all"
                     style={{ width: `${Math.min((clasesSemanales / metaSemanal) * 100, 100)}%` }}
                   />
                 </div>
@@ -579,7 +579,7 @@ export default function AlumnoDashboard() {
               <div className="border-t border-border pt-4">
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="font-bold text-foreground text-sm sm:text-base">PROGRESO MENSUAL</h3>
-                  <p className="text-2xl sm:text-3xl font-black text-primary shrink-0">
+                  <p className="text-2xl sm:text-3xl font-black text-lime-700 dark:text-lime-400 shrink-0">
                     {Math.round((clasesCompletadasEsteMes / diasEnMes) * 100)}%
                   </p>
                 </div>
@@ -588,7 +588,7 @@ export default function AlumnoDashboard() {
                 </p>
                 <div className="mt-2 w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                    className="h-full bg-gradient-to-r from-lime-400 to-lime-500 rounded-full transition-all"
                     style={{ width: `${Math.min((clasesCompletadasEsteMes / diasEnMes) * 100, 100)}%` }}
                   />
                 </div>

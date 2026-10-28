@@ -8,6 +8,7 @@ import apiClient from "@/api"
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const TIPOS = [
   { value: "peso", label: "Peso (kg)" },
@@ -411,8 +412,7 @@ export default function MarcasPage() {
       <LogroCelebracion logros={abierto || aEliminar ? [] : logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 data-guia="titulo" className="titulo-app text-2xl font-black tracking-tight text-foreground uppercase">Mis marcas</h1>
-          <p className="hidden text-sm text-muted-foreground mt-1 lg:block">Registrá tus marcas personales y mirá cómo progresás.</p>
+          <TituloPagina descripcion={"Registrá tus marcas personales y mirá cómo progresás."}>Mis marcas</TituloPagina>
         </div>
         <Button data-guia="marcas-nueva" onClick={() => setAbierto(true)}
           className="shrink-0 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wide">

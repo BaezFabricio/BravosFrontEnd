@@ -137,7 +137,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col lg:flex-row bg-background">
 
       {/* ── Panel izquierdo — branding ── */}
-      <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden bg-[#0c0d09] anim-from-left">
+      <div className="relative hidden lg:flex lg:w-1/2 lg:sticky lg:top-0 lg:h-screen lg:self-start flex-col justify-between p-12 overflow-hidden bg-[#0c0d09] anim-from-left">
         {/* Fondo con logo */}
         <div
           className="absolute inset-0 opacity-[0.07]"
@@ -214,7 +214,7 @@ export default function LoginPage() {
         </div>
 
         {/* Formulario centrado */}
-        <div className="flex-1 flex items-center justify-center px-5 py-3 lg:p-12">
+        <div className="flex-1 flex items-start justify-center px-5 py-6 lg:px-12 lg:pb-12 lg:pt-[9vh]">
           <div className="w-full max-w-sm anim-fade-up anim-delay-100">
 
             {/* Volver — solo desktop */}

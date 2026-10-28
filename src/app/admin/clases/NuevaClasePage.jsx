@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
-import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil, Users, Clock, CalendarDays, Repeat, Mail, Dumbbell, Power, Lock } from "lucide-react"
+import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil, Users, Clock, CalendarDays, Mail, Dumbbell, Power } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import RichTextEditor from "@/components/RichTextEditor"
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 // La descripción se guarda como JSON {desc, rutina}; las clases viejas tienen texto plano
 // o los ejercicios como lista
@@ -48,12 +49,67 @@ const DIAS = [
 const TURNOS = [
   { nombre: "Mañana",   horaInicio: "06:00", horaFin: "12:00" },
   { nombre: "Mediodía", horaInicio: "12:00", horaFin: "17:00" },
-  { nombre: "Noche",    horaInicio: "17:00", horaFin: "22:00" },
+  { nombre: "Noche",    horaInicio: "17:00", horaFin: "24:00" }, // hasta la medianoche: las clases de las 22 y 23 horas también son del turno noche
 ]
 
-const HORAS = Array.from({ length: 18 }, (_, i) => String(i + 5).padStart(2, "0"))
+// De las 05 a las 23 horas (antes llegaba solo hasta las 22 y no se podían cargar clases de noche)
+const HORAS = Array.from({ length: 19 }, (_, i) => String(i + 5).padStart(2, "0"))
 const MINUTOS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
+
+/*
+ * Horarios de los turnos del box (se administran en Clases > Turnos), para elegir el de la clase con un toque en vez de
+ * escribir la hora. Se muestran los del tipo de clase elegido (CrossFit, Planificación Atleta…), agrupados por turno.
+ * Elegir uno completa la hora de inicio y de fin (y el turno); igual se pueden cambiar a mano más abajo.
+ */
+function HorariosDeTurno({ tipoPlan, horaInicio, horaFin, onElegir, compacto = false }) {
+  const [lista, setLista] = useState(null) // null = cargando
+
+  useEffect(() => {
+    if (!tipoPlan) return
+    let vigente = true
+    fetch(`/api/vv1/turnos/horarios?tipoPlan=${encodeURIComponent(tipoPlan)}`)
+      .then(r => r.json())
+      .then(r => { if (vigente) setLista(Array.isArray(r.data) ? r.data : []) })
+      .catch(() => { if (vigente) setLista([]) })
+    return () => { vigente = false }
+  }, [tipoPlan])
+
+  if (!tipoPlan) return <p className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-foreground/60">Elegí primero el tipo de clase para ver los horarios del box.</p>
+  if (lista === null) return <p className="text-xs text-foreground/55">Cargando horarios…</p>
+  if (lista.length === 0) return <p className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-foreground/60">Todavía no hay horarios cargados para este tipo de clase. Podés cargarlos en Clases &gt; Turnos o elegir la hora a mano acá abajo.</p>
+
+  const grupos = []
+  for (const h of lista) {
+    let g = grupos.find(x => x.turno === h.turno)
+    if (!g) { g = { turno: h.turno, horarios: [] }; grupos.push(g) }
+    g.horarios.push(h)
+  }
+  // Lista desplegable, agrupada por turno. El valor es el horario que coincide con la hora de inicio y fin ya cargadas
+  const elegido = lista.find(h => h.horaInicio === horaInicio && h.horaFin === horaFin)
+  return (
+    <select
+      aria-label="Horarios del box"
+      value={elegido ? String(elegido.idTurnoHorario) : ""}
+      onChange={e => {
+        const h = lista.find(x => String(x.idTurnoHorario) === e.target.value)
+        if (h) onElegir(h)
+      }}
+      className={`w-full cursor-pointer rounded-lg border border-border bg-card px-3 text-sm font-bold tabular-nums text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${compacto ? "min-h-[40px]" : "min-h-[44px]"}`}
+    >
+      {!elegido && <option value="">Elegí un horario del box</option>}
+      {grupos.map(g => (
+        <optgroup key={g.turno} label={`Turno ${g.turno.toLowerCase()}`}>
+          {g.horarios.map(h => (
+            <option key={h.idTurnoHorario} value={h.idTurnoHorario}>
+              {h.horaInicio} – {h.horaFin}{h.etiqueta ? ` · ${h.etiqueta}` : ""}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
+}
 
 // Selector de hora: HH : MM
 function TimeSelect({ value, onChange, hasError }) {
@@ -131,28 +187,53 @@ function DateSelect({ value, onChange }) {
   )
 }
 
+// Fecha y hora del aviso a los alumnos: dos listas (día/mes/año y hora/minutos), sin escribir en un campo de fecha.
+// El valor sale como "AAAA-MM-DDTHH:mm" (hora de Argentina) o vacío si falta algo (vacío = se envía apenas se guarda).
+function AvisoFechaHora({ value, onChange }) {
+  const [fecha, setFecha] = useState(value ? value.slice(0, 10) : "")
+  const [hora, setHora] = useState(value ? value.slice(11, 16) : "")
+
+  const emitir = (f, h) => onChange(f && h ? `${f}T${h}` : "")
+  const elegirDia = (f) => { setFecha(f); emitir(f, hora) }
+  const elegirHora = (h) => { setHora(h); emitir(fecha, h) }
+
+  let resumen = "Se envía apenas guardes la clase."
+  if (fecha && hora) {
+    const d = new Date(`${fecha}T12:00:00`)
+    resumen = `Se envía el ${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })} a las ${hora} hs.`
+  } else if (fecha) resumen = "Falta elegir la hora."
+  else if (hora) resumen = "Falta elegir el día."
+
+  return (
+    <div className="space-y-3">
+      <DateSelect value={fecha} onChange={elegirDia} />
+      <TimeSelect value={hora} onChange={elegirHora} />
+      <p className="text-xs font-semibold text-lime-700 dark:text-lime-400">{resumen}</p>
+    </div>
+  )
+}
+
 // Crear y editar una clase usan esta misma pantalla: con :id en la ruta, edita
 export default function NuevaClasePage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const esEdicion = Boolean(id)
   const [searchParams] = useSearchParams()
-  const planIdDesdeUrl = esEdicion ? "" : (searchParams.get("planId") || "")
+  const tipoDesdeUrl = esEdicion ? "" : (searchParams.get("tipo") || "")
 
   const [cargandoClase, setCargandoClase] = useState(esEdicion)
-  const [motivosTipo, setMotivosTipo] = useState({ aRecurrente: null, aUnica: null }) // por qué NO se puede cambiar el tipo (lo informa el servidor)
   const [isLoading, setIsLoading]     = useState(false)
   const [errors, setErrors]           = useState({})
   const [profesores, setProfesores]   = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
-  const [planes, setPlanes]           = useState([])
+  const [tipos, setTipos]             = useState([])
   const [publicarProgramado, setPublicarProgramado] = useState(false)
 
-  const [esClaseUnica, setEsClaseUnica] = useState(false)
+  const [esClaseUnica, setEsClaseUnica] = useState(true) // las clases son siempre de un solo día (ya no hay clases que se repiten)
 
   const [formData, setFormData] = useState({
     nombre: "",
-    idPlan: planIdDesdeUrl,
+    tipoPlan: tipoDesdeUrl,
     horaInicio: "",
     horaFin: "",
     idProfesor: "",
@@ -167,7 +248,10 @@ export default function NuevaClasePage() {
 
   // Al corregir un campo se borra su error (el nombre del error a veces es otro: horario, días)
   const ERROR_DE = { horaInicio: "horario", horaFin: "horario", fechaEspecifica: "diasSemana" }
+  // Turno del horario elegido de la lista del box (Mañana, Siesta, Noche…). Si después se cambia la hora a mano, se vuelve a calcular.
+  const [turnoDeLista, setTurnoDeLista] = useState(null)
   const set = (campo, valor) => {
+    if (campo === 'horaInicio' || campo === 'horaFin' || campo === 'tipoPlan') setTurnoDeLista(null)
     setFormData(prev => ({ ...prev, [campo]: valor }))
     setErrors(prev => {
       const clave = ERROR_DE[campo] || campo
@@ -198,16 +282,15 @@ export default function NuevaClasePage() {
           const { descripcion, rutina } = leerRutina(c.rutina)
           const aviso = avisoLocal(c.fechaPublicacion)
           setEsClaseUnica(Boolean(c.fechaEspecifica))
-          setMotivosTipo({ aRecurrente: c.noSePuedePasarARecurrente || null, aUnica: c.noSePuedePasarAUnica || null })
           setPublicarProgramado(Boolean(aviso))
           setFormData({
             nombre: c.nombreClase || "",
-            idPlan: c.idPlan ? String(c.idPlan) : "",
+            tipoPlan: c.tipoPlan || "",
             horaInicio: c.horaInicio ? c.horaInicio.substring(0, 5) : "",
             horaFin: c.horaFin ? c.horaFin.substring(0, 5) : "",
             idProfesor: c.idProfesor ? String(c.idProfesor) : "",
             // El límite real de reservas es cupoMaximo
-            capacidadMaxima: String(Math.min(Number(c.cupoMaximo) || 15, 20)),
+            capacidadMaxima: String(Number(c.cupoMaximo) || 15),
             diasSemana: c.fechaEspecifica || !c.diasSemana ? [] : c.diasSemana.split(",").map(d => d.trim()),
             fechaEspecifica: c.fechaEspecifica || "",
             descripcion,
@@ -226,19 +309,16 @@ export default function NuevaClasePage() {
       .catch(err => toast.error("Error al cargar profesores", { description: err.message }))
       .finally(() => setLoadingProfesores(false))
 
-    fetch("/api/vv1/planes", { headers })
+    fetch("/api/vv1/tipos-clase", { headers })
       .then(r => r.json())
-      .then(r => setPlanes(r.data || []))
-      .catch(err => console.error("Error al cargar planes:", err))
+      .then(r => setTipos(r.data || []))
+      .catch(err => console.error("Error al cargar los tipos de clase:", err))
   }, [navigate, esEdicion, id])
 
-  // Se calcula sobre el estado más reciente: con toques seguidos no se pierde ningún día
-  const toggleDia = (dia) => {
-    setFormData(prev => ({
-      ...prev,
-      diasSemana: prev.diasSemana.includes(dia) ? prev.diasSemana.filter(d => d !== dia) : [...prev.diasSemana, dia],
-    }))
-    setErrors(prev => (prev.diasSemana ? (({ diasSemana, ...resto }) => resto)(prev) : prev)) // eslint-disable-line no-unused-vars
+  const elegirHorarioDeLista = (h) => {
+    setFormData(prev => ({ ...prev, horaInicio: h.horaInicio, horaFin: h.horaFin }))
+    setTurnoDeLista(h.turno)
+    setErrors(prev => { if (!prev.horario) return prev; const { horario: _, ...resto } = prev; return resto }) // eslint-disable-line no-unused-vars
   }
 
   const duracionMinutos = () => {
@@ -253,13 +333,13 @@ export default function NuevaClasePage() {
     const e = {}
     if (!formData.nombre.trim()) e.nombre = "Requerido"
     if (!formData.idProfesor) e.idProfesor = "Requerido"
-    if (!formData.idPlan) e.idPlan = "Elegí el plan de la clase"
+    if (!formData.tipoPlan) e.tipoPlan = "Elegí el tipo de clase"
     if (!formData.horaInicio) e.horario = "Seleccioná hora de inicio"
     if (!formData.horaFin) e.horario = "Seleccioná hora de fin"
     if (formData.horaInicio && formData.horaFin && formData.horaInicio >= formData.horaFin)
       e.horario = "La hora de fin debe ser posterior al inicio"
     if (!formData.capacidadMaxima || parseInt(formData.capacidadMaxima) <= 0) e.capacidadMaxima = "Debe ser mayor a 0"
-    if (parseInt(formData.capacidadMaxima) > 20) e.capacidadMaxima = "Máximo 20 alumnos"
+    if (parseInt(formData.capacidadMaxima) > 1000) e.capacidadMaxima = "Revisá el número: es demasiado alto"
     if (esClaseUnica) {
       if (!formData.fechaEspecifica) e.diasSemana = "Seleccioná la fecha de la clase"
     } else {
@@ -278,9 +358,9 @@ export default function NuevaClasePage() {
   const crearClase = async () => {
     setIsLoading(true)
     try {
-      const turnoSeleccionado = TURNOS.find(t =>
-        formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin
-      ) || TURNOS[0]
+      const turnoSeleccionado = turnoDeLista
+        ? { nombre: turnoDeLista }
+        : (TURNOS.find(t => formData.horaInicio >= t.horaInicio && formData.horaInicio < t.horaFin) || TURNOS[0])
 
       // Aviso activado: en la fecha elegida o, si no se eligió ninguna, apenas se guarda la clase.
       // "Ahora" va redondeado al minuto (segundos en 00): así, al volver a editar y guardar, la fecha es la misma y no se reenvía el aviso.
@@ -303,7 +383,7 @@ export default function NuevaClasePage() {
         horaInicio: formData.horaInicio,
         horaFin: formData.horaFin,
         turno: turnoSeleccionado.nombre,
-        idPlan: formData.idPlan ? parseInt(formData.idPlan) : null,
+        tipoPlan: formData.tipoPlan,
         fechaPublicacion,
         rutina: {
           descripcion: formData.descripcion,
@@ -327,17 +407,19 @@ export default function NuevaClasePage() {
     }
   }
 
-  const planSeleccionado = planes.find(p => String(p.idPlan) === String(formData.idPlan))
+  const tipoSeleccionado = tipos.find(t => t.codigo === formData.tipoPlan)
+  // Se ofrecen los tipos activos; una clase que ya tenía un tipo desactivado lo conserva
+  const opcionesTipo = tipos.filter(t => t.activo || t.codigo === formData.tipoPlan)
   const dur = duracionMinutos()
 
   // ── CELULAR: la clase se arma en 4 pasos (sin scroll largo) ──
   const PASOS = ["Coach", "WOD", "Horario", "Listo"]
   const [paso, setPaso] = useState(0)
   const [versionRutina, setVersionRutina] = useState(0) // el editor lee el contenido al abrirse: se reabre al agregar un bloque
-  const turnoDe = (hora) => (TURNOS.find(t => hora >= t.horaInicio && hora < t.horaFin) || TURNOS[0]).nombre
+  const turnoDe = (hora) => turnoDeLista || (TURNOS.find(t => hora >= t.horaInicio && hora < t.horaFin) || TURNOS[0]).nombre
   const profesorSel = profesores.find(p => String(p.idProfesor) === String(formData.idProfesor))
   const inicialesDe = (n = "") => n.trim().split(/\s+/).slice(0, 2).map(x => x[0] || "").join("").toUpperCase() || "?"
-  const tipoPlan = planSeleccionado?.tipo === "PlanificacionAtleta" ? "Planificación" : planSeleccionado ? "CrossFit" : null
+  const tipoPlan = tipoSeleccionado?.nombre || null
 
   // Cada paso se valida antes de avanzar: el error aparece donde está
   const validarPaso = (n) => {
@@ -345,14 +427,14 @@ export default function NuevaClasePage() {
     if (n === 0) {
       if (!formData.nombre.trim()) e.nombre = "Poné un nombre para la clase"
       if (!formData.idProfesor) e.idProfesor = "Elegí el coach"
-      if (!formData.idPlan) e.idPlan = "Elegí el plan de la clase"
+      if (!formData.tipoPlan) e.tipoPlan = "Elegí el tipo de clase"
     }
     if (n === 2) {
       if (!formData.horaInicio || !formData.horaFin) e.horario = "Elegí la hora de inicio y de fin"
       else if (formData.horaInicio >= formData.horaFin) e.horario = "La hora de fin debe ser posterior al inicio"
       const cupo = parseInt(formData.capacidadMaxima)
       if (!cupo || cupo <= 0) e.capacidadMaxima = "Debe ser mayor a 0"
-      else if (cupo > 20) e.capacidadMaxima = "Máximo 20 alumnos"
+      else if (cupo > 1000) e.capacidadMaxima = "Revisá el número: es demasiado alto"
       if (esClaseUnica ? !formData.fechaEspecifica : formData.diasSemana.length === 0)
         e.diasSemana = esClaseUnica ? "Elegí la fecha de la clase" : "Elegí al menos un día"
     }
@@ -381,40 +463,6 @@ export default function NuevaClasePage() {
   const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
   const fieldError = "w-full bg-transparent border border-red-600/50 dark:border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-600 dark:focus:border-red-400 transition-colors"
 
-  // Cuándo se dicta la clase: dos opciones con su explicación. Al editar también se puede cambiar de una a otra
-  // (el servidor avisa si no se puede, por ejemplo si ya hay alumnos anotados).
-  const opcionesCuando = [
-    { unica: false, icono: Repeat, titulo: "Todas las semanas", texto: "Se repite en los días que elijas, sin fecha de fin. Ej.: lunes, miércoles y viernes." },
-    { unica: true, icono: CalendarDays, titulo: "Un solo día", texto: "Una clase puntual en una fecha. Pasado ese día no se repite y queda en el historial." },
-  ]
-  const elegirCuando = (unica) => {
-    if (unica === esClaseUnica || (unica ? motivosTipo.aUnica : motivosTipo.aRecurrente)) return
-    setEsClaseUnica(unica)
-    if (unica) set("diasSemana", [])
-    else set("fechaEspecifica", "")
-  }
-  const selectorCuando = (
-    <div className="mt-3 space-y-2" role="radiogroup" aria-label="Cuándo se dicta la clase">
-      {opcionesCuando.map(({ unica, icono: Icono, titulo: t, texto }) => {
-        const activa = esClaseUnica === unica
-        const motivo = !activa ? (unica ? motivosTipo.aUnica : motivosTipo.aRecurrente) : null
-        return (
-          <div key={t}>
-          <button type="button" role="radio" aria-checked={activa} aria-disabled={Boolean(motivo)} onClick={() => elegirCuando(unica)}
-            className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${activa ? "border-lime-500 bg-lime-400/10" : motivo ? "cursor-not-allowed border-border bg-background/40 opacity-60" : "border-border bg-background/60 hover:border-foreground/30"}`}>
-            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${activa ? "bg-lime-400 text-black" : "bg-foreground/5 text-foreground/55"}`}><Icono className="h-4 w-4" aria-hidden="true" /></span>
-            <span className="min-w-0">
-              <span className={`block text-sm font-black uppercase tracking-wide ${activa ? "text-lime-700 dark:text-lime-400" : "text-foreground"}`}>{t}</span>
-              <span className="mt-0.5 block text-xs leading-snug text-foreground/60">{texto}</span>
-            </span>
-          </button>
-          {motivo && <p className="mt-1.5 flex items-start gap-1.5 px-1 text-xs leading-snug text-amber-700 dark:text-amber-400"><Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{motivo}</p>}
-          </div>
-        )
-      })}
-    </div>
-  )
-
   if (cargandoClase) return <AdminFormSkeleton />
 
   return (
@@ -424,13 +472,7 @@ export default function NuevaClasePage() {
       <BotonVolver a="/admin/clases" texto="Volver" />
       <div className="flex items-start gap-4">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">{esEdicion ? "Editar clase" : "Nueva Clase"}</h1>
-          <p className="text-sm text-foreground/65 mt-0.5 hidden lg:block">
-            {planSeleccionado
-              ? <>Plan: <span className="text-foreground/60">{planSeleccionado.nombre}</span></>
-              : esEdicion ? "Modificá los datos de la clase" : "Completá los campos para registrar la clase"
-            }
-          </p>
+          <TituloPagina descripcion={tipoSeleccionado ? `Tipo de clase: ${tipoSeleccionado.nombre}` : esEdicion ? "Modificá los datos de la clase" : "Completá los campos para registrar la clase"}>{esEdicion ? "Editar clase" : "Nueva Clase"}</TituloPagina>
         </div>
       </div>
 
@@ -440,8 +482,8 @@ export default function NuevaClasePage() {
         <div className={caja}>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Paso {paso + 1} de 4</p>
-            {planSeleccionado && (
-              <span className="truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">Plan: {planSeleccionado.nombre}</span>
+            {tipoSeleccionado && (
+              <span className="truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">{tipoSeleccionado.nombre}</span>
             )}
           </div>
           <ol className="mt-3 grid grid-cols-4 gap-1.5" aria-label={esEdicion ? "Pasos para editar la clase" : "Pasos para crear la clase"}>
@@ -460,16 +502,16 @@ export default function NuevaClasePage() {
         {/* PASO 1 · Nombre y coach */}
         {paso === 0 && (
           <>
-            {!planIdDesdeUrl && (
+            {!tipoDesdeUrl && (
               <div className={caja}>
-                <label htmlFor="m-plan-clase" className={titulo}>Plan</label>
-                <select id="m-plan-clase" value={formData.idPlan} onChange={e => set("idPlan", e.target.value)}
+                <label htmlFor="m-plan-clase" className={titulo}>Tipo de clase</label>
+                <select id="m-plan-clase" value={formData.tipoPlan} onChange={e => set("tipoPlan", e.target.value)}
                   className="mt-3 h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-sm text-foreground outline-none focus:border-lime-500">
-                  <option value="" disabled>Elegí un plan</option>
-                  {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
+                  <option value="" disabled>Elegí el tipo de clase</option>
+                  {opcionesTipo.map(t => <option key={t.codigo} value={t.codigo}>{t.nombre}</option>)}
                 </select>
-                {errorTxt(errors.idPlan)}
-                <p className="mt-2 text-xs text-foreground/55">La clase solo les aparece, y solo se avisa, a los alumnos con este plan vigente.</p>
+                {errorTxt(errors.tipoPlan)}
+                <p className="mt-2 text-xs text-foreground/55">La clase solo les aparece, y solo se avisa, a los alumnos con una membresía vigente de este tipo (de cualquier plan).</p>
               </div>
             )}
             <div className={caja}>
@@ -560,7 +602,7 @@ export default function NuevaClasePage() {
                 <button type="button" aria-label="Un lugar menos" onClick={() => set("capacidadMaxima", String(Math.max(1, (parseInt(formData.capacidadMaxima) || 0) - 1)))}
                   className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background/60 text-foreground"><Minus className="h-5 w-5" /></button>
                 <p className="text-center"><span className="text-4xl font-black tabular-nums text-foreground">{formData.capacidadMaxima || 0}</span> <span className="text-xs font-bold uppercase text-foreground/55">alumnos</span></p>
-                <button type="button" aria-label="Un lugar más" onClick={() => set("capacidadMaxima", String(Math.min(20, (parseInt(formData.capacidadMaxima) || 0) + 1)))}
+                <button type="button" aria-label="Un lugar más" onClick={() => set("capacidadMaxima", String((parseInt(formData.capacidadMaxima) || 0) + 1))}
                   className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background/60 text-foreground"><Plus className="h-5 w-5" /></button>
               </div>
               <div className="mt-3 grid grid-cols-4 gap-2">
@@ -578,7 +620,11 @@ export default function NuevaClasePage() {
                 <p className={titulo}><Clock className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Horario</p>
                 {dur && <span className="text-xs font-bold text-lime-700 dark:text-lime-400">{dur} min</span>}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3">
+                <HorariosDeTurno tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} />
+              </div>
+              <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-foreground/55">O elegí la hora a mano</p>
+              <div className="mt-2 grid grid-cols-2 gap-3">
                 <div>
                   <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Inicio</p>
                   <TimeSelect value={formData.horaInicio} onChange={v => set("horaInicio", v)} hasError={!!errors.horario && !formData.horaInicio} />
@@ -594,30 +640,10 @@ export default function NuevaClasePage() {
 
             <div className={caja}>
               <p className={titulo}><CalendarDays className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> ¿Cuándo se dicta?</p>
-              {selectorCuando}
-              {esClaseUnica ? (
-                <div className="mt-4">
-                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí la fecha</p>
-                  <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí los días de la semana</p>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {DIAS.map(({ key, label }) => {
-                      const activo = formData.diasSemana.includes(key)
-                      return (
-                        <button key={key} type="button" onClick={() => toggleDia(key)} aria-pressed={activo}
-                          className={`flex min-h-[48px] flex-col items-center justify-center rounded-lg border text-xs font-black uppercase ${activo ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background/60 text-foreground/60"}`}>
-                          {label}
-                          {activo && formData.horaInicio && <span className="text-[9px] font-bold">{formData.horaInicio}</span>}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  {formData.diasSemana.length > 0 && <p className="mt-2 text-xs text-foreground/55">{formData.diasSemana.length} {formData.diasSemana.length === 1 ? "día" : "días"} por semana</p>}
-                </div>
-              )}
+              <div className="mt-4">
+                <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí la fecha</p>
+                <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
+              </div>
               {errorTxt(errors.diasSemana)}
             </div>
           </>
@@ -689,16 +715,7 @@ export default function NuevaClasePage() {
               </div>
               {publicarProgramado && (
                 <div className="mt-3">
-                  <input type="datetime-local" value={formData.publicarDatetime} onChange={e => set("publicarDatetime", e.target.value)} aria-label="Fecha y hora del aviso"
-                    className="h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-sm text-foreground outline-none focus:border-lime-500" />
-                  {!formData.publicarDatetime && (
-                    <p className="mt-1.5 text-xs text-lime-700 dark:text-lime-400">Se envía apenas guardes la clase.</p>
-                  )}
-                  {formData.publicarDatetime && (
-                    <p className="mt-1.5 text-xs text-lime-700 dark:text-lime-400">
-                      Se envía el {new Date(formData.publicarDatetime).toLocaleDateString("es-AR", { day: "numeric", month: "long" })} a las {formData.publicarDatetime.slice(11, 16)} hs
-                    </p>
-                  )}
+                  <AvisoFechaHora value={formData.publicarDatetime} onChange={(v) => set("publicarDatetime", v)} />
                 </div>
               )}
             </div>
@@ -778,8 +795,8 @@ export default function NuevaClasePage() {
                     onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
                     className={`shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
                       publicarProgramado
-                        ? "border-primary/30 text-primary bg-primary/5"
-                        : "border-border text-foreground/25 hover:text-foreground hover:border-foreground/20"
+                        ? "border-lime-500/40 text-lime-700 dark:text-lime-400 bg-lime-400/10"
+                        : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30"
                     }`}
                   >
                     {publicarProgramado ? <><Eye className="h-3 w-3" />Programado</> : <><EyeOff className="h-3 w-3" />Sin aviso</>}
@@ -788,18 +805,7 @@ export default function NuevaClasePage() {
 
                 {publicarProgramado && (
                   <div className="space-y-2">
-                    <input
-                      type="datetime-local"
-                      value={formData.publicarDatetime}
-                      onChange={e => set("publicarDatetime", e.target.value)}
-                      className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
-                      style={{ colorScheme: "dark" }}
-                    />
-                    {formData.publicarDatetime && (
-                      <p className="text-xs text-primary">
-                        📧 Email enviado el {new Date(formData.publicarDatetime).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })} a las {formData.publicarDatetime.slice(11, 16)} hs
-                      </p>
-                    )}
+                    <AvisoFechaHora value={formData.publicarDatetime} onChange={(v) => set("publicarDatetime", v)} />
                   </div>
                 )}
               </div>
@@ -808,17 +814,17 @@ export default function NuevaClasePage() {
             {/* ── DERECHA: configuración ── */}
             <div className="border border-border divide-y divide-border sticky top-6 self-start">
 
-              {(esEdicion || !planIdDesdeUrl) && (
+              {(esEdicion || !tipoDesdeUrl) && (
                 <div className="p-4 space-y-3">
                   <div>
-                    <label htmlFor="d-plan-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Plan</label>
-                    <select id="d-plan-clase" value={formData.idPlan} onChange={e => set("idPlan", e.target.value)} style={{ colorScheme: "dark" }}
+                    <label htmlFor="d-plan-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Tipo de clase</label>
+                    <select id="d-plan-clase" value={formData.tipoPlan} onChange={e => set("tipoPlan", e.target.value)} style={{ colorScheme: "dark" }}
                       className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
-                      <option value="" disabled>Elegí un plan</option>
-                      {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
+                      <option value="" disabled>Elegí el tipo de clase</option>
+                      {opcionesTipo.map(t => <option key={t.codigo} value={t.codigo}>{t.nombre}</option>)}
                     </select>
-                    {errors.idPlan && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.idPlan}</p>}
-                    <p className="mt-1.5 text-[10px] text-foreground/50">Solo los alumnos con este plan vigente ven la clase y reciben el aviso.</p>
+                    {errors.tipoPlan && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.tipoPlan}</p>}
+                    <p className="mt-1.5 text-[10px] text-foreground/50">Solo los alumnos con una membresía vigente de este tipo ven la clase y reciben el aviso.</p>
                   </div>
                   <div>
                     <label htmlFor="d-estado-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
@@ -849,7 +855,7 @@ export default function NuevaClasePage() {
               <div className="p-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Cupo máximo *</label>
                 <input
-                  type="number" min="1" max="20"
+                  type="number" min="1"
                   value={formData.capacidadMaxima}
                   onChange={e => set("capacidadMaxima", e.target.value)}
                   className={errors.capacidadMaxima ? fieldError : field}
@@ -859,6 +865,10 @@ export default function NuevaClasePage() {
 
               <div className="p-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-3">Horario *</label>
+                <div className="mb-3">
+                  <HorariosDeTurno tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} compacto />
+                </div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-foreground/50">O elegí la hora a mano</p>
                 <div className="space-y-2">
                   <div>
                     <p className="text-[10px] text-foreground/60 mb-1.5">Inicio</p>
@@ -877,31 +887,10 @@ export default function NuevaClasePage() {
 
               <div className="p-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">¿Cuándo se dicta?</label>
-                {selectorCuando}
-                {esClaseUnica ? (
-                  <div className="mt-3">
-                    <p className="text-[10px] text-foreground/50 mb-1.5">Elegí la fecha *</p>
-                    <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <p className="text-[10px] text-foreground/50 mb-1.5">Elegí los días de la semana *</p>
-                    <div className="grid grid-cols-3 gap-1">
-                      {DIAS.map(({ key, label }) => (
-                        <button
-                          key={key} type="button" onClick={() => toggleDia(key)}
-                          className={`py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${
-                            formData.diasSemana.includes(key)
-                              ? "border-lime-400/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                              : "border-border text-foreground/30 hover:text-foreground hover:border-foreground/20"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div className="mt-3">
+                  <p className="text-[10px] text-foreground/50 mb-1.5">Elegí la fecha *</p>
+                  <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
+                </div>
                 {errors.diasSemana && <p className="mt-2 text-xs text-red-700 dark:text-red-400">{errors.diasSemana}</p>}
               </div>
 

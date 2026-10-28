@@ -1,6 +1,6 @@
 import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
-import { Plus, Edit2, Trash2, Loader2, CreditCard, Users } from "lucide-react"
+import { Plus, Edit2, Trash2, Loader2, CreditCard, Users, Layers } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,9 @@ import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
 import { partesDescripcion } from "@/lib/planes"
 import EditorPlan from "./EditorPlan"
+import TiposClaseDialog from "./TiposClaseDialog"
+import { useTiposClase } from "@/lib/tiposClase"
+import { TituloPagina } from "@/components/TituloPagina"
 
 const leerPermisos = () => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }
 
@@ -20,6 +23,8 @@ export default function PlanesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
+  const { tipos, recargar: recargarTipos } = useTiposClase()
+  const [tiposAbierto, setTiposAbierto] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [planEditando, setPlanEditando] = useState(null)
   const [guardando, setGuardando] = useState(false)
@@ -112,18 +117,26 @@ export default function PlanesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Planes y Membresías</h1>
-          <p className="mt-1 text-sm text-foreground/55">Gestioná los planes de abono disponibles para los alumnos.</p>
+          <TituloPagina descripcion={"Gestioná los planes de abono disponibles para los alumnos."}>Planes y Membresías</TituloPagina>
         </div>
-        {permisos.includes("membresias:alta") && (
+        <div className="flex flex-col gap-2 sm:flex-row sm:self-start">
           <button
-            onClick={abrirNuevo}
-            className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:min-h-[44px] sm:self-start"
+            onClick={() => setTiposAbierto(true)}
+            className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:min-h-[44px]"
           >
-            <Plus className="h-5 w-5" />
-            Nuevo plan
+            <Layers className="h-5 w-5" />
+            Tipos de clase
           </button>
-        )}
+          {permisos.includes("membresias:alta") && (
+            <button
+              onClick={abrirNuevo}
+              className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:min-h-[44px]"
+            >
+              <Plus className="h-5 w-5" />
+              Nuevo plan
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -145,7 +158,7 @@ export default function PlanesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Plan</p>
                   <span className="shrink-0 rounded-md border border-border bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">
-                    {plan.tipo === "PlanificacionAtleta" ? "Planificación" : "CrossFit"}
+                    {plan.nombreTipo || plan.tipo}
                   </span>
                 </div>
                 <h2 className="mt-1 text-xl font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
@@ -214,11 +227,23 @@ export default function PlanesPage() {
         key={apertura}
         open={dialogOpen}
         plan={planEditando}
+        tipos={tipos}
         onClose={() => setDialogOpen(false)}
         onGuardar={guardarPlan}
         guardando={guardando}
         puedeVerClases={permisos.includes("clases:consulta")}
         puedeCrearClases={permisos.includes("clases:alta")}
+      />
+
+      {/* Tipos de clase: crear, renombrar, desactivar */}
+      <TiposClaseDialog
+        open={tiposAbierto}
+        onClose={() => setTiposAbierto(false)}
+        tipos={tipos}
+        onCambio={async () => { await recargarTipos(); await cargarPlanes() }}
+        puedeCrear={permisos.includes("membresias:alta")}
+        puedeEditar={permisos.includes("membresias:modificacion")}
+        puedeBorrar={permisos.includes("membresias:baja")}
       />
 
       {/* Dialog eliminar */}

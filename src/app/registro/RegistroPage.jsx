@@ -142,7 +142,7 @@ function RegistroPage() {
     }
     setIsUpdatingEmail(true)
     try {
-      await reenviarVerificacionCuenta({ idUsuario: usuarioId, nuevoCorreo: newEmailInput })
+      await reenviarVerificacionCuenta({ idUsuario: usuarioId, nuevoCorreo: newEmailInput, password: formData.password })
       setFormData(prev => ({ ...prev, email: newEmailInput }))
       setIsEditingEmail(false)
       toast.success("Correo modificado y nuevo código enviado")
@@ -220,7 +220,7 @@ function RegistroPage() {
     <div className="min-h-screen flex flex-col lg:flex-row bg-background">
 
       {/* Panel izquierdo — branding */}
-      <div className="relative hidden lg:flex lg:w-5/12 flex-col justify-between p-12 overflow-hidden flex-shrink-0 bg-[#0c0d09] anim-from-left">
+      <div className="relative hidden lg:flex lg:w-5/12 lg:sticky lg:top-0 lg:h-screen lg:self-start flex-col justify-between p-12 overflow-hidden flex-shrink-0 bg-[#0c0d09] anim-from-left">
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '60%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
@@ -297,7 +297,7 @@ function RegistroPage() {
 
               <div className="mb-5 anim-fade-up anim-delay-150">
                 <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
-                  Crear cuenta<span className="text-lime-500 dark:text-lime-400">.</span>
+                  Crear cuenta<span className="text-lime-700 dark:text-lime-400">.</span>
                 </h2>
                 <p className="mt-1 text-muted-foreground text-sm">Completá tus datos para registrarte</p>
               </div>
@@ -305,7 +305,6 @@ function RegistroPage() {
               {/* El formulario va dentro de una tarjeta */}
               <div className="rounded-2xl border border-border bg-card p-5 shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-4">
-
                 {/* Nombre */}
                 <div className="space-y-1.5">
                   <label htmlFor="nombre" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">

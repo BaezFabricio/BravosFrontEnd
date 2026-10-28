@@ -19,11 +19,11 @@ function hoyTxt() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
-export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, puedeVerClases, puedeCrearClases }) {
+export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guardando, puedeVerClases, puedeCrearClases }) {
   // Arranca con los datos del plan (o vacío si es nuevo). La página le cambia la "key" en cada apertura.
   const partesIniciales = partesDescripcion(plan?.descripcion)
   const [nombre, setNombre] = useState(plan?.nombre || "")
-  const [tipo, setTipo] = useState(plan?.tipo || "ClaseCross")
+  const [tipo, setTipo] = useState(plan?.tipo || "")
   const [corta, setCorta] = useState(partesIniciales.corta)
   const [precio, setPrecio] = useState(plan ? String(Number(plan.precio)) : "")
   const [creditos, setCreditos] = useState(plan ? String(plan.cantidadCreditos) : "")
@@ -40,11 +40,16 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
         .then((r) => {
           const hoy = hoyTxt()
           const todas = r.data?.data || r.data || []
-          setClases(todas.filter((c) => String(c.idPlan) === String(plan.idPlan) && !(c.fechaEspecifica && c.fechaEspecifica.split("T")[0] < hoy)))
+          setClases(todas.filter((c) => c.tipoPlan === plan.tipo && !(c.fechaEspecifica && c.fechaEspecifica.split("T")[0] < hoy)))
         })
         .catch(() => setClases([]))
     }
   }, [plan, puedeVerClases])
+
+  // Se ofrecen los tipos activos; un plan que ya tiene un tipo desactivado lo conserva en la lista
+  const opcionesTipo = (tipos || []).filter((t) => t.activo || t.codigo === plan?.tipo)
+  const cambiaTipo = !!plan && !!tipo && tipo !== plan.tipo
+  const alumnosConPlan = Number(plan?.alumnosActivos) || 0
 
   const descripcion = armarDescripcion(corta, condiciones)
   const vistaPrevia = { nombre: nombre || "Nombre del plan", precio: Number(precio) || 0, cantidadCreditos: Number(creditos) || 0, descripcion }
@@ -58,6 +63,7 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
   const guardar = () => {
     const e = {}
     if (!nombre.trim()) e.nombre = "Poné el nombre del plan"
+    if (!tipo) e.tipo = "Elegí el tipo de clase del plan"
     const p = Number(precio)
     if (!(p > 0)) e.precio = "El precio tiene que ser mayor a 0"
     const c = Number(creditos)
@@ -102,11 +108,18 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
                 {error(errores.nombre)}
               </div>
               <div>
-                <label htmlFor="pl-tipo" className={etiqueta}>Disciplina</label>
-                <select id="pl-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className={campo()}>
-                  <option value="ClaseCross">CrossFit</option>
-                  <option value="PlanificacionAtleta">Planificación Atleta</option>
+                <label htmlFor="pl-tipo" className={etiqueta}>Tipo de clase</label>
+                <select id="pl-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className={campo(errores.tipo)}>
+                  <option value="">Elegí el tipo de clase</option>
+                  {opcionesTipo.map((t) => <option key={t.codigo} value={t.codigo}>{t.nombre}{t.activo ? "" : " (desactivado)"}</option>)}
                 </select>
+                <p className="mt-1.5 text-xs text-foreground/55">Define qué clases puede reservar quien compre este plan. El nombre del plan es solo para mostrar.</p>
+                {error(errores.tipo)}
+                {cambiaTipo && alumnosConPlan > 0 && (
+                  <p role="alert" className="mt-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
+                    Hay {alumnosConPlan} {alumnosConPlan === 1 ? "alumno" : "alumnos"} con este plan activo. Si cambiás el tipo, sus créditos pasan a valer para las clases del nuevo tipo y dejan de valer para las del anterior.
+                  </p>
+                )}
               </div>
               <div>
                 <label htmlFor="pl-corta" className={etiqueta}>Descripción corta</label>
@@ -142,14 +155,14 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
           {plan?.idPlan && puedeVerClases && (
             <section className={seccion} aria-labelledby="sec-clases">
               <div className="flex items-center justify-between gap-2">
-                <h2 id="sec-clases" className={tituloSec}><Users className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Clases de este plan</h2>
+                <h2 id="sec-clases" className={tituloSec}><Users className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Clases de este tipo</h2>
                 {clases && <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-400">{clases.filter((c) => c.estado === "Activo").length} activas</span>}
               </div>
-              <p className="mt-1 text-xs text-foreground/55">Los alumnos con este plan pueden reservar estas clases.</p>
+              <p className="mt-1 text-xs text-foreground/55">Los alumnos con este plan pueden reservar estas clases, igual que los de cualquier otro plan del mismo tipo.</p>
               {clases === null ? (
                 <Cargando filas={2} className="py-2" />
               ) : clases.length === 0 ? (
-                <p className="mt-3 text-sm text-foreground/55">Todavía no hay clases para este plan.</p>
+                <p className="mt-3 text-sm text-foreground/55">Todavía no hay clases de este tipo.</p>
               ) : (
                 <ul className="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border">
                   {clases.map((c) => (
@@ -167,7 +180,7 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
                           {!c.fechaEspecifica && c.diasSemana ? ` · ${(c.diasSemana || "").split(",").map((d) => DIAS_CORTOS[d.trim().toUpperCase()]).filter(Boolean).join(" ")}` : ""}
                         </p>
                       </div>
-                      <Link to={`/admin/clases/editar/${c.idClase}?planId=${plan.idPlan}`} aria-label={`Editar ${c.nombreClase}`}
+                      <Link to={`/admin/clases/editar/${c.idClase}`} aria-label={`Editar ${c.nombreClase}`}
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-foreground/70 hover:text-foreground">
                         <Pencil className="h-4 w-4" />
                       </Link>
@@ -176,9 +189,9 @@ export default function EditorPlan({ open, plan, onClose, onGuardar, guardando, 
                 </ul>
               )}
               {puedeCrearClases && (
-                <Link to={`/admin/clases/nueva?planId=${plan.idPlan}`}
+                <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.tipo)}`}
                   className="mt-3 flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-dashed border-lime-500/50 text-xs font-black uppercase tracking-wider text-lime-700 hover:bg-lime-400/10 dark:text-lime-400">
-                  <Plus className="h-4 w-4" /> Crear clase para este plan
+                  <Plus className="h-4 w-4" /> Crear clase de este tipo
                 </Link>
               )}
             </section>

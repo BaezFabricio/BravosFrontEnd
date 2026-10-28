@@ -104,6 +104,14 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
       console.warn("Acceso denegado: No tienes permiso para esta acción.");
+      // Cuenta desactivada por el administrador: se marca acá mismo y la app saca a la persona del panel al instante
+      if (error.response?.data?.code === 'CUENTA_INACTIVA') {
+        try { localStorage.setItem('usuario', JSON.stringify({ ...JSON.parse(localStorage.getItem('usuario') || '{}'), estado: 'inactivo' })) } catch { /* nada */ }
+        window.dispatchEvent(new CustomEvent('bravos:permisos-cambiaron'))
+      } else if (!String(error.config?.url || '').includes('/auth/me')) {
+        // Pudo ser porque le cambiaron el perfil: se vuelven a pedir los permisos (ver lib/sincronizarPermisos.js)
+        window.dispatchEvent(new CustomEvent('bravos:acceso-denegado'))
+      }
       
       return Promise.reject(error);
     }
@@ -272,7 +280,7 @@ export const registroUsuario = async (datosRegistro) => {
  * Reenvía el correo de verificación para una cuenta existente o recién creada
  * POST /auth/reenviar-verificacion
  */
-export const reenviarVerificacionCuenta = async ({ idUsuario, correo, nuevoCorreo } = {}) => {
+export const reenviarVerificacionCuenta = async ({ idUsuario, correo, nuevoCorreo, password } = {}) => {
   try {
     const payload = {}
 
@@ -286,6 +294,8 @@ export const reenviarVerificacionCuenta = async ({ idUsuario, correo, nuevoCorre
 
     if (nuevoCorreo !== undefined && nuevoCorreo !== null && nuevoCorreo !== '') {
       payload.nuevoCorreo = nuevoCorreo
+      // Cambiar el correo exige la contraseña de la cuenta (la que se eligió al registrarse)
+      if (password) payload.password = password
     }
 
     const response = await apiClient.post('/auth/reenviar-verificacion', payload)

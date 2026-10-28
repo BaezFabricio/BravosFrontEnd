@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Layout, Info, Dumbbell, MapPin, Landmark, ChevronRight } from 'lucide-react'
+import { TituloPagina } from "@/components/TituloPagina"
 
 /*
  * Menú de Configuración del gimnasio (estilo apps de banco o de compras): la web pública y
@@ -32,17 +33,17 @@ const leer = (clave, porDefecto) => {
 function Fila({ icono: Icono, texto, detalle, a, onClick, peligro, derecha }) {
   const contenido = (
     <>
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${peligro ? 'bg-red-500/10 text-red-600 dark:text-red-400' : 'bg-lime-400/15 text-lime-700 dark:text-lime-400'}`}>
-        <Icono className="h-5 w-5" aria-hidden="true" />
+      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${peligro ? 'bg-red-500/10 text-red-600 dark:text-red-400' : 'bg-lime-400/15 text-lime-700 dark:text-lime-400'}`}>
+        <Icono className="h-6 w-6" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block truncate text-sm font-bold ${peligro ? 'text-red-600 dark:text-red-400' : 'text-foreground'}`}>{texto}</span>
-        {detalle && <span className="block truncate text-xs text-foreground/55">{detalle}</span>}
+        <span className={`block truncate text-base font-bold ${peligro ? 'text-red-600 dark:text-red-400' : 'text-foreground'}`}>{texto}</span>
+        {detalle && <span className="block truncate text-sm text-foreground/55">{detalle}</span>}
       </span>
-      {derecha === undefined ? <ChevronRight className="h-4 w-4 shrink-0 text-foreground/35" aria-hidden="true" /> : derecha}
+      {derecha === undefined ? <ChevronRight className="h-5 w-5 shrink-0 text-foreground/35" aria-hidden="true" /> : derecha}
     </>
   )
-  const cls = 'flex min-h-[64px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500'
+  const cls = 'flex min-h-[84px] w-full items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500'
   return a
     // desdeMenu: la sección sabe que puede volver al menú con 'atrás' sin apilar otra página
     ? <Link to={a} state={{ desdeMenu: true }} className={cls}>{contenido}</Link>
@@ -52,7 +53,7 @@ function Fila({ icono: Icono, texto, detalle, a, onClick, peligro, derecha }) {
 function Grupo({ titulo, children }) {
   return (
     <section aria-label={titulo}>
-      <h2 className="mb-2 flex items-center gap-2 px-1 text-[11px] font-black uppercase tracking-widest text-foreground/60">
+      <h2 className="mb-3 flex items-center gap-2 px-1 text-xs font-black uppercase tracking-widest text-foreground/60">
         <span className="h-3 w-1 rounded-full bg-lime-400" aria-hidden="true" /> {titulo}
       </h2>
       <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">{children}</div>
@@ -68,11 +69,8 @@ export default function MenuAjustes() {
     .filter(g => g.items.length > 0)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Panel admin</p>
-        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Configuración del Box</h1>
-      </div>
+    <div className="space-y-6">
+      <TituloPagina>Configuración del Box</TituloPagina>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         {grupos.map(g => (

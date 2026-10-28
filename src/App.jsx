@@ -1,6 +1,9 @@
 import { haySesion } from './lib/sesion'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { RecordarRutaPublica } from './lib/ultimaRutaPublica'
+import AvisosPublicos from './components/AvisosPublicos'
+import { iniciarSincronizacionDePermisos, usePermisosVivos } from './lib/sincronizarPermisos'
+import { useEffect } from 'react'
 
 import LandingPage from './app/LandingPage.jsx'
 import LoginPage from './app/login/LoginPage.jsx'
@@ -144,9 +147,12 @@ function SharedProfileRoute({ children }) {
 }
 
 function App() {
+  usePermisosVivos() // vuelve a dibujar las rutas (y sus guardianes) cuando cambian los permisos de la persona
+  useEffect(() => iniciarSincronizacionDePermisos(), [])
   return (
     <BrowserRouter>
       <RecordarRutaPublica />
+      <AvisosPublicos />
       <Routes>
         <Route path="/" element={<Navigate to="/inicio" replace />} />
         <Route path="/inicio" element={<LandingPage />} />

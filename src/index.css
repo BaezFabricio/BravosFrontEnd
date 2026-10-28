@@ -286,3 +286,11 @@
 @media (max-width: 1023px) {
   h1.titulo-app { display: none; }
 }
+
+/*
+ * Esqueletos de carga: aparecen recién a los 0,2 segundos. Si los datos llegan antes (lo normal al ir de una pantalla a otra
+ * o al volver atrás), el esqueleto nunca llega a verse y no hay "parpadeo" gris antes del contenido.
+ */
+@keyframes aparece-tarde { from { opacity: 0; } to { opacity: 1; } }
+.aparece-tarde { opacity: 0; animation: aparece-tarde 150ms ease-out 200ms forwards; }
+@media (prefers-reduced-motion: reduce) { .aparece-tarde { animation-duration: 1ms; } }

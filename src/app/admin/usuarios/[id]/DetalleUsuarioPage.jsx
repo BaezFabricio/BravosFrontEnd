@@ -36,6 +36,8 @@ import apiClient, {
 } from "@/api"
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
+import FotoAmpliable from "@/components/FotoAmpliable"
 
 const statusConfig = {
   activo:   { label: "Activo",    className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
@@ -219,13 +221,8 @@ export default function DetalleUsuarioPage() {
   return (
     <div className="space-y-5">
 
-      {/* VOLVER + BREADCRUMB */}
-      <div className="space-y-3">
-        <BotonVolver a="/admin/usuarios" texto="Volver" />
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Usuarios <span aria-hidden="true">/</span> <span className="text-foreground/70">Ficha</span>
-        </p>
-      </div>
+      {/* VOLVER (la ruta "Usuarios / Ficha" va con el título, en la barra de arriba) */}
+      <BotonVolver a="/admin/usuarios" texto="Volver" />
 
       {/* ACCIONES: en el celular, grilla de 2x2. Se muestran según los permisos (el servidor vuelve a controlarlos) */}
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -265,13 +262,11 @@ export default function DetalleUsuarioPage() {
       {/* FICHA */}
       <section className="rounded-2xl border border-border bg-card p-4 sm:p-5" aria-label="Datos del usuario">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-lg font-black text-black">
-            {user?.avatarUrl
-              ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
-              : getIniciales(user?.nombre)}
-          </div>
+          <FotoAmpliable src={user?.avatarUrl} alt={user?.nombre} className="flex h-14 w-14 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-lg font-black text-black">
+            {getIniciales(user?.nombre)}
+          </FotoAmpliable>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-black uppercase leading-tight tracking-tight text-foreground sm:text-2xl">{user?.nombre}</h1>
+            <TituloPagina descripcion={"Usuarios / Ficha"}>{user?.nombre}</TituloPagina>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${estaInactivo ? "border-border bg-foreground/5 text-foreground/55" : "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"}`}>
                 {status.label}

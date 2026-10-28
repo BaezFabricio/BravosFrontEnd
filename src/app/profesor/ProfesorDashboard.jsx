@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
 import { GymLoader } from "@/components/GymLoader"
+import { TituloPagina } from "@/components/TituloPagina"
 
 function getInitials(name = "") {
   const parts = name.trim().split(" ")
@@ -83,17 +84,7 @@ export default function ProfesorDashboard() {
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-              <ClipboardCheck className="h-4 w-4 text-primary" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">
-              Registro de Asistencia
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground ml-10">
-            Tomá lista de tus alumnos marcando presentes y ausentes
-          </p>
+          <TituloPagina descripcion={"Tomá lista de tus alumnos marcando presentes y ausentes"}>Registro de Asistencia</TituloPagina>
         </div>
         {checkedIn && alumnos.length > 0 && (
           <div className="sm:text-right ml-10 sm:ml-0">

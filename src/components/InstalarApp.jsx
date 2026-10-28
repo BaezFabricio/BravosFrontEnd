@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Smartphone, Share, SquarePlus, MoreVertical, Download, Check, ChevronDown } from "lucide-react"
+import { Smartphone, Share, SquarePlus, MoreVertical, Download, Check } from "lucide-react"
 
 /*
  * Guía para instalar Bravos en el celular (PWA): pasos para iPhone (Safari) y Android (Chrome).
@@ -51,9 +51,8 @@ function Pasos({ datos }) {
 export default function InstalarApp() {
   const [iphone] = useState(esIphone)
   const [yaInstalada] = useState(instalada)
-  const [verOtro, setVerOtro] = useState(false)
-  const principal = iphone ? PASOS.iphone : PASOS.android
-  const otro = iphone ? PASOS.android : PASOS.iphone
+  // Se elige el aparato con los botones de arriba; arranca en el que se está usando
+  const [elegido, setElegido] = useState(iphone ? "iphone" : "android")
 
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
@@ -70,24 +69,21 @@ export default function InstalarApp() {
       </div>
 
       {!yaInstalada && (
-        <>
-          <div className="rounded-xl border border-border bg-background/50 p-3">
-            <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{principal.titulo}</p>
-            <Pasos datos={principal} />
+        <div className="space-y-3">
+          <div role="tablist" aria-label="Tu celular" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/50 p-1">
+            {Object.entries(PASOS).map(([clave, d]) => (
+              <button key={clave} type="button" role="tab" aria-selected={elegido === clave} onClick={() => setElegido(clave)}
+                className={`min-h-[40px] rounded-lg text-sm font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                  elegido === clave ? "bg-lime-400 text-black" : "text-foreground/60 hover:text-foreground"
+                }`}>
+                {d.titulo}
+              </button>
+            ))}
           </div>
-
-          <button type="button" onClick={() => setVerOtro((v) => !v)} aria-expanded={verOtro}
-            className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-border px-3 text-xs font-bold text-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-            ¿Tenés {iphone ? "Android" : "iPhone"}? Ver los pasos
-            <ChevronDown className={`h-4 w-4 transition-transform ${verOtro ? "rotate-180" : ""}`} aria-hidden="true" />
-          </button>
-          {verOtro && (
-            <div className="rounded-xl border border-border bg-background/50 p-3">
-              <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{otro.titulo}</p>
-              <Pasos datos={otro} />
-            </div>
-          )}
-        </>
+          <div role="tabpanel" className="rounded-xl border border-border bg-background/50 p-3">
+            <Pasos datos={PASOS[elegido]} />
+          </div>
+        </div>
       )}
     </div>
   )

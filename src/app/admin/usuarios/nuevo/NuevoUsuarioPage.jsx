@@ -5,8 +5,9 @@ import { Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, Check, Refre
 import { toast } from '@/lib/notificar'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { crearUsuario, getUsuarios, reenviarVerificacionCuenta } from "@/api"
+import { crearUsuario, getUsuarios } from "@/api"
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 // Misma regla que exige el servidor para cualquier contraseña
 const problemaContrasena = (p = "") =>
@@ -122,7 +123,7 @@ export default function NuevoUsuarioPage() {
       }
 
       // Creamos el usuario en la tabla principal y luego pedimos el correo de verificación
-      const response = await crearUsuario({
+      await crearUsuario({
         nombre: formData.nombre.trim(),
         dni: formData.dni.trim(),
         email: formData.email.trim().toLowerCase(),
@@ -133,28 +134,8 @@ export default function NuevoUsuarioPage() {
         membresia: "vencida",
       })
 
-      const usuarioCreado = response?.data?.data?.usuario || response?.data?.usuario || response?.usuario || response
-      const idUsuarioCreado =
-        usuarioCreado?.idUsuario ||
-        usuarioCreado?.id ||
-        response?.data?.data?.idUsuario ||
-        response?.data?.idUsuario ||
-        response?.idUsuario
-
-      if (idUsuarioCreado) {
-        try {
-          await reenviarVerificacionCuenta({
-            idUsuario: idUsuarioCreado,
-            nuevoCorreo: formData.email,
-          })
-          toast.success("Usuario creado y correo de verificación enviado", { guardar: false })
-        } catch (verificationError) {
-          console.error("El usuario se creó, pero falló el envío de verificación:", verificationError)
-          toast.success("Usuario creado", { description: "No se pudo enviar el correo de verificación.", guardar: true })
-        }
-      } else {
-        toast.success("Usuario creado", { guardar: false })
-      }
+      // La cuenta la crea el administrador: nace con el correo verificado y una contraseña temporal, no hay enlace que enviar
+      toast.success("Usuario creado", { guardar: false })
 
       setErrors({})
       navigate("/admin/usuarios")
@@ -202,8 +183,7 @@ export default function NuevoUsuarioPage() {
       <BotonVolver a="/admin/usuarios" texto="Volver" />
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-black uppercase leading-tight tracking-tight text-foreground sm:text-3xl">Nuevo usuario</h1>
-          <p className="text-xs text-foreground/55 sm:text-sm">Alta rápida de usuario</p>
+          <TituloPagina descripcion={"Alta rápida de usuario"}>Nuevo usuario</TituloPagina>
         </div>
         <button type="submit" form="form-nuevo-usuario" disabled={isLoading}
           className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">

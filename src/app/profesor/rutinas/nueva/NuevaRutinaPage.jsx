@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import apiClient from '@/api'
+import { TituloPagina } from "@/components/TituloPagina"
 
 export default function NuevaRutinaPage() {
   const navigate = useNavigate()
@@ -58,8 +59,7 @@ export default function NuevaRutinaPage() {
     <div className="space-y-6">
       <div>
         <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
-        <h1 className="text-2xl font-bold text-foreground">Crear Nueva Rutina</h1>
-        <p className="text-muted-foreground">Diseña una nueva rutina de entrenamiento para tus alumnos</p>
+        <TituloPagina descripcion={"Diseña una nueva rutina de entrenamiento para tus alumnos"}>Crear Nueva Rutina</TituloPagina>
       </div>
 
       <Card className="border-border">

@@ -21,6 +21,7 @@ import {
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 export default function ClasesPage() {
   const [search, setSearch] = useState("")
@@ -38,12 +39,10 @@ export default function ClasesPage() {
     try {
       setLoading(true)
       setError("")
-      // Los planes son opcionales: /planes exige el permiso de Membresías, que
-      // un perfil con solo "Clases" no tiene. Con Promise.all, ese 403 tumbaba
-      // toda la pantalla aunque /clases sí estuviera permitido.
+      // Los tipos de clase son opcionales: si fallan, la pantalla igual muestra las clases.
       const [resClases, resPlanes] = await Promise.allSettled([
         apiClient.get("/clases"),
-        apiClient.get("/planes"),
+        apiClient.get("/tipos-clase"),
       ])
       if (resClases.status === "rejected") throw resClases.reason
       setClases(resClases.value.data?.data || resClases.value.data || [])
@@ -126,13 +125,14 @@ export default function ClasesPage() {
 
   const clasesAgrupadas = useMemo(() => {
     const grupos = {}
-    planes.forEach(plan => {
-      grupos[plan.idPlan] = { plan, clases: [] }
+    // Un grupo por tipo de clase (CrossFit, Planificación Atleta…). Los tipos desactivados sin clases no se muestran.
+    planes.forEach(t => {
+      grupos[t.codigo] = { plan: { idPlan: t.codigo, nombre: t.nombre, tipo: null, activo: t.activo }, clases: [] }
     })
-    grupos['sin-plan'] = { plan: { nombre: 'Sin plan asignado', idPlan: null, tipo: null }, clases: [] }
+    grupos['sin-plan'] = { plan: { nombre: 'Sin tipo asignado', idPlan: null, tipo: null }, clases: [] }
 
     clasesFiltradas.forEach(clase => {
-      const key = clase.idPlan ?? 'sin-plan'
+      const key = clase.tipoPlan ?? 'sin-plan'
       if (grupos[key]) {
         grupos[key].clases.push(clase)
       } else {
@@ -141,7 +141,7 @@ export default function ClasesPage() {
     })
 
     return Object.entries(grupos)
-      .filter(([key, g]) => key !== 'sin-plan' || g.clases.length > 0)
+      .filter(([key, g]) => (key !== 'sin-plan' && g.plan.activo !== false) || g.clases.length > 0)
       .map(([key, g]) => ({ key, ...g }))
   }, [planes, clasesFiltradas])
 
@@ -175,7 +175,7 @@ export default function ClasesPage() {
   }
 
   // Fila de una clase (horario, profesor, cupos, días) con su menú de acciones
-  const FilaClase = ({ clase, plan }) => (
+  const FilaClase = ({ clase }) => (
     <div className="flex items-start gap-3 px-4 py-3">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -230,7 +230,7 @@ export default function ClasesPage() {
           <DropdownMenuContent align="end" className="w-40">
             {permisos.includes("clases:modificacion") && (
               <DropdownMenuItem asChild>
-                <Link to={`/admin/clases/editar/${clase.idClase}${plan.idPlan ? `?planId=${plan.idPlan}` : ""}`}>
+                <Link to={`/admin/clases/editar/${clase.idClase}`}>
                   <Edit className="mr-2 h-4 w-4" /> Editar
                 </Link>
               </DropdownMenuItem>
@@ -277,8 +277,7 @@ export default function ClasesPage() {
       {/* Encabezado */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Gestión de Clases</h1>
-          <p className="mt-0.5 text-sm text-foreground/55">Clases organizadas por plan. Para crear una, usá "Crear clase" en su plan.</p>
+          <TituloPagina descripcion={"Clases organizadas por tipo de clase. Para crear una, usá \"Crear clase\" en su tipo."}>Gestión de Clases</TituloPagina>
         </div>
       </div>
 
@@ -327,7 +326,7 @@ export default function ClasesPage() {
         <div className="space-y-4">
           {/* Filtro por plan */}
           {clasesAgrupadas.length > 1 && (
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar por plan">
+            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar por tipo de clase">
               {[{ key: "all", nombre: "Todos", cantidad: clasesFiltradas.length }, ...clasesAgrupadas.map((g) => ({ key: g.key, nombre: g.plan.nombre, cantidad: g.clases.length }))].map((op) => (
                 <button key={op.key} type="button" onClick={() => setPlanFiltro(op.key)} aria-pressed={planFiltro === op.key}
                   className={`flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
@@ -342,13 +341,13 @@ export default function ClasesPage() {
 
           {clasesAgrupadas.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-10 text-center">
-              <p className="text-foreground/55">No hay planes creados. Creá un plan primero desde Planes y Membresías.</p>
+              <p className="text-foreground/55">No hay tipos de clase creados. Creá uno desde Planes y Membresías &gt; Tipos de clase.</p>
             </div>
           ) : gruposVisibles.map(({ key, plan, clases: clasesDelPlan }) => {
             const activas = clasesDelPlan.filter((c) => c.estado === "Activo").length
             const dias = diasDelPlan(clasesDelPlan)
             return (
-              <section key={key} className="overflow-hidden rounded-2xl border border-border bg-card" aria-label={`Plan ${plan.nombre}`}>
+              <section key={key} className="overflow-hidden rounded-2xl border border-border bg-card" aria-label={`Tipo de clase ${plan.nombre}`}>
                 <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -360,7 +359,7 @@ export default function ClasesPage() {
                     <h2 className="mt-1.5 text-base font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
                   </div>
                   {permisos.includes("clases:alta") && plan.idPlan && (
-                    <Link to={`/admin/clases/nueva?planId=${plan.idPlan}`}
+                    <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`}
                       className="inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-lg border border-border bg-background/60 px-3 text-[11px] font-black uppercase tracking-wider text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
                       <Plus className="h-3.5 w-3.5" /> Crear clase
                     </Link>
@@ -369,7 +368,7 @@ export default function ClasesPage() {
 
                 {clasesDelPlan.length > 0 ? (
                   <div className="divide-y divide-border border-t border-border">
-                    {clasesDelPlan.map((clase) => <FilaClase key={clase.idClase} clase={clase} plan={plan} />)}
+                    {clasesDelPlan.map((clase) => <FilaClase key={clase.idClase} clase={clase} />)}
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">

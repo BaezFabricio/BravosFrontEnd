@@ -6,6 +6,7 @@ import { BotonVolver } from "@/components/BotonVolver"
 import { Clock, Users, Loader2, Dumbbell } from 'lucide-react'
 import apiClient from '@/api'
 import VideoPlayer from '@/components/VideoPlayer'
+import { TituloPagina } from "@/components/TituloPagina"
 
 export default function DetalleRutinaPage() {
   const { id } = useParams()
@@ -43,10 +44,7 @@ export default function DetalleRutinaPage() {
     <div className="space-y-6">
       <div>
         <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
-        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">{rutina.nombre}</h1>
-        {rutina.nombreClase && (
-          <p className="text-sm text-foreground/40 mt-1">Clase: <span className="text-foreground font-semibold">{rutina.nombreClase}</span></p>
-        )}
+        <TituloPagina descripcion={rutina.nombreClase ? `Clase: ${rutina.nombreClase}` : undefined}>{rutina.nombre}</TituloPagina>
       </div>
 
       <div className="border border-border bg-card">

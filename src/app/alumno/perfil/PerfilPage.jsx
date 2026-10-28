@@ -25,6 +25,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import apiClient from "@/api"
+import { TituloPagina } from "@/components/TituloPagina"
+import FotoAmpliable from "@/components/FotoAmpliable"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
 
@@ -43,15 +45,15 @@ const defaultUserData = {
 }
 
 const statusConfig = {
-  activo: { label: "Activo", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  suspendido: { label: "Suspendido", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  activo: { label: "Activo", className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  suspendido: { label: "Suspendido", className: "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20" },
   inactivo: { label: "Inactivo", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
 const membershipConfig = {
   vigente: { label: "Vigente", className: "bg-primary/10 text-primary border-primary/20" },
-  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-500 border-green-500/20" },
-  vencida: { label: "Vencida", className: "bg-red-500/10 text-red-500 border-red-500/20" },
+  por_vencer: { label: "Por Vencer", className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
+  vencida: { label: "Vencida", className: "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20" },
   sin_membresia: { label: "Sin membresía", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
@@ -333,13 +335,13 @@ export default function PerfilPage() {
   }
 
   const membershipBadgeStyle = {
-    vigente:   'bg-lime-400/10 text-lime-400 border border-lime-400/20',
-    por_vencer:'bg-yellow-400/10 text-yellow-400 border border-yellow-400/20',
-    vencida:   'bg-red-500/10 text-red-400 border border-red-500/20',
+    vigente:   'bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20',
+    por_vencer:'bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border border-yellow-400/20',
+    vencida:   'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20',
   }
   const statusBadgeStyle = {
-    activo:    'bg-lime-400/10 text-lime-400 border border-lime-400/20',
-    suspendido:'bg-red-500/10 text-red-400 border border-red-500/20',
+    activo:    'bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20',
+    suspendido:'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20',
     inactivo:  'bg-foreground/5 text-muted-foreground border border-border',
   }
 
@@ -384,11 +386,9 @@ export default function PerfilPage() {
 
         {/* Foto, nombre y correo */}
         <div data-guia="perfil-cabecera" className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
-          <div className="flex h-20 w-20 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-2xl font-black text-black ring-4 ring-lime-400/25">
-            {avatarUrl && avatarUrl.trim()
-              ? <img src={avatarUrl} alt={nombreVisible} className="h-full w-full object-cover" />
-              : getIniciales(nombreVisible)}
-          </div>
+          <FotoAmpliable src={avatarUrl} alt={nombreVisible} className="flex h-20 w-20 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-2xl font-black text-black ring-4 ring-lime-400/25">
+            {getIniciales(nombreVisible)}
+          </FotoAmpliable>
           <div className="min-w-0 flex-1">
             <span className="rounded bg-lime-400/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
             <h2 className="mt-1 truncate text-xl font-black uppercase leading-tight text-foreground">{nombreVisible}</h2>
@@ -472,8 +472,7 @@ export default function PerfilPage() {
 
       {/* Título */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground">Mi Perfil</h1>
-        <p className="text-sm text-foreground/40 mt-1">Información personal y estado de membresía</p>
+        <TituloPagina descripcion={"Información personal y estado de membresía"}>Mi Perfil</TituloPagina>
       </div>
 
       {/* Alertas de membresía */}
@@ -513,12 +512,9 @@ export default function PerfilPage() {
           {/* Card avatar + nombre */}
           <div className="border border-border bg-card p-5">
             <div className="flex items-center gap-5">
-              <div className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-lime-400/40 bg-lime-400 flex items-center justify-center text-black font-black text-2xl select-none">
-                {avatarUrl && avatarUrl.trim()
-                  ? <img src={avatarUrl} alt={nombreVisible} className="h-full w-full object-cover" />
-                  : getIniciales(nombreVisible)
-                }
-              </div>
+              <FotoAmpliable src={avatarUrl} alt={nombreVisible} className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-lime-400/40 bg-lime-400 flex items-center justify-center text-black font-black text-2xl select-none">
+                {getIniciales(nombreVisible)}
+              </FotoAmpliable>
               <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
                 <h2 className="text-xl font-black uppercase text-foreground leading-tight truncate mt-0.5">{nombreVisible}</h2>

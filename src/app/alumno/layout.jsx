@@ -1,5 +1,7 @@
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
+import { SlotTituloContext } from "@/lib/slotTitulo"
+import { usePermisosVivos } from "@/lib/sincronizarPermisos"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
@@ -58,6 +60,8 @@ export default function AlumnoLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+  usePermisosVivos() // el menú de paneles se actualiza solo cuando cambian los permisos
+  const [slotTitulo, setSlotTitulo] = useState(null) // lugar del título de la pantalla en la barra de arriba (escritorio)
   const menuRef = useRef(null)
   
   const [userData, setUserData] = useState({
@@ -247,10 +251,16 @@ export default function AlumnoLayout({ children }) {
           </nav>
 
           <div className="p-4 border-t border-sidebar-border">
-            <div className="flex items-center gap-3 px-3 py-2">
+            {/* Tocar la tarjeta lleva al perfil */}
+            <Link
+              to="/alumno/perfil"
+              title="Ver mi perfil"
+              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+            >
               <div className="h-10 w-10 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-sm overflow-hidden">
                 {avatarUrl
-                  ? <img src={avatarUrl} alt={userData.nombrecompleto} className="h-full w-full object-cover" />
+                  ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                   : getIniciales(userData.nombrecompleto)
                 }
               </div>
@@ -258,7 +268,7 @@ export default function AlumnoLayout({ children }) {
                 <p className="text-sm font-medium text-sidebar-foreground truncate">{userData.nombrecompleto}</p>
                 <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </aside>
@@ -279,7 +289,9 @@ export default function AlumnoLayout({ children }) {
                 ? <h1 data-guia="titulo" className="min-w-0 line-clamp-2 text-[26px] font-black uppercase leading-[1.02] tracking-tight text-foreground lg:hidden">{actual.name === "Documentos y Comprobantes" ? "Documentos" : actual.name}</h1>
                 : <BotonPaginaPrincipal />
             })()}
-            <div className="flex-1" />
+            {/* Escritorio: título de la pantalla (lo escribe cada página con <TituloPagina>); en el celular va el de arriba */}
+            <div ref={setSlotTitulo} className="hidden min-w-0 flex-1 px-3 lg:block" />
+            <div className="flex-1 lg:hidden" />
             <div className="flex items-center gap-3">
               
               <div className="hidden lg:block"><ModeToggle /></div>
@@ -370,7 +382,7 @@ export default function AlumnoLayout({ children }) {
               {pathname !== "/alumno" && !navigation.some((item) => (item.principal || item.centro) && item.href === pathname) && (
                 <BotonVolver a="/alumno" texto="Volver" className="mb-4 lg:hidden" />
               )}
-              {children}
+              <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
             </>
           )}
         </main>

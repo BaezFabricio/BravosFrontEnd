@@ -3,6 +3,7 @@ import { Upload, FileText, Stethoscope, CreditCard, CheckCircle2, Clock, Eye, In
 import { toast } from "@/lib/notificar"
 import apiClient from "@/api"
 import { Cargando } from '@/components/Cargando'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const TIPOS = [
   {
@@ -217,8 +218,7 @@ export default function DocumentacionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground lg:text-2xl">Documentos y comprobantes</h1>
-        <p className="mt-1.5 hidden text-sm text-foreground/60 lg:block">Cargá los documentos que pide el gimnasio.</p>
+        <TituloPagina descripcion={"Cargá los documentos que pide el gimnasio."}>Documentos y comprobantes</TituloPagina>
       </div>
 
       <div data-guia="doc-info" className="flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5">

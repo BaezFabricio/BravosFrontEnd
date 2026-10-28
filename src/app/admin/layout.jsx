@@ -1,5 +1,7 @@
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
+import { SlotTituloContext } from "@/lib/slotTitulo"
+import { EVENTO_PERMISOS } from "@/lib/sincronizarPermisos"
 import { Link, useLocation } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import { useNavigate } from "react-router-dom"
@@ -15,13 +17,11 @@ import {
   X,
   Shield,
   ChevronDown,
-  Home,
   BarChart3,
-  MessageCircle,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
+import IconoWhatsApp from "@/components/IconoWhatsApp"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
@@ -41,7 +41,7 @@ const navigation = [
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta", grupo: "gestion" },
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
-  { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: MessageCircle, requiredPermission: "clases:consulta", grupo: "gestion" },
+  { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: IconoWhatsApp, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },
   { name: "Configuración del Box", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
 ]
@@ -50,6 +50,13 @@ export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+  useEffect(() => {
+    // Si le cambian el perfil mientras tiene el panel abierto, el menú se actualiza solo (sin volver a iniciar sesión)
+    const alCambiar = () => { try { setPermisos(JSON.parse(localStorage.getItem('permisos') || '[]')) } catch { /* nada */ } }
+    window.addEventListener(EVENTO_PERMISOS, alCambiar)
+    return () => window.removeEventListener(EVENTO_PERMISOS, alCambiar)
+  }, [])
+  const [slotTitulo, setSlotTitulo] = useState(null) // lugar del título de la pantalla en la barra de arriba
   const [userData, setUserData] = useState({
     nombrecompleto: "Administrador",
     correo: "admin@bravos.com",
@@ -203,23 +210,32 @@ export default function AdminLayout({ children }) {
 
 
           <div className="p-4 border-t border-sidebar-border">
-            <div className="flex items-center gap-3 px-3 py-2">
-              <div className="h-10 w-10 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-sm overflow-hidden">
-                {avatarUrl
-                  ? <img src={avatarUrl} alt={userData.nombrecompleto} className="h-full w-full object-cover" />
-                  : avatarFallback
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {userData.nombrecompleto}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
-              </div>
+            <div className="flex items-center gap-1">
+              {/* Tocar la tarjeta lleva al perfil */}
+              <Link
+                to="/perfil"
+                title="Ver mi perfil"
+                onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+              >
+                <div className="h-10 w-10 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-sm overflow-hidden">
+                  {avatarUrl
+                    ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                    : avatarFallback
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    {userData.nombrecompleto}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
+                </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 title="Cerrar sesión"
-                className="shrink-0 p-1.5 text-sidebar-foreground/30 hover:text-red-700 dark:hover:text-red-400 transition-colors rounded"
+                aria-label="Cerrar sesión"
+                className="shrink-0 rounded-lg p-2 text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
               >
                 <LogOut className="h-4 w-4" />
               </button>
@@ -241,15 +257,12 @@ export default function AdminLayout({ children }) {
             )}
             {/* Celular: botón para volver al sitio público, con el texto (el logo solo no se entendía) */}
             <BotonPaginaPrincipal />
-            <div className="flex-1" />
+            {/* Título de la pantalla (lo escribe cada página con <TituloPagina>) */}
+            <div ref={setSlotTitulo} className="min-w-0 flex-1 px-3" />
             
             <div className="flex items-center gap-3">
 
-              <ModeToggle />
-              <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={() => window.location.href = '/'}>
-                <Home className="h-4 w-4" /> 
-              </Button>
-
+              <div className="hidden lg:block"><ModeToggle /></div>
               <NotificacionesBell />
               
               <div className="relative" ref={menuRef}>
@@ -297,6 +310,7 @@ export default function AdminLayout({ children }) {
             items={visibles}
             esActivo={esActivo}
             onLogout={handleLogout}
+            conTema
           />
         </header>
 
@@ -307,7 +321,7 @@ export default function AdminLayout({ children }) {
           {location.pathname !== "/admin" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
             <BotonVolver a="/admin" texto="Volver" className="mb-4 lg:hidden" />
           )}
-          {children}
+          <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
         </main>
 
         {/* Mobile Bottom Navigation */}

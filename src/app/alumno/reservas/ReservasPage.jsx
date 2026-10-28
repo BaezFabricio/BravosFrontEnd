@@ -1,3 +1,4 @@
+import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from "react"
@@ -24,7 +25,7 @@ import VideoPlayer from "@/components/VideoPlayer"
 import ReservasMovil from "./ReservasMovil"
 
 const estadoConfig = {
-  proxima: { label: "Próxima", className: "bg-primary/10 text-primary border-primary/20", icon: Calendar },
+  proxima: { label: "Próxima", className: "bg-lime-400/15 text-lime-700 dark:text-lime-400 border-lime-500/40", icon: Calendar },
   completada: { label: "Completada", className: "bg-green-500/10 text-green-500 border-green-500/20", icon: CheckCircle2 },
   cancelada: { label: "Cancelada", className: "bg-gray-500/10 text-gray-500 border-gray-500/20", icon: X },
   inasistencia: { label: "No asistió", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
@@ -135,14 +136,14 @@ export default function ReservasPage() {
     return (
       <>
         <Card
-          className="bg-card border-border transition-colors cursor-pointer hover:border-primary/30"
+          className="cursor-pointer rounded-2xl border-border bg-card transition-colors hover:border-lime-500/60"
           onClick={abrirRutina}
         >
           <CardContent className="p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-foreground">{reserva.clase}</h3>
+                  <h3 className="text-lg font-black text-foreground">{reserva.clase}</h3>
                   <Badge variant="outline" className={config.className}>
                     <Icon className="mr-1 h-3 w-3" />
                     {config.label}
@@ -162,7 +163,7 @@ export default function ReservasPage() {
                     <span>Coach: {reserva.coach}</span>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center gap-2 bg-lime-400/10 border border-lime-400/30 rounded-lg px-3 py-2.5">
+                <div className="mt-3 flex min-h-[44px] items-center gap-2 rounded-xl border border-lime-400/40 bg-lime-400/10 px-3 py-2.5">
                   <Dumbbell className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0" />
                   <span className="text-sm font-bold text-lime-700 dark:text-lime-400">Ver rutina del día</span>
                   <ChevronRight className="h-4 w-4 text-lime-700 dark:text-lime-400 ml-auto" />
@@ -170,8 +171,8 @@ export default function ReservasPage() {
               </div>
               {showCancelButton && (
                 <Button
-                  variant="destructive"
-                  className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-foreground font-bold px-4 py-2 text-sm border-none shadow-sm transition-colors shrink-0 self-start"
+                  variant="outline"
+                  className="min-h-[44px] shrink-0 self-start rounded-xl border-red-500/40 px-4 text-sm font-bold text-red-700 hover:bg-red-500/10 dark:text-red-400"
                   onClick={(e) => {
                     e.stopPropagation()
                     abrirCancelar(reserva)
@@ -189,7 +190,7 @@ export default function ReservasPage() {
           <DialogContent className="bg-card border-border max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Dumbbell className="h-5 w-5 text-primary" />
+                <Dumbbell className="h-5 w-5 text-lime-700 dark:text-lime-400" />
                 Rutina — {reserva.clase}
               </DialogTitle>
               <DialogDescription>
@@ -258,15 +259,12 @@ export default function ReservasPage() {
 
       {/* ESCRITORIO */}
       <div className="hidden space-y-6 lg:block">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Mis Reservas</h1>
-        <p className="text-muted-foreground">Gestiona tus reservas de clases</p>
-      </div>
+      <TituloPagina descripcion={"Gestiona tus reservas de clases"}>Mis Reservas</TituloPagina>
 
       <Tabs defaultValue="proximas" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-secondary">
-          <TabsTrigger value="proximas">Próximas ({proximas.length})</TabsTrigger>
-          <TabsTrigger value="historial">Historial ({historial.length})</TabsTrigger>
+        <TabsList className="grid h-auto w-full max-w-md grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
+          <TabsTrigger value="proximas" className="min-h-[44px] rounded-lg font-bold data-[state=active]:bg-foreground/10">Próximas ({proximas.length})</TabsTrigger>
+          <TabsTrigger value="historial" className="min-h-[44px] rounded-lg font-bold data-[state=active]:bg-foreground/10">Historial ({historial.length})</TabsTrigger>
         </TabsList>
         
         {loading ? (
@@ -275,7 +273,7 @@ export default function ReservasPage() {
           <>
             <TabsContent value="proximas" className="mt-6">
               {proximas.length === 0 ? (
-                <Card className="bg-card border-border">
+                <Card className="rounded-2xl border-dashed border-border bg-card">
                   <CardContent className="p-8 text-center">
                     <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-semibold text-foreground mb-2">No tienes reservas próximas</h3>

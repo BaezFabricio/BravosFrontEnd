@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { BotonVolver } from "@/components/BotonVolver"
 import { Mail, Phone, Save, Loader2, AlertCircle } from 'lucide-react'
 import { toast } from '@/lib/notificar'
+import { TituloPagina } from "@/components/TituloPagina"
+import FotoAmpliable from "@/components/FotoAmpliable"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -57,8 +59,7 @@ export default function ProfesorPerfilPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-border bg-card px-4 sm:px-5 py-4">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">Mi Perfil</h1>
-            <p className="text-xs text-foreground/40">Información personal y datos de contacto</p>
+            <TituloPagina descripcion={"Información personal y datos de contacto"}>Mi Perfil</TituloPagina>
           </div>
         </div>
         <div className="flex gap-2 pl-11 sm:pl-0">
@@ -98,12 +99,9 @@ export default function ProfesorPerfilPage() {
 
         {/* AVATAR CARD */}
         <div className="border border-border bg-card p-6 flex flex-col items-center text-center gap-4">
-          <div className="h-20 w-20 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-2xl overflow-hidden">
-            {avatarUrl
-              ? <img src={avatarUrl} alt={formData.nombre} className="h-full w-full object-cover" />
-              : getIniciales(formData.nombre)
-            }
-          </div>
+          <FotoAmpliable src={avatarUrl} alt={formData.nombre} className="h-20 w-20 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-2xl overflow-hidden">
+            {getIniciales(formData.nombre)}
+          </FotoAmpliable>
           <div>
             <p className="font-bold text-foreground text-base leading-tight">{formData.nombre || "—"}</p>
             <p className="text-xs text-foreground/40 mt-1">{formData.email || "—"}</p>

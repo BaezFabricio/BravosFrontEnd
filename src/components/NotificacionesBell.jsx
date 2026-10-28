@@ -1,19 +1,9 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Calendar, CheckCheck, Trash2, CreditCard, Dumbbell, Info, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Bell, CheckCheck, Trash2, Info } from 'lucide-react'
 import apiClient from '@/api'
 import ActivarNotificaciones from '@/components/ActivarNotificaciones'
-
-const ICONOS_TIPO = {
-  reserva: Calendar,
-  asistencia: Dumbbell,
-  credito: CreditCard,
-  sistema: Info,
-  exito: CheckCircle,
-  error: AlertCircle,
-  advertencia: AlertTriangle,
-  info: Info,
-}
+import { ICONOS_TIPO, TOAST_COLORES, campanita } from '@/lib/avisosEstilos'
 
 const COLORES_TIPO = {
   reserva:     'text-lime-700 dark:text-lime-400',
@@ -24,19 +14,6 @@ const COLORES_TIPO = {
   error:       'text-red-700 dark:text-red-400',
   advertencia: 'text-yellow-700 dark:text-yellow-400',
   info:        'text-blue-700 dark:text-blue-400',
-}
-
-// Aviso arriba en el medio: usa el modo del tema (oscuro en oscuro, claro en claro) pero con fondo del color del tipo,
-// para que no se confunda con los elementos neutros de la app. Los textos son cadenas completas para que Tailwind las encuentre.
-const TOAST_COLORES = {
-  exito:       { caja: 'bg-lime-100 border-lime-500 text-lime-950 dark:bg-lime-950 dark:border-lime-400 dark:text-lime-50',             icono: 'text-lime-700 dark:text-lime-300' },
-  error:       { caja: 'bg-red-100 border-red-500 text-red-950 dark:bg-red-950 dark:border-red-400 dark:text-red-50',                    icono: 'text-red-700 dark:text-red-300' },
-  advertencia: { caja: 'bg-yellow-100 border-yellow-500 text-yellow-950 dark:bg-yellow-950 dark:border-yellow-400 dark:text-yellow-50',   icono: 'text-yellow-700 dark:text-yellow-300' },
-  info:        { caja: 'bg-blue-100 border-blue-500 text-blue-950 dark:bg-blue-950 dark:border-blue-400 dark:text-blue-50',               icono: 'text-blue-700 dark:text-blue-300' },
-  reserva:     { caja: 'bg-lime-100 border-lime-500 text-lime-950 dark:bg-lime-950 dark:border-lime-400 dark:text-lime-50',             icono: 'text-lime-700 dark:text-lime-300' },
-  asistencia:  { caja: 'bg-blue-100 border-blue-500 text-blue-950 dark:bg-blue-950 dark:border-blue-400 dark:text-blue-50',               icono: 'text-blue-700 dark:text-blue-300' },
-  credito:     { caja: 'bg-yellow-100 border-yellow-500 text-yellow-950 dark:bg-yellow-950 dark:border-yellow-400 dark:text-yellow-50',   icono: 'text-yellow-700 dark:text-yellow-300' },
-  sistema:     { caja: 'bg-zinc-100 border-zinc-400 text-zinc-950 dark:bg-zinc-900 dark:border-zinc-500 dark:text-zinc-50',               icono: 'text-zinc-600 dark:text-zinc-300' },
 }
 
 // Avisos de acciones del propio usuario: se muestran en el momento y además quedan en la bandeja
@@ -136,8 +113,10 @@ export default function NotificacionesBell() {
       if (guardar) apiClient.post('/notificaciones/registro', { tipo, titulo, mensaje }).then(() => cargar()).catch(() => {})
     }
     window.addEventListener('bravos:notif', onNotif)
+    campanita.montadas += 1
 
     return () => {
+      campanita.montadas -= 1
       clearInterval(interval)
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('bravos:notif', onNotif)

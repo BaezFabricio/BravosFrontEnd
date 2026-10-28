@@ -4,6 +4,7 @@ import { useTheme } from "@/components/theme-provider"
 import { BotonVolver } from "@/components/BotonVolver"
 import ActivarNotificaciones from "@/components/ActivarNotificaciones"
 import InstalarApp from "@/components/InstalarApp"
+import { TituloPagina } from "@/components/TituloPagina"
 
 /*
  * Mi configuración: preferencias de la persona (no del gimnasio). Se abre desde el menú del
@@ -37,15 +38,17 @@ export default function MiConfiguracionPage() {
   const inicioPanel = panel === "alumno" ? "/alumno" : panel === "profesor" ? "/profesor" : "/admin"
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       {/* El panel de alumno ya muestra su "Volver" en el celular */}
       {panel !== "alumno" && <BotonVolver a={inicioPanel} texto="Volver" />}
 
       <div>
-        <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">Mi configuración</h1>
-        <p className="mt-1 text-sm text-foreground/60">Tus preferencias en este dispositivo.</p>
+        <TituloPagina descripcion={"Tus preferencias en este dispositivo."}>Mi configuración</TituloPagina>
       </div>
 
+      {/* En pantallas anchas va en dos columnas (la app en el celular, y las preferencias de la cuenta); en el celular, una sola */}
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="space-y-6">
       <Seccion titulo="Instalar la app" detalle="Para Android y iPhone. Es lo primero para poder recibir avisos.">
         <InstalarApp />
       </Seccion>
@@ -54,6 +57,9 @@ export default function MiConfiguracionPage() {
         <ActivarNotificaciones variante="tarjeta" />
       </Seccion>
 
+      </div>
+
+      <div className="space-y-6">
       <Seccion titulo="Apariencia">
         <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-2">
           {TEMAS.map(({ valor, texto, icono: Icono }) => {
@@ -108,6 +114,8 @@ export default function MiConfiguracionPage() {
           </button>
         </Seccion>
       )}
+      </div>
+      </div>
     </div>
   )
 }

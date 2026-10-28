@@ -28,7 +28,7 @@ export default function MiPlanPagos({ onActualizado, onVerHistorial }) {
   if (cargando) return null
   if (!data) {
     return (
-      <div id="pagos" className="border border-border bg-card px-5 py-4 text-sm text-foreground/50">
+      <div id="pagos" className="rounded-2xl border border-border bg-card px-5 py-4 text-sm text-foreground/70">
         No pudimos cargar la información de tu membresía. Probá recargar la página en unos minutos.
       </div>
     )
@@ -43,7 +43,7 @@ export default function MiPlanPagos({ onActualizado, onVerHistorial }) {
 
   return (
     <div id="pagos" className="scroll-mt-20 space-y-4">
-      <div className="border border-border bg-card">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-3">
           <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Mi membresía y pagos</p>
           <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import { toast } from '@/lib/notificar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import DatosBancarios from './DatosBancarios'
 import MenuAjustes from './MenuAjustes'
+import { TituloPagina } from "@/components/TituloPagina"
 
 // Cada sección se abre desde el menú de Configuración con ?seccion=
 const SECCIONES = {
@@ -316,8 +317,7 @@ function ConfiguracionLandingPage() {
         </div>
         <div>
           <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>
-          <h1 className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl">{seccion.titulo}</h1>
-          <p className="mt-1 text-sm text-foreground/60">{seccion.detalle}</p>
+          <TituloPagina descripcion={seccion.detalle}>{seccion.titulo}</TituloPagina>
         </div>
         {!puedeModificar && (
           <p className="rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground/60">Tu perfil puede ver esta sección pero no cambiarla.</p>

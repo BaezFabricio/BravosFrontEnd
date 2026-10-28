@@ -17,6 +17,7 @@ import {
 import { getUsuarioById, logoutUsuario } from "@/api"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from '@/lib/notificar'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const emptyForm = {
   nombre: "",
@@ -201,8 +202,7 @@ export default function EditarUsuarioPage() {
       <div className="flex items-start justify-between gap-3">
         <BotonVolver a={`/admin/usuarios/${id}`} texto="Volver" />
         <div className="text-right">
-          <h1 className="text-xl font-black uppercase tracking-tight text-foreground sm:text-2xl">Editar usuario</h1>
-          <p className="text-xs text-foreground/55">Datos personales, perfil y acceso</p>
+          <TituloPagina descripcion={"Datos personales, perfil y acceso"}>Editar usuario</TituloPagina>
         </div>
       </div>
 

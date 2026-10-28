@@ -133,7 +133,7 @@ function LandingPage() {
   });
 
   // 🟢 ESTADOS DE HORARIOS SCONECTADOS
-  const [clasesBackend, setClasesBackend] = useState([])
+  const [turnosBox, setTurnosBox] = useState([]) // horarios de los turnos del box, por tipo de clase
   const [loadingHorarios, setLoadingHorarios] = useState(true)
   // Arranca en el día de hoy (el domingo no hay clases: arranca en el lunes)
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => {
@@ -269,16 +269,10 @@ function LandingPage() {
         if (isMounted) reintento = setTimeout(() => cargarConfig(intento + 1), Math.min(2000 * 2 ** intento, 15000))
       })
     cargarConfig()
-    fetch("/api/vv1/clases/disponibles")
+    fetch("/api/vv1/turnos/publicos")
       .then((res) => res.json())
       .then((result) => {
-        if (isMounted) {
-
-          // Buscamos el array inspeccionando si viene en .data, .clases o directo en el objeto
-          const datosReales = result.data || result.clases || (Array.isArray(result) ? result : []);
-          
-          setClasesBackend(datosReales);
-        }
+        if (isMounted) setTurnosBox(Array.isArray(result.data) ? result.data : [])
       })
       .catch((err) => console.error('Error al sincronizar horarios en la landing:', err))
       .finally(() => {
@@ -330,19 +324,6 @@ function LandingPage() {
     return name.substring(0, 2).toUpperCase()
   }
 
-  // 🟢 FILTRADO DINÁMICO CRONOLÓGICO CONECTADO
-  const clasesVisibles = clasesBackend
-    .filter((c) => {
-      if (c.fechaEspecifica) {
-        // Clase única: solo en la grilla del día correspondiente
-        const diaSemanaFecha = ['DOMINGO','LUNES','MARTES','MIERCOLES','JUEVES','VIERNES','SABADO'][new Date(c.fechaEspecifica + 'T00:00:00').getDay()]
-        return diaSemanaFecha === (diaSeleccionado || "").toUpperCase().trim()
-      }
-      const diaBaseDatos = c.dia ? c.dia.toUpperCase().trim() : "";
-      const diaBoton = diaSeleccionado ? diaSeleccionado.toUpperCase().trim() : "";
-      return diaBaseDatos === diaBoton;
-    })
-    .sort((a, b) => (a.horaInicio || "").localeCompare(b.horaInicio || ""));
 
   if (pageLoading) {
     return (
@@ -390,7 +371,7 @@ function LandingPage() {
               </Link>
 
               <nav className="hidden items-center gap-0 lg:flex">
-                <Link to="/" className="group relative px-4 py-5 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-white">
+                <Link to="/" className="group relative px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
                   INICIO
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
                 </Link>
@@ -402,7 +383,7 @@ function LandingPage() {
                     onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <a href={item.href} className="group relative flex items-center gap-1 px-4 py-5 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-white">
+                    <a href={item.href} className="group relative flex items-center gap-1 px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
                       {item.name}
                       {item.hasDropdown && <ChevronDown className="h-3.5 w-3.5" />}
                       <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
@@ -411,7 +392,7 @@ function LandingPage() {
                     {item.hasDropdown && activeDropdown === item.name && (
                       <div className="absolute top-full left-0 w-48 border border-lime-400/20 border-t-2 border-t-lime-400 bg-black shadow-xl shadow-black/50">
                         {subItemsClases.map((subItem) => (
-                          <a key={subItem.href} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-400">
+                          <a key={subItem.href} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-700 dark:hover:text-lime-400">
                             {subItem.name}
                           </a>
                         ))}
@@ -648,7 +629,7 @@ function LandingPage() {
             )}
 
             {/* MÁS INFO */}
-            <button type="button" onClick={irAlContenido} className="group mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 sm:mt-3">
+            <button type="button" onClick={irAlContenido} className="group mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-700 dark:hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 sm:mt-3">
               <span>MÁS INFO</span>
               <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
             </button>
@@ -805,25 +786,29 @@ function LandingPage() {
 
           {loadingHorarios ? (
             <div className="space-y-3 animate-pulse" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-16 rounded-md border border-border bg-white/5" />)}</div>
-          ) : clasesVisibles.length === 0 ? (
+          ) : turnosBox.length === 0 ? (
             <div className="rounded-md border border-border bg-white/5 p-6 text-center">
-              <p className="text-sm text-white/50">No hay turnos los {diasSemanaMapeo.find((d) => d.value === diaSeleccionado)?.label.toLowerCase()}.</p>
+              <p className="text-sm text-white/50">Los horarios se publican muy pronto.</p>
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {clasesVisibles.map((item) => (
-                <div key={item.idHorario} className="flex items-center gap-4 rounded-md border border-border bg-foreground/5 p-4 transition-colors hover:border-white/25">
-                  <div className="shrink-0 text-center">
-                    <p className="text-lg font-black leading-none tabular-nums text-accent">{item.horaInicio ? item.horaInicio.slice(0, 5) : '--:--'}</p>
-                    <p className="mt-1 text-[11px] tabular-nums text-white/45">a {item.horaFin ? item.horaFin.slice(0, 5) : '--:--'}</p>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Una tarjeta por horario del box (de todos los tipos de clase), ordenadas por la hora de inicio */}
+              {turnosBox
+                .flatMap((tipo) => tipo.horarios.map((h) => ({ ...h, tipo: tipo.nombre, codigo: tipo.codigo })))
+                .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio) || a.tipo.localeCompare(b.tipo))
+                .map((h) => (
+                  <div key={`${h.codigo}-${h.horaInicio}-${h.horaFin}`} className="flex items-center gap-3 rounded-md border border-border bg-foreground/5 px-3 py-2.5 transition-colors hover:border-white/25">
+                    <div className="shrink-0 text-center">
+                      <p className="text-base font-black leading-none tabular-nums text-accent">{h.horaInicio}</p>
+                      <p className="mt-0.5 text-[10px] tabular-nums text-white/45">a {h.horaFin}</p>
+                    </div>
+                    <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-black uppercase leading-tight text-white">{h.tipo} {h.turno}</p>
+                      {h.etiqueta && <p className="text-xs leading-tight text-white/55">{h.etiqueta}</p>}
+                    </div>
                   </div>
-                  <div className="h-10 w-px shrink-0 bg-white/10" aria-hidden="true" />
-                  <div className="min-w-0">
-                    <p className="truncate font-black uppercase text-white">{item.nombreClase || 'Clase'}</p>
-                    {item.nombreProfesor && <p className="truncate text-sm text-white/55">{item.nombreProfesor}</p>}
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

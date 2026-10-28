@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Dumbbell, Eye, Users, ChevronRight, BookOpen, AlertCircle } from 'lucide-react'
+import { Dumbbell, Eye, Users, ChevronRight, AlertCircle } from 'lucide-react'
 import apiClient from '@/api'
 import { GymLoader } from '@/components/GymLoader'
+import { TituloPagina } from "@/components/TituloPagina"
 
 const NIVEL_COLOR = {
   principiante: 'bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-400/20',
@@ -51,17 +52,7 @@ export default function RutinasPage() {
       {/* HEADER */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <BookOpen className="h-4 w-4 text-primary" />
-            </div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">
-              Mis Rutinas
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground ml-10">
-            Rutinas asignadas a tus clases por el administrador
-          </p>
+          <TituloPagina descripcion={"Rutinas asignadas a tus clases por el administrador"}>Mis Rutinas</TituloPagina>
         </div>
         {rutinas.length > 0 && (
           <div className="text-right">
