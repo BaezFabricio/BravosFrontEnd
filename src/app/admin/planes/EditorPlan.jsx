@@ -27,6 +27,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
   const [corta, setCorta] = useState(partesIniciales.corta)
   const [precio, setPrecio] = useState(plan ? String(Number(plan.precio)) : "")
   const [creditos, setCreditos] = useState(plan ? String(plan.cantidadCreditos) : "")
+  const [porSemana, setPorSemana] = useState(plan?.creditosPorSemana ? String(plan.creditosPorSemana) : "")
   const [condiciones, setCondiciones] = useState(partesIniciales.condiciones)
   const [nueva, setNueva] = useState("")
   const [editando, setEditando] = useState(null) // índice de la condición que se está editando
@@ -68,10 +69,15 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
     if (!(p > 0)) e.precio = "El precio tiene que ser mayor a 0"
     const c = Number(creditos)
     if (!Number.isInteger(c) || c < 1) e.creditos = "Créditos: un número entero mayor a 0"
+    if (porSemana !== "") {
+      const w = Number(porSemana)
+      if (!Number.isInteger(w) || w < 1 || w > 7) e.porSemana = "Por semana: un número entero entre 1 y 7"
+      else if (Number.isInteger(c) && w > c) e.porSemana = "No puede superar los créditos del plan"
+    }
     if (descripcion.length > 1000) e.condiciones = "La descripción y las condiciones no pueden pasar de 1000 caracteres"
     setErrores(e)
     if (Object.keys(e).length) return
-    onGuardar({ nombre: nombre.trim(), descripcion, precio: p, cantidadCreditos: c, tipo })
+    onGuardar({ nombre: nombre.trim(), descripcion, precio: p, cantidadCreditos: c, creditosPorSemana: porSemana === "" ? null : Number(porSemana), tipo })
   }
 
   const campo = (err) => `h-11 w-full rounded-xl border bg-background/60 px-3 text-base text-foreground outline-none transition-colors focus:border-lime-500 ${err ? "border-red-500/60" : "border-border"}`
@@ -145,6 +151,12 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
                 <input id="pl-creditos" type="number" inputMode="numeric" min="1" step="1" value={creditos} onChange={(e) => setCreditos(e.target.value)} placeholder="20" className={campo(errores.creditos)} />
                 {error(errores.creditos)}
               </div>
+            </div>
+            <div className="mt-3">
+              <label htmlFor="pl-semana" className={etiqueta}>Créditos por semana (opcional)</label>
+              <input id="pl-semana" type="number" inputMode="numeric" min="1" max="7" step="1" value={porSemana} onChange={(e) => setPorSemana(e.target.value)} placeholder="Ej: 3 para el plan de 3 días" className={campo(errores.porSemana)} />
+              {error(errores.porSemana)}
+              <p className="mt-1.5 text-xs text-foreground/55">Si lo completás, el alumno puede reservar hasta esa cantidad de clases por semana (de lunes a viernes) y lo que no use se pierde al terminar la semana. Cancelar no devuelve el crédito. Vacío = sin tope semanal.</p>
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-xs text-foreground/55">
               <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Todas las membresías vencen el día 10 del mes siguiente al pago.

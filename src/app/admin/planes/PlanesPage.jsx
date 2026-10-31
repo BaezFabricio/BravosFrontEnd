@@ -171,7 +171,7 @@ export default function PlanesPage() {
                   </div>
                   <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
                     <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
-                    <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{plan.cantidadCreditos} <span className="text-xs font-bold text-foreground/55">clases</span></p>
+                    <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{plan.cantidadCreditos} <span className="text-xs font-bold text-foreground/55">clases{plan.creditosPorSemana ? ` · ${plan.creditosPorSemana} por semana` : ""}</span></p>
                   </div>
                 </div>
 

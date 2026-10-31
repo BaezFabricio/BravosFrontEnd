@@ -169,6 +169,7 @@ export function TerminosPage() {
       <Lista>
         <li>Reservar una clase usa un crédito. Los cupos son limitados y se asignan por orden de reserva.</li>
         <li>Si cancelás con 2 horas o más de anticipación, te devolvemos el crédito. Si cancelás con menos tiempo o no asistís, el crédito se pierde.</li>
+        <li>En los planes con créditos por semana (por ejemplo el de 3 días: 3 clases por semana), cancelar no devuelve el crédito y los créditos de la semana que no usaste se pierden cuando la semana termina.</li>
         <li>Si el box suspende o reprograma una clase, te avisamos y te devolvemos el crédito.</li>
       </Lista>
 

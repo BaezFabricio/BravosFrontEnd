@@ -1,4 +1,5 @@
 import { TituloPagina } from "@/components/TituloPagina"
+import { useSemanaCreditos } from "@/lib/semanaCreditos"
 import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useMemo, useState } from "react"
@@ -86,6 +87,7 @@ export default function ReservarClasePage() {
   const [isLoading, setIsLoading]             = useState(false)
   const [pageLoading, setPageLoading]         = useState(true)
   const [creditosReales, setCreditosReales]   = useState(0)
+  const semana = useSemanaCreditos() // plan con créditos por semana (o null)
   const [loadingCreditos, setLoadingCreditos] = useState(true)
   const [rutinaExpandida, setRutinaExpandida] = useState({})
   const [turnoFiltro, setTurnoFiltro]         = useState(null)
@@ -264,6 +266,7 @@ export default function ReservarClasePage() {
         const idReservaNueva = response.data?.data?.idReserva
         toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}`, guardar: false })
         setCreditosReales(prev => prev - 1)
+        window.dispatchEvent(new CustomEvent("bravos:reservas-cambiaron")) // el contador de la semana se vuelve a pedir
         // Actualización optimista inmediata
         const key = `${selectedClass.id}-${fechaFormateada}`
         setReservasMap(prev => ({ ...prev, [key]: idReservaNueva }))
@@ -285,8 +288,11 @@ export default function ReservarClasePage() {
     setIsLoading(true)
     try {
       await apiClient.patch(`/reservas/${clase.idReserva}/cancelar`)
-      const devuelveCredito = puedeCancelar(selectedDate, clase.hora)
-      if (devuelveCredito) {
+      // Con créditos por semana cancelar no devuelve el crédito (cuenta para los de esa semana)
+      const devuelveCredito = !semana && puedeCancelar(selectedDate, clase.hora)
+      if (semana) {
+        toast.warning("Reserva cancelada", { description: "En tu plan el crédito no se devuelve al cancelar: cuenta para los de la semana.", guardar: false })
+      } else if (devuelveCredito) {
         toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto.", guardar: false })
         setCreditosReales(prev => prev + 1)
       } else {
@@ -329,6 +335,7 @@ export default function ReservarClasePage() {
       <div className="lg:hidden">
         <ReservarMovil
           creditos={creditosReales}
+          semana={semana}
           cargandoCreditos={loadingCreditos}
           vencimiento={vencimientoAbono}
           selectedDate={selectedDate}
@@ -363,7 +370,7 @@ export default function ReservarClasePage() {
         </div>
         <div>
           <p className="text-sm font-bold text-foreground">Créditos disponibles</p>
-          <p className="text-xs text-foreground/60">Cada reserva consume 1 crédito. Si cancelás con 2 horas o más de anticipación, te lo devolvemos.</p>
+          <p className="text-xs text-foreground/60">{semana ? `Podés reservar hasta ${semana.porSemana} clases por semana (esta semana usaste ${semana.usadas}). Lo que no uses se pierde al terminar la semana y cancelar no devuelve el crédito.` : "Cada reserva consume 1 crédito. Si cancelás con 2 horas o más de anticipación, te lo devolvemos."}</p>
         </div>
       </div>
 
@@ -621,7 +628,7 @@ export default function ReservarClasePage() {
           <Alert className="bg-yellow-500/10 border-yellow-500/20">
             <AlertCircle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />
             <AlertDescription className="text-yellow-700/80 dark:text-yellow-500/80">
-              Se descontará 1 crédito. Si cancelás con menos de 2 horas de anticipación, el crédito no se devuelve.
+              {semana ? `Se descontará 1 crédito. En tu plan podés reservar hasta ${semana.porSemana} clases por semana y cancelar no devuelve el crédito.` : "Se descontará 1 crédito. Si cancelás con menos de 2 horas de anticipación, el crédito no se devuelve."}
             </AlertDescription>
           </Alert>
           <DialogFooter>
@@ -655,7 +662,7 @@ export default function ReservarClasePage() {
               </p>
             </div>
           )}
-          {cancelDialog.clase && puedeCancelar(selectedDate, cancelDialog.clase.hora) ? (
+          {!semana && cancelDialog.clase && puedeCancelar(selectedDate, cancelDialog.clase.hora) ? (
             <Alert className="bg-green-500/10 border-green-500/20">
               <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-500" />
               <AlertDescription className="text-green-700/80 dark:text-green-500/80">
@@ -666,7 +673,7 @@ export default function ReservarClasePage() {
             <Alert className="bg-red-500/10 border-red-500/20">
               <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-500" />
               <AlertDescription className="text-red-700/80 dark:text-red-500/80">
-                Faltan menos de 2 horas para la clase. El crédito <strong>no</strong> será devuelto.
+                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de 2 horas para la clase. El crédito <strong>no</strong> será devuelto.</>}
               </AlertDescription>
             </Alert>
           )}

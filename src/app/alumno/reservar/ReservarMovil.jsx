@@ -68,7 +68,7 @@ function estadoCupo(clase) {
 }
 
 export default function ReservarMovil({
-  creditos, cargandoCreditos, vencimiento, selectedDate, setSelectedDate, hayClasesEn,
+  creditos, semana, cargandoCreditos, vencimiento, selectedDate, setSelectedDate, hayClasesEn,
   turnos, turnoFiltro, setTurnoFiltro, clases, nombrePlan, cargando, puedeReservar, puedeCancelar,
   rutinaPublicada, fechaPublicacion, onReservar, onCancelar, irAProximoDiaConClases,
 }) {
@@ -119,8 +119,17 @@ export default function ReservarMovil({
         <p className="mt-3 flex items-start gap-2 border-t border-border pt-3 text-xs leading-snug text-foreground/75">
           <Info className="mt-px h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
           <span>
-            <strong className="text-foreground">Cada clase que reservás usa 1 crédito.</strong>{" "}
-            Si cancelás con 2 horas o más de anticipación, te lo devolvemos.
+            {semana ? (
+              <>
+                <strong className="text-foreground">Hasta {semana.porSemana} clases por semana ({semana.usadas} usadas esta semana).</strong>{" "}
+                Lo que no uses se pierde al terminar la semana, y cancelar no devuelve el crédito.
+              </>
+            ) : (
+              <>
+                <strong className="text-foreground">Cada clase que reservás usa 1 crédito.</strong>{" "}
+                Si cancelás con 2 horas o más de anticipación, te lo devolvemos.
+              </>
+            )}
           </span>
         </p>
       </div>

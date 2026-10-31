@@ -1,17 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BotonTema } from '@/components/BotonTema'
-import { CheckCircle2, ChevronRight, CreditCard, Eye, EyeOff, Loader2, Lock, Mail, Phone, User, ArrowLeft, Dumbbell, Star, Trophy, XCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Eye, EyeOff } from 'lucide-react'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 import { toast } from '@/lib/notificar'
-
-const STEPS = [
-  { icon: Dumbbell, text: "Accedé a todas las clases del Box" },
-  { icon: Star,    text: "Gestioná tus créditos y pagos" },
-  { icon: Trophy,  text: "Seguí tu progreso semana a semana" },
-]
+import { useEscritorio } from '@/lib/useEscritorio'
+import { ARCH, BIG, COLOR, MONO } from '@/lib/accesoEstilos'
+import { ESTILOS_MOVIL, FICHA_FLOTANTE } from '@/lib/estilosMovil'
+import { Ficha } from '@/components/AccesoDiseno'
 
 const PASSWORD_RULES = [
   { id: 'len',   label: 'Mínimo 8 caracteres',      test: (p) => p.length >= 8 },
@@ -49,18 +44,64 @@ function validateField(field, value, formData) {
   }
 }
 
+// Estilos de la pantalla de escritorio, acotados a ella
+const ESTILOS_REF = `
+.lr a{color:#9be600}.lr a:hover{color:#c4ff3d}
+.lr input::placeholder{color:#6b705e}.lr input:focus{outline:none}
+.lr button.pri:hover{background:#c4ff3d!important}
+.lr .ficha-flota{transition:transform .25s ease-out;will-change:transform;transform:translateY(-4px)}
+.lr .ficha-flota:hover{transition:transform .08s linear}
+@media (prefers-reduced-motion: reduce){.lr .ficha-flota{transition:none}}
+@keyframes lr-in{from{opacity:0}to{opacity:1}}
+@keyframes lr-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(-4px)}}
+.lr{animation:lr-in .4s ease both}
+.lr.sale{opacity:0;transition:opacity .22s ease}
+.lr .ficha-flota{animation:lr-up .5s cubic-bezier(.22,1,.36,1) .05s backwards}
+@media (prefers-reduced-motion: reduce){.lr,.lr .ficha-flota{animation:none}.lr.sale{transition:none}}
+`
+
 function RegistroPage() {
-  const navigate = useNavigate()
-  // Vuelve a la última pantalla del sitio en la que estuvo la persona. React Router guarda la
-  // posición (idx); si es 0 pero se llegó desde otra página del sitio con recarga completa, se usa
-  // el historial del navegador. Si se entró directo (sin nada atrás), va al inicio para no quedarse trabado.
-  const volver = () => {
-    if ((window.history.state?.idx ?? 0) > 0) return navigate(-1)
-    let vieneDelSitio = false
-    try { vieneDelSitio = !!document.referrer && new URL(document.referrer).origin === window.location.origin } catch { /* referrer inválido */ }
-    if (vieneDelSitio && window.history.length > 1) return window.history.back()
-    navigate("/inicio")
+  const escritorio = useEscritorio()
+  // Al pasar al login: la pantalla se desvanece y recién ahí navega (el login entra con su propia animación)
+  const [saliendo, setSaliendo] = useState(false)
+  const irA = (destino) => (e) => {
+    e.preventDefault()
+    setSaliendo(true)
+    setTimeout(() => navigate(destino), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 220)
   }
+  const fichaRef = useRef(null)
+  // En celular, al abrir el registro se baja solo hasta el formulario (la foto de arriba queda como encabezado).
+  // Se hace siempre, aunque la página venga con scroll de la pantalla anterior (el login en celulares chicos).
+  useEffect(() => {
+    if (escritorio) return
+    const ir = () => {
+      const el = fichaRef.current
+      if (!el) return
+      const arriba = el.getBoundingClientRect().top + window.scrollY - 96 // deja a la vista al perro que asoma sobre la ficha
+      const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: Math.max(0, arriba), behavior: sinMovimiento ? 'auto' : 'smooth' })
+    }
+    const t1 = setTimeout(ir, 450)
+    // Segundo intento por si las fuentes o las imágenes movieron el diseño después del primero
+    const t2 = setTimeout(() => {
+      const el = fichaRef.current
+      if (el && Math.abs(el.getBoundingClientRect().top - 96) > 24) ir()
+    }, 1300)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [escritorio])
+  // Efecto flotante: la ficha se inclina un poco hacia donde está el cursor
+  const inclinar = (e) => {
+    const el = fichaRef.current
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const r = el.getBoundingClientRect()
+    const x = (e.clientX - r.left) / r.width - 0.5
+    const y = (e.clientY - r.top) / r.height - 0.5
+    el.style.transform = `perspective(1100px) rotateX(${(-y * 4).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg) translateY(-4px)`
+  }
+  const soltar = () => { if (fichaRef.current) fichaRef.current.style.transform = '' }
+  const navigate = useNavigate()
+  // "Volver al sitio" lleva siempre a la página principal (no al login, que es la pantalla hermana)
+  const volver = () => navigate("/inicio")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -99,7 +140,8 @@ function RegistroPage() {
     setErrors(prev => ({ ...prev, [field]: validateField(field, formData[field], formData) }))
   }
 
-  const isValid = (field) => touched[field] && !errors[field] && formData[field]
+  // Mensaje de error de un campo (solo después de que la persona lo tocó)
+  const error = (field) => (touched[field] ? errors[field] : '')
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -110,7 +152,7 @@ function RegistroPage() {
       Object.keys(formData).map(k => [k, validateField(k, formData[k], formData)])
     )
     setErrors(newErrors)
-    if (!aceptaTerminos) setErrorTerminos('Para crear la cuenta tenés que aceptar los términos y la política de privacidad')
+    if (!aceptaTerminos) setErrorTerminos('Tenés que aceptar los términos y la política de privacidad')
     if (Object.values(newErrors).some(Boolean) || !aceptaTerminos) return
 
     setIsLoading(true)
@@ -153,336 +195,264 @@ function RegistroPage() {
     }
   }
 
+
   // ── Pantalla de éxito ──
   if (isSuccess) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center p-6 bg-background">
-        <div
-          className="absolute inset-0 opacity-[0.05]"
-          style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '50%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-        />
-        <div className="relative z-10 w-full max-w-md">
-          <div className="rounded-2xl border border-lime-400/30 bg-card p-8 shadow-2xl text-center space-y-5">
-            <div className="mx-auto h-20 w-20 rounded-full bg-lime-400/10 border border-lime-400/30 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-lime-700 dark:text-lime-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-foreground tracking-tight">¡Cuenta creada!</h2>
-              <p className="text-muted-foreground text-sm mt-1">Verificá tu correo para activarla</p>
-            </div>
-            <div className="rounded-xl bg-muted/50 border border-border p-4 space-y-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Enviamos el link a</p>
+      <div className="min-h-screen px-6 pb-10 pt-6 text-[#ecefe4]" style={{ ...ARCH, background: COLOR.form }}>
+        <div className="mx-auto w-full max-w-[480px]">
+          <Ficha margenSuperior={100} arriba={100} tagIzq="ALTA DE SOCIO" tagDer="CUENTA CREADA" titulo="¡Cuenta creada" subtitulo="Verificá tu correo para activarla.">
+            <div className="border p-4" style={{ borderColor: COLOR.linea }}>
+              <p className="text-[9.5px] uppercase tracking-[0.16em]" style={{ ...MONO, color: COLOR.apagado }}>Enviamos el link a</p>
               {!isEditingEmail ? (
-                <div className="space-y-1">
-                  <p className="font-bold text-lime-700 dark:text-lime-400 text-base">{formData.email}</p>
-                  <button
-                    onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}
-                    className="text-xs text-muted-foreground underline hover:text-foreground transition-colors"
-                  >
+                <div className="mt-1 space-y-1">
+                  <p className="break-all text-base font-semibold" style={{ color: COLOR.lima }}>{formData.email}</p>
+                  <button onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}
+                    className="text-xs underline transition-colors hover:text-white" style={{ color: COLOR.apagado }}>
                     ¿Te equivocaste? Cambiar correo
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2 mt-1">
-                  <Input
-                    type="email" value={newEmailInput}
-                    onChange={(e) => setNewEmailInput(e.target.value)}
-                    className="h-9 text-center bg-background text-sm"
-                    placeholder="tu@correo.com"
-                  />
-                  <div className="flex gap-2 justify-center">
-                    <Button size="sm" variant="outline" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}>
+                <div className="mt-2 flex flex-col gap-3">
+                  <input type="email" value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} placeholder="tu@correo.com" aria-label="Nuevo correo"
+                    className="w-full border bg-transparent px-3 py-2 text-[16px] outline-none placeholder:text-[#6b705e] focus:border-[#9be600]" style={{ borderColor: COLOR.linea }} />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}
+                      className="border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:text-white disabled:opacity-60" style={{ borderColor: COLOR.linea, color: COLOR.apagado }}>
                       Cancelar
-                    </Button>
-                    <Button size="sm" className="bg-lime-400 text-black hover:bg-lime-300 font-bold" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>
-                      {isUpdatingEmail ? 'Guardando...' : 'Confirmar y Reenviar'}
-                    </Button>
+                    </button>
+                    <button type="button" onClick={handleUpdateEmail} disabled={isUpdatingEmail}
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:!bg-[#c4ff3d] disabled:opacity-60" style={{ background: COLOR.lima, color: COLOR.base }}>
+                      {isUpdatingEmail ? 'Guardando…' : 'Confirmar y reenviar'}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="mt-4 text-[13px] leading-relaxed" style={{ color: COLOR.apagado }}>
               Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
             </p>
-            <Link to="/login" className="block">
-              <Button className="w-full h-11 bg-lime-400 hover:bg-lime-300 text-black font-black uppercase tracking-wider text-sm">
-                Ir al inicio de sesión
-              </Button>
+            <Link to="/login"
+              className="mt-[18px] flex w-full items-center justify-center px-3 py-3 text-[22px] uppercase tracking-[0.12em] transition-colors hover:!bg-[#c4ff3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4ff3d]"
+              style={{ ...BIG, background: COLOR.lima, color: COLOR.base }}>
+              Ir al inicio de sesión →
             </Link>
-          </div>
+          </Ficha>
         </div>
       </div>
     )
   }
 
   // ── Formulario ──
-  return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-background">
+  const msjErrorM = { margin: '4px 0 0', font: '500 13px Archivo', color: '#ff6b4a' }
+  const vistaMovil = (
+    <div className={`lm${saliendo ? ' sale' : ''}`} style={{ margin: 0, background: '#0e100a', color: '#ecefe4', fontFamily: 'Archivo,sans-serif', lineHeight: 'normal', minHeight: '100dvh' }}>
+      <style>{ESTILOS_MOVIL}</style>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', overflowX: 'hidden', background: '#0e100a' }}>
+        <div style={{ position: 'relative', height: '250px', overflow: 'hidden' }}>
+          <img src="/acceso/hookgrip-c.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 12%', filter: 'grayscale(1) contrast(1.1) brightness(0.85)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: '#4a5626', mixBlendMode: 'multiply', opacity: 0.35 }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(14,16,10,0.55) 0%,rgba(14,16,10,0) 30%,rgba(14,16,10,0.25) 60%,#0e100a 100%)' }} />
+          <div style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 16px)', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><img src="/acceso/brvs.png" alt="" style={{ width: '34px', height: '34px', borderRadius: '8px' }} /><span style={{ font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: '0.3em', color: '#9be600', whiteSpace: 'nowrap' }}>BRAVOS BOX</span></div>
+            <Link to="/inicio" style={{ font: "500 12px 'JetBrains Mono'", letterSpacing: '0.14em', textDecoration: 'none', whiteSpace: 'nowrap', color: '#ecefe4', display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 16px', border: '1px solid rgba(236,239,228,.28)', borderRadius: '999px', background: 'rgba(14,16,10,.5)', margin: '-4px -6px -4px 0' }}>← SITIO</Link>
+          </div>
+          <div style={{ position: 'absolute', left: '20px', right: '20px', bottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div role="heading" aria-level={1} style={{ font: "900 46px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase' }}>Sumate al<br /><span style={{ color: '#9be600' }}>equipo.</span></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', paddingBottom: '4px' }}><img src="/acceso/malvinas.png" alt="" style={{ width: '58px', filter: 'saturate(0.8)' }} /><span style={{ font: "500 9px/1.4 'JetBrains Mono'", letterSpacing: '0.14em', color: '#ecefe4', textAlign: 'right' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
+          </div>
+        </div>
 
-      {/* Panel izquierdo — branding */}
-      <div className="relative hidden lg:flex lg:w-5/12 lg:sticky lg:top-0 lg:h-screen lg:self-start flex-col justify-between p-12 overflow-hidden flex-shrink-0 bg-[#0c0d09] anim-from-left">
-        <div
-          className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: "url('/logo-box-bravos-final.png')", backgroundSize: '60%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-lime-400/10 via-transparent to-transparent" />
-        <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-lime-400/40 to-transparent" />
-        <div className="relative z-10 flex items-center gap-4">
-          <img src="/logo.jpg" alt="Bravos Gym" className="h-12 w-12 rounded-xl" />
-          <div>
-            <p className="text-lg font-black tracking-[0.3em] text-lime-400 uppercase">Bravos</p>
-          </div>
-        </div>
-        <div className="relative z-10 space-y-6">
-          <div>
-            <h1 className="text-5xl font-black text-white leading-none tracking-tight">
-              UNITE AL<br />
-              <span className="text-lime-700 dark:text-lime-400">BOX</span>
-            </h1>
-            <p className="mt-4 text-white/50 text-base leading-relaxed max-w-xs">
-              Creá tu cuenta y empezá a gestionar tus clases, créditos y progreso desde el día uno.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {STEPS.map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-lime-400/10 border border-lime-400/20 flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-4 w-4 text-lime-700 dark:text-lime-400" />
+        <div style={{ position: 'relative', margin: '80px 20px 0', paddingBottom: '40px' }}>
+          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: 'relative', borderRadius: '14px', padding: '20px 18px 18px', ...FICHA_FLOTANTE }}>
+            <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: '18px', bottom: 'calc(100% - 2px)', width: '84px', height: '84px' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', font: "500 10px 'JetBrains Mono'", letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: '10px', borderBottom: '1px dashed #3a3d32' }}><span style={{ color: '#9be600' }}>ALTA DE SOCIO</span></div>
+            <div role="heading" aria-level={2} style={{ font: "900 42px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase', margin: '14px 0 4px' }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
+            <div style={{ color: '#8a8f7a', fontSize: '13px', marginBottom: '16px' }}>Completá tus datos para registrarte.</div>
+
+            <form onSubmit={handleSubmit} noValidate>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid #3a3d32', borderRadius: '10px', overflow: 'hidden' }}>
+                <div className="cell" style={{ gridColumn: '1/3' }}>
+                  <label className="lbl" htmlFor="nombre-m">NOMBRE COMPLETO</label>
+                  <input id="nombre-m" className="inp" type="text" autoComplete="name" placeholder="Juan Pérez" value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
+                  {error('nombre') && <p role="alert" style={msjErrorM}>{error('nombre')}</p>}
                 </div>
-                <span className="text-sm text-white/60 font-medium">{text}</span>
+                <div className="cell" style={{ borderRight: '1px solid #3a3d32' }}>
+                  <label className="lbl" htmlFor="dni-m">DNI</label>
+                  <input id="dni-m" className="inp" type="text" inputMode="numeric" placeholder="12345678" value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
+                  {error('dni') && <p role="alert" style={msjErrorM}>{error('dni')}</p>}
+                </div>
+                <div className="cell">
+                  <label className="lbl" htmlFor="telefono-m">TELÉFONO</label>
+                  <input id="telefono-m" className="inp" type="tel" autoComplete="tel" placeholder="1123456789" value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
+                  {error('telefono') && <p role="alert" style={msjErrorM}>{error('telefono')}</p>}
+                </div>
+                <div className="cell" style={{ gridColumn: '1/3' }}>
+                  <label className="lbl" htmlFor="email-m">CORREO ELECTRÓNICO</label>
+                  <input id="email-m" className="inp" type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
+                  {error('email') && <p role="alert" style={msjErrorM}>{error('email')}</p>}
+                </div>
+                <div className="cell" style={{ gridColumn: '1/3' }}>
+                  <label className="lbl" htmlFor="password-m">CONTRASEÑA</label>
+                  <input id="password-m" className="inp" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres" value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
+                  {error('password') && <p role="alert" style={msjErrorM}>{error('password')}</p>}
+                </div>
+                <div className="cell" style={{ gridColumn: '1/3', borderBottom: 'none' }}>
+                  <label className="lbl" htmlFor="confirm-m">CONFIRMAR CONTRASEÑA</label>
+                  <input id="confirm-m" className="inp" type="password" autoComplete="new-password" placeholder="Repetí tu contraseña" value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
+                  {error('confirmPassword') && <p role="alert" style={msjErrorM}>{error('confirmPassword')}</p>}
+                </div>
               </div>
-            ))}
+
+              {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
+              {formData.password.length > 0 && (
+                <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', font: "500 11px 'JetBrains Mono'" }}>
+                  {PASSWORD_RULES.map(rule => {
+                    const ok = rule.test(formData.password)
+                    return (
+                      <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: ok ? '#9be600' : '#8a8f7a' }}>
+                        <span aria-hidden="true">{ok ? '✓' : '○'}</span>{rule.label}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+
+              <label htmlFor="aceptaTerminos-m" style={{ display: 'flex', gap: '10px', marginTop: '14px', fontSize: '11.5px', lineHeight: 1.5, color: '#8a8f7a' }}>
+                <input id="aceptaTerminos-m" type="checkbox" checked={aceptaTerminos}
+                  onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked) setErrorTerminos('') }}
+                  style={{ accentColor: '#9be600', width: '20px', height: '20px', flex: 'none', margin: 0 }} />
+                <span>Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.</span>
+              </label>
+              {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '6px 0 0' }}>{errorTerminos}</p>}
+              <button type="submit" disabled={isLoading} style={{ marginTop: '16px', width: '100%', height: '54px', border: 'none', borderRadius: '10px', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: "900 22px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase', boxShadow: 'rgba(155,230,0,0.28) 0 0 28px', opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
+            </form>
           </div>
-        </div>
-        <div className="relative z-10">
-          <p className="text-[11px] text-white/20 tracking-widest uppercase">© 2026 Bravos Box</p>
+          <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>
+            <span style={{ textAlign: 'center', font: "500 10px 'JetBrains Mono'", letterSpacing: '0.16em', color: '#8a8f7a' }}>¿YA TENÉS CUENTA?</span>
+            <Link to="/login" onClick={irA('/login')} className="btn2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', border: '1px solid rgba(155,230,0,.55)', borderRadius: '10px', textDecoration: 'none', color: '#9be600', font: "900 16px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Iniciar sesión →</Link>
+          </div>
         </div>
       </div>
+    </div>
+  )
 
-      {/* Panel derecho — formulario */}
-      <div className="relative flex-1 flex flex-col bg-background min-h-screen lg:min-h-0 anim-from-right">
-        {/* Modo claro / oscuro — escritorio */}
-        <div className="absolute right-6 top-6 z-10 hidden lg:block"><BotonTema /></div>
+  if (!escritorio) return vistaMovil
 
-        {/* Header mobile */}
-        <div className="flex items-center justify-between px-4 py-2.5 lg:hidden border-b border-border">
-          <button
-            type="button"
-            onClick={volver}
-            className="flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </button>
-          <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-            <img src="/logo.jpg" alt="" className="h-7 w-7 rounded-lg" />
-            <span className="text-sm font-black tracking-widest text-foreground">BRAVOS</span>
-          </Link>
-          <div className="flex w-[88px] justify-end"><BotonTema /></div>
+  // Referencia (registro): todas las medidas son calc(N * var(--u)) con --u = min(100vw / 1280, 100vh / 880)
+  const U = (n) => `calc(${n} * var(--u))`
+  const MONO_REF = "'JetBrains Mono'"
+  const BIG_REF = "'Big Shoulders Stencil Display'"
+  const msjError = { position: 'absolute', top: U(8), right: U(12), margin: 0, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
+  const msjTerminos = { position: 'absolute', top: '100%', left: 0, whiteSpace: 'nowrap', margin: `${U(2)} 0 0`, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
+  const etiqueta = { font: `500 ${U(9.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a' }
+  const campo = { display: 'block', width: '100%', background: 'transparent', border: 'none', color: '#ecefe4', font: `500 ${U(16)} Archivo`, padding: `${U(4)} 0` }
+  const celda = (cols) => ({ position: 'relative', gridColumn: cols, padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid #3a3d32`, margin: U(-0.5) })
+  const ojo = { flexShrink: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#8a8f7a', padding: U(4), display: 'flex' }
+
+  return (
+    <div className={`lr${saliendo ? ' sale' : ''}`} style={{ margin: 0, color: '#ecefe4', fontFamily: 'Archivo,sans-serif', '--u': 'min(100vw / 1280, 100vh / 880)' }}>
+      <style>{ESTILOS_REF}</style>
+      <div style={{ display: 'grid', gridTemplateColumns: 'min(calc(100vh * 873 / 1140), 52vw) 1fr', position: 'fixed', inset: 0, width: '100%', height: '100%', overflow: 'hidden', background: '#0b0c09' }}>
+
+        {/* PANEL IZQUIERDO */}
+        <div style={{ position: 'relative', overflow: 'hidden', background: '#0e100a' }}>
+          <div style={{ position: 'absolute', inset: 0, WebkitMaskImage: 'linear-gradient(90deg,#000 94%,transparent 100%)', maskImage: 'linear-gradient(90deg,#000 94%,transparent 100%)' }}>
+            <img src="/acceso/hookgrip-c.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 0%', filter: 'grayscale(1) contrast(1.1) brightness(.85)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: '#4a5626', mixBlendMode: 'multiply', opacity: 0.35 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg,rgba(14,16,10,.95) 0%,rgba(14,16,10,.2) 45%,rgba(14,16,10,.55) 100%)' }} />
+          </div>
+          <div style={{ position: 'absolute', top: U(30), left: U(36), display: 'flex', alignItems: 'center', gap: U(14) }}><img src="/acceso/brvs.png" alt="" style={{ width: U(44), height: U(44), borderRadius: U(8) }} /><span style={{ font: `900 ${U(20)} ${BIG_REF}`, letterSpacing: '0.3em', color: '#9be600', whiteSpace: 'nowrap' }}>BRAVOS BOX</span></div>
+          <div style={{ position: 'absolute', top: U(32), right: U(36), display: 'flex', alignItems: 'center', gap: U(10) }}><img src="/acceso/malvinas.png" alt="" style={{ width: U(84), filter: 'saturate(0.8)' }} /><span style={{ font: `500 ${U(10)}/1.6 ${MONO_REF}`, letterSpacing: '0.16em', color: '#ecefe4' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
+          <div style={{ position: 'absolute', left: U(36), right: U(36), bottom: U(40) }}><div role="heading" aria-level={1} style={{ font: `900 ${U(74)}/0.92 ${BIG_REF}`, textTransform: 'uppercase', maxWidth: U(430) }}>Sumate al <span style={{ color: '#9be600' }}>equipo.</span></div></div>
         </div>
 
-        {/* Formulario scrolleable */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="flex items-start justify-center p-6 lg:p-12 min-h-full">
-            <div className="w-full max-w-sm py-2">
+        {/* PANEL DERECHO */}
+        <div style={{ position: 'relative', padding: `${U(40)} 0 ${U(28)}`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', overflowY: 'auto', background: '#0e100a' }}>
+          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(32), right: U(40), font: `500 ${U(12)} ${MONO_REF}`, letterSpacing: '0.14em', textDecoration: 'none', whiteSpace: 'nowrap', color: '#8a8f7a' }}>← VOLVER AL SITIO</a>
+          {/* La referencia centra el bloque; acá se fija desde arriba en la posición centrada para que no salte al aparecer errores */}
+          <div style={{ width: U(512), flexShrink: 0, marginTop: `max(0px, calc((100vh - ${U(762)}) / 2 - ${U(24)}))` }}>
+            <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(24)} ${U(30)}`, marginTop: U(70), background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 30px 60px -12px rgba(0,0,0,.75), 0 12px 24px -8px rgba(0,0,0,.6), 0 0 60px -20px rgba(155,230,0,.18)' }}>
+              <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: U(30), bottom: `calc(100% - 2 * var(--u))`, width: U(110), height: U(110) }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', font: `500 ${U(10.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: U(12), borderBottom: `${U(1)} dashed #3a3d32` }}><span style={{ color: '#9be600', whiteSpace: 'nowrap' }}>ALTA DE SOCIO</span></div>
+              <div role="heading" aria-level={2} style={{ font: `900 ${U(54)}/0.9 ${BIG_REF}`, textTransform: 'uppercase', margin: `${U(16)} 0 ${U(4)}` }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
+              <div style={{ color: '#8a8f7a', fontSize: U(14), marginBottom: U(18) }}>Completá tus datos para registrarte.</div>
 
-              <button
-                type="button"
-                onClick={volver}
-                className="hidden lg:inline-flex mb-6 flex min-h-[40px] items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver al sitio
-              </button>
-
-              <div className="mb-5 anim-fade-up anim-delay-150">
-                <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
-                  Crear cuenta<span className="text-lime-700 dark:text-lime-400">.</span>
-                </h2>
-                <p className="mt-1 text-muted-foreground text-sm">Completá tus datos para registrarte</p>
-              </div>
-
-              {/* El formulario va dentro de una tarjeta */}
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-xl">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Nombre */}
-                <div className="space-y-1.5">
-                  <label htmlFor="nombre" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
-                    Nombre Completo
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="nombre" type="text" placeholder="Juan Pérez"
-                      autoComplete="name"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.nombre && touched.nombre ? 'border-destructive' : isValid('nombre') ? 'border-lime-400/50' : ''}`}
-                      value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')}
-                    />
-                    {isValid('nombre') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-700 dark:text-lime-400" />}
-                    {errors.nombre && touched.nombre && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
+              <form onSubmit={handleSubmit} noValidate>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: `${U(1)} solid #3a3d32`, borderRadius: U(12), overflow: 'hidden' }}>
+                  <div style={celda('1 / 3')}>
+                    <label htmlFor="nombre" style={etiqueta}>NOMBRE COMPLETO</label>
+                    <input id="nombre" type="text" placeholder="Juan Pérez" autoComplete="name" style={campo} value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
+                    {error('nombre') && <p role="alert" style={msjError}>{error('nombre')}</p>}
                   </div>
-                  {errors.nombre && touched.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
-                </div>
-
-                {/* DNI + Teléfono en fila */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <label htmlFor="dni" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">DNI</label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="dni" type="text" placeholder="12345678"
-                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.dni && touched.dni ? 'border-destructive' : isValid('dni') ? 'border-lime-400/50' : ''}`}
-                        value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')}
-                      />
-                      {isValid('dni') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-700 dark:text-lime-400" />}
+                  <div style={celda('auto')}>
+                    <label htmlFor="dni" style={etiqueta}>DNI</label>
+                    <input id="dni" type="text" inputMode="numeric" placeholder="12345678" style={campo} value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
+                    {error('dni') && <p role="alert" style={msjError}>{error('dni')}</p>}
+                  </div>
+                  <div style={celda('auto')}>
+                    <label htmlFor="telefono" style={etiqueta}>TELÉFONO</label>
+                    <input id="telefono" type="tel" placeholder="1123456789" autoComplete="tel" style={campo} value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
+                    {error('telefono') && <p role="alert" style={msjError}>{error('telefono') === 'El teléfono es requerido' ? 'Requerido' : error('telefono')}</p>}
+                  </div>
+                  <div style={celda('1 / 3')}>
+                    <label htmlFor="email" style={etiqueta}>CORREO ELECTRÓNICO</label>
+                    <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" style={campo} value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
+                    {error('email') && <p role="alert" style={msjError}>{error('email')}</p>}
+                  </div>
+                  <div style={celda('1 / 3')}>
+                    <label htmlFor="password" style={etiqueta}>CONTRASEÑA</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
+                      <input id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres" autoComplete="new-password" style={campo} value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
-                    {errors.dni && touched.dni && <p className="text-xs text-destructive">{errors.dni}</p>}
+                    {error('password') && <p role="alert" style={msjError}>{error('password')}</p>}
                   </div>
-
-                  <div className="space-y-1.5">
-                    <label htmlFor="telefono" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">Teléfono</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="telefono" type="tel" placeholder="1123456789"
-                        autoComplete="tel"
-                        className={`pl-10 pr-8 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.telefono && touched.telefono ? 'border-destructive' : isValid('telefono') ? 'border-lime-400/50' : ''}`}
-                        value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')}
-                      />
-                      {isValid('telefono') && <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-lime-700 dark:text-lime-400" />}
+                  <div style={celda('1 / 3')}>
+                    <label htmlFor="confirmPassword" style={etiqueta}>CONFIRMAR CONTRASEÑA</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
+                      <input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña" autoComplete="new-password" style={campo} value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
-                    {errors.telefono && touched.telefono && <p className="text-xs text-destructive">{errors.telefono}</p>}
+                    {error('confirmPassword') && <p role="alert" style={msjError}>{error('confirmPassword')}</p>}
                   </div>
                 </div>
 
-                {/* Email */}
-                <div className="space-y-1.5">
-                  <label htmlFor="email" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
-                    Correo Electrónico
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="email" type="email" placeholder="tu@email.com"
-                      autoComplete="email"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.email && touched.email ? 'border-destructive' : isValid('email') ? 'border-lime-400/50' : ''}`}
-                      value={formData.email} onChange={set('email')} onBlur={onBlur('email')}
-                    />
-                    {isValid('email') && <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-lime-700 dark:text-lime-400" />}
-                    {errors.email && touched.email && <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
-                  </div>
-                  {errors.email && touched.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                </div>
-
-                {/* Contraseña */}
-                <div className="space-y-1.5">
-                  <label htmlFor="password" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
-                    Contraseña
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres"
-                      autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.password && touched.password ? 'border-destructive' : isValid('password') ? 'border-lime-400/50' : ''}`}
-                      value={formData.password} onChange={set('password')} onBlur={onBlur('password')}
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-
-                  {/* Checklist de requisitos — aparece cuando el usuario empieza a escribir */}
-                  {formData.password.length > 0 && (
-                    <div className="mt-2 space-y-1 p-3 bg-muted/30 border border-border rounded-lg">
-                      {PASSWORD_RULES.map(rule => {
-                        const ok = rule.test(formData.password)
-                        return (
-                          <div key={rule.id} className={`flex items-center gap-2 text-xs transition-colors ${ok ? 'text-lime-700 dark:text-lime-400' : 'text-muted-foreground'}`}>
-                            {ok
-                              ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-lime-700 dark:text-lime-400" />
-                              : <div className="h-3.5 w-3.5 shrink-0 rounded-full border border-muted-foreground/40" />
-                            }
-                            {rule.label}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Confirmar contraseña */}
-                <div className="space-y-1.5">
-                  <label htmlFor="confirmPassword" className="text-xs font-bold tracking-wider uppercase text-muted-foreground">
-                    Confirmar Contraseña
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña"
-                      autoComplete="new-password"
-                      className={`pl-10 pr-10 h-11 bg-muted/50 border-border focus-visible:ring-lime-400/50 focus-visible:border-lime-600 dark:focus-visible:border-lime-400 ${errors.confirmPassword && touched.confirmPassword ? 'border-destructive' : isValid('confirmPassword') ? 'border-lime-400/50' : ''}`}
-                      value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')}
-                    />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && touched.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
-                  {isValid('confirmPassword') && <p className="text-xs text-lime-700 dark:text-lime-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Las contraseñas coinciden</p>}
-                </div>
+                {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
+                {formData.password.length > 0 && (
+                  <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: `${U(12)} 0 0`, padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: `${U(4)} ${U(16)}`, font: `500 ${U(11)} ${MONO_REF}` }}>
+                    {PASSWORD_RULES.map(rule => {
+                      const ok = rule.test(formData.password)
+                      return (
+                        <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: U(6), color: ok ? '#9be600' : '#8a8f7a' }}>
+                          <span aria-hidden="true">{ok ? '✓' : '○'}</span>{rule.label}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
 
                 {/* Consentimiento: el servidor también lo exige y guarda la constancia */}
-                <div className="space-y-1.5 pt-1">
-                  <label htmlFor="aceptaTerminos" className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      id="aceptaTerminos" type="checkbox"
-                      checked={aceptaTerminos}
+                <div style={{ position: 'relative' }}>
+                  <label htmlFor="aceptaTerminos" style={{ display: 'flex', gap: U(10), marginTop: U(14), fontSize: U(11), lineHeight: 1.5, color: '#8a8f7a' }}>
+                    <input id="aceptaTerminos" type="checkbox" checked={aceptaTerminos}
                       onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked) setErrorTerminos('') }}
-                      className="mt-0.5 h-5 w-5 shrink-0 accent-lime-500 cursor-pointer"
-                    />
-                    <span className="text-sm leading-snug text-muted-foreground">
-                      Leí y acepto los{' '}
-                      <Link to="/terminos" target="_blank" className="font-semibold text-foreground underline underline-offset-2 hover:text-lime-700 dark:hover:text-lime-400">Términos y condiciones</Link>
-                      {' '}y la{' '}
-                      <Link to="/privacidad" target="_blank" className="font-semibold text-foreground underline underline-offset-2 hover:text-lime-700 dark:hover:text-lime-400">Política de privacidad</Link>.
-                      {' '}Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.
+                      style={{ accentColor: '#9be600', width: U(16), height: U(16), flex: 'none', margin: `${U(1)} 0 0` }} />
+                    <span>
+                      Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.
                     </span>
                   </label>
-                  {errorTerminos && <p className="text-xs text-destructive">{errorTerminos}</p>}
+                  {errorTerminos && <p role="alert" style={msjTerminos}>{errorTerminos}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 mt-1 bg-lime-400 hover:bg-lime-300 text-black font-black tracking-wider uppercase text-sm transition-all active:scale-[0.98]"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando cuenta...</>
-                  ) : <>Crear mi cuenta <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" /></>}
-                </Button>
+                <button type="submit" disabled={isLoading} className="pri" style={{ marginTop: U(18), width: '100%', border: 'none', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: `900 ${U(26)} ${BIG_REF}`, letterSpacing: '0.12em', textTransform: 'uppercase', padding: U(12), borderRadius: U(12), boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
               </form>
-              </div>
-
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-background px-3 text-xs text-muted-foreground">¿Ya tenés cuenta?</span>
-                </div>
-              </div>
-
-              <Link
-                to="/login"
-                className="flex items-center justify-center w-full h-11 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-              >
-                Iniciar sesión
-              </Link>
             </div>
+            <div style={{ marginTop: U(18), fontSize: U(13), color: '#8a8f7a' }}>¿Ya tenés cuenta? <Link to="/login" onClick={irA('/login')} style={{ fontWeight: 600 }}>Iniciá sesión</Link></div>
           </div>
         </div>
       </div>

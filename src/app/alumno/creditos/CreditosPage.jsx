@@ -31,6 +31,8 @@ function MovimientoRow({ mov }) {
     if (e === "Anulado")                         return { label: "Anulado",         color: "text-foreground/50",  bg: "bg-foreground/5 border-border", Icon: XCircle }
     if (e === "Cancelada (Devuelto)")            return { label: "Devuelto",        color: "text-emerald-700 dark:text-emerald-400",    bg: "bg-emerald-400/10 border-emerald-400/20", Icon: RotateCcw }
     if (e === "Cancelada (Fuera de término)")    return { label: "Sin devolución",  color: "text-orange-700 dark:text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
+    if (e === "Cancelada (sin devolución)")      return { label: "Sin devolución",  color: "text-orange-700 dark:text-orange-400",     bg: "bg-orange-400/10 border-orange-400/20", Icon: XCircle }
+    if (e === "Vencido")                         return { label: "Sin usar",        color: "text-red-700 dark:text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
     if (e === "No asistió")                      return { label: "No asistió",      color: "text-red-700 dark:text-red-400",        bg: "bg-red-400/10 border-red-400/20", Icon: XCircle }
     if (e === "Próxima")                         return { label: "Próxima",         color: "text-foreground/60",  bg: "bg-foreground/5 border-border", Icon: Clock }
     if (e === "Completada")                      return { label: "Completada",      color: "text-sky-700 dark:text-sky-400",        bg: "bg-sky-400/10 border-sky-400/20", Icon: CheckCircle2 }
@@ -176,13 +178,19 @@ export default function CreditosPage() {
       {/* Reglas */}
       <div className="space-y-1.5 rounded-2xl border border-border bg-card p-4">
         <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60 mb-2">Cómo funcionan</p>
-        {[
+        {(abono?.semana ? [
+          `Podés reservar hasta ${abono.semana.porSemana} clases por semana: esta semana usaste ${abono.semana.usadas}.`,
+          "Lo que no uses en la semana se pierde cuando termina (el viernes).",
+          "Cada reserva consume 1 crédito y cancelar no lo devuelve.",
+          "Si contratás otra membresía, sus créditos se suman a los que ya tenés.",
+          "Los créditos de cada plan vencen junto con su membresía.",
+        ] : [
           "Cada reserva consume 1 crédito.",
           "Si no asistís, el crédito se descuenta igual.",
           "Cancelar con +2hs de anticipación devuelve el crédito.",
           "Si contratás otra membresía, sus créditos se suman a los que ya tenés.",
           "Los créditos de cada plan vencen junto con su membresía.",
-        ].map((t, i) => (
+        ]).map((t, i) => (
           <div key={i} className="flex items-start gap-2">
             <span className="mt-1 h-1.5 w-1.5 rounded-full bg-lime-400/60 shrink-0" />
             <p className="text-xs text-foreground/75">{t}</p>

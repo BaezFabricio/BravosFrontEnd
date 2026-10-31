@@ -215,6 +215,7 @@ const TEMAS_ALUMNO = [
         lista([
           `Con más de 2 horas de anticipación: el crédito se te devuelve.`,
           `Con menos de 2 horas: la reserva se cancela pero el crédito NO se devuelve.`,
+          `Si tu plan tiene créditos por semana (por ejemplo el de 3 días): cancelar nunca devuelve el crédito, porque cuenta para los de esa semana.`,
         ]) +
         `\n\nCuando cancelás, el cupo se libera para que otro alumno pueda usarlo. En ambos casos te llega una notificación con lo que pasó.`,
       enlaces: [LINK.reservas],

@@ -29,13 +29,13 @@ function devuelveCredito(fecha, hora) {
   return (inicio - new Date()) / 3600000 >= 2
 }
 
-function TarjetaReserva({ r, onCancelar, onVerRutina }) {
+function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
   const e = ESTADOS[r.estado] || ESTADOS.cancelada
   const f = new Date(`${r.fecha}T12:00:00`)
   const dia = f.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "")
   const mes = f.toLocaleDateString("es-AR", { month: "short" }).replace(".", "")
   const esProxima = r.estado === "proxima"
-  const conDevolucion = esProxima && devuelveCredito(r.fecha, r.hora)
+  const conDevolucion = esProxima && !semana && devuelveCredito(r.fecha, r.hora)
 
   return (
     <li data-guia="reserva-tarjeta" className={`overflow-hidden rounded-2xl border border-border bg-card ${esProxima ? "border-l-4 border-l-lime-500" : ""}`}>
@@ -83,7 +83,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
             >
               <XCircle className="h-4 w-4" aria-hidden="true" /> Cancelar
             </button>
-            <p className="text-xs leading-snug text-foreground/55">{conDevolucion ? "Si cancelás, te devolvemos el crédito." : "Si cancelás ahora no se devuelve el crédito (faltan menos de 2 h)."}</p>
+            <p className="text-xs leading-snug text-foreground/55">{conDevolucion ? "Si cancelás, te devolvemos el crédito." : semana ? "En tu plan, cancelar no devuelve el crédito." : "Si cancelás ahora no se devuelve el crédito (faltan menos de 2 h)."}</p>
           </div>
         )}
       </div>
@@ -91,7 +91,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina }) {
   )
 }
 
-export default function ReservasMovil({ proximas, historial, cargando, onCancelar }) {
+export default function ReservasMovil({ proximas, historial, cargando, onCancelar, semana }) {
   const [pestana, setPestana] = useState("proximas")
   const [rutinaDe, setRutinaDe] = useState(null)
   // Próximas: de la más cercana a la más lejana (el servidor las manda de la más nueva a la más vieja)
@@ -133,7 +133,7 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
             )
           ) : (
             <ul className="space-y-3">
-              {lista.map((r) => <TarjetaReserva key={r.idReserva} r={r} onCancelar={onCancelar} onVerRutina={setRutinaDe} />)}
+              {lista.map((r) => <TarjetaReserva key={r.idReserva} r={r} onCancelar={onCancelar} onVerRutina={setRutinaDe} semana={semana} />)}
             </ul>
           )}
 

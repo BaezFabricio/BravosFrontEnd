@@ -8,13 +8,22 @@ import { fmtFechaPlan } from "@/lib/miPlan"
  * que carga los datos (GET /reservas/mis-creditos-movimientos) y los pasa por props.
  */
 
-const REGLAS = [
+const REGLAS_COMUNES = [
   <>Cada reserva consume <strong>1 crédito</strong>.</>,
   <>Si no asistís a la clase, el crédito <strong>se descuenta igual</strong>.</>,
   <>Cancelar con <strong>2 horas o más de anticipación</strong> te devuelve el crédito.</>,
   <>Si contratás otra membresía, sus créditos <strong>se suman a los que ya tenés</strong>.</>,
   <>Los créditos de cada plan vencen junto con su membresía.</>,
 ]
+
+// Plan con créditos por semana: otras reglas (tope semanal, lo que no se usa se pierde y cancelar no devuelve)
+const reglasDe = (semana) => (semana ? [
+  <>Podés reservar hasta <strong>{semana.porSemana} clases por semana</strong>: esta semana usaste {semana.usadas}.</>,
+  <>Lo que no uses en la semana <strong>se pierde</strong> cuando termina (el viernes).</>,
+  <>Cada reserva consume <strong>1 crédito</strong> y cancelar <strong>no lo devuelve</strong>.</>,
+  <>Si contratás otra membresía, sus créditos <strong>se suman a los que ya tenés</strong>.</>,
+  <>Los créditos de cada plan vencen junto con su membresía.</>,
+] : REGLAS_COMUNES)
 
 const POR_PAGINA = 10
 
@@ -38,6 +47,10 @@ function verMovimiento(mov) {
       return { titulo: "Devolución por cancelación anticipada", sub: `${clase} · ${conHora}`, Icon: RotateCcw, tono: "lime" }
     case "Cancelada (Fuera de término)":
       return { titulo: `Cancelación tardía: ${clase}`, sub: `${conHora} · sin devolución`, Icon: CircleSlash, tono: "gris" }
+    case "Cancelada (sin devolución)":
+      return { titulo: `Cancelaste: ${clase}`, sub: `${conHora} · el crédito no se devuelve`, Icon: CircleSlash, tono: "gris" }
+    case "Vencido":
+      return { titulo: mov.descripcion, sub: `${fecha} · no se usaron en la semana`, Icon: CircleSlash, tono: "rojo" }
     case "No asistió":
       return { titulo: `No asististe: ${clase}`, sub: conHora, Icon: XCircle, tono: "rojo" }
     case "Próxima":
@@ -155,7 +168,7 @@ export default function CreditosMovil({ abono, movimientos }) {
           <Info className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Cómo funcionan los créditos
         </p>
         <ul className="mt-3 space-y-2.5">
-          {REGLAS.map((t, i) => (
+          {reglasDe(abono?.semana).map((t, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm leading-snug text-foreground/75 [&_strong]:text-foreground">
               <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-lime-500 dark:bg-lime-400" aria-hidden="true" />
               <span>{t}</span>

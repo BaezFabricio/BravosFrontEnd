@@ -1,4 +1,5 @@
 import { TituloPagina } from "@/components/TituloPagina"
+import { useSemanaCreditos } from "@/lib/semanaCreditos"
 import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from "react"
@@ -39,12 +40,13 @@ const formatFechaFront = (fechaStr) => {
 }
 
 export default function ReservasPage() {
+  const semana = useSemanaCreditos() // plan con créditos por semana (o null): cancelar no devuelve el crédito
   const [proximas, setProximas] = useState([])
   const [historial, setHistorial] = useState([])
   const [loading, setLoading] = useState(true)
   const [cancelDialog, setCancelDialog] = useState({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })
   // Mismo criterio que el servidor: con 2 horas o más de anticipación se devuelve el crédito
-  const devuelveCredito = cancelDialog.fecha
+  const devuelveCredito = semana ? false : cancelDialog.fecha
     ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
     : true
   const abrirCancelar = (reserva) => setCancelDialog({
@@ -254,7 +256,7 @@ export default function ReservasPage() {
     <div className="space-y-6">
       {/* CELULAR: diseño propio (ReservasMovil.jsx) */}
       <div className="lg:hidden">
-        <ReservasMovil proximas={proximas} historial={historial} cargando={loading} onCancelar={abrirCancelar} />
+        <ReservasMovil proximas={proximas} historial={historial} cargando={loading} onCancelar={abrirCancelar} semana={semana} />
       </div>
 
       {/* ESCRITORIO */}
@@ -285,7 +287,7 @@ export default function ReservasPage() {
                   <Alert className="bg-green-500/10 border-green-500/20">
                     <AlertTriangle className="h-4 w-4 text-green-700 dark:text-green-500" />
                     <AlertDescription className="text-green-700/80 dark:text-green-500/80">
-                      Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto.
+                      {semana ? "Recuerda: en tu plan, cancelar no devuelve el crédito: cuenta para los de la semana." : "Recuerda: Si cancelas con menos de 2 horas de anticipación, el crédito no será devuelto."}
                     </AlertDescription>
                   </Alert>
                   
@@ -337,7 +339,7 @@ export default function ReservasPage() {
             <Alert className="bg-red-500/10 border-red-500/20">
               <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-500" />
               <AlertDescription className="text-red-700/80 dark:text-red-500/80">
-                Faltan menos de 2 horas para la clase: el crédito <strong>no</strong> se devuelve.
+                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de 2 horas para la clase: el crédito <strong>no</strong> se devuelve.</>}
               </AlertDescription>
             </Alert>
           )}

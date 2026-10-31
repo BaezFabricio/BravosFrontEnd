@@ -249,6 +249,7 @@ const reservas = [
     puntos: [
       "Con 2 horas o más de anticipación te devolvemos el crédito.",
       "Si faltan menos de 2 horas, el crédito no se devuelve.",
+      "Si tu plan tiene créditos por semana, cancelar no devuelve el crédito: cuenta para los de la semana.",
       "Debajo del botón te avisa cuál de los dos casos es el tuyo.",
     ],
     objetivo: "reserva-cancelar",
