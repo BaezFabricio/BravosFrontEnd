@@ -8,7 +8,7 @@ export const ESTILOS_MOVIL = `
 .lm button:active,.lm .btn2:active{transform:scale(.98)}
 .lm .inp{display:block;width:100%;background:transparent;border:none;color:#ecefe4;font:500 16px Archivo;padding:6px 0 2px}
 .lm .lbl{font:500 9.5px 'JetBrains Mono';letter-spacing:.16em;color:#8a8f7a}
-.lm .cell{padding:10px 14px 8px;border-bottom:1px solid #3a3d32}
+.lm .cell{position:relative;padding:10px 14px 8px;border-bottom:1px solid #3a3d32}
 @keyframes lm-in{from{opacity:0}to{opacity:1}}
 @keyframes lm-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(-3px)}}
 .lm{animation:lm-in .4s ease both}

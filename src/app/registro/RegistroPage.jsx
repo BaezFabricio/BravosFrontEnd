@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 import { toast } from '@/lib/notificar'
 import { useEscritorio } from '@/lib/useEscritorio'
@@ -142,6 +142,8 @@ function RegistroPage() {
 
   // Mensaje de error de un campo (solo después de que la persona lo tocó)
   const error = (field) => (touched[field] ? errors[field] : '')
+  // Campo correcto: ya lo tocó, no tiene error y no está vacío
+  const valido = (field) => !!touched[field] && !errors[field] && !!formData[field]
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -202,6 +204,10 @@ function RegistroPage() {
       <div className="min-h-screen px-6 pb-10 pt-6 text-[#ecefe4]" style={{ ...ARCH, background: COLOR.form }}>
         <div className="mx-auto w-full max-w-[480px]">
           <Ficha margenSuperior={100} arriba={100} tagIzq="ALTA DE SOCIO" tagDer="CUENTA CREADA" titulo="¡Cuenta creada" subtitulo="Verificá tu correo para activarla.">
+            <div className="mb-4 flex items-center gap-3" role="status">
+              <CheckCircle2 className="h-9 w-9 shrink-0" style={{ color: COLOR.lima }} aria-hidden="true" />
+              <p className="text-[15px] font-semibold">Tu cuenta se creó con éxito.</p>
+            </div>
             <div className="border p-4" style={{ borderColor: COLOR.linea }}>
               <p className="text-[9.5px] uppercase tracking-[0.16em]" style={{ ...MONO, color: COLOR.apagado }}>Enviamos el link a</p>
               {!isEditingEmail ? (
@@ -244,7 +250,17 @@ function RegistroPage() {
   }
 
   // ── Formulario ──
-  const msjErrorM = { margin: '4px 0 0', font: '500 13px Archivo', color: '#ff6b4a' }
+  const msjErrorM = { margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '5px', font: '500 13px Archivo', color: '#ff6b4a' }
+  // Símbolo a la derecha del campo (X roja si hay error, tilde lima si está bien) y el aviso debajo
+  const iconoM = { position: 'absolute', top: '29px', right: '14px', display: 'flex' }
+  const avisoM = (campo) => (
+    <>
+      {error(campo) && <p role="alert" style={msjErrorM}>{error(campo)}</p>}
+      {error(campo) && <span aria-hidden="true" style={{ ...iconoM, color: '#ff6b4a' }}><XCircle size={18} /></span>}
+      {valido(campo) && <span role="img" aria-label="Dato correcto" style={{ ...iconoM, color: '#9be600' }}><CheckCircle2 size={18} /></span>}
+      {campo === 'confirmPassword' && valido(campo) && <p style={{ ...msjErrorM, color: '#9be600' }}>Las contraseñas coinciden</p>}
+    </>
+  )
   const vistaMovil = (
     <div className={`lm${saliendo ? ' sale' : ''}`} style={{ margin: 0, background: '#0e100a', color: '#ecefe4', fontFamily: 'Archivo,sans-serif', lineHeight: 'normal', minHeight: '100dvh' }}>
       <style>{ESTILOS_MOVIL}</style>
@@ -275,32 +291,32 @@ function RegistroPage() {
                 <div className="cell" style={{ gridColumn: '1/3' }}>
                   <label className="lbl" htmlFor="nombre-m">NOMBRE COMPLETO</label>
                   <input id="nombre-m" className="inp" type="text" autoComplete="name" placeholder="Juan Pérez" value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
-                  {error('nombre') && <p role="alert" style={msjErrorM}>{error('nombre')}</p>}
+                  {avisoM('nombre')}
                 </div>
                 <div className="cell" style={{ borderRight: '1px solid #3a3d32' }}>
                   <label className="lbl" htmlFor="dni-m">DNI</label>
                   <input id="dni-m" className="inp" type="text" inputMode="numeric" placeholder="12345678" value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
-                  {error('dni') && <p role="alert" style={msjErrorM}>{error('dni')}</p>}
+                  {avisoM('dni')}
                 </div>
                 <div className="cell">
                   <label className="lbl" htmlFor="telefono-m">TELÉFONO</label>
                   <input id="telefono-m" className="inp" type="tel" autoComplete="tel" placeholder="1123456789" value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
-                  {error('telefono') && <p role="alert" style={msjErrorM}>{error('telefono')}</p>}
+                  {avisoM('telefono')}
                 </div>
                 <div className="cell" style={{ gridColumn: '1/3' }}>
                   <label className="lbl" htmlFor="email-m">CORREO ELECTRÓNICO</label>
                   <input id="email-m" className="inp" type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
-                  {error('email') && <p role="alert" style={msjErrorM}>{error('email')}</p>}
+                  {avisoM('email')}
                 </div>
                 <div className="cell" style={{ gridColumn: '1/3' }}>
                   <label className="lbl" htmlFor="password-m">CONTRASEÑA</label>
                   <input id="password-m" className="inp" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres" value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
-                  {error('password') && <p role="alert" style={msjErrorM}>{error('password')}</p>}
+                  {avisoM('password')}
                 </div>
                 <div className="cell" style={{ gridColumn: '1/3', borderBottom: 'none' }}>
                   <label className="lbl" htmlFor="confirm-m">CONFIRMAR CONTRASEÑA</label>
                   <input id="confirm-m" className="inp" type="password" autoComplete="new-password" placeholder="Repetí tu contraseña" value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
-                  {error('confirmPassword') && <p role="alert" style={msjErrorM}>{error('confirmPassword')}</p>}
+                  {avisoM('confirmPassword')}
                 </div>
               </div>
 
@@ -324,7 +340,7 @@ function RegistroPage() {
                   style={{ accentColor: '#9be600', width: '20px', height: '20px', flex: 'none', margin: 0 }} />
                 <span>Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.</span>
               </label>
-              {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '6px 0 0' }}>{errorTerminos}</p>}
+              {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '6px 0 0' }}><XCircle size={15} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
               <button type="submit" disabled={isLoading} style={{ marginTop: '16px', width: '100%', height: '54px', border: 'none', borderRadius: '10px', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: "900 22px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase', boxShadow: 'rgba(155,230,0,0.28) 0 0 28px', opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
             </form>
           </div>
@@ -343,11 +359,21 @@ function RegistroPage() {
   const U = (n) => `calc(${n} * var(--u))`
   const MONO_REF = "'JetBrains Mono'"
   const BIG_REF = "'Big Shoulders Stencil Display'"
-  const msjError = { position: 'absolute', top: U(8), right: U(12), margin: 0, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
-  const msjTerminos = { position: 'absolute', top: '100%', left: 0, whiteSpace: 'nowrap', margin: `${U(2)} 0 0`, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
+  const msjError = { position: 'absolute', top: U(8), right: U(12), margin: 0, display: 'inline-flex', alignItems: 'center', gap: U(4), font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
+  // Símbolo a la derecha del campo: X roja si hay error, tilde lima si está bien (en las contraseñas, a la izquierda del ojo)
+  const posIcono = (campo) => ({ position: 'absolute', top: U(21), right: campo === 'password' || campo === 'confirmPassword' ? U(44) : U(12), display: 'flex' })
+  const aviso = (campo, texto) => (
+    <>
+      {error(campo) && <p role="alert" style={msjError}>{texto ?? error(campo)}</p>}
+      {error(campo) && <span aria-hidden="true" style={{ ...posIcono(campo), color: '#ff6b4a' }}><XCircle size={16} /></span>}
+      {valido(campo) && <span role="img" aria-label="Dato correcto" style={{ ...posIcono(campo), color: '#9be600' }}><CheckCircle2 size={16} /></span>}
+      {campo === 'confirmPassword' && valido(campo) && <p style={{ ...msjError, color: '#9be600' }}>Las contraseñas coinciden</p>}
+    </>
+  )
+  const msjTerminos = { position: 'absolute', top: '100%', left: 0, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: U(4), margin: `${U(2)} 0 0`, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
   const etiqueta = { font: `500 ${U(9.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a' }
   const campo = { display: 'block', width: '100%', background: 'transparent', border: 'none', color: '#ecefe4', font: `500 ${U(16)} Archivo`, padding: `${U(4)} 0` }
-  const celda = (cols) => ({ position: 'relative', gridColumn: cols, padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid #3a3d32`, margin: U(-0.5) })
+  const celda = (cols, campo) => ({ position: 'relative', gridColumn: cols, padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid ${campo && error(campo) ? '#ff6b4a' : campo && valido(campo) ? 'rgba(155,230,0,.55)' : '#3a3d32'}`, margin: U(-0.5) })
   const ojo = { flexShrink: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#8a8f7a', padding: U(4), display: 'flex' }
 
   return (
@@ -371,7 +397,7 @@ function RegistroPage() {
         <div style={{ position: 'relative', padding: `${U(40)} 0 ${U(28)}`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', overflowY: 'auto', background: '#0e100a' }}>
           <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(32), right: U(40), font: `500 ${U(12)} ${MONO_REF}`, letterSpacing: '0.14em', textDecoration: 'none', whiteSpace: 'nowrap', color: '#8a8f7a' }}>← VOLVER AL SITIO</a>
           {/* La referencia centra el bloque; acá se fija desde arriba en la posición centrada para que no salte al aparecer errores */}
-          <div style={{ width: U(512), flexShrink: 0, marginTop: `max(0px, calc((100vh - ${U(762)}) / 2 - ${U(24)}))` }}>
+          <div style={{ width: U(512), flexShrink: 0, marginTop: `max(0px, calc((100vh - ${U(762)}) / 2 - ${U(48)}))` }}>
             <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(24)} ${U(30)}`, marginTop: U(70), background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 30px 60px -12px rgba(0,0,0,.75), 0 12px 24px -8px rgba(0,0,0,.6), 0 0 60px -20px rgba(155,230,0,.18)' }}>
               <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: U(30), bottom: `calc(100% - 2 * var(--u))`, width: U(110), height: U(110) }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', font: `500 ${U(10.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: U(12), borderBottom: `${U(1)} dashed #3a3d32` }}><span style={{ color: '#9be600', whiteSpace: 'nowrap' }}>ALTA DE SOCIO</span></div>
@@ -380,27 +406,27 @@ function RegistroPage() {
 
               <form onSubmit={handleSubmit} noValidate>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: `${U(1)} solid #3a3d32`, borderRadius: U(12), overflow: 'hidden' }}>
-                  <div style={celda('1 / 3')}>
+                  <div style={celda('1 / 3', 'nombre')}>
                     <label htmlFor="nombre" style={etiqueta}>NOMBRE COMPLETO</label>
                     <input id="nombre" type="text" placeholder="Juan Pérez" autoComplete="name" style={campo} value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
-                    {error('nombre') && <p role="alert" style={msjError}>{error('nombre')}</p>}
+                    {aviso('nombre')}
                   </div>
-                  <div style={celda('auto')}>
+                  <div style={celda('auto', 'dni')}>
                     <label htmlFor="dni" style={etiqueta}>DNI</label>
                     <input id="dni" type="text" inputMode="numeric" placeholder="12345678" style={campo} value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
-                    {error('dni') && <p role="alert" style={msjError}>{error('dni')}</p>}
+                    {aviso('dni')}
                   </div>
-                  <div style={celda('auto')}>
+                  <div style={celda('auto', 'telefono')}>
                     <label htmlFor="telefono" style={etiqueta}>TELÉFONO</label>
                     <input id="telefono" type="tel" placeholder="1123456789" autoComplete="tel" style={campo} value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
-                    {error('telefono') && <p role="alert" style={msjError}>{error('telefono') === 'El teléfono es requerido' ? 'Requerido' : error('telefono')}</p>}
+                    {aviso('telefono', error('telefono') === 'El teléfono es requerido' ? 'Requerido' : undefined)}
                   </div>
-                  <div style={celda('1 / 3')}>
+                  <div style={celda('1 / 3', 'email')}>
                     <label htmlFor="email" style={etiqueta}>CORREO ELECTRÓNICO</label>
                     <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" style={campo} value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
-                    {error('email') && <p role="alert" style={msjError}>{error('email')}</p>}
+                    {aviso('email')}
                   </div>
-                  <div style={celda('1 / 3')}>
+                  <div style={celda('1 / 3', 'password')}>
                     <label htmlFor="password" style={etiqueta}>CONTRASEÑA</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
                       <input id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres" autoComplete="new-password" style={campo} value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
@@ -408,9 +434,9 @@ function RegistroPage() {
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {error('password') && <p role="alert" style={msjError}>{error('password')}</p>}
+                    {aviso('password')}
                   </div>
-                  <div style={celda('1 / 3')}>
+                  <div style={celda('1 / 3', 'confirmPassword')}>
                     <label htmlFor="confirmPassword" style={etiqueta}>CONFIRMAR CONTRASEÑA</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
                       <input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña" autoComplete="new-password" style={campo} value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
@@ -418,7 +444,7 @@ function RegistroPage() {
                         {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                    {error('confirmPassword') && <p role="alert" style={msjError}>{error('confirmPassword')}</p>}
+                    {aviso('confirmPassword')}
                   </div>
                 </div>
 
@@ -446,7 +472,7 @@ function RegistroPage() {
                       Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.
                     </span>
                   </label>
-                  {errorTerminos && <p role="alert" style={msjTerminos}>{errorTerminos}</p>}
+                  {errorTerminos && <p role="alert" style={msjTerminos}><XCircle size={14} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
                 </div>
 
                 <button type="submit" disabled={isLoading} className="pri" style={{ marginTop: U(18), width: '100%', border: 'none', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: `900 ${U(26)} ${BIG_REF}`, letterSpacing: '0.12em', textTransform: 'uppercase', padding: U(12), borderRadius: U(12), boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
