@@ -108,6 +108,12 @@ export default defineConfig(({ mode }) => {
     host: true,
     port: 4173,
     strictPort: true,
+    allowedHosts: [...(TUNEL_NGROK ? [TUNEL_NGROK.trim()] : []), '.trycloudflare.com'],
+    proxy: {
+      '/api': { target: 'http://localhost:3001', changeOrigin: true },
+      '/landing': { target: 'http://localhost:3001', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
+    },
   },
   resolve: {
     alias: {
