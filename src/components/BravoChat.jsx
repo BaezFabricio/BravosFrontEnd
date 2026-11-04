@@ -148,7 +148,7 @@ export default function BravoChat({ rol = "alumno" }) {
         role="dialog"
         aria-label={`Chat con ${mascota.nombre}`}
         aria-hidden={!abierto}
-        className={`bravo-anim fixed z-40 right-4 bottom-[8.5rem] lg:bottom-[5.25rem] w-[320px] max-w-[calc(100vw-2rem)] h-[440px] max-h-[calc(100vh-14rem)] origin-bottom-right transition-all duration-300 ease-out ${
+        className={`bravo-anim fixed z-[15] right-4 bottom-[10.5rem] lg:bottom-[5.25rem] w-[320px] max-w-[calc(100vw-2rem)] h-[440px] max-h-[calc(100vh-16rem)] origin-bottom-right transition-all duration-300 ease-out ${
           abierto ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4 pointer-events-none"
         }`}
       >
@@ -287,7 +287,7 @@ export default function BravoChat({ rol = "alumno" }) {
       {/* Globito de saludo */}
       {globoVisible && (
         <div
-          className="bravo-anim fixed z-40 right-[4.6rem] bottom-[4.6rem] lg:bottom-[1.1rem] max-w-[200px]"
+          className="bravo-anim fixed z-[15] right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem] max-w-[200px]"
           style={{ animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both" }}
         >
           <div className="relative rounded-2xl rounded-br-sm bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2">
@@ -320,7 +320,7 @@ export default function BravoChat({ rol = "alumno" }) {
         onFocus={() => setGloboHover(true)}
         onBlur={() => setGloboHover(false)}
         aria-label={abierto ? `Cerrar chat con ${mascota.nombre}` : `Abrir chat con ${mascota.nombre}`}
-        className="group bravo-anim fixed z-40 right-4 bottom-20 lg:bottom-6 h-[52px] w-[52px] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="group bravo-anim fixed z-[15] right-4 bottom-28 lg:bottom-6 h-[52px] w-[52px] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         <span className="absolute inset-0 rounded-full bg-lime-400 shadow-lg ring-0 group-focus-visible:ring-2 group-focus-visible:ring-lime-200" />
         {abierto ? (
