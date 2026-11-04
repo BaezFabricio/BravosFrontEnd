@@ -69,7 +69,7 @@ function estadoCupo(clase) {
 
 export default function ReservarMovil({
   creditos, semana, cargandoCreditos, vencimiento, selectedDate, setSelectedDate, hayClasesEn,
-  turnos, turnoFiltro, setTurnoFiltro, clases, nombrePlan, cargando, puedeReservar, puedeCancelar,
+  turnos, turnoFiltro, setTurnoFiltro, clases, nombrePlan, cargando, puedeReservar, esDeHoy, puedeCancelar,
   rutinaPublicada, fechaPublicacion, onReservar, onCancelar, irAProximoDiaConClases,
 }) {
   const [rutinaAbierta, setRutinaAbierta] = useState({})
@@ -302,7 +302,7 @@ export default function ReservarMovil({
                   ) : c.cuposDisponibles <= 0 ? null : creditos <= 0 ? (
                     <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-red-700 dark:text-red-400">Sin<br />créditos</span>
                   ) : !puedeRes ? (
-                    <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-foreground/50">Cerrada<br />(2 h antes)</span>
+                    <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-foreground/50">{esDeHoy(selectedDate) ? <>Cerrada<br />(2 h antes)</> : <>Solo el<br />mismo día</>}</span>
                   ) : (
                     <button type="button" data-guia="reservar" onClick={() => onReservar(c)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-lime-400 px-3.5 py-2.5 text-xs font-black uppercase text-black active:bg-lime-300">
                       Reservar <ArrowRight className="h-3.5 w-3.5" />

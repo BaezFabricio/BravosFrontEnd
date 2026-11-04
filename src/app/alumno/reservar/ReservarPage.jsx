@@ -69,8 +69,13 @@ function horasHastaClase(fechaDate, horaInicio) {
   return (claseDatetime - new Date()) / 3600000
 }
 
+// Solo se reservan las clases del día (el servidor lo exige igual) y hasta 2 horas antes de que empiecen
+function esDeHoy(fechaDate) {
+  return fechaDate.toDateString() === new Date().toDateString()
+}
+
 function puedeReservar(fechaDate, horaInicio) {
-  return horasHastaClase(fechaDate, horaInicio) >= 2
+  return esDeHoy(fechaDate) && horasHastaClase(fechaDate, horaInicio) >= 2
 }
 
 function puedeCancelar(fechaDate, horaInicio) {
@@ -348,6 +353,7 @@ export default function ReservarClasePage() {
           nombrePlan={nombrePlan}
           cargando={pageLoading}
           puedeReservar={puedeReservar}
+          esDeHoy={esDeHoy}
           puedeCancelar={puedeCancelar}
           rutinaPublicada={rutinaPublicada}
           fechaPublicacion={formatearFechaPublicacion}
@@ -587,7 +593,7 @@ export default function ReservarClasePage() {
                           ) : !puedeRes ? (
                             <Button variant="outline" className="w-full opacity-60 cursor-not-allowed" disabled>
                               <Clock className="mr-2 h-4 w-4" />
-                              Solo se puede reservar con 2h de anticipación
+                              {esDeHoy(selectedDate) ? "Solo se puede reservar con 2h de anticipación" : "Solo se reservan las clases del día"}
                             </Button>
                           ) : (
                             <Button
