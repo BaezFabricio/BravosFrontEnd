@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { CheckCheck, Copy, Search, ArrowRight } from "lucide-react"
+import { CheckCheck, Copy, Search, ArrowRight, ArrowLeft } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import { TituloPagina } from "@/components/TituloPagina"
 import IconoWhatsApp from "@/components/IconoWhatsApp"
@@ -70,6 +70,9 @@ export default function AvisosPage() {
   const [cuerpo, setCuerpo] = useState("")
   const [conTitulo, setConTitulo] = useState(false)
   const [aQuien, setAQuien] = useState("grupo") // "grupo" o el id del alumno
+  const [vista, setVista] = useState(() => (window.innerWidth >= 720 ? "chat" : "lista")) // solo cuenta en celular
+  const [modeloActivo, setModeloActivo] = useState(null)
+  const elegirDestino = (valor) => { setAQuien(valor); setVista("chat") }
   const [usuarios, setUsuarios] = useState(null) // null = cargando, [] = sin acceso o sin datos
   const [busqueda, setBusqueda] = useState("")
   const [ultimos, setUltimos] = useState(leerUltimos)
@@ -103,7 +106,7 @@ export default function AvisosPage() {
 
   const usarModelo = (m) => {
     if (!vacio && !window.confirm("Se va a reemplazar lo que escribiste por el modelo. ¿Seguimos?")) return
-    setTitulo(m.titulo); setConTitulo(true); setCuerpo(m.texto)
+    setTitulo(m.titulo); setConTitulo(true); setCuerpo(m.texto); setModeloActivo(m.nombre)
   }
 
   // B / I: envuelven la selección (o dejan los símbolos listos para escribir entre ellos)
@@ -146,20 +149,20 @@ export default function AvisosPage() {
         <span className="inline-flex items-center gap-2"><IconoWhatsApp className="h-5 w-5 shrink-0 text-foreground" />Avisos por WhatsApp</span>
       </TituloPagina>
 
-      <div className="grid overflow-hidden rounded-2xl border border-border bg-card lg:h-[calc(100dvh-13rem)] lg:min-h-[560px] lg:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid h-[calc(100dvh-12rem)] min-h-[520px] overflow-hidden rounded-2xl border border-border bg-card min-[720px]:grid-cols-[minmax(260px,340px)_minmax(0,1fr)] min-[720px]:min-h-[600px]">
         {/* Destinatarios */}
-        <aside className="flex max-h-[320px] min-h-0 flex-col border-b border-border lg:max-h-none lg:border-b-0 lg:border-r" aria-label="Destinatarios">
+        <aside className={`min-h-0 flex-col border-border min-[720px]:flex min-[720px]:border-r ${vista === "chat" ? "hidden" : "flex"}`} aria-label="Destinatarios">
           <div className="p-3">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" aria-hidden="true" />
               <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar alumno por nombre o DNI" aria-label="Buscar alumno"
-                className="h-11 w-full rounded-xl border border-border bg-background/60 pl-9 pr-3 text-base text-foreground outline-none placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm" />
+                className="h-11 w-full rounded-xl border border-border bg-background/60 pl-9 pr-3 text-base text-foreground outline-none placeholder:text-foreground/35 focus:border-lime-500" />
             </div>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             <p className={rotulo}>Para todos</p>
-            <button type="button" onClick={() => setAQuien("grupo")} aria-pressed={aQuien === "grupo"} className={itemCls(aQuien === "grupo")}>
+            <button type="button" onClick={() => elegirDestino("grupo")} aria-pressed={aQuien === "grupo"} className={itemCls(aQuien === "grupo")}>
               <Avatar texto="AB" activo={aQuien === "grupo"} />
               <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">Alumnos Bravos</span><span className="block truncate text-xs text-muted-foreground">Grupo o lista de difusión</span></span>
             </button>
@@ -172,7 +175,7 @@ export default function AvisosPage() {
                 {conTelefono.length === 0 ? "No hay usuarios con un teléfono válido cargado (o tu perfil no puede ver los usuarios)." : "Nadie coincide con la búsqueda."}
               </p>
             ) : lista.map((u) => (
-              <button key={u.id} type="button" onClick={() => setAQuien(String(u.id))} aria-pressed={String(aQuien) === String(u.id)} className={itemCls(String(aQuien) === String(u.id))}>
+              <button key={u.id} type="button" onClick={() => elegirDestino(String(u.id))} aria-pressed={String(aQuien) === String(u.id)} className={itemCls(String(aQuien) === String(u.id))}>
                 <Avatar texto={iniciales(u.nombre)} activo={String(aQuien) === String(u.id)} />
                 <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">{u.nombre}</span><span className="block truncate text-xs tabular-nums text-muted-foreground">{u.telefono}</span></span>
               </button>
@@ -182,7 +185,7 @@ export default function AvisosPage() {
         </aside>
 
         {/* Chat */}
-        <section className="flex min-h-0 min-w-0 flex-col" aria-label="Chat">
+        <section className={`min-h-0 min-w-0 flex-col min-[720px]:flex ${vista === "lista" ? "hidden" : "flex"}`} aria-label="Chat">
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
               <Avatar texto={aQuien === "grupo" ? "AB" : iniciales(elegido?.nombre)} activo />
@@ -191,10 +194,11 @@ export default function AvisosPage() {
                 <p className="truncate text-xs text-muted-foreground">{aQuien === "grupo" ? "Grupo o lista de difusión" : elegido?.telefono}</p>
               </div>
             </div>
-            <span className="shrink-0 rounded-full border border-lime-500/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Vista previa</span>
+            <button type="button" onClick={() => setVista("lista")} className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted min-[720px]:hidden"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver</button>
+            <span className="hidden shrink-0 rounded-full border border-lime-500/50 px-3 py-1 min-[720px]:inline text-[10px] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Vista previa</span>
           </header>
 
-          <div className="flex min-h-[220px] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-[#efeae2] px-4 py-4 dark:bg-[#0b141a]" aria-label="Vista previa del mensaje en WhatsApp">
+          <div className="flex min-h-[120px] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-[#efeae2] px-4 py-4 dark:bg-[#0b141a]" aria-label="Vista previa del mensaje en WhatsApp">
             {ultimo && (
               <>
                 <Separador texto={fechaLarga(ultimo.fecha)} />
@@ -215,11 +219,11 @@ export default function AvisosPage() {
 
           {/* Escribir */}
           <div className="space-y-3 border-t border-border p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Modelos</span>
+            <div className="flex items-center gap-2 overflow-x-auto min-[720px]:flex-wrap">
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Modelos</span>
               {MODELOS.map((m) => (
                 <button key={m.nombre} type="button" onClick={() => usarModelo(m)}
-                  className="min-h-[34px] rounded-full border border-border px-3.5 text-xs font-bold text-foreground/80 transition-colors hover:border-lime-500 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+                  aria-pressed={modeloActivo === m.nombre} className={`min-h-[34px] shrink-0 rounded-full border px-3.5 text-xs font-bold transition-colors hover:border-lime-500 ${modeloActivo === m.nombre ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/80 hover:text-foreground"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500`}>
                   {m.nombre}
                 </button>
               ))}
@@ -227,17 +231,17 @@ export default function AvisosPage() {
 
             <div className="rounded-xl border border-border bg-background/60 focus-within:border-lime-500">
               {conTitulo && (
-                <input value={titulo} maxLength={80} onChange={(e) => setTitulo(e.target.value)} placeholder="Título (va en negrita)" aria-label="Título del aviso"
-                  className="h-11 w-full border-b border-border bg-transparent px-3.5 text-base font-bold text-foreground outline-none placeholder:font-normal placeholder:text-foreground/35 sm:text-sm" />
+                <input autoFocus value={titulo} maxLength={80} onChange={(e) => setTitulo(e.target.value)} placeholder="Título (va en negrita)" aria-label="Título del aviso"
+                  className="h-11 w-full border-b border-border bg-transparent px-3.5 text-base font-bold text-foreground outline-none placeholder:font-normal placeholder:text-foreground/35" />
               )}
               <textarea ref={areaRef} value={cuerpo} maxLength={MAX} onChange={(e) => setCuerpo(e.target.value)} aria-label="Mensaje"
                 placeholder={aQuien === "grupo" ? "Escribí el aviso para todos…" : `Escribí el aviso para ${elegido ? String(elegido.nombre).split(" ")[0] : "el alumno"}…`}
-                className="block min-h-[96px] w-full resize-y bg-transparent px-3.5 py-3 text-base leading-relaxed text-foreground outline-none placeholder:text-foreground/35 sm:text-sm" />
+                className="block min-h-[96px] w-full resize-y bg-transparent px-3.5 py-3 text-base leading-relaxed text-foreground outline-none placeholder:text-foreground/35" />
               <div className="flex items-center justify-between gap-2 border-t border-border px-2.5 py-2">
                 <div className="flex items-center gap-1.5">
-                  <button type="button" onClick={() => setConTitulo((v) => !v)} aria-pressed={conTitulo}
+                  <button type="button" onClick={() => { if (conTitulo) { setTitulo(""); setModeloActivo(null) } setConTitulo((v) => !v) }} aria-pressed={conTitulo}
                     className={`h-8 rounded-lg border px-3 text-xs font-bold transition-colors ${conTitulo ? "border-lime-500 text-lime-700 dark:text-lime-400" : "border-border text-foreground/75 hover:bg-foreground/5"}`}>
-                    + Título
+                    {conTitulo ? "− Quitar título" : "+ Título"}
                   </button>
                   <button type="button" onClick={() => envolver("*")} aria-label="Negrita" className="h-8 w-8 rounded-lg border border-border text-sm font-black text-foreground/75 hover:bg-foreground/5">B</button>
                   <button type="button" onClick={() => envolver("_")} aria-label="Cursiva" className="h-8 w-8 rounded-lg border border-border text-sm italic text-foreground/75 hover:bg-foreground/5">I</button>
@@ -247,17 +251,17 @@ export default function AvisosPage() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-foreground/50">
-                {aQuien === "grupo" ? "Se abre WhatsApp con el mensaje escrito. Ahí elegís la lista o el grupo y lo enviás." : "Se abre el chat de este alumno con el mensaje escrito. Ahí lo enviás."}
+              <p className="hidden text-xs text-foreground/50 min-[720px]:block">
+                {aQuien === "grupo" ? "Se abre WhatsApp con el mensaje escrito. Ahí elegís la lista o el grupo y lo enviás." : `Se abre el chat de ${String(elegido?.nombre || "este alumno").split(" ")[0]} con el mensaje escrito. Solo tocás enviar.`}
               </p>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 gap-2 max-[719px]:w-full">
                 <button type="button" onClick={copiar} disabled={vacio}
                   className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40">
                   <Copy className="h-4 w-4" aria-hidden="true" /> Copiar
                 </button>
                 <button type="button" onClick={abrir} disabled={vacio || !enlace}
                   className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">
-                  Abrir en WhatsApp <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  {aQuien === "grupo" ? "Abrir en WhatsApp" : `Enviar a ${String(elegido?.nombre || "").split(" ")[0]}`} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
