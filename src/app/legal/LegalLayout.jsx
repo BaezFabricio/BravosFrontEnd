@@ -15,10 +15,10 @@ export default function LegalLayout({ titulo, children }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
           <Link to="/inicio" className="flex items-center gap-2 text-sm font-bold text-foreground/70 hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Volver al sitio
           </Link>
-          <span className="text-lg font-black tracking-tight text-accent">Bravos Box</span>
         </div>
         <nav aria-label="Documentos legales" className="mx-auto max-w-3xl px-4 sm:px-6">
           <ul className="flex flex-wrap gap-x-1 pb-2">

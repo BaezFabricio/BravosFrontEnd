@@ -634,16 +634,16 @@ export default function UsuariosPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <TituloPagina descripcion={"Administra los usuarios del sistema"}>Gestión de Usuarios</TituloPagina>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:items-center">
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
-              className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-none"
+              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-none"
             >
               <Plus className="h-4 w-4" />
               <span className="md:hidden">Nuevo</span>
@@ -655,7 +655,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-none"
+              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-none"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               <span className="md:hidden">Sin cuenta</span>

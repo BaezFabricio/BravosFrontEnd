@@ -1,3 +1,4 @@
+import { BotonVolver } from "@/components/BotonVolver"
 import { useEffect, useState } from "react"
 import { Banknote, Users, Dumbbell, CalendarCheck, Download, TrendingUp, TrendingDown, Trophy, Flame, Loader2 } from "lucide-react"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
@@ -165,13 +166,13 @@ export default function ReportesPage() {
           </TituloPagina>
         </div>
         <button type="button" onClick={exportarCSV}
-          className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500">
+          className="hidden min-h-[40px] shrink-0 sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500">
           <Download className="h-4 w-4" aria-hidden="true" /> CSV
         </button>
       </div>
 
       {/* Período */}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Período">
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Período">
         {PERIODOS.map((p) => (
           <button key={p.id} type="button" onClick={() => cambiarPeriodo(p.id)} aria-pressed={periodo === p.id}
             className={`flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black transition-colors ${periodo === p.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
@@ -179,6 +180,12 @@ export default function ReportesPage() {
             {p.label}
           </button>
         ))}
+        {/* Celular: CSV y Volver van en la misma fila que los períodos, para gastar menos alto */}
+        <button type="button" onClick={exportarCSV}
+          className="flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:hidden">
+          <Download className="h-3.5 w-3.5" aria-hidden="true" /> CSV
+        </button>
+        <BotonVolver a="/admin" texto="Volver" className="min-h-[36px] text-xs lg:hidden" />
       </div>
       {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
 

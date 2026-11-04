@@ -562,7 +562,7 @@ export default function PerfilPage() {
                 Cambiar Contraseña
               </button>
               <button onClick={handleGoHome}
-                className="flex items-center gap-2 border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
+                className="ml-auto flex items-center gap-2 border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
                 <Home className="h-3.5 w-3.5" />Volver al inicio
               </button>
             </div>

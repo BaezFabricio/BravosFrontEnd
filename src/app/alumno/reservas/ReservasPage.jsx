@@ -264,7 +264,7 @@ export default function ReservasPage() {
       <TituloPagina descripcion={"Gestiona tus reservas de clases"}>Mis Reservas</TituloPagina>
 
       <Tabs defaultValue="proximas" className="w-full">
-        <TabsList className="grid h-auto w-full max-w-md grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
           <TabsTrigger value="proximas" className="min-h-[44px] rounded-lg font-bold data-[state=active]:bg-foreground/10">Próximas ({proximas.length})</TabsTrigger>
           <TabsTrigger value="historial" className="min-h-[44px] rounded-lg font-bold data-[state=active]:bg-foreground/10">Historial ({historial.length})</TabsTrigger>
         </TabsList>

@@ -309,11 +309,11 @@ function ConfiguracionLandingPage() {
       {/* Encabezado de la sección */}
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
+          {esLanding && puedeModificar && botonGuardar('min-h-[40px] px-4 text-xs', 'Guardar')}
           <button type="button" onClick={volverAlMenu}
-            className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground/80 transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            className="ml-auto inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground/80 transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Configuración del Box
           </button>
-          {esLanding && puedeModificar && botonGuardar('min-h-[40px] px-4 text-xs', 'Guardar')}
         </div>
         <div>
           <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>

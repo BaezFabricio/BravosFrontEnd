@@ -193,7 +193,7 @@ export default function DetalleUsuarioPage() {
     return (
       <div className="space-y-4">
         <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">{error}</div>
-        <Link to="/admin/usuarios"><Button variant="outline">Volver a usuarios</Button></Link>
+        <div className="flex justify-end"><Link to="/admin/usuarios"><Button variant="outline">Volver a usuarios</Button></Link></div>
       </div>
     )
   }

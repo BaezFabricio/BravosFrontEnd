@@ -119,20 +119,20 @@ export default function PlanesPage() {
         <div>
           <TituloPagina descripcion={"Gestioná los planes de abono disponibles para los alumnos."}>Planes y Membresías</TituloPagina>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:self-start">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:self-start">
           <button
             onClick={() => setTiposAbierto(true)}
-            className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:min-h-[44px]"
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
           >
-            <Layers className="h-5 w-5" />
+            <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
             Tipos de clase
           </button>
           {permisos.includes("membresias:alta") && (
             <button
               onClick={abrirNuevo}
-              className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:min-h-[44px]"
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-lime-400 px-3 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
               Nuevo plan
             </button>
           )}
