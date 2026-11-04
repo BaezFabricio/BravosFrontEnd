@@ -52,7 +52,7 @@ const VerTodas = ({ to }) => (
 )
 
 export default function DashboardMovil({
-  nombreUsuario, racha, creditos, cargando, agendadas, estadoMembresia, nombrePlanes, miPlan,
+  nombreUsuario, frase, racha, creditos, cargando, agendadas, estadoMembresia, nombrePlanes, miPlan,
   logros, clasesHoy, cargandoClases, proximasReservadas, clasesSemanales, metaSemanal, clasesMes, diasEnMes, nombreMes, totalMarcas,
 }) {
   const completados = logros.filter((l) => l.completado).length
@@ -80,9 +80,9 @@ export default function DashboardMovil({
           <Ayuda texto="Tu racha son los días seguidos que asististe al gimnasio." className="text-sidebar-foreground/40" />
         </div>
         <h1 className="mt-3 text-2xl font-black uppercase leading-tight tracking-tight text-sidebar-foreground text-balance">
-          ¡Vamos, {nombreUsuario}!
+          ¡Hola, {nombreUsuario}!
         </h1>
-        <p className="mt-1 text-sm text-sidebar-foreground/60">Cada entrenamiento es una oportunidad para ser mejor</p>
+        <p className="mt-1 text-sm text-sidebar-foreground/60">{frase}</p>
         <Link
           to="/alumno/reservar"
           className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wider text-black transition-colors active:bg-lime-300"

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
 import apiClient from "@/api" 
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
+import { mensajeBienvenida } from "@/lib/mensajeBienvenida"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
@@ -65,6 +66,8 @@ export default function AlumnoDashboard() {
     ...statsMarcas,
   }
   const logros = logrosConEstado(userStats)
+  // Frase del saludo: depende de cuánto viene a entrenar
+  const ultimaClase = todasCompletadas.reduce((max, r) => { const d = String(r.fechaReserva).slice(0, 10); return d > max ? d : max }, "") || null
   // Progreso mensual: siempre el mes actual (antes tomaba el mes de la primera clase de la lista)
   const mesRef      = hoyDate.getMonth()
   const anioRef     = hoyDate.getFullYear()
@@ -194,6 +197,7 @@ export default function AlumnoDashboard() {
   }, [])
 
   const proximasReservadas = reservasReales.filter(r => r.estadoReserva === 'proxima')
+  const fraseBienvenida = mensajeBienvenida({ cargando: loadingReservas, totalClases: todasCompletadas.length, racha: userStats.racha, ultimaClase, agendadas: proximasReservadas.length })
 
   // Estado de la membresía para la versión del celular (la de escritorio lo calcula en su tarjeta)
   const estadoMembresia = (miPlan || membresia)
@@ -211,6 +215,7 @@ export default function AlumnoDashboard() {
       <div className="lg:hidden">
         <DashboardMovil
           nombreUsuario={nombreUsuario}
+          frase={fraseBienvenida}
           racha={userStats.racha}
           creditos={creditosReales}
           cargando={loadingReservas}
@@ -247,10 +252,10 @@ export default function AlumnoDashboard() {
               </div>
               <div>
                 <h1 className="text-3xl lg:text-4xl font-black text-sidebar-foreground tracking-tight">
-                  {`¡VAMOS, ${nombreUsuario.toUpperCase()}!`}
+                  {`¡HOLA, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
                 <p className="text-lg text-sidebar-foreground/60 mt-1">
-                  Cada entrenamiento es una oportunidad para ser mejor
+                  {fraseBienvenida}
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
