@@ -41,6 +41,7 @@ import { Cargando } from '@/components/Cargando'
 import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
 import { useEdicionFicha } from "./useEdicionFicha"
 import { TituloPagina } from "@/components/TituloPagina"
+import BotonWhatsApp from "@/components/BotonWhatsApp"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -354,7 +355,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
           : (user.dni || "—"))}
         {dato("Teléfono", editando
           ? <>{conLapiz(<input aria-label="Teléfono" type="tel" inputMode="tel" maxLength={30} value={form.telefono} onChange={(e) => ed.cambiar("telefono", e.target.value)} className={campo(errores.telefono)} />)}{mensaje(errores.telefono)}</>
-          : (user.telefono ? <a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a> : "—"))}
+          : (user.telefono ? <span className="flex items-center gap-2"><a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a><BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span> : "—"))}
         {dato("Correo electrónico", editando
           ? <>{conLapiz(<input aria-label="Correo electrónico" type="email" autoComplete="off" maxLength={100} value={form.email} onChange={(e) => ed.cambiar("email", e.target.value)} className={campo(errores.email)} />)}{mensaje(errores.email)}</>
           : <span className="block truncate">{user.email || "Sin correo"}</span>, "col-span-2")}
@@ -756,7 +757,7 @@ export default function UsuariosPage() {
                     <div className="min-w-0">
                       <dt className="text-foreground/50">Teléfono</dt>
                       <dd className="truncate font-semibold text-foreground">
-                        {user.telefono ? <a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a> : "—"}
+                        {user.telefono ? <span className="flex items-center gap-2"><a href={`tel:${user.telefono}`} className="truncate underline-offset-2 hover:underline">{user.telefono}</a><BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span> : "—"}
                       </dd>
                     </div>
                     <div className="min-w-0">
@@ -903,7 +904,7 @@ export default function UsuariosPage() {
                         <span className="text-sm text-foreground">{user.dni}</span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        <span className="text-sm text-foreground">{user.telefono}</span>
+                        <span className="flex items-center gap-2 text-sm text-foreground">{user.telefono}<BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <span className="text-sm font-semibold text-foreground">

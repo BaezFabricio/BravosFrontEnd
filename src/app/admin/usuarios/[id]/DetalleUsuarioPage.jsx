@@ -38,6 +38,7 @@ import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 import { TituloPagina } from "@/components/TituloPagina"
 import FotoAmpliable from "@/components/FotoAmpliable"
+import BotonWhatsApp from "@/components/BotonWhatsApp"
 
 const statusConfig = {
   activo:   { label: "Activo",    className: "bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20" },
@@ -295,7 +296,12 @@ export default function DetalleUsuarioPage() {
               </dt>
               <dd className="mt-1 truncate text-sm font-semibold text-foreground">
                 {tel
-                  ? <a href={`tel:${tel}`} className="text-lime-700 hover:underline dark:text-lime-400">{value}</a>
+                  ? (
+                    <span className="flex items-center gap-2">
+                      <a href={`tel:${tel}`} className="min-w-0 truncate text-lime-700 hover:underline dark:text-lime-400">{value}</a>
+                      <BotonWhatsApp telefono={tel} nombre={user?.nombre} />
+                    </span>
+                  )
                   : value}
               </dd>
             </div>
