@@ -1,0 +1,117 @@
+/*
+ * Pantallas de estado del acceso (alta de socio, verificar cuenta, recuperar acceso y elegir módulo).
+ * Referencia: "estados-referencia.html" (diseñada a 1920×1080, todo escalado con --u).
+ * Todo va acotado a .ea para no tocar el resto de la app. Formas redondeadas y tipografía como el login y el registro
+ * (rótulos y botón en Barlow, textos en Archivo, etiquetas en Archivo, títulos en stencil).
+ */
+.ea{--ex:max(0px,calc((100vw - 1920*var(--u)) / 2));--ey:max(0px,calc((100vh - 1080*var(--u)) / 2));--u:min(100vw / 1920, 100vh / 1080);--lime:#9be600;--lime2:#c4ff3d;--ink:#ecefe4;--muted:#8a8f7a;--line:#3a3d32;--line2:#4b5233;--bg:#0e100a;--err:#ff6b4a;--warn:#e6c200;
+  position:fixed;inset:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Archivo,sans-serif}
+.ea *{box-sizing:border-box}
+.ea a{color:var(--lime)}
+.ea input::placeholder{color:#6b705e}.ea input:focus{outline:none}
+
+/* ---------- PANTALLA (1920x1080 escalada, centrada) ---------- */
+.ea .screen{position:absolute;inset:0;margin:auto;width:calc(1920*var(--u));height:calc(1080*var(--u));background:var(--bg)}
+
+/* foto derecha con corte diagonal */
+/* la foto se estira hasta los bordes de la ventana cuando no es 16:9 (--ex y --ey = lo que sobra a cada lado); el corte diagonal sigue la misma pendiente */
+.ea .photo{position:absolute;top:calc(-1*var(--ey));bottom:calc(-1*var(--ey));right:calc(-1*var(--ex));width:calc(1120*var(--u) + var(--ex));clip-path:polygon(calc(246.4*var(--u) + var(--ey)*.22815) 0,100% 0,100% 100%,calc(var(--ey)*-.22815) 100%);overflow:hidden}
+.ea .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05) brightness(.7)}
+.ea .photo::before{content:"";position:absolute;inset:0;z-index:1;background:#4a5626;mix-blend-mode:multiply;opacity:.3}
+.ea .photo::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,rgba(14,16,10,.75) 0%,rgba(14,16,10,0) 40%)}
+
+/* barra superior */
+.ea .brand{position:absolute;top:calc(37*var(--u));left:calc(44*var(--u) - var(--ex));display:flex;align-items:center;gap:calc(17*var(--u))}
+.ea .brand img{width:calc(54*var(--u));height:calc(54*var(--u));border-radius:calc(10*var(--u))}
+.ea .brand span{font:900 calc(25*var(--u)) 'Big Shoulders Stencil Display';letter-spacing:.3em;color:var(--lime);white-space:nowrap}
+.ea .topright{position:absolute;top:calc(56*var(--u));right:calc(72*var(--u) - var(--ex));display:flex;align-items:center;gap:calc(32*var(--u))}
+.ea .btn-top{display:flex;align-items:center;height:calc(48*var(--u));padding:0 calc(20*var(--u));border:calc(1*var(--u)) solid var(--line2);border-radius:calc(999*var(--u));background:rgba(14,16,10,.55);font:600 calc(17*var(--u)) Archivo,sans-serif;text-decoration:none;color:var(--ink);white-space:nowrap;cursor:pointer}
+.ea .btn-top:hover{border-color:var(--lime);color:var(--lime)}
+
+/* columna de contenido izquierda */
+.ea .content{position:absolute;left:calc(140*var(--u));top:0;bottom:0;width:calc(600*var(--u));display:flex;flex-direction:column;justify-content:center}
+.ea .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(8*var(--u));margin-bottom:calc(40*var(--u))}
+.ea .steps div{display:flex;flex-direction:column;gap:calc(10*var(--u));font:600 calc(12*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--muted)}
+.ea .steps div::before{content:"";height:calc(5*var(--u));border-radius:calc(3*var(--u));background:#2a2d24}
+.ea .steps .done{color:var(--lime)}.ea .steps .done::before{background:var(--lime)}
+.ea .steps .cur{color:var(--ink)}.ea .steps .cur::before{background:var(--lime)}
+.ea .steps .bad{color:var(--err)}.ea .steps .bad::before{background:var(--err)}
+.ea .status{display:flex;align-items:center;gap:calc(14*var(--u));font:600 calc(13*var(--u)) Archivo,sans-serif;letter-spacing:.06em;white-space:nowrap}
+.ea .status .tag{color:var(--lime)}
+.ea .status .sep{width:calc(28*var(--u));height:calc(1*var(--u));background:var(--line)}
+.ea .chip{display:flex;align-items:center;gap:calc(8*var(--u));color:var(--muted)}
+.ea .chip::before{content:"";width:calc(8*var(--u));height:calc(8*var(--u));border-radius:50%;background:currentColor}
+.ea .chip.ok{color:var(--lime)}.ea .chip.warn{color:var(--warn)}.ea .chip.err{color:var(--err)}
+.ea h1{font:900 calc(92*var(--u))/.9 'Big Shoulders Stencil Display';text-transform:uppercase;margin:calc(20*var(--u)) 0 calc(18*var(--u));text-wrap:balance}
+.ea h1 i{font-style:normal;color:var(--lime)}.ea h1 i.err{color:var(--err)}
+.ea .lead{color:var(--muted);font-size:calc(19*var(--u));line-height:1.5;margin:0 0 calc(30*var(--u));text-wrap:pretty}
+.ea .lead b{color:var(--ink)}.ea .lead em{font-style:normal;color:var(--lime);font-weight:600}
+.ea .small{color:var(--muted);font-size:calc(16*var(--u));line-height:1.55;margin-top:calc(20*var(--u))}
+
+/* celda de input: redondeada, rótulo en Barlow como el login */
+.ea .cell{position:relative;padding:calc(12*var(--u)) calc(18*var(--u)) calc(10*var(--u));border:calc(1*var(--u)) solid var(--line);border-radius:calc(12*var(--u));background:rgba(255,255,255,.04);transition:border-color .15s,box-shadow .15s}
+.ea .cell:focus-within{border-color:var(--lime);box-shadow:0 0 0 calc(2*var(--u)) rgba(155,230,0,.25)}
+.ea .cell.err{border-color:var(--err)}
+.ea .cell + .cell{margin-top:calc(12*var(--u))}
+.ea .cell label{font:700 calc(15*var(--u)) Barlow,Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ea .cell input{display:block;width:100%;background:transparent;border:none;color:var(--ink);font:500 calc(21*var(--u)) Barlow,Archivo,sans-serif;padding:calc(8*var(--u)) 0 calc(2*var(--u))}
+.ea .cell.con-ojo input{padding-right:calc(44*var(--u))}
+.ea .cell .ojo{position:absolute;right:calc(14*var(--u));bottom:calc(14*var(--u));background:transparent;border:none;cursor:pointer;color:var(--muted);display:flex;padding:0}
+.ea .cell .ojo:hover{color:var(--ink)}
+.ea .cell .ojo svg{width:calc(22*var(--u));height:calc(22*var(--u))}
+.ea .errmsg{display:flex;gap:calc(10*var(--u));margin-top:calc(12*var(--u));font:500 calc(15*var(--u))/1.45 Archivo;color:var(--err)}
+.ea .errmsg span{font:700 calc(12*var(--u)) Archivo,sans-serif;flex:none;margin-top:calc(2*var(--u))}
+.ea .tip{display:flex;gap:calc(14*var(--u));align-items:center;padding:calc(14*var(--u)) calc(18*var(--u));border:calc(1*var(--u)) dashed var(--line);border-radius:calc(12*var(--u));font:500 calc(15*var(--u)) Archivo;color:var(--muted)}
+.ea .tip span{font:600 calc(12*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--lime)}
+.ea .reglas{display:grid;grid-template-columns:1fr 1fr;gap:calc(6*var(--u)) calc(14*var(--u));margin:calc(14*var(--u)) 0 0;padding:0;list-style:none;font:500 calc(14*var(--u)) Archivo;color:var(--muted)}
+.ea .reglas .ok{color:var(--lime)}
+
+/* bloque "cuenta creada" */
+.ea .okbox{display:grid;grid-template-columns:auto 1fr;border:calc(1*var(--u)) solid var(--line);border-radius:calc(14*var(--u));overflow:hidden}
+.ea .okbox .chk{display:flex;align-items:center;justify-content:center;width:calc(64*var(--u));border-right:calc(1*var(--u)) solid var(--line);color:var(--lime);font:900 calc(26*var(--u)) Archivo}
+.ea .okbox .body{padding:calc(16*var(--u)) calc(20*var(--u))}
+.ea .okbox .t{font:600 calc(16*var(--u)) Archivo;margin-bottom:calc(10*var(--u))}
+.ea .okbox .l{font:600 calc(11*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--muted)}
+.ea .okbox .mail{font:600 calc(22*var(--u)) Archivo;color:var(--lime);margin:calc(6*var(--u)) 0 calc(8*var(--u));word-break:break-all}
+
+/* botones: redondeados; el principal con la letra del botón del login */
+.ea .btn{display:block;width:100%;margin-top:calc(28*var(--u));border:none;border-radius:calc(12*var(--u));cursor:pointer;background:var(--lime);color:#0b0c09;font:900 calc(23*var(--u)) Barlow,Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:calc(18*var(--u));text-align:center;text-decoration:none}
+.ea .btn:hover{background:var(--lime2);color:#0b0c09}
+.ea .btn:disabled{opacity:.7;cursor:default}
+.ea .btn-line{display:flex;align-items:center;justify-content:center;height:calc(62*var(--u));margin-top:calc(24*var(--u));border:calc(1.5*var(--u)) solid var(--lime);border-radius:calc(12*var(--u));background:transparent;cursor:pointer;text-decoration:none;color:var(--lime);font:900 calc(23*var(--u)) Barlow,Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;width:100%}
+.ea .btn-line:hover{background:rgba(155,230,0,.1)}
+.ea .btn-line:disabled{opacity:.6;cursor:default}
+.ea .btn-sec{display:flex;align-items:center;justify-content:center;height:calc(58*var(--u));padding:0 calc(24*var(--u));border:calc(1*var(--u)) solid var(--line2);border-radius:calc(12*var(--u));background:rgba(236,239,228,.03);cursor:pointer;text-decoration:none;color:var(--ink);font:900 calc(21*var(--u)) Barlow,Archivo,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;width:100%}
+.ea .btn-sec:hover{border-color:var(--lime);color:var(--lime)}
+.ea .btn-mini{display:inline-flex;align-items:center;height:calc(36*var(--u));padding:0 calc(14*var(--u));margin-top:calc(4*var(--u));border:calc(1*var(--u)) solid var(--line);border-radius:calc(8*var(--u));background:transparent;cursor:pointer;font:700 calc(15*var(--u)) Barlow,Archivo,sans-serif;letter-spacing:.04em;text-decoration:none;color:var(--ink)}
+.ea .btn-mini:hover{border-color:var(--lime);color:var(--lime)}
+.ea .row2{display:grid;grid-template-columns:1fr 1fr;gap:calc(12*var(--u));margin-top:calc(12*var(--u))}
+
+/* ---------- ELEGIR MÓDULO ---------- */
+.ea .m-top{position:absolute;top:calc(37*var(--u));left:calc(44*var(--u) - var(--ex));right:calc(60*var(--u) - var(--ex));display:flex;justify-content:space-between;align-items:center}
+.ea .m-top .brand{position:static}
+.ea .m-btn{display:flex;align-items:center;height:calc(60*var(--u));padding:0 calc(24*var(--u));border:calc(1*var(--u)) solid var(--line2);border-radius:calc(999*var(--u));background:rgba(14,16,10,.55);font:600 calc(20*var(--u)) Archivo,sans-serif;text-decoration:none;color:var(--ink);white-space:nowrap;cursor:pointer}
+.ea .m-btn:hover{border-color:var(--lime);color:var(--lime)}
+.ea .m-btn.out:hover{border-color:var(--err);color:var(--err)}
+.ea .m-chip{display:flex;align-items:center;gap:calc(12*var(--u));font:600 calc(17*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--lime);white-space:nowrap}
+.ea .m-chip::before{content:"";width:calc(11*var(--u));height:calc(11*var(--u));border-radius:50%;background:currentColor}
+.ea .m-chip.warn{color:var(--warn)}
+.ea .m-head{position:absolute;left:calc(120*var(--u));right:calc(120*var(--u));top:calc(198*var(--u));display:flex;justify-content:space-between;align-items:flex-end}
+.ea .m-head .hi{font:600 calc(17*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--lime);margin-bottom:calc(18*var(--u));text-transform:uppercase}
+.ea .m-head h2{margin:0;font:900 calc(96*var(--u))/.9 'Big Shoulders Stencil Display';text-transform:uppercase;white-space:nowrap}
+.ea .m-head h2 i{font-style:normal;color:var(--lime)}
+.ea .m-head img{width:calc(180*var(--u));height:calc(180*var(--u));margin-bottom:calc(-9*var(--u))}
+.ea .m-grid{position:absolute;left:calc(120*var(--u));right:calc(120*var(--u));top:calc(470*var(--u));height:calc(500*var(--u));display:flex;justify-content:center;gap:calc(21*var(--u))}
+.ea .tile{position:relative;overflow:hidden;display:block;flex:0 0 calc((1680*var(--u) - 42*var(--u)) / 3);text-align:left;font:inherit;padding:0;cursor:pointer;text-decoration:none;color:var(--ink);border:calc(2*var(--u)) solid var(--line);border-radius:calc(20*var(--u));background:#0b0c09}
+.ea .tile:hover{border-color:var(--lime)}
+.ea .tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.1) brightness(.8)}
+.ea .tile::before{content:"";position:absolute;inset:0;z-index:1;background:#4a5626;mix-blend-mode:multiply;opacity:.55}
+.ea .tile::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,rgba(11,12,9,.95) 0%,rgba(11,12,9,.3) 55%,rgba(11,12,9,.15) 100%)}
+.ea .tile .n{position:absolute;z-index:2;top:calc(27*var(--u));left:calc(30*var(--u));font:600 calc(17*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--lime)}
+.ea .tile .info{position:absolute;z-index:2;left:calc(30*var(--u));right:calc(30*var(--u));bottom:calc(30*var(--u));display:flex;justify-content:space-between;align-items:flex-end;gap:calc(18*var(--u))}
+.ea .tile .name{font:900 calc(60*var(--u))/.9 'Big Shoulders Stencil Display';text-transform:uppercase}
+.ea .tile .sub{font:500 calc(20*var(--u)) Archivo;color:#b5baa4;margin-top:calc(9*var(--u))}
+.ea .tile .go{width:calc(66*var(--u));height:calc(66*var(--u));flex:none;border-radius:calc(14*var(--u));background:var(--lime);color:#0b0c09;display:flex;align-items:center;justify-content:center;font:900 calc(33*var(--u)) Archivo}
+.ea .m-aviso{align-self:center;max-width:calc(900*var(--u));padding:calc(28*var(--u));border:calc(1*var(--u)) dashed var(--line);border-radius:calc(16*var(--u));color:var(--muted);font:500 calc(20*var(--u))/1.5 Archivo;text-align:center}
+.ea .m-foot{position:absolute;left:calc(120*var(--u));right:calc(120*var(--u));bottom:calc(54*var(--u));display:flex;justify-content:space-between;align-items:center}
+.ea .m-foot span{font:600 calc(15*var(--u)) Archivo,sans-serif;letter-spacing:.06em;color:var(--line2);white-space:nowrap}

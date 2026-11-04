@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { reenviarVerificacionCuenta } from '@/api'
+import PantallaEstado from '@/components/acceso/PantallaEstado'
+import { useAnchoAcceso } from '@/lib/useEscritorio'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/vv1'
 
@@ -19,6 +21,8 @@ function VerificarCuentaPage() {
   const [isReenviando, setIsReenviando] = useState(false)
   const [reenviadoMensaje, setReenviadoMensaje] = useState('')
   const [reenviadoError, setReenviadoError] = useState('')
+  const ancho = useAnchoAcceso()
+  const enCurso = useRef(false)
 
   useEffect(() => {
     if (!token) {
@@ -32,10 +36,11 @@ function VerificarCuentaPage() {
   }, [token]);
 
   const handleVerificar = async () => {
-    if (!token || isVerificando) {
+    if (!token || enCurso.current) {
       return
     }
 
+    enCurso.current = true
     setIsVerificando(true)
     setMensaje('')
 
@@ -47,6 +52,7 @@ function VerificarCuentaPage() {
       setStatus('error')
       setMensaje(error.response?.data?.message || 'El enlace de verificación es inválido, ya expiró o ya fue utilizado.')
     } finally {
+      enCurso.current = false
       setIsVerificando(false)
     }
   }
@@ -73,6 +79,51 @@ function VerificarCuentaPage() {
       setReenviadoError(error.response?.data?.message || 'No pudimos reenviar el enlace. Revisá el correo e intentá otra vez.')
     } finally {
       setIsReenviando(false)
+    }
+  }
+
+  // Pantallas anchas: diseño de estados del acceso (estados-referencia: 5b confirmar, 5c/5d problema)
+  if (ancho) {
+    if (status === 'ready') {
+      return (
+        <PantallaEstado foto="barra.png" posicion="50% 58%">
+          <div className="status"><span className="tag">ALTA DE SOCIO</span><span className="sep"></span><span className="chip warn">PENDIENTE</span></div>
+          <h1>Confirmar verificación<i>.</i></h1>
+          <p className="lead">{mensaje}</p>
+          <div className="acciones"><button type="button" className="btn" onClick={handleVerificar} disabled={isVerificando}>{isVerificando ? 'Verificando…' : 'Confirmar mi cuenta →'}</button></div>
+        </PantallaEstado>
+      )
+    }
+    if (status === 'success') {
+      return (
+        <PantallaEstado foto="grupo-c.png" posicion="40% 60%">
+          <div className="status"><span className="tag">ALTA DE SOCIO</span><span className="sep"></span><span className="chip ok">CUENTA ACTIVADA</span></div>
+          <h1>¡Cuenta activada<i>.</i></h1>
+          <p className="lead">{mensaje}</p>
+          <div className="acciones"><Link to="/login" className="btn">Iniciar sesión →</Link></div>
+        </PantallaEstado>
+      )
+    }
+    if (status === 'error') {
+      return (
+        <PantallaEstado foto="hookgrip-c.png" posicion="50% 18%">
+          <div className="status"><span className="tag">ALTA DE SOCIO</span><span className="sep"></span><span className="chip err">ENLACE INVÁLIDO</span></div>
+          <h1>Hubo un problema<i className="err">.</i></h1>
+          <p className="lead">{mensaje}</p>
+          <form onSubmit={handleReenviar} noValidate>
+            <div className={`cell${reenviadoError ? ' err' : ''}`}>
+              <label htmlFor="correo-reenvio">Correo para reenviar el enlace</label>
+              <input id="correo-reenvio" type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} placeholder="tu-correo@ejemplo.com" autoComplete="email" />
+            </div>
+            {reenviadoError && <div className="errmsg" role="alert"><span>ERR</span>{reenviadoError}</div>}
+            {reenviadoMensaje && <div className="errmsg" role="status" style={{ color: 'var(--lime)' }}><span>OK</span>{reenviadoMensaje}</div>}
+            <div className="acciones">
+              <button type="submit" className="btn" disabled={isReenviando}>{isReenviando ? 'Reenviando…' : 'Reenviar nuevo enlace →'}</button>
+              <div className="row2"><Link to="/registro" className="btn-sec">Volver al registro</Link><Link to="/login" className="btn-sec">Ir al login →</Link></div>
+            </div>
+          </form>
+        </PantallaEstado>
+      )
     }
   }
 

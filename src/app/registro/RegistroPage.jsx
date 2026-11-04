@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, ChevronRight, CreditCard, Eye, EyeOff, Lock, Mail, Phone, User, XCircle } from 'lucide-react'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 import { toast } from '@/lib/notificar'
-import { useEscritorio } from '@/lib/useEscritorio'
+import { useEscritorio, useAnchoAcceso } from '@/lib/useEscritorio'
+import PantallaEstado from '@/components/acceso/PantallaEstado'
 import { ARCH, BIG, COLOR, MONO } from '@/lib/accesoEstilos'
 import { ESTILOS_MOVIL, FICHA_FLOTANTE } from '@/lib/estilosMovil'
 import { Ficha } from '@/components/AccesoDiseno'
@@ -49,6 +50,11 @@ const ESTILOS_REF = `
 .lr a{color:#9be600}.lr a:hover{color:#c4ff3d}
 .lr input::placeholder{color:#6b705e}.lr input:focus{outline:none}
 .lr button.pri:hover{background:#c4ff3d!important}
+.lr .campo{width:100%;height:calc(38 * var(--u));padding:0 calc(36 * var(--u)) 0 calc(40 * var(--u));background:rgba(255,255,255,.04);border:calc(1 * var(--u)) solid #3a3d32;border-radius:calc(8 * var(--u));color:#ecefe4;font:500 calc(16 * var(--u)) Barlow,Archivo,sans-serif;transition:border-color .15s,box-shadow .15s}
+.lr .campo:focus{border-color:#9be600;box-shadow:0 0 0 calc(2 * var(--u)) rgba(155,230,0,.25)}
+.lr .campo.ok{border-color:rgba(155,230,0,.5)}
+.lr .campo.error{border-color:#ff6b4a}
+.lr button.ojo:hover{background:transparent!important;color:#ecefe4!important}
 .lr .ficha-flota{transition:transform .25s ease-out;will-change:transform;transform:translateY(-4px)}
 .lr .ficha-flota:hover{transition:transform .08s linear}
 @media (prefers-reduced-motion: reduce){.lr .ficha-flota{transition:none}}
@@ -62,6 +68,7 @@ const ESTILOS_REF = `
 
 function RegistroPage() {
   const escritorio = useEscritorio()
+  const anchoAcceso = useAnchoAcceso()
   // Al pasar al login: la pantalla se desvanece y recién ahí navega (el login entra con su propia animación)
   const [saliendo, setSaliendo] = useState(false)
   const irA = (destino) => (e) => {
@@ -112,6 +119,27 @@ function RegistroPage() {
   const [isEditingEmail, setIsEditingEmail] = useState(false)
   const [newEmailInput, setNewEmailInput] = useState('')
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+  const [espera, setEspera] = useState(0)
+  const [reenvio, setReenvio] = useState(null)
+
+  // Cuenta regresiva para no poder pedir el enlace muchas veces seguidas
+  useEffect(() => {
+    if (espera <= 0) return undefined
+    const t = setTimeout(() => setEspera((e) => e - 1), 1000)
+    return () => clearTimeout(t)
+  }, [espera])
+
+  const handleReenviar = async () => {
+    if (espera > 0) return
+    setEspera(60)
+    setReenvio(null)
+    try {
+      await reenviarVerificacionCuenta({ correo: formData.email.trim().toLowerCase() })
+      setReenvio('ok')
+    } catch {
+      setReenvio('error')
+    }
+  }
 
   const [formData, setFormData] = useState({
     nombre: '', dni: '', email: '', telefono: '', password: '', confirmPassword: '',
@@ -199,6 +227,48 @@ function RegistroPage() {
 
 
   // ── Pantalla de éxito ──
+  if (isSuccess && anchoAcceso) {
+    // Diseño de estados del acceso (estados-referencia, 5a): cuenta creada
+    return (
+      <PantallaEstado foto="grupo-c.png" posicion="40% 60%">
+        <div className="status"><span className="tag">ALTA DE SOCIO</span><span className="sep"></span><span className="chip ok">CUENTA CREADA</span></div>
+        <h1>¡Cuenta creada<i>.</i></h1>
+        <p className="lead">Verificá tu correo para activarla.</p>
+        <div className="okbox" role="status">
+          <div className="chk">✓</div>
+          <div className="body">
+            <div className="t">Tu cuenta se creó con éxito.</div>
+            <div className="l">ENVIAMOS EL LINK A</div>
+            {!isEditingEmail ? (
+              <>
+                <div className="mail">{formData.email}</div>
+                <button type="button" className="btn-mini" onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}>¿Te equivocaste? Cambiar correo</button>
+              </>
+            ) : (
+              <>
+                <div className="cell" style={{ marginTop: 'calc(8 * var(--u))' }}>
+                  <label htmlFor="nuevo-correo">Nuevo correo</label>
+                  <input id="nuevo-correo" type="email" value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} placeholder="tu@correo.com" />
+                </div>
+                <div className="row2">
+                  <button type="button" className="btn-sec" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}>Cancelar</button>
+                  <button type="button" className="btn-sec" onClick={handleUpdateEmail} disabled={isUpdatingEmail}>{isUpdatingEmail ? 'Guardando…' : 'Confirmar y reenviar'}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="small">
+          Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta. ¿No lo ves? Mirá en spam o correo no deseado.{' '}
+          <button type="button" className="btn-mini" onClick={handleReenviar} disabled={espera > 0}>{espera > 0 ? `Reenviar enlace (${espera}s)` : 'Reenviar enlace'}</button>
+          {reenvio === 'ok' && <span style={{ color: 'var(--lime)' }}> Listo, te enviamos un nuevo enlace.</span>}
+          {reenvio === 'error' && <span style={{ color: 'var(--err)' }}> No pudimos reenviarlo. Probá de nuevo en un rato.</span>}
+        </div>
+        <div className="acciones"><Link to="/login" className="btn">Ir al inicio de sesión →</Link></div>
+      </PantallaEstado>
+    )
+  }
+
   if (isSuccess) {
     return (
       <div className="min-h-screen px-6 pb-10 pt-6 text-[#ecefe4]" style={{ ...ARCH, background: COLOR.form }}>
@@ -235,9 +305,19 @@ function RegistroPage() {
                 </div>
               )}
             </div>
-            <p className="mt-4 text-[13px] leading-relaxed" style={{ color: COLOR.apagado }}>
-              Revisá tu bandeja de entrada y hacé clic en el enlace para activar tu cuenta.
+            <ol className="mt-4 space-y-1.5 text-[13px] leading-relaxed" style={{ color: COLOR.apagado }}>
+              <li><span style={{ color: COLOR.lima }}>1.</span> Abrí el correo de Bravos Box.</li>
+              <li><span style={{ color: COLOR.lima }}>2.</span> Tocá el botón «Activar mi cuenta».</li>
+              <li><span style={{ color: COLOR.lima }}>3.</span> Volvé acá e iniciá sesión.</li>
+            </ol>
+            <p className="mt-3 text-[12.5px] leading-relaxed" style={{ color: COLOR.apagado }}>
+              ¿No lo ves? Mirá en spam o correo no deseado.{' '}
+              <button type="button" onClick={handleReenviar} disabled={espera > 0} className="underline transition-colors hover:text-white disabled:no-underline disabled:opacity-60" style={{ color: COLOR.lima }}>
+                {espera > 0 ? `Reenviar enlace (${espera}s)` : 'Reenviar enlace'}
+              </button>
             </p>
+            {reenvio === 'ok' && <p role="status" className="mt-1 text-[12.5px]" style={{ color: COLOR.lima }}>Listo, te enviamos un nuevo enlace.</p>}
+            {reenvio === 'error' && <p role="alert" className="mt-1 text-[12.5px] text-[#ff6b4a]">No pudimos reenviarlo. Probá de nuevo en un rato.</p>}
             <Link to="/login"
               className="mt-[18px] flex w-full items-center justify-center px-3 py-3 text-[22px] uppercase tracking-[0.12em] transition-colors hover:!bg-[#c4ff3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4ff3d]"
               style={{ ...BIG, background: COLOR.lima, color: COLOR.base }}>
@@ -271,18 +351,18 @@ function RegistroPage() {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(14,16,10,0.55) 0%,rgba(14,16,10,0) 30%,rgba(14,16,10,0.25) 60%,#0e100a 100%)' }} />
           <div style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 16px)', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><img src="/acceso/brvs.png" alt="" style={{ width: '34px', height: '34px', borderRadius: '8px' }} /><span style={{ font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: '0.3em', color: '#9be600', whiteSpace: 'nowrap' }}>BRAVOS BOX</span></div>
-            <Link to="/inicio" style={{ font: "500 12px 'JetBrains Mono'", letterSpacing: '0.14em', textDecoration: 'none', whiteSpace: 'nowrap', color: '#ecefe4', display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 16px', border: '1px solid rgba(236,239,228,.28)', borderRadius: '999px', background: 'rgba(14,16,10,.5)', margin: '-4px -6px -4px 0' }}>← SITIO</Link>
+            <Link to="/inicio" style={{ font: "600 14px Archivo, sans-serif", textDecoration: 'none', whiteSpace: 'nowrap', color: '#ecefe4', display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 16px', border: '1px solid rgba(236,239,228,.28)', borderRadius: '999px', background: 'rgba(14,16,10,.5)', margin: '-4px -6px -4px 0' }}>Sitio</Link>
           </div>
           <div style={{ position: 'absolute', left: '20px', right: '20px', bottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div role="heading" aria-level={1} style={{ font: "900 46px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase' }}>Sumate al<br /><span style={{ color: '#9be600' }}>equipo.</span></div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', paddingBottom: '4px' }}><img src="/acceso/malvinas.png" alt="" style={{ width: '58px', filter: 'saturate(0.8)' }} /><span style={{ font: "500 9px/1.4 'JetBrains Mono'", letterSpacing: '0.14em', color: '#ecefe4', textAlign: 'right' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', paddingBottom: '4px' }}><img src="/acceso/malvinas.png" alt="" style={{ width: '58px', filter: 'saturate(0.8)' }} /><span style={{ font: "600 10px/1.4 Archivo, sans-serif", letterSpacing: '0.08em', color: '#ecefe4', textAlign: 'right' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
           </div>
         </div>
 
         <div style={{ position: 'relative', margin: '80px 20px 0', paddingBottom: '40px' }}>
           <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: 'relative', borderRadius: '14px', padding: '20px 18px 18px', ...FICHA_FLOTANTE }}>
             <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: '18px', bottom: 'calc(100% - 2px)', width: '84px', height: '84px' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', font: "500 10px 'JetBrains Mono'", letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: '10px', borderBottom: '1px dashed #3a3d32' }}><span style={{ color: '#9be600' }}>ALTA DE SOCIO</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', font: '600 11px Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a', paddingBottom: '10px', borderBottom: '1px dashed #3a3d32' }}><span style={{ color: '#9be600' }}>ALTA DE SOCIO</span></div>
             <div role="heading" aria-level={2} style={{ font: "900 42px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase', margin: '14px 0 4px' }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
             <div style={{ color: '#8a8f7a', fontSize: '13px', marginBottom: '16px' }}>Completá tus datos para registrarte.</div>
 
@@ -322,7 +402,7 @@ function RegistroPage() {
 
               {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
               {formData.password.length > 0 && (
-                <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', font: "500 11px 'JetBrains Mono'" }}>
+                <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', font: "600 12px Archivo, sans-serif" }}>
                   {PASSWORD_RULES.map(rule => {
                     const ok = rule.test(formData.password)
                     return (
@@ -345,7 +425,7 @@ function RegistroPage() {
             </form>
           </div>
           <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>
-            <span style={{ textAlign: 'center', font: "500 10px 'JetBrains Mono'", letterSpacing: '0.16em', color: '#8a8f7a' }}>¿YA TENÉS CUENTA?</span>
+            <span style={{ textAlign: 'center', font: '600 11px Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a' }}>¿YA TENÉS CUENTA?</span>
             <Link to="/login" onClick={irA('/login')} className="btn2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', border: '1px solid rgba(155,230,0,.55)', borderRadius: '10px', textDecoration: 'none', color: '#9be600', font: "900 16px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Iniciar sesión →</Link>
           </div>
         </div>
@@ -359,22 +439,35 @@ function RegistroPage() {
   const U = (n) => `calc(${n} * var(--u))`
   const MONO_REF = "'JetBrains Mono'"
   const BIG_REF = "'Big Shoulders Stencil Display'"
-  const msjError = { position: 'absolute', top: U(8), right: U(12), margin: 0, display: 'inline-flex', alignItems: 'center', gap: U(4), font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
-  // Símbolo a la derecha del campo: X roja si hay error, tilde lima si está bien (en las contraseñas, a la izquierda del ojo)
-  const posIcono = (campo) => ({ position: 'absolute', top: U(21), right: campo === 'password' || campo === 'confirmPassword' ? U(44) : U(12), display: 'flex' })
-  const aviso = (campo, texto) => (
-    <>
-      {error(campo) && <p role="alert" style={msjError}>{texto ?? error(campo)}</p>}
-      {error(campo) && <span aria-hidden="true" style={{ ...posIcono(campo), color: '#ff6b4a' }}><XCircle size={16} /></span>}
-      {valido(campo) && <span role="img" aria-label="Dato correcto" style={{ ...posIcono(campo), color: '#9be600' }}><CheckCircle2 size={16} /></span>}
-      {campo === 'confirmPassword' && valido(campo) && <p style={{ ...msjError, color: '#9be600' }}>Las contraseñas coinciden</p>}
-    </>
-  )
+  // Formulario de campos sueltos (rótulo arriba, ícono a la izquierda, campo redondeado).
+  // El mensaje de error va en la línea del rótulo (no agrega alto) y el símbolo de estado dentro del campo.
+  const msjError = { position: 'absolute', top: 0, right: 0, margin: 0, font: `500 ${U(13)} Archivo`, color: '#ff6b4a' }
   const msjTerminos = { position: 'absolute', top: '100%', left: 0, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: U(4), margin: `${U(2)} 0 0`, font: `500 ${U(14)} Archivo`, color: '#ff6b4a' }
-  const etiqueta = { font: `500 ${U(9.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a' }
-  const campo = { display: 'block', width: '100%', background: 'transparent', border: 'none', color: '#ecefe4', font: `500 ${U(16)} Archivo`, padding: `${U(4)} 0` }
-  const celda = (cols, campo) => ({ position: 'relative', gridColumn: cols, padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid ${campo && error(campo) ? '#ff6b4a' : campo && valido(campo) ? 'rgba(155,230,0,.55)' : '#3a3d32'}`, margin: U(-0.5) })
-  const ojo = { flexShrink: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#8a8f7a', padding: U(4), display: 'flex' }
+  const etiqueta = { display: 'block', font: `700 ${U(10.5)} Barlow, Archivo, sans-serif`, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a8f7a' }
+  const iconoIzq = { position: 'absolute', left: U(12), top: '50%', transform: 'translateY(-50%)', width: U(16), height: U(16), color: '#8a8f7a', pointerEvents: 'none' }
+  const ojo = { position: 'absolute', right: U(12), top: '50%', transform: 'translateY(-50%)', display: 'flex', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', color: '#8a8f7a' }
+  const estado = (campo, conOjo) => {
+    const pos = { position: 'absolute', right: conOjo ? U(38) : U(12), top: '50%', transform: 'translateY(-50%)', display: 'flex' }
+    if (error(campo)) return <span aria-hidden="true" style={{ ...pos, color: '#ff6b4a' }}><XCircle style={{ width: U(16), height: U(16) }} /></span>
+    if (valido(campo)) return <span role="img" aria-label="Dato correcto" style={{ ...pos, color: '#9be600' }}><CheckCircle2 style={{ width: U(16), height: U(16) }} /></span>
+    return null
+  }
+  const clase = (campo) => `campo${error(campo) ? ' error' : valido(campo) ? ' ok' : ''}`
+  // Un campo completo: rótulo + mensaje, y debajo el ícono, el campo y el símbolo de estado
+  const fila = ({ id, texto, Icono, input, botonOjo, mensaje, extra }) => (
+    <div style={{ position: 'relative', minWidth: 0 }}>
+      <label htmlFor={id} style={etiqueta}>{texto}</label>
+      {error(id) && <p role="alert" style={msjError}>{mensaje ?? error(id)}</p>}
+      {id === 'confirmPassword' && valido(id) && <p style={{ ...msjError, color: '#9be600' }}>Las contraseñas coinciden</p>}
+      {extra && !error(id) && <span style={{ position: 'absolute', top: 0, right: 0, display: 'flex', gap: U(8), font: `500 ${U(11)} Archivo` }}>{extra}</span>}
+      <div style={{ position: 'relative', marginTop: U(5) }}>
+        <Icono style={iconoIzq} aria-hidden="true" />
+        {input}
+        {estado(id, !!botonOjo)}
+        {botonOjo}
+      </div>
+    </div>
+  )
 
   return (
     <div className={`lr${saliendo ? ' sale' : ''}`} style={{ margin: 0, color: '#ecefe4', fontFamily: 'Archivo,sans-serif', '--u': 'min(100vw / 1280, 100vh / 880)' }}>
@@ -394,73 +487,36 @@ function RegistroPage() {
         </div>
 
         {/* PANEL DERECHO */}
-        <div style={{ position: 'relative', padding: `${U(40)} 0 ${U(28)}`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', overflowY: 'auto', background: '#0e100a' }}>
-          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(32), right: U(40), font: `500 ${U(12)} ${MONO_REF}`, letterSpacing: '0.14em', textDecoration: 'none', whiteSpace: 'nowrap', color: '#8a8f7a' }}>← VOLVER AL SITIO</a>
+        <div style={{ position: 'relative', padding: `${U(40)} 0 ${U(28)}`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', overflowY: 'auto', background: '#0e100a', paddingLeft: `max(0px, calc(min(${U(800)}, 52vw) - min(100vh * 873 / 1140, 52vw)))` }}>
+          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '999px', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
           {/* La referencia centra el bloque; acá se fija desde arriba en la posición centrada para que no salte al aparecer errores */}
-          <div style={{ width: U(512), flexShrink: 0, marginTop: `max(0px, calc((100vh - ${U(762)}) / 2 - ${U(48)}))` }}>
-            <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(24)} ${U(30)}`, marginTop: U(70), background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 30px 60px -12px rgba(0,0,0,.75), 0 12px 24px -8px rgba(0,0,0,.6), 0 0 60px -20px rgba(155,230,0,.18)' }}>
+          <div style={{ width: U(480), flexShrink: 0, margin: 'auto 0' }}>
+            <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(22)} ${U(30)}`, background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 30px 60px -12px rgba(0,0,0,.75), 0 12px 24px -8px rgba(0,0,0,.6), 0 0 60px -20px rgba(155,230,0,.18)' }}>
               <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: U(30), bottom: `calc(100% - 2 * var(--u))`, width: U(110), height: U(110) }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', font: `500 ${U(10.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: U(12), borderBottom: `${U(1)} dashed #3a3d32` }}><span style={{ color: '#9be600', whiteSpace: 'nowrap' }}>ALTA DE SOCIO</span></div>
               <div role="heading" aria-level={2} style={{ font: `900 ${U(54)}/0.9 ${BIG_REF}`, textTransform: 'uppercase', margin: `${U(16)} 0 ${U(4)}` }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
-              <div style={{ color: '#8a8f7a', fontSize: U(14), marginBottom: U(18) }}>Completá tus datos para registrarte.</div>
+              <div style={{ color: '#8a8f7a', fontSize: U(14), marginBottom: U(14) }}>Completá tus datos para registrarte.</div>
 
-              <form onSubmit={handleSubmit} noValidate>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: `${U(1)} solid #3a3d32`, borderRadius: U(12), overflow: 'hidden' }}>
-                  <div style={celda('1 / 3', 'nombre')}>
-                    <label htmlFor="nombre" style={etiqueta}>NOMBRE COMPLETO</label>
-                    <input id="nombre" type="text" placeholder="Juan Pérez" autoComplete="name" style={campo} value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
-                    {aviso('nombre')}
+              <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: U(8) }}>
+                  {fila({ id: 'nombre', texto: 'Nombre completo', Icono: User,
+                    input: <input id="nombre" type="text" placeholder="Juan Pérez" autoComplete="name" className={clase('nombre')} value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} /> })}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: U(12) }}>
+                    {fila({ id: 'dni', texto: 'DNI', Icono: CreditCard,
+                      input: <input id="dni" type="text" inputMode="numeric" placeholder="12345678" className={clase('dni')} value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} /> })}
+                    {fila({ id: 'telefono', texto: 'Teléfono', Icono: Phone, mensaje: error('telefono') === 'El teléfono es requerido' ? 'Requerido' : undefined,
+                      input: <input id="telefono" type="tel" placeholder="1123456789" autoComplete="tel" className={clase('telefono')} value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} /> })}
                   </div>
-                  <div style={celda('auto', 'dni')}>
-                    <label htmlFor="dni" style={etiqueta}>DNI</label>
-                    <input id="dni" type="text" inputMode="numeric" placeholder="12345678" style={campo} value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
-                    {aviso('dni')}
-                  </div>
-                  <div style={celda('auto', 'telefono')}>
-                    <label htmlFor="telefono" style={etiqueta}>TELÉFONO</label>
-                    <input id="telefono" type="tel" placeholder="1123456789" autoComplete="tel" style={campo} value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
-                    {aviso('telefono', error('telefono') === 'El teléfono es requerido' ? 'Requerido' : undefined)}
-                  </div>
-                  <div style={celda('1 / 3', 'email')}>
-                    <label htmlFor="email" style={etiqueta}>CORREO ELECTRÓNICO</label>
-                    <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" style={campo} value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
-                    {aviso('email')}
-                  </div>
-                  <div style={celda('1 / 3', 'password')}>
-                    <label htmlFor="password" style={etiqueta}>CONTRASEÑA</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
-                      <input id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres" autoComplete="new-password" style={campo} value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                    {aviso('password')}
-                  </div>
-                  <div style={celda('1 / 3', 'confirmPassword')}>
-                    <label htmlFor="confirmPassword" style={etiqueta}>CONFIRMAR CONTRASEÑA</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: U(8) }}>
-                      <input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña" autoComplete="new-password" style={campo} value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>
-                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                    {aviso('confirmPassword')}
-                  </div>
+                  {fila({ id: 'email', texto: 'Correo electrónico', Icono: Mail,
+                    input: <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" className={clase('email')} value={formData.email} onChange={set('email')} onBlur={onBlur('email')} /> })}
+                  {fila({ id: 'password', texto: 'Contraseña', Icono: Lock,
+                    extra: formData.password.length > 0 ? PASSWORD_RULES.map(rule => <span key={rule.id} title={rule.label} style={{ color: rule.test(formData.password) ? '#9be600' : '#8a8f7a' }}>{rule.test(formData.password) ? '✓' : '○'} {{ len: '8+', upper: 'A-Z', lower: 'a-z', num: '0-9' }[rule.id]}</span>) : null,
+                    input: <input id="password" type={showPassword ? 'text' : 'password'} placeholder="Mínimo 8 caracteres" autoComplete="new-password" className={clase('password')} value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />,
+                    botonOjo: <button type="button" className="ojo" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>{showPassword ? <EyeOff style={{ width: U(16), height: U(16) }} /> : <Eye style={{ width: U(16), height: U(16) }} />}</button> })}
+                  {fila({ id: 'confirmPassword', texto: 'Confirmar contraseña', Icono: Lock,
+                    input: <input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repetí tu contraseña" autoComplete="new-password" className={clase('confirmPassword')} value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />,
+                    botonOjo: <button type="button" className="ojo" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Ocultar la contraseña' : 'Mostrar la contraseña'} style={ojo}>{showConfirmPassword ? <EyeOff style={{ width: U(16), height: U(16) }} /> : <Eye style={{ width: U(16), height: U(16) }} />}</button> })}
                 </div>
-
-                {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
-                {formData.password.length > 0 && (
-                  <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: `${U(12)} 0 0`, padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: `${U(4)} ${U(16)}`, font: `500 ${U(11)} ${MONO_REF}` }}>
-                    {PASSWORD_RULES.map(rule => {
-                      const ok = rule.test(formData.password)
-                      return (
-                        <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: U(6), color: ok ? '#9be600' : '#8a8f7a' }}>
-                          <span aria-hidden="true">{ok ? '✓' : '○'}</span>{rule.label}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
 
                 {/* Consentimiento: el servidor también lo exige y guarda la constancia */}
                 <div style={{ position: 'relative' }}>
@@ -475,7 +531,7 @@ function RegistroPage() {
                   {errorTerminos && <p role="alert" style={msjTerminos}><XCircle size={14} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
                 </div>
 
-                <button type="submit" disabled={isLoading} className="pri" style={{ marginTop: U(18), width: '100%', border: 'none', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: `900 ${U(26)} ${BIG_REF}`, letterSpacing: '0.12em', textTransform: 'uppercase', padding: U(12), borderRadius: U(12), boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
+                <button type="submit" disabled={isLoading} className="pri" style={{ marginTop: U(14), width: '100%', height: U(48), display: 'flex', alignItems: 'center', justifyContent: 'center', gap: U(6), border: 'none', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: `900 ${U(15)} Barlow, Archivo, sans-serif`, letterSpacing: '0.08em', textTransform: 'uppercase', borderRadius: U(8), boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'Creando…' : <>Crear mi cuenta <ChevronRight style={{ width: U(16), height: U(16) }} aria-hidden="true" /></>}</button>
               </form>
             </div>
             <div style={{ marginTop: U(18), fontSize: U(13), color: '#8a8f7a' }}>¿Ya tenés cuenta? <Link to="/login" onClick={irA('/login')} style={{ fontWeight: 600 }}>Iniciá sesión</Link></div>

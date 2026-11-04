@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { UserX } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, UserX } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import BravoAvatar from '@/components/BravoAvatar'
 import { useEscritorio } from '@/lib/useEscritorio'
@@ -14,6 +14,11 @@ const ESTILOS_REF = `
 .lr a{color:#9be600}.lr a:hover{color:#c4ff3d}
 .lr input::placeholder{color:#6b705e}.lr input:focus{outline:none}
 .lr button:hover{background:#c4ff3d!important}
+.lr .campo{width:100%;height:calc(40 * var(--u));padding:0 calc(36 * var(--u)) 0 calc(40 * var(--u));background:rgba(255,255,255,.04);border:calc(1 * var(--u)) solid #3a3d32;border-radius:calc(8 * var(--u));color:#ecefe4;font:500 calc(16 * var(--u)) Barlow,Archivo,sans-serif;transition:border-color .15s,box-shadow .15s}
+.lr .campo:focus{border-color:#9be600;box-shadow:0 0 0 calc(2 * var(--u)) rgba(155,230,0,.25)}
+.lr .campo.ok{border-color:rgba(155,230,0,.5)}
+.lr .campo.error{border-color:#ff6b4a}
+.lr button.ojo:hover{background:transparent!important;color:#ecefe4!important}
 .lr .ficha-flota{transition:transform .25s ease-out;will-change:transform;transform:translateY(-4px)}
 .lr .ficha-flota:hover{transition:transform .08s linear}
 @media (prefers-reduced-motion: reduce){.lr .ficha-flota{transition:none}}
@@ -49,6 +54,7 @@ export default function LoginPage() {
   // "Volver al sitio" lleva siempre a la página principal (no al registro ni al login, que son pantallas hermanas)
   const volver = () => navigate("/inicio")
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({})
   const [cuentaDesactivada, setCuentaDesactivada] = useState(false)
@@ -166,7 +172,7 @@ export default function LoginPage() {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(14,16,10,0.55) 0%,rgba(14,16,10,0) 30%,rgba(14,16,10,0.2) 60%,#0e100a 100%)" }} />
           <div style={{ position: "absolute", top: "calc(env(safe-area-inset-top) + 16px)", left: "20px", right: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}><img src="/acceso/brvs.png" alt="" style={{ width: "34px", height: "34px", borderRadius: "8px" }} /><span style={{ font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: "0.3em", color: "#9be600", whiteSpace: "nowrap" }}>BRAVOS BOX</span></div>
-            <Link to="/inicio" style={{ font: "500 12px 'JetBrains Mono'", letterSpacing: "0.14em", textDecoration: "none", whiteSpace: "nowrap", color: "#ecefe4", display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 16px", border: "1px solid rgba(236,239,228,.28)", borderRadius: "999px", background: "rgba(14,16,10,.5)", margin: "-4px -6px -4px 0" }}>← SITIO</Link>
+            <Link to="/inicio" style={{ font: "600 14px Archivo, sans-serif", textDecoration: "none", whiteSpace: "nowrap", color: "#ecefe4", display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 16px", border: "1px solid rgba(236,239,228,.28)", borderRadius: "999px", background: "rgba(14,16,10,.5)", margin: "-4px -6px -4px 0" }}>Sitio</Link>
           </div>
           <div role="heading" aria-level={1} style={{ position: "absolute", left: "20px", top: "calc(env(safe-area-inset-top) + 64px)", font: "900 46px/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>Nadie<br />entrena <span style={{ color: "#9be600" }}>solo.</span></div>
         </div>
@@ -175,7 +181,7 @@ export default function LoginPage() {
         <div style={{ position: "relative", margin: "92px 20px 0" }}>
           <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: "relative", borderRadius: "14px", padding: "20px 18px 18px", ...FICHA_FLOTANTE }}>
             <img src="/acceso/dog-t.png" alt="" style={{ position: "absolute", right: "18px", bottom: "calc(100% - 2px)", width: "84px", height: "84px" }} />
-            <div style={{ font: "500 10px 'JetBrains Mono'", letterSpacing: "0.16em", color: "#9be600", paddingBottom: "10px", borderBottom: "1px dashed #3a3d32" }}>ACCESO SOCIOS</div>
+            <div style={{ font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#9be600", paddingBottom: "10px", borderBottom: "1px dashed #3a3d32" }}>ACCESO SOCIOS</div>
             <div role="heading" aria-level={2} style={{ font: "900 42px/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase", margin: "14px 0 4px" }}>Ingresar<span style={{ color: "#9be600" }}>.</span></div>
             <div style={{ color: "#8a8f7a", fontSize: "13px", marginBottom: "16px" }}>Ingresá con tu cuenta para continuar.</div>
 
@@ -207,11 +213,11 @@ export default function LoginPage() {
             </form>
           </div>
           <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", alignItems: "stretch", gap: "8px" }}>
-            <span style={{ textAlign: "center", font: "500 10px 'JetBrains Mono'", letterSpacing: "0.16em", color: "#8a8f7a" }}>¿PRIMERA VEZ?</span>
+            <span style={{ textAlign: "center", font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#8a8f7a" }}>¿PRIMERA VEZ?</span>
             <Link to="/registro" onClick={irA("/registro")} className="btn2" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "44px", border: "1px solid rgba(155,230,0,.55)", borderRadius: "10px", textDecoration: "none", color: "#9be600", font: "900 16px 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", textTransform: "uppercase" }}>Crear una cuenta →</Link>
           </div>
         </div>
-        <div style={{ marginTop: "28px", paddingBottom: "18px", textAlign: "center", font: "500 9.5px 'JetBrains Mono'", letterSpacing: "0.16em", color: "#4b5233" }}>FORMOSA · EVA PERÓN 552</div>
+        <div style={{ marginTop: "28px", paddingBottom: "18px", textAlign: "center", font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#4b5233" }}>FORMOSA · EVA PERÓN 552</div>
       </div>
     </div>
   )
@@ -222,7 +228,11 @@ export default function LoginPage() {
   const U = (n) => `calc(${n} * var(--u))`
   const MONO_REF = "'JetBrains Mono'"
   const BIG_REF = "'Big Shoulders Stencil Display'"
-  const msjError = { margin: `${U(2)} 0 0`, font: `500 ${U(14)} Archivo`, color: "#ff6b4a" }
+  const msjError = { margin: `${U(4)} 0 0`, font: `500 ${U(14)} Archivo`, color: "#ff6b4a" }
+  // Formulario de campos sueltos (rótulo arriba, ícono a la izquierda, campo redondeado)
+  const etiqueta = { display: "block", font: `700 ${U(11)} Barlow, Archivo, sans-serif`, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8a8f7a" }
+  const iconoIzq = { position: "absolute", left: U(12), top: "50%", transform: "translateY(-50%)", width: U(16), height: U(16), color: "#8a8f7a", pointerEvents: "none" }
+  const ojo = { position: "absolute", right: U(12), top: "50%", transform: "translateY(-50%)", display: "flex", padding: 0, background: "transparent", border: "none", cursor: "pointer", color: "#8a8f7a" }
 
   return (
     <div className={`lr${saliendo ? " sale" : ""}`} style={{ margin: 0, color: "#ecefe4", fontFamily: "Archivo,sans-serif", lineHeight: "normal", "--u": "min(100vw / 1280, 100vh / 880)" }}>
@@ -256,8 +266,9 @@ export default function LoginPage() {
 
         {/* PANEL DERECHO: FORMULARIO */}
         <div style={{ position: "relative", padding: `${U(40)} 0 ${U(28)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", background: "#0e100a" }}>
-          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: "absolute", top: `${U(32)}`, right: `${U(40)}`, font: `500 ${U(12)} ${MONO_REF}`, letterSpacing: "0.14em", textDecoration: "none", color: "#8a8f7a" }}>← VOLVER AL SITIO</a>
-          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: "relative", width: `${U(480)}`, border: `${U(1)} solid #4a4e3f`, borderRadius: `${U(16)}`, padding: `${U(24)} ${U(30)}`, marginTop: `max(${U(100)}, calc((100vh - ${U(566)}) / 2 + ${U(100)}))`, background: "linear-gradient(160deg, #16190f 0%, #0e100a 60%)", boxShadow: `0 ${U(1)} 0 rgba(236,239,228,.08) inset, 0 ${U(30)} ${U(60)} ${U(-12)} rgba(0,0,0,.75), 0 ${U(12)} ${U(24)} ${U(-8)} rgba(0,0,0,.6), 0 0 ${U(60)} ${U(-20)} rgba(155,230,0,.18)` }}>
+          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: "absolute", top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '999px', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
+          <div style={{ position: "relative", width: `${U(480)}`, margin: "auto 0" }}>
+          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: "relative", width: "100%", border: `${U(1)} solid #4a4e3f`, borderRadius: `${U(16)}`, padding: `${U(24)} ${U(30)}`,  background: "linear-gradient(160deg, #16190f 0%, #0e100a 60%)", boxShadow: `0 ${U(1)} 0 rgba(236,239,228,.08) inset, 0 ${U(30)} ${U(60)} ${U(-12)} rgba(0,0,0,.75), 0 ${U(12)} ${U(24)} ${U(-8)} rgba(0,0,0,.6), 0 0 ${U(60)} ${U(-20)} rgba(155,230,0,.18)` }}>
             <img src="/acceso/dog-t.png" alt="" style={{ position: "absolute", left: `${U(30)}`, bottom: `calc(100% - ${U(2)})`, width: `${U(110)}`, height: `${U(110)}` }} />
             <div style={{ display: "flex", justifyContent: "space-between", font: `500 ${U(10.5)} ${MONO_REF}`, letterSpacing: "0.16em", color: "#8a8f7a", paddingBottom: `${U(12)}`, borderBottom: `${U(1)} dashed #3a3d32` }}><span style={{ color: "#9be600", whiteSpace: "nowrap" }}>ACCESO SOCIOS</span></div>
             <div role="heading" aria-level={2} style={{ font: `900 ${U(54)} / 0.9 ${BIG_REF}`, textTransform: "uppercase", margin: `${U(16)} 0 ${U(4)}` }}>Ingresar<span style={{ color: "#9be600" }}>.</span></div>
@@ -274,26 +285,35 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", border: `${U(1)} solid #3a3d32`, borderRadius: `${U(12)}`, overflow: "hidden" }}>
-                <div style={{ gridColumn: "1 / 3", padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid #3a3d32`, margin: `${U(-0.5)}` }}>
-                  <label htmlFor="email" style={{ font: `500 ${U(9.5)} ${MONO_REF}`, letterSpacing: "0.16em", color: "#8a8f7a" }}>CORREO ELECTRÓNICO</label>
-                  <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    style={{ width: "100%", background: "transparent", border: "none", color: "#ecefe4", font: `500 ${U(16)} Archivo`, padding: `${U(4)} 0` }} />
-                  {errors.email && <p role="alert" style={msjError}>{errors.email}</p>}
+            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: `${U(12)}` }}>
+              <div>
+                <label htmlFor="email" style={etiqueta}>Correo electrónico</label>
+                <div style={{ position: "relative", marginTop: `${U(5)}` }}>
+                  <Mail style={iconoIzq} aria-hidden="true" />
+                  <input id="email" type="email" placeholder="tu@email.com" autoComplete="email" className={`campo${errors.email ? " error" : ""}`} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
-                <div style={{ gridColumn: "1 / 3", padding: `${U(8)} ${U(12)} ${U(6)}`, border: `${U(1)} solid #3a3d32`, margin: `${U(-0.5)}` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}><label htmlFor="password" style={{ font: `500 ${U(9.5)} ${MONO_REF}`, letterSpacing: "0.16em", color: "#8a8f7a" }}>CONTRASEÑA</label><Link to="/recuperar-contrasena" style={{ font: `500 ${U(11)} Archivo`, textDecoration: "none" }}>¿La olvidaste?</Link></div>
-                  <input id="password" type="password" placeholder="••••••••" autoComplete="current-password" value={formData.password}
-                    onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPistaOlvido(false) }}
-                    style={{ width: "100%", background: "transparent", border: "none", color: "#ecefe4", font: `500 ${U(16)} Archivo`, padding: `${U(4)} 0` }} />
-                  {errors.password && <p role="alert" style={msjError}>{errors.password}</p>}
-                </div>
+                {errors.email && <p role="alert" style={msjError}>{errors.email}</p>}
               </div>
-              <button type="submit" disabled={isLoading} style={{ marginTop: `${U(18)}`, width: "100%", border: "none", cursor: "pointer", background: "#9be600", color: "#0b0c09", font: `900 ${U(26)} ${BIG_REF}`, letterSpacing: "0.12em", textTransform: "uppercase", padding: `${U(12)}`, borderRadius: `${U(12)}`, boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? "INGRESANDO…" : "Iniciar sesión →"}</button>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label htmlFor="password" style={etiqueta}>Contraseña</label>
+                  <Link to="/recuperar-contrasena" style={{ font: `500 ${U(11)} Archivo`, textDecoration: "none" }}>¿La olvidaste?</Link>
+                </div>
+                <div style={{ position: "relative", marginTop: `${U(5)}` }}>
+                  <Lock style={iconoIzq} aria-hidden="true" />
+                  <input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" autoComplete="current-password" className={`campo${errors.password ? " error" : ""}`} value={formData.password}
+                    onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPistaOlvido(false) }} />
+                  <button type="button" className="ojo" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Ocultar la contraseña" : "Mostrar la contraseña"} style={ojo}>
+                    {showPassword ? <EyeOff style={{ width: U(16), height: U(16) }} /> : <Eye style={{ width: U(16), height: U(16) }} />}
+                  </button>
+                </div>
+                {errors.password && <p role="alert" style={msjError}>{errors.password}</p>}
+              </div>
+              <button type="submit" disabled={isLoading} style={{ marginTop: `${U(4)}`, width: "100%", height: `${U(48)}`, border: "none", cursor: "pointer", background: "#9be600", color: "#0b0c09", font: `900 ${U(15)} Barlow, Archivo, sans-serif`, letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: `${U(8)}`, boxShadow: `0 ${U(8)} ${U(20)} ${U(-6)} rgba(155,230,0,.45)`, opacity: isLoading ? 0.7 : 1 }}>{isLoading ? "Ingresando…" : "Iniciar sesión"}</button>
             </form>
           </div>
-          <div style={{ width: `${U(480)}`, marginTop: `${U(18)}`, fontSize: `${U(13)}`, color: "#8a8f7a" }}>¿Primera vez? <Link to="/registro" onClick={irA("/registro")} style={{ fontWeight: 600 }}>Crear una cuenta nueva</Link></div>
+          <div style={{ position: "absolute", top: "100%", left: 0, marginTop: `${U(18)}`, fontSize: `${U(13)}`, whiteSpace: "nowrap", color: "#8a8f7a" }}>¿Primera vez? <Link to="/registro" onClick={irA("/registro")} style={{ fontWeight: 600 }}>Crear una cuenta nueva</Link></div>
+          </div>
         </div>
       </div>
     </div>
