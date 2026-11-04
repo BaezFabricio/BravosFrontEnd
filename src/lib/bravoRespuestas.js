@@ -500,7 +500,6 @@ const TEMAS_ALUMNO = [
         `Cómo usarla:\n` +
         pasos([
           `Ingresá el peso que levantaste y las repeticiones que lograste (por ejemplo 80 kg × 5).`,
-          `Elegí la fórmula: Epley o Brzycki.`,
           `Al instante ves tu 1RM estimado y una tabla con el peso de trabajo para cada porcentaje (del 100 % al 50 %).`,
         ]) +
         `\n\nEs una estimación: funciona mejor con pocas repeticiones (hasta 10 aprox.).`,

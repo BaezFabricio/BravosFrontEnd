@@ -318,21 +318,11 @@ const calculadora = [
     ruta: "/alumno/calculadora-rm",
   },
   {
-    titulo: "La fórmula",
-    texto: "Podés elegir cómo se calcula.",
-    puntos: [
-      "Epley y Brzycki son dos fórmulas conocidas.",
-      "Dan resultados parecidos; si cambiás de una a otra, comparás.",
-    ],
-    objetivo: "calc-formula",
-    ruta: "/alumno/calculadora-rm",
-  },
-  {
     titulo: "Tu 1RM estimado",
     texto: "Acá aparece el resultado cuando cargás peso y repeticiones.",
     puntos: [
       "Es el peso máximo que podrías levantar una sola vez.",
-      "Debajo ves con qué datos y fórmula se calculó.",
+      "Debajo ves con qué datos se calculó (fórmula de Epley).",
     ],
     objetivo: "calc-resultado",
     ruta: "/alumno/calculadora-rm",
