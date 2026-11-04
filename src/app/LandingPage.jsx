@@ -134,7 +134,6 @@ function LandingPage() {
 
   // 🟢 ESTADOS DE HORARIOS SCONECTADOS
   const [turnosBox, setTurnosBox] = useState([]) // horarios de los turnos del box, por tipo de clase
-  const [hayRanking, setHayRanking] = useState(false) // si ya hay RM cargados, aparece el botón Ranking (abre su propia página)
   const [loadingHorarios, setLoadingHorarios] = useState(true)
   // Arranca en el día de hoy (el domingo no hay clases: arranca en el lunes)
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => {
@@ -270,12 +269,6 @@ function LandingPage() {
         if (isMounted) reintento = setTimeout(() => cargarConfig(intento + 1), Math.min(2000 * 2 ** intento, 15000))
       })
     cargarConfig()
-    fetch("/api/vv1/marcas/ranking-publico")
-      .then((res) => res.json())
-      .then((result) => {
-        if (isMounted) setHayRanking((result.data?.ejercicios || []).some((e) => e.participantes > 0))
-      })
-      .catch(() => { /* sin ranking la portada se ve igual: la sección simplemente no aparece */ })
     fetch("/api/vv1/turnos/publicos")
       .then((res) => res.json())
       .then((result) => {
@@ -410,11 +403,9 @@ function LandingPage() {
               </nav>
 
               <div className="hidden items-center gap-3 lg:flex">
-                {hayRanking && (
-                  <Link to="/ranking" className="flex h-9 items-center gap-1.5 rounded-full border border-lime-400/70 bg-lime-400/10 px-4 text-xs font-black tracking-widest text-lime-400 transition-colors hover:bg-lime-400 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    <Medal className="h-4 w-4" aria-hidden="true" /> RANKING
-                  </Link>
-                )}
+                <Link to="/ranking" className="flex h-9 items-center gap-1.5 rounded-full border border-lime-400/70 bg-lime-400/10 px-4 text-xs font-black tracking-widest text-lime-400 transition-colors hover:bg-lime-400 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                  <Medal className="h-4 w-4" aria-hidden="true" /> RANKING
+                </Link>
 
                 {!isLoggedIn ? (
                   <>
@@ -527,11 +518,9 @@ function LandingPage() {
               </nav>
 
               <div className="border-t border-white/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-                {hayRanking && (
-                  <Link to="/ranking" onClick={() => setMobileMenuOpen(false)} className="mb-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-lime-400/70 bg-lime-400/10 text-xs font-black tracking-wider text-lime-400">
-                    <Medal className="h-4 w-4" aria-hidden="true" /> RANKING DE RM
-                  </Link>
-                )}
+                <Link to="/ranking" onClick={() => setMobileMenuOpen(false)} className="mb-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-lime-400/70 bg-lime-400/10 text-xs font-black tracking-wider text-lime-400">
+                  <Medal className="h-4 w-4" aria-hidden="true" /> RANKING DE RM
+                </Link>
                 {!isLoggedIn ? (
                   <div className="grid grid-cols-2 gap-2">
                     <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex h-11 items-center justify-center rounded-lg border border-white/25 text-xs font-bold tracking-wider text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bravos-green">
