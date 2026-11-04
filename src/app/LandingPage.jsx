@@ -791,24 +791,51 @@ function LandingPage() {
               <p className="text-sm text-white/50">Los horarios se publican muy pronto.</p>
             </div>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Una tarjeta por horario del box (de todos los tipos de clase), ordenadas por la hora de inicio */}
-              {turnosBox
-                .flatMap((tipo) => tipo.horarios.map((h) => ({ ...h, tipo: tipo.nombre, codigo: tipo.codigo })))
-                .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio) || a.tipo.localeCompare(b.tipo))
-                .map((h) => (
-                  <div key={`${h.codigo}-${h.horaInicio}-${h.horaFin}`} className="flex items-center gap-3 rounded-md border border-border bg-foreground/5 px-3 py-2.5 transition-colors hover:border-white/25">
-                    <div className="shrink-0 text-center">
-                      <p className="text-base font-black leading-none tabular-nums text-accent">{h.horaInicio}</p>
-                      <p className="mt-0.5 text-[10px] tabular-nums text-white/45">a {h.horaFin}</p>
+            <div key={diaSeleccionado} className="horarios-cambio grid gap-3 md:grid-cols-2">
+              <style>{`
+                @keyframes horarios-entra { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+                .horarios-cambio > article { animation: horarios-entra .35s cubic-bezier(.22,1,.36,1) backwards }
+                .horarios-cambio > article:nth-of-type(2) { animation-delay: .07s }
+                @media (prefers-reduced-motion: reduce) { .horarios-cambio > article { animation: none } }
+              `}</style>
+              {/* Un bloque por tipo de clase (como en las publicaciones de Instagram), con sus turnos y horas */}
+              {turnosBox.map((tipo) => {
+                const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+                const turnos = Object.values(
+                  [...tipo.horarios]
+                    .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio))
+                    .reduce((acc, h) => {
+                      const clave = `${h.turno}|${h.etiqueta || ''}`
+                      ;(acc[clave] ||= { clave, turno: h.turno, etiqueta: h.etiqueta, horas: [] }).horas.push(h)
+                      return acc
+                    }, {})
+                )
+                return (
+                  <article key={tipo.codigo} className="rounded-xl border border-white/15 bg-black/50 p-4 backdrop-blur-sm">
+                    <h3 className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-accent">{tipo.nombre}</h3>
+                    <div className="divide-y divide-white/10">
+                      {turnos.map((t) => (
+                        <div key={t.clave} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                          <div className="min-w-0">
+                            <p className="text-sm font-black uppercase leading-tight text-white">Turno {t.turno}</p>
+                            {t.etiqueta && <p className="text-[11px] leading-tight text-white/55">{t.etiqueta}</p>}
+                          </div>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {t.horas.map((h) => {
+                              const largo = minutos(h.horaFin) - minutos(h.horaInicio) > 90
+                              return (
+                                <span key={`${h.horaInicio}-${h.horaFin}`} className="rounded-full border border-white/40 px-3 py-1 text-sm font-black tabular-nums text-white">
+                                  {largo ? `${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : h.horaInicio.slice(0, 5)}
+                                </span>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="h-8 w-px shrink-0 bg-white/10" aria-hidden="true" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-black uppercase leading-tight text-white">{h.tipo} {h.turno}</p>
-                      {h.etiqueta && <p className="text-xs leading-tight text-white/55">{h.etiqueta}</p>}
-                    </div>
-                  </div>
-                ))}
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
