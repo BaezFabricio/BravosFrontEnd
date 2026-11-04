@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import "./estadosAcceso.css"
+import "./estadosAccesoMovil.css"
 
 /*
  * Marco de las pantallas de estado del acceso (ver estadosAcceso.css): foto con corte diagonal a la derecha,

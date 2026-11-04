@@ -196,20 +196,30 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div style={{ border: "1px solid #3a3d32", borderRadius: "10px", overflow: "hidden" }}>
-                <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid #3a3d32" }}>
-                  <label className="lbl" htmlFor="email-m">CORREO ELECTRÓNICO</label>
-                  <input id="email-m" className="inp" type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-                  {errors.email && <p role="alert" style={{ margin: "4px 0 0", font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.email}</p>}
+            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div className="mf">
+                <label className="lbl" htmlFor="email-m">Correo electrónico</label>
+                <div className="mfw">
+                  <Mail className="ic" aria-hidden="true" />
+                  <input id="email-m" className={`campo${errors.email ? " error" : ""}`} type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
-                <div style={{ padding: "10px 14px 8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><label className="lbl" htmlFor="password-m">CONTRASEÑA</label><Link to="/recuperar-contrasena" style={{ font: "600 12px Archivo", textDecoration: "none", padding: "8px 0 8px 12px", margin: "-8px 0" }}>¿La olvidaste?</Link></div>
-                  <input id="password-m" className="inp" type="password" autoComplete="current-password" placeholder="••••••••" value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPistaOlvido(false) }} />
-                  {errors.password && <p role="alert" style={{ margin: "4px 0 0", font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.password}</p>}
-                </div>
+                {errors.email && <p role="alert" style={{ margin: 0, font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.email}</p>}
               </div>
-              <button type="submit" disabled={isLoading} style={{ marginTop: "16px", width: "100%", height: "54px", border: "none", borderRadius: "10px", cursor: "pointer", background: "#9be600", color: "#0b0c09", font: "900 22px 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", textTransform: "uppercase", boxShadow: "rgba(155,230,0,0.28) 0 0 28px", opacity: isLoading ? 0.7 : 1 }}>{isLoading ? "INGRESANDO…" : "Iniciar sesión →"}</button>
+              <div className="mf">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <label className="lbl" htmlFor="password-m">Contraseña</label>
+                  <Link to="/recuperar-contrasena" style={{ font: "600 12px Archivo", textDecoration: "none", padding: "8px 0 8px 12px", margin: "-8px 0" }}>¿La olvidaste?</Link>
+                </div>
+                <div className="mfw">
+                  <Lock className="ic" aria-hidden="true" />
+                  <input id="password-m" className={`campo${errors.password ? " error" : ""}`} type={showPassword ? "text" : "password"} autoComplete="current-password" placeholder="••••••••" value={formData.password} onChange={(e) => { setFormData({ ...formData, password: e.target.value }); setPistaOlvido(false) }} />
+                  <button type="button" className="ojo" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Ocultar la contraseña" : "Mostrar la contraseña"}>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <p role="alert" style={{ margin: 0, font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.password}</p>}
+              </div>
+              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: "4px" }}>{isLoading ? "Ingresando…" : "Iniciar sesión"}</button>
             </form>
           </div>
           <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", alignItems: "stretch", gap: "8px" }}>

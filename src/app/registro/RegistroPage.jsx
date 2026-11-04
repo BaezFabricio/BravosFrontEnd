@@ -3,11 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CheckCircle2, ChevronRight, CreditCard, Eye, EyeOff, Lock, Mail, Phone, User, XCircle } from 'lucide-react'
 import { registroUsuario, reenviarVerificacionCuenta } from '@/api'
 import { toast } from '@/lib/notificar'
-import { useEscritorio, useAnchoAcceso } from '@/lib/useEscritorio'
+import { useEscritorio } from '@/lib/useEscritorio'
 import PantallaEstado from '@/components/acceso/PantallaEstado'
-import { ARCH, BIG, COLOR, MONO } from '@/lib/accesoEstilos'
 import { ESTILOS_MOVIL, FICHA_FLOTANTE } from '@/lib/estilosMovil'
-import { Ficha } from '@/components/AccesoDiseno'
 
 const PASSWORD_RULES = [
   { id: 'len',   label: 'Mínimo 8 caracteres',      test: (p) => p.length >= 8 },
@@ -68,7 +66,6 @@ const ESTILOS_REF = `
 
 function RegistroPage() {
   const escritorio = useEscritorio()
-  const anchoAcceso = useAnchoAcceso()
   // Al pasar al login: la pantalla se desvanece y recién ahí navega (el login entra con su propia animación)
   const [saliendo, setSaliendo] = useState(false)
   const irA = (destino) => (e) => {
@@ -227,7 +224,7 @@ function RegistroPage() {
 
 
   // ── Pantalla de éxito ──
-  if (isSuccess && anchoAcceso) {
+  if (isSuccess) {
     // Diseño de estados del acceso (estados-referencia, 5a): cuenta creada
     return (
       <PantallaEstado foto="grupo-c.png" posicion="40% 60%">
@@ -269,77 +266,29 @@ function RegistroPage() {
     )
   }
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen px-6 pb-10 pt-6 text-[#ecefe4]" style={{ ...ARCH, background: COLOR.form }}>
-        <div className="mx-auto w-full max-w-[480px]">
-          <Ficha margenSuperior={100} arriba={100} tagIzq="ALTA DE SOCIO" tagDer="CUENTA CREADA" titulo="¡Cuenta creada" subtitulo="Verificá tu correo para activarla.">
-            <div className="mb-4 flex items-center gap-3" role="status">
-              <CheckCircle2 className="h-9 w-9 shrink-0" style={{ color: COLOR.lima }} aria-hidden="true" />
-              <p className="text-[15px] font-semibold">Tu cuenta se creó con éxito.</p>
-            </div>
-            <div className="border p-4" style={{ borderColor: COLOR.linea }}>
-              <p className="text-[9.5px] uppercase tracking-[0.16em]" style={{ ...MONO, color: COLOR.apagado }}>Enviamos el link a</p>
-              {!isEditingEmail ? (
-                <div className="mt-1 space-y-1">
-                  <p className="break-all text-base font-semibold" style={{ color: COLOR.lima }}>{formData.email}</p>
-                  <button onClick={() => { setIsEditingEmail(true); setNewEmailInput(formData.email) }}
-                    className="text-xs underline transition-colors hover:text-white" style={{ color: COLOR.apagado }}>
-                    ¿Te equivocaste? Cambiar correo
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-2 flex flex-col gap-3">
-                  <input type="email" value={newEmailInput} onChange={(e) => setNewEmailInput(e.target.value)} placeholder="tu@correo.com" aria-label="Nuevo correo"
-                    className="w-full border bg-transparent px-3 py-2 text-[16px] outline-none placeholder:text-[#6b705e] focus:border-[#9be600]" style={{ borderColor: COLOR.linea }} />
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => setIsEditingEmail(false)} disabled={isUpdatingEmail}
-                      className="border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:text-white disabled:opacity-60" style={{ borderColor: COLOR.linea, color: COLOR.apagado }}>
-                      Cancelar
-                    </button>
-                    <button type="button" onClick={handleUpdateEmail} disabled={isUpdatingEmail}
-                      className="px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors hover:!bg-[#c4ff3d] disabled:opacity-60" style={{ background: COLOR.lima, color: COLOR.base }}>
-                      {isUpdatingEmail ? 'Guardando…' : 'Confirmar y reenviar'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <ol className="mt-4 space-y-1.5 text-[13px] leading-relaxed" style={{ color: COLOR.apagado }}>
-              <li><span style={{ color: COLOR.lima }}>1.</span> Abrí el correo de Bravos Box.</li>
-              <li><span style={{ color: COLOR.lima }}>2.</span> Tocá el botón «Activar mi cuenta».</li>
-              <li><span style={{ color: COLOR.lima }}>3.</span> Volvé acá e iniciá sesión.</li>
-            </ol>
-            <p className="mt-3 text-[12.5px] leading-relaxed" style={{ color: COLOR.apagado }}>
-              ¿No lo ves? Mirá en spam o correo no deseado.{' '}
-              <button type="button" onClick={handleReenviar} disabled={espera > 0} className="underline transition-colors hover:text-white disabled:no-underline disabled:opacity-60" style={{ color: COLOR.lima }}>
-                {espera > 0 ? `Reenviar enlace (${espera}s)` : 'Reenviar enlace'}
-              </button>
-            </p>
-            {reenvio === 'ok' && <p role="status" className="mt-1 text-[12.5px]" style={{ color: COLOR.lima }}>Listo, te enviamos un nuevo enlace.</p>}
-            {reenvio === 'error' && <p role="alert" className="mt-1 text-[12.5px] text-[#ff6b4a]">No pudimos reenviarlo. Probá de nuevo en un rato.</p>}
-            <Link to="/login"
-              className="mt-[18px] flex w-full items-center justify-center px-3 py-3 text-[22px] uppercase tracking-[0.12em] transition-colors hover:!bg-[#c4ff3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4ff3d]"
-              style={{ ...BIG, background: COLOR.lima, color: COLOR.base }}>
-              Ir al inicio de sesión →
-            </Link>
-          </Ficha>
-        </div>
-      </div>
-    )
-  }
 
   // ── Formulario ──
   const msjErrorM = { margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '5px', font: '500 13px Archivo', color: '#ff6b4a' }
   // Símbolo a la derecha del campo (X roja si hay error, tilde lima si está bien) y el aviso debajo
-  const iconoM = { position: 'absolute', top: '29px', right: '14px', display: 'flex' }
-  const avisoM = (campo) => (
-    <>
-      {error(campo) && <p role="alert" style={msjErrorM}>{error(campo)}</p>}
-      {error(campo) && <span aria-hidden="true" style={{ ...iconoM, color: '#ff6b4a' }}><XCircle size={18} /></span>}
-      {valido(campo) && <span role="img" aria-label="Dato correcto" style={{ ...iconoM, color: '#9be600' }}><CheckCircle2 size={18} /></span>}
-      {campo === 'confirmPassword' && valido(campo) && <p style={{ ...msjErrorM, color: '#9be600' }}>Las contraseñas coinciden</p>}
-    </>
+  // Campo del celular: igual que el de escritorio (rótulo arriba, ícono a la izquierda, borde redondeado, ✓ / ✕ a la derecha)
+  const campoM = (campo, { id, texto, Icono, tipo, auto, modo, ph, ojo }) => (
+    <div className="mf">
+      <label className="lbl" htmlFor={id}>{texto}</label>
+      <div className="mfw">
+        <Icono className="ic" aria-hidden="true" />
+        <input id={id} className={`campo${error(campo) ? ' error' : valido(campo) ? ' ok' : ''}`} type={tipo} autoComplete={auto} inputMode={modo} placeholder={ph}
+          value={formData[campo]} onChange={set(campo)} onBlur={onBlur(campo)} />
+        {error(campo) && <span aria-hidden="true" className={`estado${ojo ? ' con-ojo' : ''}`} style={{ color: '#ff6b4a' }}><XCircle size={18} /></span>}
+        {valido(campo) && <span role="img" aria-label="Dato correcto" className={`estado${ojo ? ' con-ojo' : ''}`} style={{ color: '#9be600' }}><CheckCircle2 size={18} /></span>}
+        {ojo && (
+          <button type="button" className="ojo" onClick={ojo[1]} aria-label={ojo[0] ? 'Ocultar la contraseña' : 'Mostrar la contraseña'}>
+            {ojo[0] ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
+      {error(campo) && <p role="alert" style={{ ...msjErrorM, margin: 0 }}>{error(campo)}</p>}
+      {campo === 'confirmPassword' && valido(campo) && <p style={{ ...msjErrorM, color: '#9be600', margin: 0 }}>Las contraseñas coinciden</p>}
+    </div>
   )
   const vistaMovil = (
     <div className={`lm${saliendo ? ' sale' : ''}`} style={{ margin: 0, background: '#0e100a', color: '#ecefe4', fontFamily: 'Archivo,sans-serif', lineHeight: 'normal', minHeight: '100dvh' }}>
@@ -367,37 +316,15 @@ function RegistroPage() {
             <div style={{ color: '#8a8f7a', fontSize: '13px', marginBottom: '16px' }}>Completá tus datos para registrarte.</div>
 
             <form onSubmit={handleSubmit} noValidate>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid #3a3d32', borderRadius: '10px', overflow: 'hidden' }}>
-                <div className="cell" style={{ gridColumn: '1/3' }}>
-                  <label className="lbl" htmlFor="nombre-m">NOMBRE COMPLETO</label>
-                  <input id="nombre-m" className="inp" type="text" autoComplete="name" placeholder="Juan Pérez" value={formData.nombre} onChange={set('nombre')} onBlur={onBlur('nombre')} />
-                  {avisoM('nombre')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {campoM('nombre', { id: 'nombre-m', texto: 'Nombre completo', Icono: User, tipo: 'text', auto: 'name', ph: 'Juan Pérez' })}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  {campoM('dni', { id: 'dni-m', texto: 'DNI', Icono: CreditCard, tipo: 'text', modo: 'numeric', ph: '12345678' })}
+                  {campoM('telefono', { id: 'telefono-m', texto: 'Teléfono', Icono: Phone, tipo: 'tel', auto: 'tel', ph: '1123456789' })}
                 </div>
-                <div className="cell" style={{ borderRight: '1px solid #3a3d32' }}>
-                  <label className="lbl" htmlFor="dni-m">DNI</label>
-                  <input id="dni-m" className="inp" type="text" inputMode="numeric" placeholder="12345678" value={formData.dni} onChange={set('dni')} onBlur={onBlur('dni')} />
-                  {avisoM('dni')}
-                </div>
-                <div className="cell">
-                  <label className="lbl" htmlFor="telefono-m">TELÉFONO</label>
-                  <input id="telefono-m" className="inp" type="tel" autoComplete="tel" placeholder="1123456789" value={formData.telefono} onChange={set('telefono')} onBlur={onBlur('telefono')} />
-                  {avisoM('telefono')}
-                </div>
-                <div className="cell" style={{ gridColumn: '1/3' }}>
-                  <label className="lbl" htmlFor="email-m">CORREO ELECTRÓNICO</label>
-                  <input id="email-m" className="inp" type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={set('email')} onBlur={onBlur('email')} />
-                  {avisoM('email')}
-                </div>
-                <div className="cell" style={{ gridColumn: '1/3' }}>
-                  <label className="lbl" htmlFor="password-m">CONTRASEÑA</label>
-                  <input id="password-m" className="inp" type="password" autoComplete="new-password" placeholder="Mínimo 8 caracteres" value={formData.password} onChange={set('password')} onBlur={onBlur('password')} />
-                  {avisoM('password')}
-                </div>
-                <div className="cell" style={{ gridColumn: '1/3', borderBottom: 'none' }}>
-                  <label className="lbl" htmlFor="confirm-m">CONFIRMAR CONTRASEÑA</label>
-                  <input id="confirm-m" className="inp" type="password" autoComplete="new-password" placeholder="Repetí tu contraseña" value={formData.confirmPassword} onChange={set('confirmPassword')} onBlur={onBlur('confirmPassword')} />
-                  {avisoM('confirmPassword')}
-                </div>
+                {campoM('email', { id: 'email-m', texto: 'Correo electrónico', Icono: Mail, tipo: 'email', auto: 'email', ph: 'tu@email.com' })}
+                {campoM('password', { id: 'password-m', texto: 'Contraseña', Icono: Lock, tipo: showPassword ? 'text' : 'password', auto: 'new-password', ph: 'Mínimo 8 caracteres', ojo: [showPassword, () => setShowPassword(!showPassword)] })}
+                {campoM('confirmPassword', { id: 'confirm-m', texto: 'Confirmar contraseña', Icono: Lock, tipo: showConfirmPassword ? 'text' : 'password', auto: 'new-password', ph: 'Repetí tu contraseña', ojo: [showConfirmPassword, () => setShowConfirmPassword(!showConfirmPassword)] })}
               </div>
 
               {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
@@ -421,7 +348,7 @@ function RegistroPage() {
                 <span>Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.</span>
               </label>
               {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '6px 0 0' }}><XCircle size={15} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
-              <button type="submit" disabled={isLoading} style={{ marginTop: '16px', width: '100%', height: '54px', border: 'none', borderRadius: '10px', cursor: 'pointer', background: '#9be600', color: '#0b0c09', font: "900 22px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase', boxShadow: 'rgba(155,230,0,0.28) 0 0 28px', opacity: isLoading ? 0.7 : 1 }}>{isLoading ? 'CREANDO…' : 'Crear mi cuenta →'}</button>
+              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: '16px' }}>{isLoading ? 'Creando…' : 'Crear mi cuenta'}</button>
             </form>
           </div>
           <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>

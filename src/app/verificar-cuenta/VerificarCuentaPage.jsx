@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { reenviarVerificacionCuenta } from '@/api'
 import PantallaEstado from '@/components/acceso/PantallaEstado'
-import { useAnchoAcceso } from '@/lib/useEscritorio'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/vv1'
 
@@ -21,7 +20,6 @@ function VerificarCuentaPage() {
   const [isReenviando, setIsReenviando] = useState(false)
   const [reenviadoMensaje, setReenviadoMensaje] = useState('')
   const [reenviadoError, setReenviadoError] = useState('')
-  const ancho = useAnchoAcceso()
   const enCurso = useRef(false)
 
   useEffect(() => {
@@ -82,8 +80,8 @@ function VerificarCuentaPage() {
     }
   }
 
-  // Pantallas anchas: diseño de estados del acceso (estados-referencia: 5b confirmar, 5c/5d problema)
-  if (ancho) {
+  // Diseño de estados del acceso, en escritorio y en celular (estados-referencia: 5b confirmar, 5c/5d problema)
+  {
     if (status === 'ready') {
       return (
         <PantallaEstado foto="barra.png" posicion="50% 58%">
