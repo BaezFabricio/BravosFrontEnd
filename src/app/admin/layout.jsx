@@ -18,6 +18,7 @@ import {
   Shield,
   ChevronDown,
   BarChart3,
+  Medal,
 } from "lucide-react"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
@@ -41,6 +42,7 @@ const navigation = [
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta", grupo: "gestion" },
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
+  { name: "Ejercicios del RM", mobileLabel: "RM", href: "/admin/ejercicios-rm", icon: Medal, requiredPermission: "configuracion:consulta", grupo: "gestion" },
   { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: IconoWhatsApp, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },
   { name: "Configuración del Box", mobileLabel: "Config", href: "/admin/configuracion", icon: Settings, requiredPermission: "configuracion:consulta", grupo: "sistema" },
@@ -318,7 +320,7 @@ export default function AdminLayout({ children }) {
         <main className="p-4 lg:p-6 pb-20 lg:pb-6">
           {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
           {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
-          {location.pathname !== "/admin" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
+          {location.pathname !== "/admin" && location.pathname !== "/admin/reportes" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
             <BotonVolver a="/admin" texto="Volver" className="mb-4 lg:hidden" />
           )}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>

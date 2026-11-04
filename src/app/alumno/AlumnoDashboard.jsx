@@ -19,6 +19,7 @@ import { HelpTooltip } from "@/components/ui/help-tooltip"
 import apiClient from "@/api" 
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import { mensajeBienvenida } from "@/lib/mensajeBienvenida"
+import MiniRanking from "@/components/MiniRanking"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
@@ -416,13 +417,16 @@ export default function AlumnoDashboard() {
               <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Trophy className="h-7 w-7 text-accent" />
               </div>
-              <h3 className="font-bold text-foreground">Mis Marcas</h3>
+              <h3 className="font-bold text-foreground">Mis RM</h3>
               <p className="text-sm text-muted-foreground mt-1">{statsMarcas.totalMarcas} {statsMarcas.totalMarcas === 1 ? "registrada" : "registradas"}</p>
             </CardContent>
           </Card>
         </Link>
       </div>
       </section>
+
+      {/* Mini vista del ranking de RM (solo si ya hay marcas en el box) */}
+      <div className="hidden lg:block"><MiniRanking /></div>
 
       {/* SECCIÓN DOBLE: CLASES DISPONIBLES VS MIS RESERVAS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

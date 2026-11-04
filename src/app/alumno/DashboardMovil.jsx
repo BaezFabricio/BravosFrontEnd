@@ -1,3 +1,4 @@
+import MiniRanking from "@/components/MiniRanking"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Calendar, Calculator, Dumbbell, ChevronRight, CreditCard, Plus, Flame, HelpCircle, Trophy, TrendingUp, Users } from "lucide-react"
@@ -65,7 +66,7 @@ export default function DashboardMovil({
     // Abre el modal con las rutinas de las clases reservadas (no navega)
     { onClick: () => setRutinasAbiertas(true), icon: Dumbbell, titulo: "Mis Rutinas", sub: `${agendadas} ${agendadas === 1 ? "clase reservada" : "clases reservadas"}` },
     { to: "/alumno/calculadora-rm", icon: Calculator, titulo: "Calculadora RM", sub: "Calculá tu 1RM" },
-    { to: "/alumno/marcas", icon: Trophy, titulo: "Mis Marcas", sub: `${totalMarcas} ${totalMarcas === 1 ? "registrada" : "registradas"}` },
+    { to: "/alumno/marcas", icon: Trophy, titulo: "Mis RM", sub: `${totalMarcas} ${totalMarcas === 1 ? "registrada" : "registradas"}` },
   ]
 
   return (
@@ -181,6 +182,8 @@ export default function DashboardMovil({
           ))}
         </div>
       </Seccion>
+
+      <MiniRanking />
 
       {/* Accesos rápidos */}
       <Seccion titulo="Accesos rápidos">

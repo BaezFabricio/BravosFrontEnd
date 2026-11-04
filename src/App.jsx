@@ -6,6 +6,7 @@ import { iniciarSincronizacionDePermisos, usePermisosVivos } from './lib/sincron
 import { useEffect } from 'react'
 
 import LandingPage from './app/LandingPage.jsx'
+import RankingPublicoPage from './app/RankingPublicoPage.jsx'
 import LoginPage from './app/login/LoginPage.jsx'
 import RegistroPage from './app/registro/RegistroPage.jsx'
 import RecuperarContrasenaPage from './app/recuperar-contraseña/RecuperarContrasenaPage.jsx'
@@ -26,6 +27,7 @@ import TurnosPage from "./app/admin/clases/TurnosPage.jsx";
 import PlanesPage from "./app/admin/planes/PlanesPage.jsx";
 import ReportesPage from "./app/admin/reportes/ReportesPage.jsx";
 import AvisosPage from "./app/admin/avisos/AvisosPage.jsx";
+import EjerciciosRMPage from "./app/admin/ejercicios/EjerciciosRMPage.jsx";
 
 
 import { PrivacidadPage, TerminosPage, CookiesPage, ReembolsosPage } from './app/legal/PaginasLegales.jsx'
@@ -156,6 +158,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/inicio" replace />} />
         <Route path="/inicio" element={<LandingPage />} />
+        <Route path="/ranking" element={<RankingPublicoPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-contrasena" element={<RecuperarContrasenaPage />} />
         <Route path="/crear-contrasena" element={<CrearContrasenaPage />} />
@@ -185,6 +188,7 @@ function App() {
         <Route path="/admin/clases/turnos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><TurnosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/planes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PlanesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/reportes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><ReportesPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/ejercicios-rm" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><EjerciciosRMPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/avisos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AvisosPage /></AdminLayout></RequireAuth>} />
         {/* RUTAS DE ALUMNO */}
         <Route path="/alumno" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDashboard /></AlumnoLayout></RequireAuth>} />

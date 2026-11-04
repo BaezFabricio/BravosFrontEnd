@@ -37,7 +37,7 @@ const menu = {
   titulo: "Todo está en el menú",
   texto: "Desde acá llegás a cada pantalla.",
   puntos: [
-    "Entrenamiento: Resumen, Reservar clase, Mis reservas, Mis marcas y Calculadora RM.",
+    "Entrenamiento: Resumen, Reservar clase, Mis reservas, Mis RM (con el ranking) y Calculadora RM.",
     "Mi cuenta: membresía, créditos, documentos y perfil.",
     "Además: Página principal, Mi configuración y Cerrar sesión.",
   ],
@@ -129,7 +129,7 @@ const resumen = [
     texto: "Atajos a lo que más usás.",
     puntos: [
       "Mis rutinas: las de tus clases reservadas.",
-      "Mis reservas, Mis marcas, Calculadora RM y Mis créditos.",
+      "Mis reservas, Mis RM (con el ranking), Calculadora RM y Mis créditos.",
       "Un toque y estás ahí.",
     ],
     objetivo: "res-accesos",
@@ -257,38 +257,37 @@ const reservas = [
   },
 ]
 
-// ── Mis marcas y calculadora
+// ── Mis RM y calculadora
 const marcas = [
   {
-    titulo: "Mis marcas",
-    texto: "Tu cuaderno de récords personales.",
+    titulo: "Mis RM",
+    texto: "Tu RM de cada ejercicio, y el ranking del box.",
     puntos: [
-      "Registrás tus marcas y ves cómo progresás.",
-      "Tu primera marca desbloquea el logro Primer PR.",
+      "Elegís el ejercicio, ponés el peso y guardás.",
+      "La pestaña Ranking muestra el podio y a todos los alumnos por ejercicio.",
+      "Tu primer RM desbloquea el logro Primer PR.",
     ],
     objetivo: "titulo",
     ruta: "/alumno/marcas",
   },
   {
-    titulo: "Tus ejercicios",
-    texto: "Las marcas se agrupan por ejercicio.",
+    titulo: "Tus RM",
+    texto: "Tus RM se agrupan por ejercicio.",
     puntos: [
-      "Cada ejercicio muestra cuántas marcas tenés y la fecha de la última.",
-      "A la derecha va tu mejor marca.",
-      "Tocá el ejercicio para abrirlo o cerrarlo.",
-      "Con Ver historial completo ves las más viejas.",
+      "A la derecha de cada ejercicio va tu mejor RM.",
+      "Abajo ves los últimos que cargaste, con su fecha.",
+      "Con Ver todo el historial ves los más viejos.",
     ],
     objetivo: "marcas-lista",
     ruta: "/alumno/marcas",
   },
   {
-    titulo: "Cargá una marca",
-    texto: "Con Nueva marca guardás un récord.",
+    titulo: "Cargá tu RM",
+    texto: "Elegí el ejercicio, poné el peso y guardá.",
     puntos: [
-      "Elegí el ejercicio de la lista o escribí otro nuevo y su tipo: peso, repeticiones o tiempo.",
-      "Series simple: todas iguales. Detallada: cargás cada serie por separado.",
-      "Elegís la fecha y podés sumar una nota, por ejemplo \"con cinturón\".",
-      "Una marca mal cargada se elimina desde su fila.",
+      "Los ejercicios los carga el box.",
+      "Si superás tu mejor RM, te avisa que es un nuevo RM.",
+      "Un RM mal cargado se elimina desde su fila.",
     ],
     objetivo: "marcas-nueva",
     ruta: "/alumno/marcas",

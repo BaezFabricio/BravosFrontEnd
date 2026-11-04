@@ -56,7 +56,7 @@ const LINK = {
   reservas: { texto: "Ver Mis Reservas", ruta: "/alumno/reservas" },
   membresia: { texto: "Ir a Mi Membresía", ruta: "/alumno/plan" },
   creditos: { texto: "Ver Mis Créditos", ruta: "/alumno/creditos" },
-  marcas: { texto: "Ir a Mis Marcas", ruta: "/alumno/marcas" },
+  marcas: { texto: "Ir a Mis RM", ruta: "/alumno/marcas" },
   calculadora: { texto: "Abrir la Calculadora RM", ruta: "/alumno/calculadora-rm" },
   documentos: { texto: "Ir a Documentos y Comprobantes", ruta: "/alumno/documentacion" },
   perfilAlumno: { texto: "Ir a Mi Perfil", ruta: "/alumno/perfil" },
@@ -473,19 +473,18 @@ const TEMAS_ALUMNO = [
   },
   {
     id: "marcas",
-    titulo: "Mis marcas y PR",
+    titulo: "Mis RM y PR",
     claves: ["marca*", "pr", "prs", "record*", "personal record", "mejor marca", "registrar peso", "cargar peso", "series", "historial de marcas"],
     respuesta: () => ({
       texto:
-        `"Mis Marcas" sirve para registrar tus marcas personales (PR) y ver cómo progresás.\n\n` +
-        `Para cargar una:\n` +
+        `"Mis RM" sirve para cargar tu RM (el máximo que levantás en una repetición) de cada ejercicio y ver cómo progresás.\n\n` +
+        `Para cargar uno:\n` +
         pasos([
-          `Tocá "Nueva marca".`,
-          `Elegí el ejercicio de la lista, o "Otro" para escribir uno propio (y decir si se mide en peso, repeticiones o tiempo).`,
-          `Cargá las series: en modo "Simple" (ej. 3 series × 5 reps × 80 kg) o "Detallada" si cada serie cambia.`,
-          `Guardá. Si superaste tu mejor marca anterior, te avisa "¡Nuevo PR!".`,
+          `Elegí el ejercicio de la lista.`,
+          `Poné tu peso.`,
+          `Tocá "Guardar RM". Si superaste tu mejor marca anterior, te avisa "¡Nuevo RM!".`,
         ]) +
-        `\n\nCada ejercicio muestra tu mejor marca y su historial. Registrar marcas también desbloquea logros.`,
+        `\n\nCada ejercicio muestra tu mejor RM y su historial. En la pestaña "Ranking" ves el podio del box y a todos los alumnos por ejercicio. Cargar RM también desbloquea logros.`,
       enlaces: [LINK.marcas],
       sugerencias: ["¿Qué logros hay?", "¿Cómo funciona la calculadora de RM?"],
     }),
