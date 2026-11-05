@@ -639,7 +639,7 @@ export default function UsuariosPage() {
           <TituloPagina descripcion={"Administra los usuarios del sistema"}>Gestión de Usuarios</TituloPagina>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto md:flex-wrap md:items-center">
+        <div className="grid w-full grid-cols-2 gap-2 md:hidden">
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
@@ -834,6 +834,28 @@ export default function UsuariosPage() {
               <Download className="h-4 w-4" />
               Exportar
             </button>
+          )}
+
+          {/* Altas: en la misma barra, con "Nuevo usuario" (la acción principal) al final */}
+          {permisos.includes("usuarios:alta") && (
+            <button
+              type="button"
+              onClick={() => setSinCuentaAbierto(true)}
+              title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
+              className="inline-flex shrink-0 items-center gap-2 border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+            >
+              <UserRound className="h-4 w-4" aria-hidden="true" />
+              Alumno sin cuenta
+            </button>
+          )}
+          {permisos.includes("usuarios:alta") && (
+            <Link
+              to="/admin/usuarios/nuevo"
+              className="inline-flex shrink-0 items-center gap-2 bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
+            >
+              <Plus className="h-4 w-4" />
+              Nuevo usuario
+            </Link>
           )}
         </div>
 
