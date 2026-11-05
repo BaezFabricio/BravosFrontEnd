@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
 /*
@@ -11,6 +11,9 @@ import { Link, useNavigate } from "react-router-dom"
  *
  * Deslizar para elegir: mientras el dedo recorre la barra, la opción que está debajo se va resaltando (y vibra
  * suave al cambiar). Al soltar el dedo se abre esa opción. Un toque normal funciona como siempre.
+ *
+ * Compacta: al bajar por la pantalla la barra se achica (sin textos, más baja) para tapar menos; al subir, al llegar arriba
+ * o al tocarla vuelve a su tamaño. Con "menos movimiento" no se anima el cambio de tamaño.
  *
  * items: [{ name, href, icon, mobileLabel, activo: boolean, centro?: boolean }]
  */
@@ -25,6 +28,23 @@ export function BarraInferior({ items, onNavegar }) {
   const ultimaOnda = useRef({ x: -999, t: 0 })
   const [dedo, setDedo] = useState(null) // { x, y } mientras el dedo está sobre la barra
   const [ondas, setOndas] = useState([]) // [{ id, x, y }]
+  const [compacta, setCompacta] = useState(false)
+  const reposo = useRef(0) // hasta cuándo se mantiene grande después de tocarla
+
+  useEffect(() => {
+    let ultimo = window.scrollY
+    const alScroll = () => {
+      const y = window.scrollY
+      const dy = y - ultimo
+      if (Math.abs(dy) < 6) return // ignora temblores
+      ultimo = y
+      if (performance.now() < reposo.current) return // la acaban de tocar: queda grande un rato
+      if (y < 40 || dy < 0) setCompacta(false) // arriba del todo o subiendo
+      else setCompacta(true) // bajando
+    }
+    window.addEventListener("scroll", alScroll, { passive: true })
+    return () => window.removeEventListener("scroll", alScroll)
+  }, [])
 
   const posicion = (e) => {
     const r = barra.current.getBoundingClientRect()
@@ -51,6 +71,8 @@ export function BarraInferior({ items, onNavegar }) {
   }
 
   const alTocar = (e) => {
+    reposo.current = performance.now() + 2500
+    setCompacta(false)
     const p = posicion(e)
     setDedo(p)
     soltarOnda(p.x, p.y)
@@ -100,7 +122,7 @@ export function BarraInferior({ items, onNavegar }) {
         onPointerCancel={() => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }}
         onClickCapture={(e) => { if (ignorarClic.current) { e.preventDefault(); e.stopPropagation() } }}
         style={{ touchAction: "none" }}
-        className="pointer-events-auto relative mx-auto flex max-w-md items-stretch gap-1 rounded-[2rem] border border-lime-500/25 bg-sidebar/95 p-2 shadow-xl shadow-black/30 ring-1 ring-lime-400/10 backdrop-blur"
+        className={`pointer-events-auto relative mx-auto flex items-stretch gap-1 rounded-[2rem] border border-lime-500/25 bg-sidebar/95 shadow-xl shadow-black/30 ring-1 ring-lime-400/10 backdrop-blur motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-w-[19rem] p-1" : "max-w-md p-2"}`}
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
         {/* Brillo que sigue al dedo, con retraso (efecto gota de agua) */}
@@ -135,16 +157,16 @@ export function BarraInferior({ items, onNavegar }) {
           if (item.centro) {
             return (
               <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} onClick={onNavegar} aria-current={item.activo ? "page" : undefined}
-                className="relative z-10 flex min-w-0 flex-[1.1] flex-col items-center justify-end gap-1 pb-1.5 focus-visible:outline-none">
-                <span className={`latido-centro -mt-8 flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-400/30 transition-transform active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
+                className={`relative z-10 flex min-w-0 flex-[1.1] flex-col items-center justify-end focus-visible:outline-none ${compacta ? "gap-0 pb-0" : "gap-1 pb-1.5"}`}>
+                <span className={`latido-centro flex items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-400/30 motion-safe:transition-all motion-safe:duration-300 active:scale-90 ${compacta ? "-mt-3 h-11 w-11" : "-mt-8 h-[3.75rem] w-[3.75rem]"} ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                   <Icono className="h-6 w-6" strokeWidth={2.75} />
                 </span>
-                <span className="max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-lime-700 dark:text-lime-400">{item.mobileLabel}</span>
+                <span className={`max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-lime-700 motion-safe:transition-all motion-safe:duration-300 dark:text-lime-400 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
               </Link>
             )
           }
           // Cada opción es una píldora redondeada; la activa se rellena de verde y su ícono sube un poquito
-          const base = "relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.4rem] py-2.5 transition-all duration-300 active:scale-95"
+          const base = `relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center rounded-[1.4rem] transition-all duration-300 active:scale-95 ${compacta ? "gap-0 py-2" : "gap-1 py-2.5"}`
           const estilo = resaltada
               ? "bg-lime-400/20 text-lime-700 shadow-inner shadow-lime-400/10 dark:text-lime-400"
               : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
@@ -158,9 +180,9 @@ export function BarraInferior({ items, onNavegar }) {
                   </span>
                 )}
               </span>
-              <span className="max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide">{item.mobileLabel}</span>
+              <span className={`max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
               {/* Puntito verde bajo la opción activa */}
-              <span aria-hidden="true" className={`absolute bottom-[3px] h-[3px] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
+              <span aria-hidden="true" className={`absolute bottom-[2px] h-[3px] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
               {item.pista && (
                 <span role="status" className="pista-barra pointer-events-none absolute -top-12 left-1/2 z-20 -ml-10 w-20 rounded-lg bg-lime-400 px-2 py-1.5 text-center text-[10px] font-black uppercase leading-tight tracking-wide text-black shadow-lg">
                   {item.pista}

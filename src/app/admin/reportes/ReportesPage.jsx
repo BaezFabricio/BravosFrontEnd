@@ -1,6 +1,6 @@
 import { BotonVolver } from "@/components/BotonVolver"
 import { useEffect, useState } from "react"
-import { Banknote, Users, Dumbbell, CalendarCheck, Download, TrendingUp, TrendingDown, Trophy, Flame, Loader2 } from "lucide-react"
+import { Download, TrendingUp, TrendingDown, Trophy, Flame, Loader2 } from "lucide-react"
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
 import { AdminPageSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient from "@/api"
@@ -67,6 +67,21 @@ function Leyenda({ data, total }) {
   )
 }
 
+// Desglose de un indicador: una fila por concepto, separada por una línea del número principal
+function Desglose({ filas }) {
+  if (!filas.length) return null
+  return (
+    <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
+      {filas.map(([etiqueta, valor]) => (
+        <li key={etiqueta} className="flex items-baseline justify-between gap-2 text-[11px]">
+          <span className="min-w-0 truncate text-foreground/60">{etiqueta}</span>
+          <span className="shrink-0 font-bold tabular-nums text-foreground">{valor}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default function ReportesPage() {
   const [periodo, setPeriodo] = useState("mes")
   const [datos, setDatos] = useState(null)
@@ -83,7 +98,7 @@ export default function ReportesPage() {
         // Valores por defecto: si el servidor todavía no se reinició con la versión nueva, no se rompe la pantalla
         setDatos(d ? {
           periodo, rango: { desde: "", hasta: "" }, ingresoPrevio: 0, ingresoPorPlan: [], alumnosPorPlan: [],
-          ocupacionClases: [], reservasPorEstado: [], ingresosPorMes: [], reservasProximas: 0, ...d,
+          ocupacionClases: [], reservasPorEstado: [], ingresoPorMetodo: [], ingresosPorMes: [], reservasProximas: 0, ...d,
           alumnosConPlan: d.alumnosConPlan ?? (d.alumnosPorPlan || []).reduce((a, x) => a + Number(x.cantidad), 0),
         } : null)
         setError("")
@@ -153,7 +168,6 @@ export default function ReportesPage() {
 
   const kpi = "rounded-2xl border border-border bg-card p-4"
   const kpiTitulo = "text-[10px] font-black uppercase tracking-widest text-foreground/55"
-  const icono = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
   const tooltipEstilo = { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--popover-foreground)" }
 
   return (
@@ -189,10 +203,10 @@ export default function ReportesPage() {
       </div>
       {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
 
-      {/* Indicadores */}
+      {/* Indicadores: cada uno con su desglose debajo */}
       <div className={`grid grid-cols-2 gap-3 lg:grid-cols-4 ${cargando ? "opacity-60" : ""}`}>
         <div className={kpi}>
-          <div className="flex items-start justify-between gap-2"><p className={kpiTitulo}>Ingreso total</p><span className={`${icono} bg-lime-400/15 text-lime-700 dark:text-lime-400`}><Banknote className="h-4 w-4" /></span></div>
+          <p className={kpiTitulo}>Ingreso total</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{plata(datos.ingresoTotal)}</p>
           {variacion === null ? (
             <p className="mt-1 text-[11px] text-foreground/50">Sin cobros en {textoPrevio}</p>
@@ -202,21 +216,25 @@ export default function ReportesPage() {
               {variacion >= 0 ? "+" : ""}{variacion.toFixed(1).replace(".", ",")}% vs {textoPrevio}
             </p>
           )}
+          <Desglose filas={(datos.ingresoPorMetodo || []).map((m) => [m.metodo, plata(m.total)])} />
         </div>
         <div className={kpi}>
-          <div className="flex items-start justify-between gap-2"><p className={kpiTitulo}>Alumnos con plan</p><span className={`${icono} bg-sky-400/15 text-sky-700 dark:text-sky-400`}><Users className="h-4 w-4" /></span></div>
+          <p className={kpiTitulo}>Alumnos con plan</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{datos.alumnosConPlan}</p>
           <p className="mt-1 text-[11px] text-foreground/55">con el plan activo hoy</p>
+          <Desglose filas={datos.alumnosPorPlan.map((a) => [a.plan, a.cantidad])} />
         </div>
         <div className={kpi}>
-          <div className="flex items-start justify-between gap-2"><p className={kpiTitulo}>Clases activas</p><span className={`${icono} bg-amber-400/15 text-amber-700 dark:text-amber-400`}><Dumbbell className="h-4 w-4" /></span></div>
+          <p className={kpiTitulo}>Clases activas</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{clases.length}</p>
           <p className="mt-1 text-[11px] text-foreground/55">{capacidad} lugares en total</p>
+          <Desglose filas={clases.length ? [["Lugares en total", capacidad], ["Ocupados", ocupadosTotal], ["Libres", Math.max(capacidad - ocupadosTotal, 0)]] : []} />
         </div>
         <div className={kpi}>
-          <div className="flex items-start justify-between gap-2"><p className={kpiTitulo}>Reservas</p><span className={`${icono} bg-violet-400/15 text-violet-700 dark:text-violet-400`}><CalendarCheck className="h-4 w-4" /></span></div>
+          <p className={kpiTitulo}>Reservas</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{datos.reservasProximas}</p>
           <p className="mt-1 text-[11px] text-foreground/55">próximas, desde hoy</p>
+          <Desglose filas={datos.reservasPorEstado.map((r) => [ESTADO_LABELS[r.estado] || r.estado, r.cantidad])} />
         </div>
       </div>
 
