@@ -20,6 +20,7 @@ import apiClient from "@/api"
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import { mensajeBienvenida } from "@/lib/mensajeBienvenida"
 import MiniRanking from "@/components/MiniRanking"
+import "@/components/heroAlumno.css"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
@@ -240,9 +241,10 @@ export default function AlumnoDashboard() {
       {/* ESCRITORIO */}
     <div className="hidden lg:block space-y-6">
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
-      <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
-        {/* Marca de agua: el nombre del box, grande y apagado, detrás del contenido (como un reflejo del logo) */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/logo-box-bravos-final.png')] bg-[length:56%] bg-[position:80%_72%] bg-no-repeat opacity-[0.09]" />
+      <div className="hero-card relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
+        {/* Logo de fondo como un reflejo sutil (heroAlumno.css) */}
+        <img src="/bravos-logo.png" className="hero-logo" alt="" aria-hidden="true" />
+        <div className="hero-sheen" aria-hidden="true" />
         <div className="relative p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
@@ -254,7 +256,7 @@ export default function AlumnoDashboard() {
                 <HelpTooltip content="Tu racha son los dias consecutivos que has asistido al gimnasio." className="text-sidebar-foreground/40 hover:text-sidebar-foreground" />
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-black text-sidebar-foreground tracking-tight">
+                <h1 className="hero-title text-sidebar-foreground">
                   {`¡HOLA, ${nombreUsuario.toUpperCase()}!`}
                 </h1>
                 <p className="text-lg text-sidebar-foreground/60 mt-1">

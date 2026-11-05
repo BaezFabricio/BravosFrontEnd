@@ -1,3 +1,4 @@
+import "@/components/heroAlumno.css"
 import MiniRanking from "@/components/MiniRanking"
 import { useState } from "react"
 import { Link } from "react-router-dom"
@@ -72,8 +73,9 @@ export default function DashboardMovil({
   return (
     <div className="space-y-6">
       {/* Saludo y acción principal */}
-      <div data-guia="res-hero" className="relative isolate overflow-hidden rounded-2xl border border-sidebar-border bg-sidebar p-5">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[url('/logo-box-bravos-final.png')] bg-[length:120%] bg-[position:40%_88%] bg-no-repeat opacity-[0.09]" />
+      <div data-guia="res-hero" className="hero-card relative overflow-hidden rounded-2xl border border-sidebar-border bg-sidebar p-5">
+        <img src="/bravos-logo.png" className="hero-logo" alt="" aria-hidden="true" />
+        <div className="hero-sheen" aria-hidden="true" />
         <div className="flex items-center gap-1">
           <span className="inline-flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
             <Flame className="h-3 w-3" />
@@ -81,7 +83,7 @@ export default function DashboardMovil({
           </span>
           <Ayuda texto="Tu racha son los días seguidos que asististe al gimnasio." className="text-sidebar-foreground/40" />
         </div>
-        <h1 className="mt-3 text-2xl font-black uppercase leading-tight tracking-tight text-sidebar-foreground text-balance">
+        <h1 className="hero-title mt-3 text-sidebar-foreground">
           ¡Hola, {nombreUsuario}!
         </h1>
         <p className="mt-1 text-sm text-sidebar-foreground/60">{frase}</p>

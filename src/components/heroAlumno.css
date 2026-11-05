@@ -1,0 +1,36 @@
+/*
+ * Tarjeta de bienvenida del panel del alumno: logo de fondo como un reflejo sutil.
+ * Referencia: "hero-alumno-referencia.html". El modo oscuro de la app es la clase .dark (el claro es el predeterminado).
+ */
+.hero-card > :not(.hero-logo):not(.hero-sheen) { position: relative }
+
+/* logo de fondo + reflejo (modo claro) */
+.hero-logo {
+  position: absolute; left: 38%; top: 50%;
+  transform: translateY(-50%) rotate(-6deg);
+  width: 880px; height: 284px; max-width: none;
+  opacity: .06; filter: grayscale(1) brightness(0);
+  pointer-events: none; user-select: none;
+  -webkit-mask-image: linear-gradient(125deg, #000 0%, rgba(0,0,0,.25) 45%, #000 55%, rgba(0,0,0,.15) 100%);
+  mask-image: linear-gradient(125deg, #000 0%, rgba(0,0,0,.25) 45%, #000 55%, rgba(0,0,0,.15) 100%);
+}
+.hero-sheen {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.7) 48%, rgba(255,255,255,0) 60%);
+}
+
+/* modo oscuro */
+.dark .hero-logo { opacity: .05; filter: grayscale(1) brightness(1.4) }
+.dark .hero-sheen { background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.03) 48%, rgba(255,255,255,0) 60%) }
+
+/* saludo en la tipografía del logo (los títulos h1 de la app llevan su propia fuente con !important) */
+.hero-title {
+  font-family: 'Big Shoulders Stencil Display', 'Barlow Condensed', sans-serif !important;
+  font-weight: 900; text-transform: uppercase; letter-spacing: 0; line-height: 1;
+  font-size: 46px;
+}
+
+@media (max-width: 767px) {
+  .hero-logo { width: 520px; height: 168px; left: 20% }
+  .hero-title { font-size: 36px }
+}
