@@ -13,7 +13,7 @@ import {
   Mail
 } from 'lucide-react'
 
-import { MoveHorizontal, Medal } from 'lucide-react'
+import { MoveHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
@@ -404,7 +404,7 @@ function LandingPage() {
 
               <div className="hidden items-center gap-3 lg:flex">
                 <Link to="/ranking" className="flex h-9 items-center gap-1.5 rounded-full border border-lime-400/70 bg-lime-400/10 px-4 text-xs font-black tracking-widest text-lime-400 transition-colors hover:bg-lime-400 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                  <Medal className="h-4 w-4" aria-hidden="true" /> RANKING
+                  RANKING
                 </Link>
 
                 {!isLoggedIn ? (
@@ -519,7 +519,7 @@ function LandingPage() {
 
               <div className="border-t border-white/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
                 <Link to="/ranking" onClick={() => setMobileMenuOpen(false)} className="mb-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-lime-400/70 bg-lime-400/10 text-xs font-black tracking-wider text-lime-400">
-                  <Medal className="h-4 w-4" aria-hidden="true" /> RANKING DE RM
+                  RANKING DE RM
                 </Link>
                 {!isLoggedIn ? (
                   <div className="grid grid-cols-2 gap-2">
