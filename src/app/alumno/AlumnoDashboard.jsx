@@ -20,6 +20,7 @@ import apiClient from "@/api"
 import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import { mensajeBienvenida } from "@/lib/mensajeBienvenida"
 import MiniRanking from "@/components/MiniRanking"
+import { toast } from "@/lib/notificar"
 import "@/components/heroAlumno.css"
 import LogroCelebracion from "@/components/LogroCelebracion"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
@@ -124,6 +125,7 @@ export default function AlumnoDashboard() {
         }
       } catch (error) {
         console.error("Error al cargar datos del dashboard:", error)
+        toast.error("No se pudieron cargar tus datos", { description: "Probá recargar la página.", guardar: false })
       } finally {
         setLoadingReservas(false)
       }
@@ -190,6 +192,7 @@ export default function AlumnoDashboard() {
         setClasesHoy(clasesOrdenadas.slice(0, 3)) 
       } catch (error) {
         console.error("Error al cargar las clases de hoy:", error)
+        toast.error("No se pudieron cargar las clases de hoy", { guardar: false })
       } finally {
         setLoadingClases(false)
       }

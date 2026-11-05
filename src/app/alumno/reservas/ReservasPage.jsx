@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert"
 
 import apiClient from "@/api"
+import { toast } from "@/lib/notificar"
 import VideoPlayer from "@/components/VideoPlayer"
 import ReservasMovil from "./ReservasMovil"
 
@@ -85,6 +86,7 @@ export default function ReservasPage() {
       setProximas(listaMapeada.filter(r => r.estado === 'proxima'))
       setHistorial(listaMapeada.filter(r => r.estado !== 'proxima'))
     } catch {
+      toast.error("No se pudieron cargar tus reservas", { description: "Probá recargar la página.", guardar: false })
     } finally {
       setLoading(false)
     }
@@ -102,9 +104,11 @@ export default function ReservasPage() {
     try {
       const response = await apiClient.patch(`/reservas/${cancelDialog.idReserva}/cancelar`)
       if (response.data?.success) {
+        toast.success("Reserva cancelada", { guardar: false })
         await cargarReservas()
       }
-    } catch {
+    } catch (err) {
+      toast.error("No se pudo cancelar la reserva", { description: err.response?.data?.message || "Revisá tu conexión e intentá de nuevo." })
     } finally {
       setIsLoadingCancel(false)
       setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })

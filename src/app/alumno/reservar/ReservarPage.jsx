@@ -183,6 +183,7 @@ export default function ReservarClasePage() {
         await cargarReservas()
       } catch (error) {
         console.error("Error al inicializar la interfaz:", error)
+        toast.error("No se pudieron cargar tus reservas y créditos", { description: "Probá recargar la página.", guardar: false })
       } finally {
         setPageLoading(false)
         setLoadingCreditos(false)

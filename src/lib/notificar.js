@@ -8,7 +8,11 @@
  *   toast.error('Pago rechazado', { guardar: true })       // un error importante que sí queda
  * Si el sistema ya crea su propia notificación (reservas, por ejemplo), conviene { guardar: false } para no repetirla.
  */
+// Cuándo se mostró el último aviso de error o advertencia (lo usa api.js para no repetir el aviso de "sin permiso")
+export let ultimoAvisoDeError = 0
+
 function dispatch(tipo, titulo, mensaje, guardar) {
+  if (tipo === 'error' || tipo === 'advertencia') ultimoAvisoDeError = Date.now()
   window.dispatchEvent(new CustomEvent('bravos:notif', {
     detail: { tipo, titulo, mensaje, guardar, id: Date.now() }
   }))

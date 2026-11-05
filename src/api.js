@@ -1,4 +1,5 @@
 import { cerrarSesionEnServidor } from './lib/sesion'
+import { toast, ultimoAvisoDeError } from './lib/notificar'
 import axios from 'axios'
 
 // URL base configurable para evitar hardcodear localhost (soporta móvil/LAN)
@@ -92,6 +93,8 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401) {
       console.warn("Sesión expirada o token inválido, redirigiendo al login...");
+      // Si había una sesión abierta, el login avisa que venció (la sesión dura 12 horas)
+      try { if (localStorage.getItem('usuario') && !window.location.pathname.startsWith('/login')) sessionStorage.setItem('bravos-sesion-vencida', '1') } catch { /* sin almacenamiento */ }
       localStorage.clear();
       window.location.href = '/login';
     }
@@ -104,6 +107,13 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
       console.warn("Acceso denegado: No tienes permiso para esta acción.");
+      // Si la pantalla no explica el error por su cuenta, se avisa acá (los pedidos de fondo, como las guías, no avisan)
+      if ((error.config?.method && error.config.method !== 'get') || error.config?.avisarSinPermiso) {
+        const antes = Date.now()
+        setTimeout(() => {
+          if (ultimoAvisoDeError < antes) toast.error('No tenés permiso para esta acción', { description: 'Si creés que es un error, pedile al administrador que revise tu perfil.', guardar: false })
+        }, 500)
+      }
       // Cuenta desactivada por el administrador: se marca acá mismo y la app saca a la persona del panel al instante
       if (error.response?.data?.code === 'CUENTA_INACTIVA') {
         try { localStorage.setItem('usuario', JSON.stringify({ ...JSON.parse(localStorage.getItem('usuario') || '{}'), estado: 'inactivo' })) } catch { /* nada */ }

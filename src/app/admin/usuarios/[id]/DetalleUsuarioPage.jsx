@@ -111,6 +111,7 @@ export default function DetalleUsuarioPage() {
         setReservasReales(res.data?.data || res.data || [])
       } catch (err) {
         console.error("Error al cargar reservas del usuario:", err)
+        toast.error("No se pudieron cargar las reservas del usuario")
       } finally {
         setCargandoReservas(false)
       }
@@ -127,6 +128,7 @@ export default function DetalleUsuarioPage() {
         setDocumentos(res.data?.data || res.data || [])
       } catch (err) {
         console.error("Error al cargar documentos del usuario:", err)
+        toast.error("No se pudieron cargar los documentos del usuario")
       } finally {
         setCargandoDocs(false)
       }

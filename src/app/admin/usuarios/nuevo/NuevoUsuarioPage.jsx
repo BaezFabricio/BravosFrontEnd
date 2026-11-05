@@ -61,6 +61,7 @@ export default function NuevoUsuarioPage() {
         }
       } catch (error) {
         console.error("Error al cargar perfiles:", error)
+        toast.error("No se pudieron cargar los perfiles", { description: "Sin perfiles no se puede crear el usuario. Recargá la página." })
       } finally {
         setLoadingPerfiles(false)
       }

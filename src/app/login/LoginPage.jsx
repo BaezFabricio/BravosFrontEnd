@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, Lock, Mail, UserX } from "lucide-react"
 import { toast } from '@/lib/notificar'
@@ -60,6 +60,16 @@ export default function LoginPage() {
   const [cuentaDesactivada, setCuentaDesactivada] = useState(false)
   // Después de una contraseña incorrecta, Bravo ofrece recuperarla
   const [pistaOlvido, setPistaOlvido] = useState(false)
+
+  // Si se llegó acá porque la sesión venció, se explica (la sesión dura 12 horas)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('bravos-sesion-vencida')) {
+        sessionStorage.removeItem('bravos-sesion-vencida')
+        toast.info('Tu sesión venció', { description: 'Por seguridad la sesión dura 12 horas. Ingresá de nuevo para seguir.', guardar: false })
+      }
+    } catch { /* sin almacenamiento */ }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
