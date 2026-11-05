@@ -72,7 +72,8 @@ export default function DashboardMovil({
   return (
     <div className="space-y-6">
       {/* Saludo y acción principal */}
-      <div data-guia="res-hero" className="rounded-2xl border border-sidebar-border bg-sidebar p-5">
+      <div data-guia="res-hero" className="relative isolate overflow-hidden rounded-2xl border border-sidebar-border bg-sidebar p-5">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[url('/logo-box-bravos-final.png')] bg-[length:120%] bg-[position:40%_88%] bg-no-repeat opacity-[0.09]" />
         <div className="flex items-center gap-1">
           <span className="inline-flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
             <Flame className="h-3 w-3" />

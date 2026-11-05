@@ -241,6 +241,8 @@ export default function AlumnoDashboard() {
     <div className="hidden lg:block space-y-6">
       {/* SECCIÓN DEL BANNER PRINCIPAL */}
       <div className="relative overflow-hidden rounded-2xl bg-sidebar border border-sidebar-border">
+        {/* Marca de agua: el nombre del box, grande y apagado, detrás del contenido (como un reflejo del logo) */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/logo-box-bravos-final.png')] bg-[length:56%] bg-[position:80%_72%] bg-no-repeat opacity-[0.09]" />
         <div className="relative p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-4">
