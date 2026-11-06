@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useConfirmar } from "@/components/useConfirmar"
 import { Copy, KeyRound } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
@@ -16,6 +17,7 @@ import { Cargando } from "@/components/Cargando"
 const MINIMO = 12
 
 export default function CheckinAdminPage() {
+  const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const puedeEditar = getPermisos().includes("configuracion:modificacion")
   const [estado, setEstado] = useState(null)
   const [clave, setClave] = useState("")
@@ -37,7 +39,7 @@ export default function CheckinAdminPage() {
     const aviso = estado?.configurado
       ? "Se va a cambiar la clave y el equipo de recepción actual deja de funcionar hasta que le pongas la nueva. ¿Seguimos?"
       : "Se va a guardar la clave del equipo de recepción. ¿Seguimos?"
-    if (!window.confirm(aviso)) return
+    if (!(await pedirConfirmacion(aviso))) return
     setGuardando(true)
     try {
       await apiClient.post("/asistencia/check-in/clave", { clave: limpia })
@@ -61,6 +63,8 @@ export default function CheckinAdminPage() {
   }
 
   return (
+    <>
+      {dialogoConfirmar}
     <div className="space-y-4">
       <TituloPagina descripcion={"La pantalla donde el alumno escribe su DNI para registrar su asistencia al llegar."}>Check-in</TituloPagina>
 
@@ -88,6 +92,63 @@ export default function CheckinAdminPage() {
             <div className="flex flex-wrap gap-6 text-sm">
               <p><span className="text-muted-foreground">Clave configurada: </span><strong className="text-foreground">{estado.configurado ? "Sí" : "No"}</strong></p>
               <p><span className="text-muted-foreground">Registrados hoy: </span><strong className="tabular-nums text-foreground">{estado.registradosHoy}</strong></p>
+            </div>
+          </Card>
+
+          <Card className="gap-5 rounded-2xl border-border bg-card p-5">
+            <div>
+              <p className="font-bold text-foreground">Hoy por tipo de clase</p>
+              {(estado.porTipo?.length ?? 0) === 0 ? (
+                <p className="mt-1 text-sm text-muted-foreground">Hoy no hay clases.</p>
+              ) : (
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {estado.porTipo.map((t) => (
+                    <div key={t.tipo} className="rounded-xl border border-border p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
+                      <p className="mt-1 text-sm text-foreground">
+                        <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <p className="font-bold text-foreground">Clases de hoy</p>
+              {(estado.clasesHoy?.length ?? 0) === 0 ? (
+                <p className="mt-1 text-sm text-muted-foreground">Sin clases programadas para hoy.</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border">
+                  {estado.clasesHoy.map((c) => (
+                    <li key={c.idHorario} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground">{c.inicio} a {c.fin} · {c.nombre}</p>
+                        <p className="text-xs text-muted-foreground">{c.tipo}</p>
+                      </div>
+                      <p className="tabular-nums text-foreground">
+                        <strong>{c.registrados}</strong> <span className="text-muted-foreground">registrados de {c.reservados} reservados</span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <p className="font-bold text-foreground">Quién se registró hoy</p>
+              {(estado.registrados?.length ?? 0) === 0 ? (
+                <p className="mt-1 text-sm text-muted-foreground">Todavía nadie se registró hoy.</p>
+              ) : (
+                <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border">
+                  {estado.registrados.map((r, i) => (
+                    <li key={`${r.nombre}-${r.inicio}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
+                      <span className="font-bold text-foreground">{r.nombre}</span>
+                      <span className="text-xs text-muted-foreground">{r.inicio} · {r.clase} · {r.origen}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </Card>
 
@@ -123,5 +184,6 @@ export default function CheckinAdminPage() {
         </>
       )}
     </div>
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useConfirmar } from "@/components/useConfirmar"
 import { CheckCheck, Copy, Search, ArrowRight, ArrowLeft } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import { TituloPagina } from "@/components/TituloPagina"
@@ -66,6 +67,7 @@ function Separador({ texto }) {
 }
 
 export default function AvisosPage() {
+  const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const [titulo, setTitulo] = useState("")
   const [cuerpo, setCuerpo] = useState("")
   const [conTitulo, setConTitulo] = useState(false)
@@ -104,8 +106,8 @@ export default function AvisosPage() {
   const ahora = new Date()
   const hora = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`
 
-  const usarModelo = (m) => {
-    if (!vacio && !window.confirm("Se va a reemplazar lo que escribiste por el modelo. ¿Seguimos?")) return
+  const usarModelo = async (m) => {
+    if (!vacio && !(await pedirConfirmacion("Se va a reemplazar lo que escribiste por el modelo. ¿Seguimos?"))) return
     setTitulo(m.titulo); setConTitulo(true); setCuerpo(m.texto); setModeloActivo(m.nombre)
   }
 
@@ -144,6 +146,8 @@ export default function AvisosPage() {
   const rotulo = "px-4 pb-1.5 pt-4 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground"
 
   return (
+    <>
+      {dialogoConfirmar}
     <div className="space-y-4">
       <TituloPagina descripcion={"Elegí a quién, escribí abajo y mandalo. Lo que ves en el chat es lo que les llega."}>
         <span className="inline-flex items-center gap-2"><IconoWhatsApp className="h-5 w-5 shrink-0 text-foreground" />Avisos por WhatsApp</span>
@@ -269,5 +273,6 @@ export default function AvisosPage() {
         </section>
       </div>
     </div>
+    </>
   )
 }

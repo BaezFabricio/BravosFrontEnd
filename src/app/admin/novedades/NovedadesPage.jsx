@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { useConfirmar } from "@/components/useConfirmar"
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
@@ -17,6 +18,7 @@ const etiqueta = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em]
 const VACIO = { idNovedad: null, titulo: "", texto: "", activa: true, hasta: "" }
 
 export default function NovedadesPage() {
+  const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const puedeEditar = getPermisos().includes("configuracion:modificacion")
   const [lista, setLista] = useState(null)
   const [editando, setEditando] = useState(null) // formulario abierto (nueva o existente)
@@ -50,7 +52,7 @@ export default function NovedadesPage() {
   }
 
   const borrar = async (n) => {
-    if (!window.confirm(`¿Eliminar la novedad "${n.titulo}"?`)) return
+    if (!(await pedirConfirmacion(`¿Eliminar la novedad "${n.titulo}"?`))) return
     try {
       await apiClient.delete(`/novedades/${n.idNovedad}`)
       toast.success("Novedad eliminada", { guardar: false })
@@ -61,6 +63,8 @@ export default function NovedadesPage() {
   }
 
   return (
+    <>
+      {dialogoConfirmar}
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <TituloPagina descripcion={"Comunicados y eventos que se muestran en la portada a los alumnos con sesión iniciada."}>Novedades</TituloPagina>
@@ -147,5 +151,6 @@ export default function NovedadesPage() {
         )}
       </Card>
     </div>
+    </>
   )
 }

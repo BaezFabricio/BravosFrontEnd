@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useConfirmar } from "@/components/useConfirmar"
 import { Check, Pencil, Plus, Search, Trash2, X } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
@@ -21,6 +22,7 @@ const TIPOS = {
 const inputCls = "h-11 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm"
 
 export default function EjerciciosRMPage() {
+  const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const puedeEditar = getPermisos().includes("configuracion:modificacion")
   const [lista, setLista] = useState(null)
   const [nombre, setNombre] = useState("")
@@ -73,7 +75,7 @@ export default function EjerciciosRMPage() {
   }
 
   const borrar = async (ej) => {
-    if (!window.confirm(`¿Eliminar "${ej.nombre}" de la lista?`)) return
+    if (!(await pedirConfirmacion(`¿Eliminar "${ej.nombre}" de la lista?`))) return
     try {
       await apiClient.delete(`/marcas/catalogo/${ej.idCatalogo}`)
       toast.success("Ejercicio eliminado", { guardar: false })
@@ -84,6 +86,8 @@ export default function EjerciciosRMPage() {
   }
 
   return (
+    <>
+      {dialogoConfirmar}
     <div className="space-y-4">
       <TituloPagina descripcion={"Los ejercicios que los alumnos eligen para cargar su RM. Con ellos se arma el ranking del box."}>Ejercicios del RM</TituloPagina>
 
@@ -162,5 +166,6 @@ export default function EjerciciosRMPage() {
         )}
       </Card>
     </div>
+    </>
   )
 }

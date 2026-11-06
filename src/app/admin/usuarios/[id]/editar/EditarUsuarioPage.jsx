@@ -17,6 +17,7 @@ import {
 import { getUsuarioById, logoutUsuario } from "@/api"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from '@/lib/notificar'
+import { useConfirmar } from "@/components/useConfirmar"
 import { TituloPagina } from "@/components/TituloPagina"
 
 const emptyForm = {
@@ -78,6 +79,7 @@ const esMiCuenta = (id) => {
 }
 
 export default function EditarUsuarioPage() {
+  const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const { id } = useParams()
   // Volver / Cancelar / después de guardar: a la pantalla anterior, o al detalle del usuario si se entró directo
   const volver = useVolver(`/admin/usuarios/${id}`)
@@ -149,7 +151,7 @@ export default function EditarUsuarioPage() {
     if (e?.preventDefault) e.preventDefault()
     if (!validateForm()) return
     const cambiaMiPerfil = propia && formData.idPerfil !== original.idPerfil
-    if (cambiaMiPerfil && !window.confirm("Vas a cambiar tu propio perfil. Al guardar se cierra tu sesión y vas a entrar con los permisos del perfil nuevo. ¿Seguimos?")) return
+    if (cambiaMiPerfil && !(await pedirConfirmacion("Vas a cambiar tu propio perfil. Al guardar se cierra tu sesión y vas a entrar con los permisos del perfil nuevo. ¿Seguimos?"))) return
     setIsSaving(true)
     try {
       const email = formData.email.trim().toLowerCase()
@@ -196,6 +198,8 @@ export default function EditarUsuarioPage() {
   const cambioAcceso = formData.idPerfil !== original.idPerfil || (formData.estado === "inactivo" && original.estado !== "inactivo")
 
   return (
+    <>
+    {dialogoConfirmar}
     <form onSubmit={handleSubmit} noValidate className="space-y-4 pb-24 lg:pb-0">
 
       {/* ENCABEZADO */}
@@ -388,5 +392,6 @@ export default function EditarUsuarioPage() {
         </div>
       </div>
     </form>
+    </>
   )
 }
