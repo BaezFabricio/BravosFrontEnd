@@ -20,7 +20,8 @@ export default function CheckinAdminPage() {
   const [estado, setEstado] = useState(null)
   const [clave, setClave] = useState("")
   const [guardando, setGuardando] = useState(false)
-  const enlace = `${window.location.origin}/check-in`
+  // Siempre con https: el sistema no acepta cambios desde una dirección http
+  const enlace = window.location.hostname === "localhost" ? `${window.location.origin}/check-in` : "https://bravosbox.com.ar/check-in"
 
   const cargar = useCallback(() => {
     apiClient.get("/asistencia/check-in/estado")
@@ -74,7 +75,7 @@ export default function CheckinAdminPage() {
                 <p className="mt-1 break-all font-mono text-sm text-foreground">{enlace}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <a href="/check-in" target="_blank" rel="noopener noreferrer"
+                <a href={enlace} target="_blank" rel="noopener noreferrer"
                   className="flex h-11 items-center gap-2 rounded-xl border border-lime-500/50 px-4 text-sm font-bold text-lime-700 hover:bg-lime-400/10 dark:text-lime-400">
                   Abrir en pantalla completa
                 </a>
