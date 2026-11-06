@@ -368,6 +368,18 @@ export const resetearContrasena = async (token, password) => {
 
 const buildApiRoute = (endpoint) => `/api/vv1${endpoint}`
 
+/** Envía un formulario con archivos (multipart). El navegador arma el Content-Type; la sesión va en la cookie. */
+export const enviarFormulario = async (metodo, endpoint, formData) => {
+  const response = await fetch(buildApiRoute(endpoint), { method: metodo, body: formData, credentials: 'include' })
+  const datos = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    const error = new Error(datos?.message || 'No se pudo guardar')
+    error.response = { status: response.status, data: datos }
+    throw error
+  }
+  return datos
+}
+
 export const getAbonosUsuario = async (idUsuario) => {
 
   const response = await fetch(buildApiRoute(`/usuarios/${idUsuario}/abonos`), {
