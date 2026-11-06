@@ -8,7 +8,7 @@ import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from "@/components/Cargando"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TarjetaNovedad } from "@/components/Novedades"
-import { TIPOS_NOVEDAD } from "@/lib/novedades"
+import { COLORES_NOVEDAD, FUENTES_NOVEDAD, TIPOS_NOVEDAD } from "@/lib/novedades"
 
 /*
  * Novedades del box: se cargan con foto y tipo. Tocar una tarjeta abre la ventana para editarla (no cambia de pantalla).
@@ -19,7 +19,7 @@ const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_IMAGEN = 5 * 1024 * 1024
 const inputCls = "w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm"
 const etiqueta = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
-const VACIO = { idNovedad: null, titulo: "", tipo: "aviso", texto: "", activa: true, hasta: "", imagen: null, archivo: null, quitarImagen: false }
+const VACIO = { idNovedad: null, titulo: "", tipo: "aviso", texto: "", activa: true, hasta: "", imagen: null, archivo: null, quitarImagen: false, enlace: "", enlaceTexto: "", colorFondo: "", fuenteTitulo: "stencil" }
 
 export default function NovedadesPage() {
   const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
@@ -63,6 +63,10 @@ export default function NovedadesPage() {
     fd.append("texto", editando.texto)
     fd.append("activa", String(editando.activa))
     fd.append("hasta", editando.hasta || "")
+    fd.append("enlace", editando.enlace || "")
+    fd.append("enlaceTexto", editando.enlaceTexto || "")
+    fd.append("colorFondo", editando.colorFondo || "")
+    fd.append("fuenteTitulo", editando.fuenteTitulo || "stencil")
     if (editando.archivo) fd.append("imagen", editando.archivo)
     else if (editando.quitarImagen) fd.append("quitarImagen", "true")
     try {
@@ -105,12 +109,16 @@ export default function NovedadesPage() {
   const abrirEdicion = (n) => setEditando({
     idNovedad: n.idNovedad, titulo: n.titulo, tipo: n.tipo || "aviso", texto: n.texto,
     activa: n.activa, hasta: n.hasta || "", imagen: n.imagen || null, archivo: null, quitarImagen: false,
+    enlace: n.enlace || "", enlaceTexto: n.enlaceTexto || "",
+    colorFondo: n.colorFondo || "", fuenteTitulo: n.fuenteTitulo || "stencil",
   })
 
   // Lo que se ve en la vista previa mientras se escribe
   const vistaPrevia = editando && {
     titulo: editando.titulo || "Título de la novedad",
     tipo: editando.tipo,
+    colorFondo: editando.colorFondo,
+    fuenteTitulo: editando.fuenteTitulo,
     texto: editando.texto || "Acá va el mensaje que van a ver los alumnos.",
     imagen: editando.previa || editando.imagen,
     fecha: "hoy",
@@ -175,10 +183,41 @@ export default function NovedadesPage() {
                     {Object.entries(TIPOS_NOVEDAD).map(([k, t]) => (
                       <button key={k} type="button" role="radio" aria-checked={editando.tipo === k}
                         onClick={() => setEditando({ ...editando, tipo: k })}
-                        className={`rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-[0.1em] transition-all ${editando.tipo === k ? `${t.etiqueta} ring-2 ring-foreground/30` : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10"}`}>
+                        className={`rounded-full px-3.5 py-1.5 text-xs font-black uppercase tracking-[0.1em] transition-all ${editando.tipo === k ? "bg-foreground text-background" : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10"}`}>
                         {t.nombre}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className={etiqueta}>Color</span>
+                  <div role="radiogroup" aria-label="Color de la novedad" className="flex flex-wrap gap-2.5">
+                    {Object.entries(COLORES_NOVEDAD).map(([k, c]) => {
+                      const elegido = (editando.colorFondo || TIPOS_NOVEDAD[editando.tipo]?.colorPorDefecto) === k
+                      return (
+                        <button key={k} type="button" role="radio" aria-checked={elegido} aria-label={c.nombre} title={c.nombre}
+                          onClick={() => setEditando({ ...editando, colorFondo: k })}
+                          className={`h-9 w-9 rounded-full transition ${elegido ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "ring-1 ring-black/10 hover:scale-110"}`}
+                          style={{ backgroundColor: c.hex }} />
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <span className={etiqueta}>Tipografía del título</span>
+                  <div role="radiogroup" aria-label="Tipografía del título" className="grid gap-2 sm:grid-cols-4">
+                    {Object.entries(FUENTES_NOVEDAD).map(([k, f]) => {
+                      const elegida = (editando.fuenteTitulo || "stencil") === k
+                      return (
+                        <button key={k} type="button" role="radio" aria-checked={elegida} onClick={() => setEditando({ ...editando, fuenteTitulo: k })}
+                          className={`rounded-xl border px-3 py-2 text-left transition ${elegida ? "border-foreground bg-foreground/5" : "border-border hover:bg-foreground/5"}`}>
+                          <span className="block text-xl leading-none text-foreground" style={{ fontFamily: f.familia, fontWeight: f.peso, textTransform: f.mayusculas ? "uppercase" : "none" }}>Aa Bravos</span>
+                          <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{f.nombre}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -193,6 +232,22 @@ export default function NovedadesPage() {
                   <textarea id="nov-texto" value={editando.texto} maxLength={2000} rows={4} onChange={(e) => setEditando({ ...editando, texto: e.target.value })}
                     placeholder="Contá lo que tienen que saber los alumnos" className={`${inputCls} min-h-[110px] py-3 leading-relaxed`} />
                   <p className="mt-1 text-right text-xs tabular-nums text-muted-foreground">{editando.texto.length}/2000</p>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
+                  <div>
+                    <label htmlFor="nov-enlace" className={etiqueta}>Enlace (opcional)</label>
+                    <input id="nov-enlace" type="text" inputMode="url" value={editando.enlace} maxLength={500}
+                      onChange={(e) => setEditando({ ...editando, enlace: e.target.value })}
+                      placeholder="https://..." className={`${inputCls} h-12`} />
+                    <p className="mt-1 text-[11px] text-muted-foreground">Aparece como botón en la ventana de la novedad. Los links escritos en el mensaje también se abren al tocarlos.</p>
+                  </div>
+                  <div>
+                    <label htmlFor="nov-enlace-texto" className={etiqueta}>Texto del botón</label>
+                    <input id="nov-enlace-texto" type="text" value={editando.enlaceTexto} maxLength={40} disabled={!editando.enlace.trim()}
+                      onChange={(e) => setEditando({ ...editando, enlaceTexto: e.target.value })}
+                      placeholder="Ver más" className={`${inputCls} h-12 disabled:opacity-40`} />
+                  </div>
                 </div>
 
                 <div>
