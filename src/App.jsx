@@ -28,6 +28,8 @@ import PlanesPage from "./app/admin/planes/PlanesPage.jsx";
 import ReportesPage from "./app/admin/reportes/ReportesPage.jsx";
 import AvisosPage from "./app/admin/avisos/AvisosPage.jsx";
 import EjerciciosRMPage from "./app/admin/ejercicios/EjerciciosRMPage.jsx";
+import NovedadesPage from "./app/admin/novedades/NovedadesPage.jsx";
+import CheckinPage from "./app/checkin/CheckinPage.jsx";
 
 
 import { PrivacidadPage, TerminosPage, CookiesPage, ReembolsosPage } from './app/legal/PaginasLegales.jsx'
@@ -188,6 +190,8 @@ function App() {
         <Route path="/admin/clases/turnos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><TurnosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/planes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PlanesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/reportes" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><ReportesPage /></AdminLayout></RequireAuth>} />
+        <Route path="/check-in" element={<CheckinPage />} />
+        <Route path="/admin/novedades" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NovedadesPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/ejercicios-rm" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><EjerciciosRMPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/avisos" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AvisosPage /></AdminLayout></RequireAuth>} />
         {/* RUTAS DE ALUMNO */}

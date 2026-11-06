@@ -19,6 +19,7 @@ import {
   ChevronDown,
   BarChart3,
   Medal,
+  Bell,
 } from "lucide-react"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
@@ -42,6 +43,7 @@ const navigation = [
   { name: "Clases", mobileLabel: "Clases", href: "/admin/clases", icon: Calendar, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Planes", mobileLabel: "Planes", href: "/admin/planes", icon: CreditCard, requiredPermission: "membresias:consulta", grupo: "gestion" },
   { name: "Reportes", mobileLabel: "Reportes", href: "/admin/reportes", icon: BarChart3, requiredPermission: "dashboard:consulta", grupo: "gestion" },
+  { name: "Novedades", mobileLabel: "Novedades", href: "/admin/novedades", icon: Bell, requiredPermission: "configuracion:consulta", grupo: "gestion" },
   { name: "Ejercicios del RM", mobileLabel: "RM", href: "/admin/ejercicios-rm", icon: Medal, requiredPermission: "configuracion:consulta", grupo: "gestion" },
   { name: "Avisos WhatsApp", mobileLabel: "Avisos", href: "/admin/avisos", icon: IconoWhatsApp, requiredPermission: "clases:consulta", grupo: "gestion" },
   { name: "Perfiles", mobileLabel: "Perfiles", href: "/admin/perfiles", icon: Shield, requiredPermission: "perfiles:consulta", grupo: "sistema" },

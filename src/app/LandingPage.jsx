@@ -19,6 +19,7 @@ import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import UserMenu from '@/components/UserMenu'
 import NotificacionesBell from '@/components/NotificacionesBell'
+import NovedadesPortada from '@/components/NovedadesPortada'
 
 const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
@@ -846,6 +847,9 @@ function LandingPage() {
           )}
         </div>
       </section>
+
+      {/* Novedades del box (solo para quien tiene sesión): ventana que se muestra una vez */}
+      <NovedadesPortada />
 
       {/* SECCIÓN CONTACTO */}
       <section id="contacto" className="bg-zinc-950 py-12 text-white md:py-16">

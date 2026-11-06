@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/alert"
 
 import apiClient from "@/api"
+
+const hoyISO = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
 import { toast } from "@/lib/notificar"
 import VideoPlayer from "@/components/VideoPlayer"
 import ReservasMovil from "./ReservasMovil"
@@ -50,6 +55,22 @@ export default function ReservasPage() {
   const devuelveCredito = semana ? false : cancelDialog.fecha
     ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
     : true
+  // El alumno marca su asistencia desde la app, el día de la clase (el servidor valida el horario)
+  const [marcando, setMarcando] = useState(null)
+  const marcarMiAsistencia = async (reserva) => {
+    setMarcando(reserva.idReserva)
+    try {
+      const res = await apiClient.post(`/reservas/${reserva.idReserva}/marcar-asistencia`)
+      const estado = res.data?.data?.estado
+      toast.success(estado === "presente" ? "Asistencia registrada" : "Tu profesor ya registró tu asistencia", { guardar: false })
+      await cargarReservas()
+    } catch (err) {
+      toast.error(err.response?.data?.message || "No se pudo registrar la asistencia", { guardar: false })
+    } finally {
+      setMarcando(null)
+    }
+  }
+
   const abrirCancelar = (reserva) => setCancelDialog({
     open: true,
     idReserva: reserva.idReserva,
@@ -175,6 +196,20 @@ export default function ReservasPage() {
                   <ChevronRight className="h-4 w-4 text-lime-700 dark:text-lime-400 ml-auto" />
                 </div>
               </div>
+              {showCancelButton && reserva.fecha === hoyISO() && (
+                <Button
+                  variant="outline"
+                  disabled={marcando === reserva.idReserva}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    marcarMiAsistencia(reserva)
+                  }}
+                  className="min-h-[44px] shrink-0 self-start rounded-xl border-lime-500/50 px-4 text-sm font-bold text-lime-700 hover:bg-lime-400/10 dark:text-lime-400"
+                >
+                  <CheckCircle2 className="mr-1.5 h-4 w-4" />
+                  {marcando === reserva.idReserva ? "Registrando…" : "Marcar mi asistencia"}
+                </Button>
+              )}
               {showCancelButton && (
                 <Button
                   variant="outline"
