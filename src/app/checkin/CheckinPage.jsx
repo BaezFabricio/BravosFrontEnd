@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { Maximize, Minimize } from "lucide-react"
 
 /*
  * Check-in del gimnasio (para una tablet o una pantalla en recepción). Sin sesión: el alumno escribe su DNI
@@ -126,9 +127,32 @@ export default function CheckinPage() {
   )
 }
 
+// Pantalla completa: solo para esta página (el resto del sistema no cambia). Se pide con un toque, porque el navegador lo exige.
+function BotonPantallaCompleta() {
+  const [completa, setCompleta] = useState(false)
+  useEffect(() => {
+    const cambio = () => setCompleta(Boolean(document.fullscreenElement))
+    document.addEventListener("fullscreenchange", cambio)
+    return () => document.removeEventListener("fullscreenchange", cambio)
+  }, [])
+  const alternar = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen()
+      else await document.documentElement.requestFullscreen()
+    } catch { /* el navegador no permite pantalla completa aquí */ }
+  }
+  return (
+    <button type="button" onClick={alternar} aria-label={completa ? "Salir de pantalla completa" : "Pantalla completa"}
+      className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-white/70 hover:text-white">
+      {completa ? <Minimize className="h-5 w-5" aria-hidden="true" /> : <Maximize className="h-5 w-5" aria-hidden="true" />}
+    </button>
+  )
+}
+
 function Pantalla({ children }) {
   return (
-    <div className="dark min-h-[100dvh] bg-black px-6 py-10 text-white">
+    <div className="dark relative min-h-[100dvh] bg-black px-6 py-10 text-white">
+      <BotonPantallaCompleta />
       <div className="mx-auto flex min-h-[80dvh] max-w-md flex-col items-center justify-center text-center">{children}</div>
     </div>
   )
