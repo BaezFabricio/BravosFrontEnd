@@ -50,7 +50,7 @@ export function FilaNovedad({ novedad, onAbrir, compacta = false }) {
           )}
           <span>{novedad.fecha} · {tipoDe(novedad.tipo).nombre}</span>
         </div>
-        <p className={`line-clamp-1 ${compacta ? "mt-0.5 text-base" : "mt-1.5 line-clamp-2 text-xl md:text-2xl"}`} style={{ ...estiloTitulo(), lineHeight: 1.05 }}>{novedad.titulo}</p>
+        <p className={`${compacta ? "mt-0.5 line-clamp-2 text-base" : "mt-1.5 line-clamp-2 text-xl md:text-2xl"}`} style={{ ...estiloTitulo(), lineHeight: 1.05 }}>{novedad.titulo}</p>
       </div>
     </button>
   )

@@ -83,13 +83,25 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
               <Link to="/alumno/novedades" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground">Ver todas →</Link>
             )}
           </div>
-          <ul className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-zinc-950 px-4 text-white">
-            {visibles.map((n) => (
-              <li key={n.idNovedad}>
-                <FilaNovedad novedad={n} compacta onAbrir={() => setAbierta(n)} />
-              </li>
-            ))}
-          </ul>
+          <div className={`relative ${limite && lista.length > limite ? "pb-14" : ""}`}>
+            <ul className="grid gap-3 md:grid-cols-3">
+              {visibles.map((n) => (
+                <li key={n.idNovedad} className="rounded-xl border border-white/10 bg-zinc-950 px-3 text-white">
+                  <FilaNovedad novedad={n} compacta onAbrir={() => setAbierta(n)} />
+                </li>
+              ))}
+            </ul>
+            {limite && lista.length > limite && (
+              <>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-zinc-950 to-transparent" />
+                <div className="absolute inset-x-0 bottom-2 flex justify-center">
+                  <Link to="/alumno/novedades" className="rounded-full border border-white/20 bg-zinc-950 px-5 py-2 text-xs font-black uppercase tracking-[0.12em] text-white hover:bg-white/10">
+                    Ver todas las novedades →
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
         </section>
       ) : (
         <section id="novedades" aria-labelledby="novedades-titulo" className="scroll-mt-24 border-t border-white/10 bg-zinc-950 py-10 text-white md:py-14">
