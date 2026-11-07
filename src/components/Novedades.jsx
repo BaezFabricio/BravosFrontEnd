@@ -14,7 +14,7 @@ export function FotoNovedad({ novedad, className = "", pequena = false }) {
   }
   return (
     <div className={`flex h-full w-full items-end ${className}`} style={{ backgroundColor: color.hex, color: color.texto }}>
-      <span className={pequena ? "p-2" : "p-4"} style={{ ...estiloTitulo(novedad), fontSize: pequena ? "1.1rem" : "clamp(2.5rem, 8vw, 4rem)" }}>{tipoDe(novedad.tipo).nombre}</span>
+      {pequena && <span className="p-2" style={{ ...estiloTitulo(novedad), fontSize: "1.1rem" }}>{tipoDe(novedad.tipo).nombre}</span>}
     </div>
   )
 }
