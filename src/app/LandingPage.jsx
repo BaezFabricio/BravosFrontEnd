@@ -25,9 +25,13 @@ const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
   { name: 'CLASES', href: '#clases', hasDropdown: true },
   { name: 'HORARIOS', href: '#horarios', hasDropdown: false },
+  { name: 'NOVEDADES', href: '#novedades', hasDropdown: false, soloSesion: true },
   { name: 'NOSOTROS', href: '#nosotros', hasDropdown: false },
   { name: 'CONTACTO', href: '#contacto', hasDropdown: false },
 ]
+
+// "Novedades" solo aparece con sesión iniciada: la sección de la portada también es solo para ellos
+const menuItems = () => navigation.filter((item) => !item.soloSesion || haySesion())
 
 // En el celular la foto horizontal se recorta a los costados: para algunas fotos se elige qué parte
 // queda a la vista (posición horizontal). Se reconocen por el nombre del archivo en Cloudinary.
@@ -377,7 +381,7 @@ function LandingPage() {
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
                 </Link>
 
-                {navigation.filter(item => item.name !== 'INICIO').map((item) => (
+                {menuItems().filter(item => item.name !== 'INICIO').map((item) => (
                   <div
                     key={item.name}
                     className="relative"
@@ -483,7 +487,7 @@ function LandingPage() {
             <div className="fixed inset-x-0 top-[66px] z-40 max-h-[calc(100svh-66px)] overflow-y-auto overscroll-contain border-b border-white/10 bg-black shadow-2xl lg:hidden">
               <nav aria-label="Secciones del sitio" className="px-4 py-2">
                 <ul>
-                  {navigation.map((item) => (
+                  {menuItems().map((item) => (
                     <li key={item.name}>
                       {item.hasDropdown ? (
                         <>

@@ -92,7 +92,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
           </ul>
         </section>
       ) : (
-        <section aria-labelledby="novedades-titulo" className="border-t border-white/10 bg-zinc-950 py-10 text-white md:py-14">
+        <section id="novedades" aria-labelledby="novedades-titulo" className="scroll-mt-24 border-t border-white/10 bg-zinc-950 py-10 text-white md:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">
               <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" />
