@@ -386,11 +386,11 @@ export default function AlumnoLayout({ children }) {
           ) : (
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
             <>
-              {/* Celular: "Volver" en todas las pantallas menos el inicio del panel. Vuelve a la pantalla
-                  anterior si se llegó desde otra; si se entró directo, al inicio del panel */}
-              {pathname !== "/alumno" && !navigation.some((item) => (item.principal || item.centro) && item.href === pathname) && (
-                <BotonVolver a="/alumno" texto="Volver" className="mb-4 lg:hidden" />
-              )}
+              {/* "Volver" en todas las pantallas (celular y escritorio). En el inicio del módulo, vuelve a la página principal;
+                  en las demás, al inicio del módulo */}
+              {pathname === "/alumno"
+                ? <BotonVolver a="/" texto="Página principal" className="mb-4" />
+                : <BotonVolver a="/alumno" texto="Volver" className="mb-4" />}
               <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
             </>
           )}
