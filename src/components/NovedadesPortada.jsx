@@ -2,10 +2,12 @@ import { useEffect, useState } from "react"
 import apiClient from "@/api"
 import { haySesion } from "@/lib/sesion"
 import { DialogoNovedad, FilaNovedad } from "@/components/Novedades"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 
 /*
  * Novedades del box en la portada (solo para quien tiene sesión): una lista con miniatura, como las noticias de un portal.
- * Al tocar una novedad se abre su pop-up. Las que este dispositivo todavía no vio se abren solas, de a una.
+ * Al entrar, si hay novedades que este dispositivo todavía no vio, aparece UN solo aviso con la lista de esas novedades
+ * (no un pop-up por cada una). Tocar una fila abre su detalle. Al cerrar el aviso, se dan por vistas.
  */
 const CLAVE = (id) => `bravos-novedad-vista-${id}`
 const yaVista = (id) => { try { return localStorage.getItem(CLAVE(id)) === "1" } catch { return false } }
@@ -13,9 +15,9 @@ const marcarVista = (id) => { try { localStorage.setItem(CLAVE(id), "1") } catch
 
 export default function NovedadesPortada() {
   const [lista, setLista] = useState([])
-  const [abierta, setAbierta] = useState(null) // novedad mostrada en el pop-up
-  const [cola, setCola] = useState([]) // novedades nuevas que faltan mostrar de a una
-  const [desdeAuto, setDesdeAuto] = useState(false)
+  const [abierta, setAbierta] = useState(null) // detalle de una novedad (pop-up)
+  const [pendientes, setPendientes] = useState([]) // novedades nuevas para este dispositivo
+  const [resumen, setResumen] = useState(false) // aviso de entrada con la lista de pendientes
 
   useEffect(() => {
     if (!haySesion()) return
@@ -27,9 +29,8 @@ export default function NovedadesPortada() {
         setLista(todas)
         const nuevas = todas.filter((n) => !yaVista(n.idNovedad))
         if (nuevas.length) {
-          setAbierta(nuevas[0])
-          setCola(nuevas.slice(1))
-          setDesdeAuto(true)
+          setPendientes(nuevas)
+          setResumen(true)
         }
       })
       .catch(() => { /* sin novedades la portada se ve igual */ })
@@ -38,16 +39,16 @@ export default function NovedadesPortada() {
 
   if (!haySesion() || lista.length === 0) return null
 
-  const cerrar = () => {
-    if (abierta) marcarVista(abierta.idNovedad)
-    // Las nuevas que se venían mostrando de a una: pasa a la siguiente solo si el pop-up se abrió solo
-    if (desdeAuto && cola.length) {
-      setAbierta(cola[0])
-      setCola(cola.slice(1))
-    } else {
-      setAbierta(null)
-      setDesdeAuto(false)
-    }
+  // Al cerrar el aviso de entrada, todas las que mostró quedan vistas en este dispositivo
+  const cerrarResumen = () => {
+    pendientes.forEach((n) => marcarVista(n.idNovedad))
+    setResumen(false)
+    setPendientes([])
+  }
+
+  const abrirDesdeResumen = (n) => {
+    cerrarResumen()
+    setAbierta(n)
   }
 
   return (
@@ -61,15 +62,34 @@ export default function NovedadesPortada() {
           <ul className="mt-5 divide-y divide-white/10 border-y border-white/10">
             {lista.map((n) => (
               <li key={n.idNovedad}>
-                <FilaNovedad novedad={n} onAbrir={() => { setDesdeAuto(false); setAbierta(n) }} />
+                <FilaNovedad novedad={n} onAbrir={() => setAbierta(n)} />
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      <DialogoNovedad novedad={abierta} abierta={!!abierta} onCerrar={cerrar}
-        textoBoton={desdeAuto && cola.length ? "Ver la siguiente" : "Cerrar"} />
+      <Dialog open={resumen} onOpenChange={(o) => { if (!o) cerrarResumen() }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-white/10 bg-zinc-950 p-6 text-white sm:max-w-lg">
+          <DialogTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-white/60">
+            {pendientes.length === 1 ? "Tenés 1 novedad nueva." : `Tenés ${pendientes.length} novedades nuevas.`} Tocá una para leerla.
+          </DialogDescription>
+          <ul className="mt-4 divide-y divide-white/10 border-y border-white/10">
+            {pendientes.map((n) => (
+              <li key={n.idNovedad}>
+                <FilaNovedad novedad={n} onAbrir={() => abrirDesdeResumen(n)} />
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={cerrarResumen}
+            className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-[#9be600] text-sm font-black uppercase tracking-[0.12em] text-black hover:bg-[#b5ff1a]">
+            Seguir
+          </button>
+        </DialogContent>
+      </Dialog>
+
+      <DialogoNovedad novedad={abierta} abierta={!!abierta} onCerrar={() => setAbierta(null)} />
     </>
   )
 }
