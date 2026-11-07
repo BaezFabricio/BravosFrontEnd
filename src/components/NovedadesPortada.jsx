@@ -16,7 +16,7 @@ const CLAVE = (id) => `bravos-novedad-vista-${id}`
 const yaVista = (id) => { try { return localStorage.getItem(CLAVE(id)) === "1" } catch { return false } }
 const marcarVista = (id) => { try { localStorage.setItem(CLAVE(id), "1") } catch { /* sin almacenamiento: volverá a aparecer */ } }
 
-export default function NovedadesPortada({ conAviso = false, compacta = false, limite = null }) {
+export default function NovedadesPortada({ conAviso = false, compacta = false, limite = null, soloAviso = false }) {
   const [lista, setLista] = useState([])
   const [abierta, setAbierta] = useState(null) // detalle de una novedad (pop-up)
   const [pendientes, setPendientes] = useState([]) // novedades nuevas para este dispositivo
@@ -58,7 +58,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
 
   return (
     <>
-      {compacta ? (
+      {soloAviso ? null : compacta ? (
         <section aria-labelledby="novedades-titulo" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">
