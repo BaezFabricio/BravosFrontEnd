@@ -79,7 +79,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
               <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" />
               Novedades
             </h2>
-            {limite && lista.length > limite && (
+            {limite && (
               <Link to="/alumno/novedades" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground">Ver todas →</Link>
             )}
           </div>
