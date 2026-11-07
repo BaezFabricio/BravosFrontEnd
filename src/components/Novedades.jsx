@@ -7,14 +7,14 @@ import { colorDe, estiloTitulo, tipoDe } from "@/lib/novedades"
  */
 
 /** Foto de la novedad; si no tiene, un bloque del color elegido con el título. */
-export function FotoNovedad({ novedad, className = "" }) {
+export function FotoNovedad({ novedad, className = "", pequena = false }) {
   const color = colorDe(novedad)
   if (novedad.imagen) {
     return <img src={novedad.imagen} alt="" loading="lazy" className={`h-full w-full object-cover ${className}`} />
   }
   return (
     <div className={`flex h-full w-full items-end ${className}`} style={{ backgroundColor: color.hex, color: color.texto }}>
-      <span className="p-4" style={{ ...estiloTitulo(novedad), fontSize: "clamp(2.5rem, 8vw, 4rem)" }}>{tipoDe(novedad.tipo).nombre}</span>
+      <span className={pequena ? "p-2" : "p-4"} style={{ ...estiloTitulo(novedad), fontSize: pequena ? "1.1rem" : "clamp(2.5rem, 8vw, 4rem)" }}>{tipoDe(novedad.tipo).nombre}</span>
     </div>
   )
 }
