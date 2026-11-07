@@ -386,11 +386,8 @@ export default function AlumnoLayout({ children }) {
           ) : (
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
             <>
-              {/* "Volver" en todas las pantallas (celular y escritorio). En el inicio del módulo, vuelve a la página principal;
-                  en las demás, al inicio del módulo */}
-              {pathname === "/alumno"
-                ? <BotonVolver a="/" texto="Página principal" className="mb-4" />
-                : <BotonVolver a="/alumno" texto="Volver" className="mb-4" />}
+              {/* "Volver" en las subpáginas (celular y escritorio). En el inicio del módulo no hay botón */}
+              {pathname !== "/alumno" && <BotonVolver a="/alumno" texto="Volver" className="mb-4" />}
               <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
             </>
           )}
