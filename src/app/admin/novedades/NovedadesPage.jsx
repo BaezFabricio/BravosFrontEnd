@@ -7,7 +7,7 @@ import { getPermisos } from "@/lib/paneles"
 import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from "@/components/Cargando"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ContenidoNovedad, FilaNovedad, TarjetaNovedad } from "@/components/Novedades"
+import { FilaNovedad, TarjetaNovedad } from "@/components/Novedades"
 import { TIPOS_NOVEDAD, colorDe } from "@/lib/novedades"
 
 /*
@@ -292,22 +292,12 @@ export default function NovedadesPage() {
                 </div>
               </div>
 
-              <aside className="hidden space-y-6 md:block">
+              <aside className="hidden md:block">
+                <p className={etiqueta}>Así se ve en la portada</p>
                 {vistaPrevia && (
-                  <>
-                    <div>
-                      <p className={etiqueta}>En la portada</p>
-                      <ul className="pointer-events-none rounded-2xl bg-zinc-950 px-4 text-white">
-                        <li><FilaNovedad novedad={vistaPrevia} onAbrir={() => {}} /></li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className={etiqueta}>Al tocarla</p>
-                      <div className="pointer-events-none overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 text-white">
-                        <ContenidoNovedad novedad={vistaPrevia} />
-                      </div>
-                    </div>
-                  </>
+                  <ul className="pointer-events-none rounded-2xl bg-zinc-950 px-4 text-white">
+                    <li><FilaNovedad novedad={vistaPrevia} onAbrir={() => {}} /></li>
+                  </ul>
                 )}
               </aside>
             </form>
