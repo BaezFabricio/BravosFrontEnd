@@ -24,26 +24,28 @@ export const COLORES_NOVEDAD = {
   blanco: { nombre: "Blanco", hex: "#f5f5f4", texto: "#0b0c09" },
 }
 
-// Tipografías de los títulos (las fuentes ya están cargadas en el sitio)
-export const FUENTES_NOVEDAD = {
-  stencil: { nombre: "Stencil", familia: "'Big Shoulders Stencil Display', sans-serif", peso: 900, mayusculas: true },
-  condensada: { nombre: "Condensada", familia: "'Barlow Condensed', sans-serif", peso: 800, mayusculas: true },
-  moderna: { nombre: "Moderna", familia: "'Archivo', sans-serif", peso: 800, mayusculas: false },
-  mono: { nombre: "Mono", familia: "'JetBrains Mono', monospace", peso: 600, mayusculas: false },
+const HEX = /^#[0-9a-f]{6}$/i
+
+/** Texto negro o blanco, el que se lea mejor sobre el color de fondo. */
+export function textoSobre(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  const canal = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
+  const luz = 0.2126 * canal((n >> 16) & 255) + 0.7152 * canal((n >> 8) & 255) + 0.0722 * canal(n & 255)
+  return luz > 0.4 ? "#0b0c09" : "#ffffff"
 }
 
 export const tipoDe = (tipo) => TIPOS_NOVEDAD[tipo] || TIPOS_NOVEDAD.aviso
 
-/** Color de la novedad: el que eligió, o el del tipo si no eligió ninguno. */
+/** Color de la novedad: el que eligió en la rueda, o el del tipo si no eligió ninguno. */
 export function colorDe(novedad) {
-  const clave = COLORES_NOVEDAD[novedad?.colorFondo] ? novedad.colorFondo : tipoDe(novedad?.tipo).colorPorDefecto
-  return COLORES_NOVEDAD[clave]
+  if (HEX.test(novedad?.colorFondo || "")) {
+    const hex = novedad.colorFondo.toLowerCase()
+    return { hex, texto: textoSobre(hex) }
+  }
+  return COLORES_NOVEDAD[tipoDe(novedad?.tipo).colorPorDefecto]
 }
 
-/** Estilo CSS del título según la tipografía elegida. */
-export function estiloTitulo(novedad) {
-  const f = FUENTES_NOVEDAD[novedad?.fuenteTitulo] || FUENTES_NOVEDAD.stencil
-  return { fontFamily: f.familia, fontWeight: f.peso, textTransform: f.mayusculas ? "uppercase" : "none", lineHeight: 0.95 }
+/** Estilo CSS del título: una sola tipografía para todas las novedades. */
+export function estiloTitulo() {
+  return { fontFamily: "'Archivo', sans-serif", fontWeight: 800, textTransform: "none", lineHeight: 0.95 }
 }
-
-export const ESTILO_TITULO = estiloTitulo({})

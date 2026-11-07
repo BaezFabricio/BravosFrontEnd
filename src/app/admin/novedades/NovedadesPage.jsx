@@ -8,7 +8,7 @@ import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from "@/components/Cargando"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TarjetaNovedad } from "@/components/Novedades"
-import { COLORES_NOVEDAD, FUENTES_NOVEDAD, TIPOS_NOVEDAD } from "@/lib/novedades"
+import { TIPOS_NOVEDAD, colorDe } from "@/lib/novedades"
 
 /*
  * Novedades del box: se cargan con foto y tipo. Tocar una tarjeta abre la ventana para editarla (no cambia de pantalla).
@@ -19,7 +19,7 @@ const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_IMAGEN = 5 * 1024 * 1024
 const inputCls = "w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm"
 const etiqueta = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
-const VACIO = { idNovedad: null, titulo: "", tipo: "aviso", texto: "", activa: true, hasta: "", imagen: null, archivo: null, quitarImagen: false, enlace: "", enlaceTexto: "", colorFondo: "", fuenteTitulo: "stencil" }
+const VACIO = { idNovedad: null, titulo: "", tipo: "aviso", texto: "", activa: true, hasta: "", imagen: null, archivo: null, quitarImagen: false, enlace: "", enlaceTexto: "", colorFondo: "" }
 
 export default function NovedadesPage() {
   const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
@@ -66,7 +66,6 @@ export default function NovedadesPage() {
     fd.append("enlace", editando.enlace || "")
     fd.append("enlaceTexto", editando.enlaceTexto || "")
     fd.append("colorFondo", editando.colorFondo || "")
-    fd.append("fuenteTitulo", editando.fuenteTitulo || "stencil")
     if (editando.archivo) fd.append("imagen", editando.archivo)
     else if (editando.quitarImagen) fd.append("quitarImagen", "true")
     try {
@@ -110,7 +109,7 @@ export default function NovedadesPage() {
     idNovedad: n.idNovedad, titulo: n.titulo, tipo: n.tipo || "aviso", texto: n.texto,
     activa: n.activa, hasta: n.hasta || "", imagen: n.imagen || null, archivo: null, quitarImagen: false,
     enlace: n.enlace || "", enlaceTexto: n.enlaceTexto || "",
-    colorFondo: n.colorFondo || "", fuenteTitulo: n.fuenteTitulo || "stencil",
+    colorFondo: n.colorFondo || "",
   })
 
   // Lo que se ve en la vista previa mientras se escribe
@@ -118,7 +117,6 @@ export default function NovedadesPage() {
     titulo: editando.titulo || "Título de la novedad",
     tipo: editando.tipo,
     colorFondo: editando.colorFondo,
-    fuenteTitulo: editando.fuenteTitulo,
     texto: editando.texto || "Acá va el mensaje que van a ver los alumnos.",
     imagen: editando.previa || editando.imagen,
     fecha: "hoy",
@@ -192,32 +190,22 @@ export default function NovedadesPage() {
 
                 <div>
                   <span className={etiqueta}>Color</span>
-                  <div role="radiogroup" aria-label="Color de la novedad" className="flex flex-wrap gap-2.5">
-                    {Object.entries(COLORES_NOVEDAD).map(([k, c]) => {
-                      const elegido = (editando.colorFondo || TIPOS_NOVEDAD[editando.tipo]?.colorPorDefecto) === k
-                      return (
-                        <button key={k} type="button" role="radio" aria-checked={elegido} aria-label={c.nombre} title={c.nombre}
-                          onClick={() => setEditando({ ...editando, colorFondo: k })}
-                          className={`h-9 w-9 rounded-full transition ${elegido ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "ring-1 ring-black/10 hover:scale-110"}`}
-                          style={{ backgroundColor: c.hex }} />
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <span className={etiqueta}>Tipografía del título</span>
-                  <div role="radiogroup" aria-label="Tipografía del título" className="grid gap-2 sm:grid-cols-4">
-                    {Object.entries(FUENTES_NOVEDAD).map(([k, f]) => {
-                      const elegida = (editando.fuenteTitulo || "stencil") === k
-                      return (
-                        <button key={k} type="button" role="radio" aria-checked={elegida} onClick={() => setEditando({ ...editando, fuenteTitulo: k })}
-                          className={`rounded-xl border px-3 py-2 text-left transition ${elegida ? "border-foreground bg-foreground/5" : "border-border hover:bg-foreground/5"}`}>
-                          <span className="block text-xl leading-none text-foreground" style={{ fontFamily: f.familia, fontWeight: f.peso, textTransform: f.mayusculas ? "uppercase" : "none" }}>Aa Bravos</span>
-                          <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{f.nombre}</span>
-                        </button>
-                      )
-                    })}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="relative h-14 w-14 shrink-0 cursor-pointer rounded-full p-[4px] focus-within:ring-2 focus-within:ring-foreground focus-within:ring-offset-2 focus-within:ring-offset-background"
+                      style={{ background: "conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" }}>
+                      <span className="block h-full w-full rounded-full ring-2 ring-black/20" style={{ backgroundColor: colorDe(editando).hex }} />
+                      <input type="color" aria-label="Elegir el color de la novedad" value={colorDe(editando).hex}
+                        onChange={(e) => setEditando({ ...editando, colorFondo: e.target.value })}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                    </label>
+                    <div className="min-w-0">
+                      <p className="font-mono text-sm font-bold uppercase text-foreground">{colorDe(editando).hex}</p>
+                      <p className="text-[11px] text-muted-foreground">Tocá la rueda para elegir cualquier color.</p>
+                      {editando.colorFondo && (
+                        <button type="button" onClick={() => setEditando({ ...editando, colorFondo: "" })}
+                          className="mt-1 text-xs font-bold text-foreground underline underline-offset-4">Usar el color del tipo</button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
