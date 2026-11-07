@@ -8,6 +8,8 @@ export const TIPOS_NOVEDAD = {
   evento: { nombre: "Evento", colorPorDefecto: "lima" },
   promo: { nombre: "Promo", colorPorDefecto: "amarillo" },
   comunidad: { nombre: "Comunidad", colorPorDefecto: "rosa" },
+  novedad: { nombre: "Novedad", colorPorDefecto: "naranja" },
+  noticia: { nombre: "Noticia", colorPorDefecto: "blanco" },
 }
 
 // Paleta: el texto que va sobre cada color se elige para que se lea bien
