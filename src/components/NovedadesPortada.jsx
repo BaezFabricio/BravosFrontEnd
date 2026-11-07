@@ -20,7 +20,20 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
   const [lista, setLista] = useState([])
   const [abierta, setAbierta] = useState(null) // detalle de una novedad (pop-up)
   const [pendientes, setPendientes] = useState([]) // novedades nuevas para este dispositivo
-  const [resumen, setResumen] = useState(false) // aviso de entrada con la lista de pendientes
+  const [resumen, setResumen] = useState(false) // aviso con la lista (al entrar, o al abrirlo a mano)
+  const [reabierto, setReabierto] = useState(false) // true si el alumno lo abrió con el botón (muestra todas)
+
+  // El botón de novedades (barra del alumno) abre el aviso con todas
+  useEffect(() => {
+    const abrirATodas = () => {
+      if (!lista.length) return
+      setPendientes(lista)
+      setReabierto(true)
+      setResumen(true)
+    }
+    window.addEventListener("bravos:abrir-novedades", abrirATodas)
+    return () => window.removeEventListener("bravos:abrir-novedades", abrirATodas)
+  }, [lista])
 
   useEffect(() => {
     if (!haySesion()) return
@@ -47,6 +60,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
     pendientes.forEach((n) => marcarVista(n.idNovedad))
     setResumen(false)
     setPendientes([])
+    setReabierto(false)
   }
 
   const abrirDesdeResumen = (n) => {
@@ -99,7 +113,9 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-white/10 bg-zinc-950 p-6 text-white sm:max-w-lg">
           <DialogTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</DialogTitle>
           <DialogDescription className="mt-1 text-sm text-white/60">
-            {pendientes.length === 1 ? "Tenés 1 novedad nueva." : `Tenés ${pendientes.length} novedades nuevas.`} Tocá una para leerla.
+            {reabierto
+              ? "Todas las novedades del box. Tocá una para leerla."
+              : `${pendientes.length === 1 ? "Tenés 1 novedad nueva." : `Tenés ${pendientes.length} novedades nuevas.`} Tocá una para leerla.`}
           </DialogDescription>
           <ul className="mt-4 divide-y divide-white/10 border-y border-white/10">
             {pendientes.map((n) => (

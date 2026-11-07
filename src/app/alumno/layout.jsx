@@ -20,11 +20,13 @@ import {
   Trophy,
   Calculator,
   Wallet,
+  Newspaper,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
+import NovedadesPortada from "@/components/NovedadesPortada"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
 import BravoChat from "@/components/BravoChat"
@@ -299,8 +301,13 @@ export default function AlumnoLayout({ children }) {
                 <Home className="h-4 w-4" />
               </Button>
 
+              <Button variant="ghost" size="icon" aria-label="Ver novedades" title="Ver novedades"
+                onClick={() => window.dispatchEvent(new Event("bravos:abrir-novedades"))}>
+                <Newspaper className="h-4 w-4" />
+              </Button>
+
               <NotificacionesBell />
-              
+
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none transition-transform hover:scale-105 active:scale-95">
                   <div className="h-9 w-9 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
@@ -349,6 +356,8 @@ export default function AlumnoLayout({ children }) {
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
 
         <main className="p-4 lg:p-6 pb-28 lg:pb-6">
+          {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
+          <NovedadesPortada conAviso soloAviso />
           {validandoAcceso ? (
             <div className="max-w-5xl mx-auto space-y-4 animate-pulse" role="status" aria-label="Cargando">
               <div className="h-7 w-48 rounded bg-foreground/10" />
