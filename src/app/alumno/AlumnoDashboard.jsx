@@ -23,6 +23,7 @@ import MiniRanking from "@/components/MiniRanking"
 import { toast } from "@/lib/notificar"
 import "@/components/heroAlumno.css"
 import LogroCelebracion from "@/components/LogroCelebracion"
+import NovedadesPortada from "@/components/NovedadesPortada"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
 import { Cargando } from '@/components/Cargando'
@@ -615,6 +616,11 @@ export default function AlumnoDashboard() {
         </CardContent>
       </Card>
     </div>
+
+      {/* Novedades al final de la página: las últimas tres y "Todas" lleva a la lista completa */}
+      <div className="px-4 pb-6 pt-2 lg:px-0">
+        <NovedadesPortada compacta limite={3} />
+      </div>
     </>
   )
 }
