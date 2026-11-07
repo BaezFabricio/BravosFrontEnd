@@ -618,7 +618,7 @@ export default function AlumnoDashboard() {
     </div>
 
       {/* Novedades al final de la página: las últimas tres y "Todas" lleva a la lista completa */}
-      <div className="px-4 pb-6 pt-10 lg:px-0 lg:pt-12">
+      <div className="px-4 pb-6 pt-6 lg:px-0 lg:pt-6">
         <NovedadesPortada compacta limite={3} />
       </div>
     </>
