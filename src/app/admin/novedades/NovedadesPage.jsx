@@ -7,7 +7,7 @@ import { getPermisos } from "@/lib/paneles"
 import { TituloPagina } from "@/components/TituloPagina"
 import { Cargando } from "@/components/Cargando"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TarjetaNovedad } from "@/components/Novedades"
+import { ContenidoNovedad, FilaNovedad, TarjetaNovedad } from "@/components/Novedades"
 import { TIPOS_NOVEDAD, colorDe } from "@/lib/novedades"
 
 /*
@@ -112,14 +112,21 @@ export default function NovedadesPage() {
     colorFondo: n.colorFondo || "",
   })
 
-  // Lo que se ve en la vista previa mientras se escribe
+  // Lo que se ve en la vista previa mientras se escribe: la misma fila y el mismo detalle que ve el alumno
+  const hoy = () => {
+    const d = new Date()
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`
+  }
   const vistaPrevia = editando && {
     titulo: editando.titulo || "Título de la novedad",
     tipo: editando.tipo,
     colorFondo: editando.colorFondo,
     texto: editando.texto || "Acá va el mensaje que van a ver los alumnos.",
     imagen: editando.previa || editando.imagen,
-    fecha: "hoy",
+    fecha: hoy(),
+    hasta: editando.hasta,
+    enlace: editando.enlace.trim(),
+    enlaceTexto: editando.enlaceTexto,
   }
 
   const estadoDe = (n) => (n.vigente ? { texto: "Visible", clase: "bg-lime-400 text-black" } : n.activa ? { texto: "Vencida", clase: "bg-zinc-600 text-white" } : { texto: "Oculta", clase: "bg-zinc-800 text-white" })
@@ -285,9 +292,23 @@ export default function NovedadesPage() {
                 </div>
               </div>
 
-              <aside className="hidden md:block">
-                <p className={etiqueta}>Vista previa</p>
-                {vistaPrevia && <TarjetaNovedad novedad={vistaPrevia} className="pointer-events-none" />}
+              <aside className="hidden space-y-6 md:block">
+                {vistaPrevia && (
+                  <>
+                    <div>
+                      <p className={etiqueta}>En la portada</p>
+                      <ul className="pointer-events-none rounded-2xl bg-zinc-950 px-4 text-white">
+                        <li><FilaNovedad novedad={vistaPrevia} onAbrir={() => {}} /></li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className={etiqueta}>Al tocarla</p>
+                      <div className="pointer-events-none overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 text-white">
+                        <ContenidoNovedad novedad={vistaPrevia} />
+                      </div>
+                    </div>
+                  </>
+                )}
               </aside>
             </form>
           )}

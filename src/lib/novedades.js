@@ -36,6 +36,14 @@ export function textoSobre(hex) {
 
 export const tipoDe = (tipo) => TIPOS_NOVEDAD[tipo] || TIPOS_NOVEDAD.aviso
 
+/** "Nuevo" si la fecha (dd/mm/aaaa) es de los últimos 7 días. */
+export function esReciente(fecha) {
+  const [d, m, a] = String(fecha || "").split("/")
+  if (!d || !m || !a) return false
+  const publicada = new Date(`${a}-${m}-${d}T12:00:00`).getTime()
+  return !Number.isNaN(publicada) && Date.now() - publicada < 7 * 24 * 60 * 60 * 1000
+}
+
 /** Color de la novedad: el que eligió en la rueda, o el del tipo si no eligió ninguno. */
 export function colorDe(novedad) {
   if (HEX.test(novedad?.colorFondo || "")) {
