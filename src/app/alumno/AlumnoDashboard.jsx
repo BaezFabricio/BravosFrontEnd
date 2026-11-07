@@ -23,6 +23,7 @@ import MiniRanking from "@/components/MiniRanking"
 import { toast } from "@/lib/notificar"
 import "@/components/heroAlumno.css"
 import LogroCelebracion from "@/components/LogroCelebracion"
+import NovedadesPortada from "@/components/NovedadesPortada"
 import { useMiPlan, fmtFechaPlan } from "@/lib/miPlan"
 import DashboardMovil from "./DashboardMovil"
 import { Cargando } from '@/components/Cargando'
@@ -215,6 +216,11 @@ export default function AlumnoDashboard() {
   return (
     <>
       <LogroCelebracion logros={logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
+
+      {/* Novedades: el aviso sale al entrar, y acá quedan las últimas (la lista completa está en "Novedades") */}
+      <div className="px-4 pt-4 lg:px-0 lg:pt-0 mb-6">
+        <NovedadesPortada conAviso compacta limite={3} />
+      </div>
 
       {/* CELULAR: diseño propio (DashboardMovil.jsx) */}
       <div className="lg:hidden">

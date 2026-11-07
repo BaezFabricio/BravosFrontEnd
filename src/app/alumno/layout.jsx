@@ -20,6 +20,7 @@ import {
   Trophy,
   Calculator,
   Wallet,
+  Newspaper,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -42,6 +43,7 @@ const GRUPOS = [
 
 const navigation = [
   { name: "Resumen", mobileLabel: "Inicio", href: "/alumno", icon: Home, principal: true, grupo: "inicio" },
+  { name: "Novedades", mobileLabel: "Novedades", href: "/alumno/novedades", icon: Newspaper, grupo: "inicio" },
   { name: "Reservar Clase", mobileLabel: "Reservar", href: "/alumno/reservar", icon: Calendar, principal: true, centro: true, grupo: "entrenamiento" },
   { name: "Mis Reservas", mobileLabel: "Reservas", href: "/alumno/reservas", icon: History, principal: true, grupo: "entrenamiento" },
   { name: "Mis RM", mobileLabel: "RM", href: "/alumno/marcas", icon: Trophy, grupo: "entrenamiento" },

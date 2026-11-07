@@ -36,21 +36,21 @@ const fechaCorta = (iso) => {
 }
 
 /** Fila de la lista de la portada: miniatura, etiqueta "Nuevo", fecha · tipo y título. */
-export function FilaNovedad({ novedad, onAbrir }) {
+export function FilaNovedad({ novedad, onAbrir, compacta = false }) {
   return (
     <button type="button" onClick={onAbrir}
-      className="group flex w-full items-center gap-4 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9be600] md:gap-5">
-      <div className="h-20 w-28 shrink-0 overflow-hidden rounded-xl md:h-24 md:w-36">
+      className={`group flex w-full items-center text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9be600] ${compacta ? "gap-3 py-3" : "gap-4 py-4 md:gap-5"}`}>
+      <div className={`shrink-0 overflow-hidden rounded-lg ${compacta ? "h-12 w-16" : "h-20 w-28 rounded-xl md:h-24 md:w-36"}`}>
         <FotoNovedad novedad={novedad} pequena className="transition-transform duration-500 group-hover:scale-105" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
+        <div className={`flex flex-wrap items-center gap-2 font-bold uppercase tracking-[0.1em] text-white/50 ${compacta ? "text-[10px]" : "text-[11px]"}`}>
           {esReciente(novedad.fecha) && (
             <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>
           )}
           <span>{novedad.fecha} · {tipoDe(novedad.tipo).nombre}</span>
         </div>
-        <p className="mt-1.5 line-clamp-2 text-xl md:text-2xl" style={{ ...estiloTitulo(), lineHeight: 1.05 }}>{novedad.titulo}</p>
+        <p className={`line-clamp-1 ${compacta ? "mt-0.5 text-base" : "mt-1.5 line-clamp-2 text-xl md:text-2xl"}`} style={{ ...estiloTitulo(), lineHeight: 1.05 }}>{novedad.titulo}</p>
       </div>
     </button>
   )
