@@ -101,6 +101,44 @@ export default function BravoChat({ rol = "alumno" }) {
     setAbierto((v) => !v)
   }
 
+  // Posición del botón: se puede arrastrar con el dedo o el mouse, y queda guardada en este dispositivo
+  const POS_KEY = "bravo-posicion-boton"
+  const [posicion, setPosicion] = useState(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem(POS_KEY) || "null")
+      return v && Number.isFinite(v.x) && Number.isFinite(v.y) ? v : null
+    } catch {
+      return null
+    }
+  })
+  const arrastre = useRef({ activo: false, movido: false, sx: 0, sy: 0, ox: 0, oy: 0 })
+  const ajustar = (x, y) => ({
+    x: Math.min(Math.max(8, x), window.innerWidth - 60),
+    y: Math.min(Math.max(8, y), window.innerHeight - 60),
+  })
+  const posVista = posicion ? ajustar(posicion.x, posicion.y) : null
+
+  const alPresionar = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    arrastre.current = { activo: true, movido: false, sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top }
+  }
+  const alMover = (e) => {
+    const a = arrastre.current
+    if (!a.activo) return
+    if (!a.movido && Math.hypot(e.clientX - a.sx, e.clientY - a.sy) < 6) return
+    a.movido = true
+    const p = ajustar(a.ox + e.clientX - a.sx, a.oy + e.clientY - a.sy)
+    setPosicion(p)
+    try { localStorage.setItem(POS_KEY, JSON.stringify(p)) } catch { /* sin almacenamiento: vuelve a su lugar */ }
+  }
+  const alSoltar = () => { arrastre.current.activo = false }
+  // Si se arrastró, el clic que sigue no abre el chat
+  const alHacerClic = () => {
+    if (arrastre.current.movido) { arrastre.current.movido = false; return }
+    alternarChat()
+  }
+
   const globoVisible = (globo || globoHover) && !abierto
 
   const nombreUsuario = (() => {
@@ -287,8 +325,11 @@ export default function BravoChat({ rol = "alumno" }) {
       {/* Globito de saludo */}
       {globoVisible && (
         <div
-          className="bravo-anim fixed z-[15] right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem] max-w-[200px]"
-          style={{ animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both" }}
+          className={`bravo-anim fixed z-[15] max-w-[200px] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
+          style={{
+            animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both",
+            ...(posVista ? { left: Math.max(8, posVista.x - 190), top: Math.max(8, posVista.y - 84) } : {}),
+          }}
         >
           <div className="relative rounded-2xl rounded-br-sm bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2">
             <button
@@ -314,13 +355,18 @@ export default function BravoChat({ rol = "alumno" }) {
       <button
         ref={botonRef}
         data-guia="chat"
-        onClick={alternarChat}
+        onClick={alHacerClic}
+        onPointerDown={alPresionar}
+        onPointerMove={alMover}
+        onPointerUp={alSoltar}
+        onPointerCancel={alSoltar}
+        style={posVista ? { left: posVista.x, top: posVista.y, right: "auto", bottom: "auto" } : undefined}
         onMouseEnter={() => setGloboHover(true)}
         onMouseLeave={() => setGloboHover(false)}
         onFocus={() => setGloboHover(true)}
         onBlur={() => setGloboHover(false)}
         aria-label={abierto ? `Cerrar chat con ${mascota.nombre}` : `Abrir chat con ${mascota.nombre}`}
-        className="group bravo-anim fixed z-[15] right-4 bottom-28 lg:bottom-6 h-[52px] w-[52px] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="touch-none group bravo-anim fixed z-[15] right-4 bottom-28 lg:bottom-6 h-[52px] w-[52px] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         <span className="absolute inset-0 rounded-full bg-lime-400 shadow-lg ring-0 group-focus-visible:ring-2 group-focus-visible:ring-lime-200" />
         {abierto ? (
