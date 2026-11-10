@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { BotonVolver, useVolver } from "@/components/BotonVolver"
+import { useVolver } from "@/components/BotonVolver"
 import {
   Loader2,
   Check,
