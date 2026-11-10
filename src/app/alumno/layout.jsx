@@ -165,23 +165,26 @@ export default function AlumnoLayout({ children }) {
         })
         .catch(() => {})
     }
-    let temporizador = null
     const alCrear = () => {
       contar()
       setPistaReserva(true)
-      clearTimeout(temporizador)
-      temporizador = setTimeout(() => setPistaReserva(false), 6000)
     }
     contar()
     window.addEventListener("bravos:reserva-creada", alCrear)
     window.addEventListener("bravos:reservas-cambiaron", contar)
     return () => {
       vivo = false
-      clearTimeout(temporizador)
       window.removeEventListener("bravos:reserva-creada", alCrear)
       window.removeEventListener("bravos:reservas-cambiaron", contar)
     }
   }, [pathname])
+
+  // La pista dura 6 segundos (o hasta entrar a Reservas). Su temporizador no se cancela al cambiar de página.
+  useEffect(() => {
+    if (!pistaReserva) return
+    const t = setTimeout(() => setPistaReserva(false), 6000)
+    return () => clearTimeout(t)
+  }, [pistaReserva])
 
   useEffect(() => {
     const checkBreakpoint = () => setSidebarOpen(window.innerWidth >= 1024)
