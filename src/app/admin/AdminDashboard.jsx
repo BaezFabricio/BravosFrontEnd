@@ -150,7 +150,7 @@ export default function AdminDashboard() {
           const periodo = etiquetaPeriodo(activity)
           return (
             <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-7 min-w-0 items-center gap-3">
                 <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
                   {actividadIcon(activity.action)}
                 </div>
@@ -159,12 +159,12 @@ export default function AdminDashboard() {
                   {activity.action}
                 </p>
               </div>
-              <div className="justify-self-center">
+              <div className="flex h-7 items-center justify-self-center">
                 {periodo && (
                   <span className="rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45 whitespace-nowrap">{periodo}</span>
                 )}
               </div>
-              <div className="justify-self-end text-right">
+              <div className="flex h-7 flex-col justify-center justify-self-end text-right">
                 <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
                 {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
               </div>
