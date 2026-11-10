@@ -130,6 +130,13 @@ export default function AdminDashboard() {
   }
   // Etiqueta del centro de cada fila: "Hoy", "Semana pasada" o "Mes pasado"
   const fechaDeActividad = (f) => { const d = new Date(f); return isNaN(d.getTime()) ? "-" : `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` }
+  // Texto de cada actividad, más claro: "Reservó: Miércoles" pasa a "Reservó clase miércoles"
+  const textoAccion = (accion = "") => {
+    const m = String(accion).match(/^Reservó:\s*(.+)$/i)
+    if (m) return `Reservó clase ${m[1].charAt(0).toLowerCase()}${m[1].slice(1)}`
+    return accion
+  }
+
   // Grupos de actividad por período, en orden: hoy, semana pasada, mes pasado y el resto
   const grupoDe = (a) => (filtrosActividad.hoy(a) ? "hoy" : filtrosActividad.semana(a) ? "semana" : filtrosActividad.mes(a) ? "mes" : "antes")
   const ROTULO_GRUPO = { hoy: "Hoy", semana: "Semana pasada", mes: "Mes pasado", antes: "Anteriores" }
@@ -155,14 +162,14 @@ export default function AdminDashboard() {
                 const { hora } = formatearActividad(activity.fecha_orden)
                 return (
                   <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
-                    <div className="flex h-7 min-w-0 items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
                         {actividadIcon(activity.action)}
                       </div>
-                      <p className="min-w-0 truncate text-sm text-foreground/70">
-                        <span className="font-bold text-foreground">{activity.user}</span>{" "}
-                        {activity.action}
-                      </p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-foreground">{activity.user}</p>
+                        <p className="text-xs leading-snug text-foreground/60">{textoAccion(activity.action)}</p>
+                      </div>
                     </div>
                     <div className="flex h-7 flex-col justify-center justify-self-end text-right">
                       <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
