@@ -599,6 +599,28 @@ export default function UsuariosPage() {
     }), orden)
 
   // Si el elegido ya no está en la lista (por un filtro o una búsqueda), se muestra el primero
+  // Exporta a CSV la lista tal como se ve (con los filtros y el orden aplicados)
+  const exportarUsuarios = () => {
+    const celdaCsv = (v) => {
+      let t = String(v ?? "")
+      if (/^[=+\-@]/.test(t)) t = "'" + t // evita que Excel ejecute una fórmula
+      return `"${t.replace(/"/g, '""')}"`
+    }
+    const filas = [
+      ["Nombre", "DNI", "Correo", "Teléfono", "Perfil", "Membresía", "Estado"],
+      ...filteredUsers.map((u) => [u.nombre, u.dni, u.email, u.telefono, u.nombrePerfil || u.perfil || "", u.membresia, u.estado]),
+    ]
+    const csv = "﻿" + filas.map((f) => f.map(celdaCsv).join(";")).join("\r\n") // BOM: Excel lee bien los acentos
+    const d = new Date()
+    const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `usuarios-bravos-${fecha}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const seleccionado = filteredUsers.find((u) => (u.idUsuario || u.id) === seleccionadoId) || filteredUsers[0] || null
 
   const handleStatusChange = async (userId, newStatus) => {
@@ -830,7 +852,7 @@ export default function UsuariosPage() {
 
           {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
           {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-            <button className="rounded-full border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
+            <button type="button" onClick={exportarUsuarios} className="rounded-full border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
               <Download className="h-4 w-4" />
               Exportar
             </button>
