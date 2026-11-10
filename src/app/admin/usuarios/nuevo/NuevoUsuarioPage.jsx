@@ -180,17 +180,12 @@ export default function NuevoUsuarioPage() {
 
   return (
     <div className="space-y-5">
-      {/* Encabezado: volver, título y "Crear" a mano */}
+      {/* Encabezado: volver y título. El botón "Crear" va al final del cuadro de perfil y seguridad */}
       <BotonVolver a="/admin/usuarios" texto="Volver" />
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <TituloPagina descripcion={"Alta rápida de usuario"}>Nuevo usuario</TituloPagina>
         </div>
-        <button type="submit" form="form-nuevo-usuario" disabled={isLoading}
-          className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
-          {isLoading ? "Creando..." : "Crear"}
-        </button>
       </div>
 
       <form id="form-nuevo-usuario" onSubmit={handleSubmit} noValidate>
@@ -303,6 +298,13 @@ export default function NuevoUsuarioPage() {
                   Mínimo 8 caracteres, con mayúscula, minúscula y número. Pasásela al usuario: después puede cambiarla desde su perfil o con "¿Olvidaste tu contraseña?".
                 </p>
               </div>
+            </div>
+            <div className="flex justify-end border-t border-border px-4 py-3">
+              <button type="submit" form="form-nuevo-usuario" disabled={isLoading}
+                className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
+                {isLoading ? "Creando..." : "Crear"}
+              </button>
             </div>
           </section>
         </div>
