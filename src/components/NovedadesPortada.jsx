@@ -22,6 +22,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
   const [pendientes, setPendientes] = useState([]) // novedades nuevas para este dispositivo
   const [resumen, setResumen] = useState(false) // aviso con la lista (al entrar, o al abrirlo a mano)
   const [reabierto, setReabierto] = useState(false) // true si el alumno lo abrió con el botón (muestra todas)
+  const [cargado, setCargado] = useState(false) // ya llegó la respuesta (aunque sea vacía)
 
   // El botón de novedades (barra del alumno) abre el aviso con todas
   useEffect(() => {
@@ -43,17 +44,19 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
         if (!vigente) return
         const todas = r.data?.data || r.data || []
         setLista(todas)
+        setCargado(true)
         const nuevas = todas.filter((n) => !yaVista(n.idNovedad))
         if (conAviso && nuevas.length) {
           setPendientes(nuevas)
           setResumen(true)
         }
       })
-      .catch(() => { /* sin novedades la sección se ve igual */ })
+      .catch(() => setCargado(true))
     return () => { vigente = false }
   }, [conAviso])
 
-  if (!haySesion() || lista.length === 0) return null
+  // Sin novedades no se muestra nada, salvo en el módulo del alumno (compacta), que dice que no hay ninguna
+  if (!haySesion() || (lista.length === 0 && !(compacta && cargado))) return null
 
   // Al cerrar el aviso de entrada, todas las que mostró quedan vistas en este dispositivo
   const cerrarResumen = () => {
@@ -83,6 +86,11 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
               <Link to="/alumno/novedades" className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground hover:text-foreground">Ver todas →</Link>
             )}
           </div>
+          {lista.length === 0 && (
+            <p className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-6 text-center text-sm font-bold uppercase tracking-[0.1em] text-white/50">
+              No hay noticias disponibles por ahora
+            </p>
+          )}
           <div className={`relative ${limite && lista.length > limite ? "pb-14" : ""}`}>
             <ul className="grid gap-3 md:grid-cols-3">
               {visibles.map((n) => (
