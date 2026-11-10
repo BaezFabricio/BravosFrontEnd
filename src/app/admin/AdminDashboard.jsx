@@ -130,12 +130,12 @@ export default function AdminDashboard() {
   }
   // Etiqueta del centro de cada fila: "Hoy", "Semana pasada" o "Mes pasado"
   const fechaDeActividad = (f) => { const d = new Date(f); return isNaN(d.getTime()) ? "-" : `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` }
-  const etiquetaPeriodo = (a) => {
-    if (filtrosActividad.hoy(a)) return "Hoy"
-    if (filtrosActividad.semana(a)) return "Semana pasada"
-    if (filtrosActividad.mes(a)) return "Mes pasado"
-    return null
-  }
+  // Grupos de actividad por período, en orden: hoy, semana pasada, mes pasado y el resto
+  const grupoDe = (a) => (filtrosActividad.hoy(a) ? "hoy" : filtrosActividad.semana(a) ? "semana" : filtrosActividad.mes(a) ? "mes" : "antes")
+  const ROTULO_GRUPO = { hoy: "Hoy", semana: "Semana pasada", mes: "Mes pasado", antes: "Anteriores" }
+  const grupos = ["hoy", "semana", "mes", "antes"]
+    .map((k) => ({ k, label: ROTULO_GRUPO[k], items: recentActivity.filter((a) => grupoDe(a) === k) }))
+    .filter((g) => g.items.length > 0)
 
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
@@ -144,31 +144,36 @@ export default function AdminDashboard() {
     ) : recentActivity.length === 0 ? (
       <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
     ) : (
-      <div className="divide-y divide-border pt-2">
-        {recentActivity.map((activity, index) => {
-          const { hora } = formatearActividad(activity.fecha_orden)
-          const periodo = etiquetaPeriodo(activity)
-          return (
-            <div key={index} className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
-              {periodo && (
-                <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-card px-2 text-[9px] font-bold uppercase tracking-wider text-foreground/50">{periodo}</span>
-              )}
-              <div className="flex h-7 min-w-0 items-center gap-3">
-                <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
-                  {actividadIcon(activity.action)}
-                </div>
-                <p className="min-w-0 truncate text-sm text-foreground/70">
-                  <span className="font-bold text-foreground">{activity.user}</span>{" "}
-                  {activity.action}
-                </p>
-              </div>
-              <div className="flex h-7 flex-col justify-center justify-self-end text-right">
-                <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
-                {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
-              </div>
+      <div className="pt-2">
+        {grupos.map((g) => (
+          <div key={g.k}>
+            <div className="relative border-t border-border">
+              <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-card px-2 text-[9px] font-bold uppercase tracking-wider text-foreground/50">{g.label}</span>
             </div>
-          )
-        })}
+            <div className="divide-y divide-border">
+              {g.items.map((activity, index) => {
+                const { hora } = formatearActividad(activity.fecha_orden)
+                return (
+                  <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
+                    <div className="flex h-7 min-w-0 items-center gap-3">
+                      <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
+                        {actividadIcon(activity.action)}
+                      </div>
+                      <p className="min-w-0 truncate text-sm text-foreground/70">
+                        <span className="font-bold text-foreground">{activity.user}</span>{" "}
+                        {activity.action}
+                      </p>
+                    </div>
+                    <div className="flex h-7 flex-col justify-center justify-self-end text-right">
+                      <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
+                      {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     )}</>
   )
