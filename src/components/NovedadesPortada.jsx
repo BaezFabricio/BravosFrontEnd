@@ -2,8 +2,9 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import apiClient from "@/api"
 import { haySesion } from "@/lib/sesion"
-import { DialogoNovedad, FilaNovedad } from "@/components/Novedades"
-import { esReciente } from "@/lib/novedades"
+import { ArrowLeft } from "lucide-react"
+import { DialogoNovedad, FilaNovedad, FotoNovedad, TextoConEnlaces } from "@/components/Novedades"
+import { colorDe, esReciente, estiloTitulo, tipoDe } from "@/lib/novedades"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 
 /*
@@ -23,6 +24,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
   const [cargado, setCargado] = useState(false) // ya llegó la respuesta (aunque sea vacía)
   const [abierta, setAbierta] = useState(null) // detalle de una novedad (pop-up)
   const [resumen, setResumen] = useState(false) // aviso con la lista completa
+  const [detalleAviso, setDetalleAviso] = useState(null) // novedad que se lee dentro del mismo aviso
 
   const lista = historial.filter((n) => n.vigente) // lo que se muestra en la portada y en el módulo
 
@@ -55,11 +57,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
   const cerrarResumen = () => {
     historial.forEach((n) => marcarVista(n.idNovedad))
     setResumen(false)
-  }
-
-  const abrirDesdeResumen = (n) => {
-    cerrarResumen()
-    setAbierta(n)
+    setDetalleAviso(null)
   }
 
   const nuevas = historial.filter((n) => esReciente(n.fecha))
@@ -134,13 +132,46 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            {detalleAviso ? (
+              <article className="space-y-4">
+                <button type="button" onClick={() => setDetalleAviso(null)}
+                  className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#9be600] hover:text-[#b5ff1a]">
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver a las novedades
+                </button>
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black">
+                  <FotoNovedad novedad={detalleAviso} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
+                  {esReciente(detalleAviso.fecha) && (
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>
+                  )}
+                  <span>{detalleAviso.fecha} · {tipoDe(detalleAviso.tipo).nombre}</span>
+                </div>
+                <h3 className="text-3xl leading-tight" style={estiloTitulo()}>{detalleAviso.titulo}</h3>
+                <p className="whitespace-pre-line text-base leading-relaxed text-white/80">
+                  <TextoConEnlaces texto={detalleAviso.texto} />
+                </p>
+                {detalleAviso.hasta && (
+                  <p className="text-xs font-bold uppercase tracking-[0.1em]" style={{ color: colorDe(detalleAviso).hex }}>
+                    Vigente hasta el {detalleAviso.hasta}
+                  </p>
+                )}
+                {detalleAviso.enlace && (
+                  <a href={detalleAviso.enlace} target="_blank" rel="noopener noreferrer"
+                    className="flex h-12 w-full items-center justify-center rounded-2xl border-2 px-5 text-sm font-black uppercase tracking-[0.12em] transition-colors hover:bg-white/5"
+                    style={{ borderColor: colorDe(detalleAviso).hex, color: colorDe(detalleAviso).hex }}>
+                    {detalleAviso.enlaceTexto || "Ver más"} ↗
+                  </a>
+                )}
+              </article>
+            ) : (<>
             {nuevas.length > 0 && (
               <>
                 <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#9be600]">Nuevas</p>
                 <ul className="space-y-2">
                   {nuevas.map((n) => (
                     <li key={n.idNovedad} className="rounded-xl border border-[#9be600]/40 bg-zinc-900 px-3 shadow-[0_0_0_1px_rgba(155,230,0,0.08)]">
-                      <FilaNovedad novedad={n} compacta onAbrir={() => abrirDesdeResumen(n)} />
+                      <FilaNovedad novedad={n} compacta onAbrir={() => setDetalleAviso(n)} />
                     </li>
                   ))}
                 </ul>
@@ -152,12 +183,13 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
                 <ul className="space-y-2">
                   {anteriores.map((n) => (
                     <li key={n.idNovedad} className="rounded-xl border border-white/10 bg-zinc-950 px-3">
-                      <FilaNovedad novedad={n} compacta onAbrir={() => abrirDesdeResumen(n)} />
+                      <FilaNovedad novedad={n} compacta onAbrir={() => setDetalleAviso(n)} />
                     </li>
                   ))}
                 </ul>
               </>
             )}
+            </>)}
           </div>
 
           <div className="border-t border-white/10 p-4">
