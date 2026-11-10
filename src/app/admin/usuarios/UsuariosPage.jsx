@@ -819,7 +819,7 @@ export default function UsuariosPage() {
             type="button"
             onClick={() => setVerFiltros((v) => !v)}
             aria-expanded={verFiltros}
-            className={`flex items-center gap-2 border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
               verFiltros || filtrosActivos > 0 ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
             }`}
           >
@@ -842,7 +842,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex shrink-0 items-center gap-2 border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               Alumno sin cuenta
@@ -851,7 +851,7 @@ export default function UsuariosPage() {
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
-              className="inline-flex shrink-0 items-center gap-2 bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
             >
               <Plus className="h-4 w-4" />
               Nuevo usuario
