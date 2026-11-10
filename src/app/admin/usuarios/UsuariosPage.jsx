@@ -42,7 +42,7 @@ import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
 import { useEdicionFicha } from "./useEdicionFicha"
 import { TituloPagina } from "@/components/TituloPagina"
 import BotonWhatsApp from "@/components/BotonWhatsApp"
-import { descargarExcel, fechaHoyArchivo } from "@/lib/exportarExcel"
+import { descargarExcel, fechaHoyArchivo, fechaHoyLegible } from "@/lib/exportarExcel"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -603,15 +603,19 @@ export default function UsuariosPage() {
   // Exporta a Excel la lista tal como se ve (con los filtros y el orden aplicados)
   const exportarUsuarios = () => {
     const legible = (s) => (s ? String(s).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "")
-    descargarExcel(`usuarios-bravos-${fechaHoyArchivo()}.xlsx`, [{
-      nombre: "Usuarios",
-      encabezados: ["Nombre", "DNI", "Correo", "Teléfono", "Perfil", "Membresía", "Estado"],
-      filas: filteredUsers.map((u) => [
-        u.nombre || "", u.dni || "", u.email || "", u.telefono || "",
-        u.nombrePerfil || u.perfil || "", legible(u.membresia), legible(u.estado),
-      ]),
-      anchos: [30, 12, 32, 16, 14, 14, 12],
-    }])
+    descargarExcel(`usuarios-bravos-${fechaHoyArchivo()}.xlsx`, {
+      titulo: "Usuarios de Bravos",
+      subtitulo: `Exportado el ${fechaHoyLegible()} · ${filteredUsers.length} ${filteredUsers.length === 1 ? "usuario" : "usuarios"}`,
+      hojas: [{
+        nombre: "Usuarios",
+        encabezados: ["Nombre", "DNI", "Correo", "Teléfono", "Perfil", "Membresía", "Estado"],
+        filas: filteredUsers.map((u) => [
+          u.nombre || "", u.dni || "", u.email || "", u.telefono || "",
+          u.nombrePerfil || u.perfil || "", legible(u.membresia), legible(u.estado),
+        ]),
+        anchos: [30, 14, 32, 18, 16, 16, 14],
+      }],
+    })
   }
 
   const seleccionado = filteredUsers.find((u) => (u.idUsuario || u.id) === seleccionadoId) || filteredUsers[0] || null

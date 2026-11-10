@@ -140,49 +140,56 @@ export default function ReportesPage() {
   const exportarExcel = () => {
     const periodoLabel = PERIODOS.find((p) => p.id === datos.periodo)?.label || ""
     const rangoTxt = `Desde ${datos.rango.desde} hasta ${datos.rango.hasta}`
-    descargarExcel(`reportes-bravos-${datos.periodo}-${datos.rango.hasta}.xlsx`, [
-      {
-        nombre: "Resumen",
-        encabezados: ["Indicador", "Valor"],
-        filas: [
-          ["Período", periodoLabel],
-          ["Rango", rangoTxt],
-          ["Ingreso total (ARS)", Number(datos.ingresoTotal)],
-          ["Ingreso del período anterior (ARS)", Number(datos.ingresoPrevio)],
-        ],
-        anchos: [36, 24],
-      },
-      {
-        nombre: "Ingresos por mes",
-        encabezados: ["Mes", "Total (ARS)"],
-        filas: datos.ingresosPorMes.map((r) => [r.mes, Number(r.total)]),
-        anchos: [18, 16],
-      },
-      {
-        nombre: "Ingresos por plan",
-        encabezados: ["Plan", "Total (ARS)"],
-        filas: datos.ingresoPorPlan.map((r) => [r.plan, Number(r.total)]),
-        anchos: [30, 16],
-      },
-      {
-        nombre: "Alumnos por plan",
-        encabezados: ["Plan", "Alumnos con plan activo"],
-        filas: planes.map((r) => [r.name, Number(r.value)]),
-        anchos: [30, 24],
-      },
-      {
-        nombre: "Ocupación",
-        encabezados: ["Clase", "Horario", "Ocupados", "Cupo"],
-        filas: clases.map((c) => [c.nombreClase, horarioDe(c), Number(c.ocupados), Number(c.cupoMaximo)]),
-        anchos: [28, 20, 12, 10],
-      },
-      {
-        nombre: "Reservas",
-        encabezados: ["Estado", "Cantidad"],
-        filas: reservas.map((r) => [r.name, Number(r.value)]),
-        anchos: [24, 12],
-      },
-    ])
+    descargarExcel(`reportes-bravos-${datos.periodo}-${datos.rango.hasta}.xlsx`, {
+      titulo: "Reporte de Bravos",
+      subtitulo: `${periodoLabel} · ${rangoTxt}`,
+      hojas: [
+        {
+          nombre: "Resumen",
+          encabezados: ["Indicador", "Valor"],
+          filas: [
+            ["Período", periodoLabel],
+            ["Rango", rangoTxt],
+            ["Ingreso total", Number(datos.ingresoTotal)],
+            ["Ingreso del período anterior", Number(datos.ingresoPrevio)],
+          ],
+          anchos: [34, 26],
+          formatos: [null, "moneda"],
+        },
+        {
+          nombre: "Ingresos por mes",
+          encabezados: ["Mes", "Total"],
+          filas: datos.ingresosPorMes.map((r) => [r.mes, Number(r.total)]),
+          anchos: [20, 18],
+          formatos: [null, "moneda"],
+        },
+        {
+          nombre: "Ingresos por plan",
+          encabezados: ["Plan", "Total"],
+          filas: datos.ingresoPorPlan.map((r) => [r.plan, Number(r.total)]),
+          anchos: [30, 18],
+          formatos: [null, "moneda"],
+        },
+        {
+          nombre: "Alumnos por plan",
+          encabezados: ["Plan", "Alumnos con plan activo"],
+          filas: planes.map((r) => [r.name, Number(r.value)]),
+          anchos: [30, 24],
+        },
+        {
+          nombre: "Ocupación",
+          encabezados: ["Clase", "Horario", "Ocupados", "Cupo"],
+          filas: clases.map((c) => [c.nombreClase, horarioDe(c), Number(c.ocupados), Number(c.cupoMaximo)]),
+          anchos: [30, 22, 14, 12],
+        },
+        {
+          nombre: "Reservas",
+          encabezados: ["Estado", "Cantidad"],
+          filas: reservas.map((r) => [r.name, Number(r.value)]),
+          anchos: [26, 14],
+        },
+      ],
+    })
   }
 
   const kpi = "rounded-2xl border border-border bg-card p-4"
