@@ -179,12 +179,10 @@ export default function AlumnoLayout({ children }) {
     }
   }, [pathname])
 
-  // La pista dura 6 segundos (o hasta entrar a Reservas). Su temporizador no se cancela al cambiar de página.
+  // La pista "Tu reserva está acá" se mantiene hasta que el alumno entra a Reservas
   useEffect(() => {
-    if (!pistaReserva) return
-    const t = setTimeout(() => setPistaReserva(false), 6000)
-    return () => clearTimeout(t)
-  }, [pistaReserva])
+    if (pathname === "/alumno/reservas") setPistaReserva(false)
+  }, [pathname])
 
   useEffect(() => {
     const checkBreakpoint = () => setSidebarOpen(window.innerWidth >= 1024)
