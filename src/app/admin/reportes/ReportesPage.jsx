@@ -179,10 +179,6 @@ export default function ReportesPage() {
             <span className="h-2.5 w-2.5 rounded-full bg-lime-400" aria-hidden="true" /> Reportes
           </TituloPagina>
         </div>
-        <button type="button" onClick={exportarCSV}
-          className="hidden min-h-[40px] shrink-0 sm:flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500">
-          <Download className="h-4 w-4" aria-hidden="true" /> CSV
-        </button>
       </div>
 
       {/* Período */}
@@ -194,6 +190,11 @@ export default function ReportesPage() {
             {p.label}
           </button>
         ))}
+        {/* Escritorio: CSV en la misma fila que los períodos, a la derecha */}
+        <button type="button" onClick={exportarCSV}
+          className="ml-auto hidden min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:flex">
+          <Download className="h-3.5 w-3.5" aria-hidden="true" /> CSV
+        </button>
         {/* Celular: CSV y Volver van en la misma fila que los períodos, para gastar menos alto */}
         <button type="button" onClick={exportarCSV}
           className="flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:hidden">
