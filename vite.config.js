@@ -43,8 +43,8 @@ const pwa = VitePWA({
     navigateFallback: '/index.html',
     navigateFallbackDenylist: RUTAS_DEL_SERVIDOR,
     cleanupOutdatedCaches: true,
-    // La versión nueva NO se activa sola: espera a que la persona toque "Actualizar" en el aviso (ver AvisoVersionNueva)
-    skipWaiting: false,
+    // La versión nueva se activa sola en cuanto se descarga; main.jsx recarga la página cuando la persona cambia de pestaña
+    skipWaiting: true,
     clientsClaim: true,
     // Notificaciones push: mostrar el aviso y abrir la pantalla al tocarlo (public/push-sw.js)
     importScripts: ['push-sw.js'],
