@@ -29,7 +29,7 @@ export default function NovedadesAlumnoPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-7">
       <header className="space-y-2">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">Novedades del box</p>
         <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Todas las novedades</h1>
       </header>
 
@@ -39,7 +39,7 @@ export default function NovedadesAlumnoPage() {
 
       {destacada && (
         <section className="space-y-4" aria-labelledby="nuevas-titulo">
-          <h2 id="nuevas-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">
+          <h2 id="nuevas-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
             <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" /> Nuevas
           </h2>
           <button type="button" onClick={() => setAbierta(destacada)}

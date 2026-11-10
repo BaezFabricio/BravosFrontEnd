@@ -96,8 +96,8 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
       {soloAviso ? null : compacta ? (
         <section aria-labelledby="novedades-titulo" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">
-              <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" />
+            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
+              <span className="h-2 w-2 rounded-full bg-lime-700 dark:bg-[#9be600]" aria-hidden="true" />
               Novedades
             </h2>
             {limite && (
