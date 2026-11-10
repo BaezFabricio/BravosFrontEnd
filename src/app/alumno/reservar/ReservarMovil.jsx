@@ -127,7 +127,7 @@ export default function ReservarMovil({
             ) : (
               <>
                 <strong className="text-foreground">Cada clase que reservás usa 1 crédito.</strong>{" "}
-                Si cancelás con 2 horas o más de anticipación, te lo devolvemos.
+                Si cancelás con 2 horas o más de anticipación, te lo devolvemos. Si no asistís, se descuenta igual.
               </>
             )}
           </span>
