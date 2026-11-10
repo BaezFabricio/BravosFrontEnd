@@ -148,19 +148,23 @@ export default function AdminDashboard() {
           const { fecha, hora } = formatearActividad(activity.fecha_orden)
           const periodo = etiquetaPeriodo(activity)
           return (
-            <div key={index} className="flex items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
-              <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
-                {actividadIcon(activity.action)}
+            <div key={index} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
+                  {actividadIcon(activity.action)}
+                </div>
+                <p className="min-w-0 truncate text-sm text-foreground/70">
+                  <span className="font-bold text-foreground">{activity.user}</span>{" "}
+                  {activity.action}
+                </p>
               </div>
-              <p className="flex-1 text-sm text-foreground/70 min-w-0 truncate">
-                <span className="font-bold text-foreground">{activity.user}</span>{" "}
-                {activity.action}
-              </p>
-              {periodo && (
-                <span className="shrink-0 rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45">{periodo}</span>
-              )}
-              <div className="text-right shrink-0">
-                <p className="text-[11px] text-foreground/40">{fecha}</p>
+              <div className="justify-self-center">
+                {periodo && (
+                  <span className="rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45 whitespace-nowrap">{periodo}</span>
+                )}
+              </div>
+              <div className="justify-self-end text-right">
+                <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fecha}</p>
                 {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
               </div>
             </div>
