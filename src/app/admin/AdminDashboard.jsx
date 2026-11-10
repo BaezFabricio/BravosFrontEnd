@@ -128,9 +128,10 @@ export default function AdminDashboard() {
     semana: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 7 * DIA_MS },
     mes: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 30 * DIA_MS },
   }
-  // Etiqueta chica por fila: "Semana pasada" o "Mes pasado" (las de hoy ya dicen "Hoy" en la fecha)
+  // Etiqueta del centro de cada fila: "Hoy", "Semana pasada" o "Mes pasado"
+  const fechaDeActividad = (f) => { const d = new Date(f); return isNaN(d.getTime()) ? "-" : `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}` }
   const etiquetaPeriodo = (a) => {
-    if (filtrosActividad.hoy(a)) return null
+    if (filtrosActividad.hoy(a)) return "Hoy"
     if (filtrosActividad.semana(a)) return "Semana pasada"
     if (filtrosActividad.mes(a)) return "Mes pasado"
     return null
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
     ) : (
       <div className="divide-y divide-border">
         {recentActivity.map((activity, index) => {
-          const { fecha, hora } = formatearActividad(activity.fecha_orden)
+          const { hora } = formatearActividad(activity.fecha_orden)
           const periodo = etiquetaPeriodo(activity)
           return (
             <div key={index} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
@@ -164,7 +165,7 @@ export default function AdminDashboard() {
                 )}
               </div>
               <div className="justify-self-end text-right">
-                <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fecha}</p>
+                <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
                 {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
               </div>
             </div>
