@@ -1,3 +1,4 @@
+import { ExternalLink } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { colorDe, esReciente, estiloTitulo, tipoDe } from "@/lib/novedades"
 
@@ -89,49 +90,54 @@ export function TextoConEnlaces({ texto }) {
 }
 
 /**
- * Contenido del detalle de una novedad (foto, título, mensaje, vigencia, botón de enlace).
- * Titulo y Texto son los elementos del título y del mensaje: en el pop-up son los del diálogo (accesibilidad);
- * en la vista previa, elementos comunes. Si no se pasa onCerrar, no muestra el botón de cerrar.
+ * Detalle de una novedad (pop-up), estilo noticia: encabezado con título, fecha y enlace externo;
+ * cuerpo con scroll (foto y texto); y un botón "Cerrar" abajo. El color de la novedad marca la línea del encabezado y el botón.
  */
-export function ContenidoNovedad({ novedad, Titulo = "h3", Texto = "p", textoBoton = "Cerrar", onCerrar }) {
-  const color = colorDe(novedad)
-  return (
-    <>
-      <div className="relative aspect-[16/9] w-full overflow-hidden">
-        <FotoNovedad novedad={novedad} />
-        <EtiquetaNovedad novedad={novedad} className="absolute left-4 top-4" />
-      </div>
-      <div className="flex flex-col gap-4 p-6">
-        {novedad.fecha && <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Publicada el {novedad.fecha}</p>}
-        <Titulo className="text-[2.6rem]" style={{ ...estiloTitulo(), margin: 0 }}>{novedad.titulo}</Titulo>
-        <Texto className="whitespace-pre-line text-base leading-relaxed text-white/80"><TextoConEnlaces texto={novedad.texto} /></Texto>
-        {novedad.hasta && <p className="text-xs font-bold uppercase tracking-[0.1em]" style={{ color: color.hex }}>Vigente hasta el {fechaCorta(novedad.hasta)}</p>}
-        {novedad.enlace && (
-          <a href={novedad.enlace} target="_blank" rel="noopener noreferrer"
-            className="flex h-12 w-full items-center justify-center rounded-2xl border-2 px-5 text-sm font-black uppercase tracking-[0.12em] transition-colors hover:bg-white/5"
-            style={{ borderColor: color.hex, color: color.hex }}>
-            {novedad.enlaceTexto || "Ver más"} ↗
-          </a>
-        )}
-        {onCerrar && (
-          <button type="button" onClick={onCerrar}
-            className="mt-2 flex h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-black uppercase tracking-[0.12em] transition-opacity hover:opacity-90"
-            style={{ backgroundColor: color.hex, color: color.texto }}>
-            {textoBoton}
-          </button>
-        )}
-      </div>
-    </>
-  )
-}
-
-/** Pop-up (pantalla emergente) con el detalle completo de una novedad. */
 export function DialogoNovedad({ novedad, abierta, onCerrar, textoBoton = "Cerrar" }) {
+  const color = novedad ? colorDe(novedad) : null
   return (
     <Dialog open={abierta} onOpenChange={(o) => { if (!o) onCerrar() }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto gap-0 rounded-3xl border-white/10 bg-zinc-950 p-0 text-white sm:max-w-lg">
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden rounded-2xl border-white/10 bg-zinc-950 p-0 text-white sm:max-w-2xl">
         {novedad && (
-          <ContenidoNovedad novedad={novedad} Titulo={DialogTitle} Texto={DialogDescription} textoBoton={textoBoton} onCerrar={onCerrar} />
+          <>
+            <div className="flex items-start gap-4 bg-zinc-900 px-5 py-4" style={{ boxShadow: `inset 0 -2px 0 ${color.hex}` }}>
+              <div className="min-w-0 flex-1">
+                <DialogTitle className="text-2xl leading-tight" style={estiloTitulo()}>{novedad.titulo}</DialogTitle>
+                <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">
+                  {novedad.fecha} · {tipoDe(novedad.tipo).nombre}
+                </p>
+              </div>
+              {novedad.enlace && (
+                <a href={novedad.enlace} target="_blank" rel="noopener noreferrer"
+                  aria-label={novedad.enlaceTexto || "Abrir enlace"} title={novedad.enlaceTexto || "Abrir enlace"}
+                  className="mr-8 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+                  <ExternalLink className="h-5 w-5" aria-hidden="true" />
+                </a>
+              )}
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-black">
+                <FotoNovedad novedad={novedad} />
+              </div>
+              <DialogDescription className="whitespace-pre-line p-5 text-base leading-relaxed text-white/80">
+                <TextoConEnlaces texto={novedad.texto} />
+              </DialogDescription>
+              {novedad.hasta && (
+                <p className="px-5 pb-5 text-xs font-bold uppercase tracking-[0.1em]" style={{ color: color.hex }}>
+                  Vigente hasta el {fechaCorta(novedad.hasta)}
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-white/10 bg-zinc-900 p-3">
+              <button type="button" onClick={onCerrar}
+                className="flex h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-black uppercase tracking-[0.12em] transition-opacity hover:opacity-90"
+                style={{ backgroundColor: color.hex, color: color.texto }}>
+                {textoBoton}
+              </button>
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
