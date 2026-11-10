@@ -24,12 +24,29 @@ registerSW({
   },
 })
 
+/*
+ * Versión nueva ya activa: la página se recarga sola. Si la persona está escribiendo o hay un diálogo abierto,
+ * espera a que termine (o a que cambie de pestaña), así no se pierde nada.
+ */
 if ('serviceWorker' in navigator) {
   let versionNueva = false
-  navigator.serviceWorker.addEventListener('controllerchange', () => { versionNueva = true })
+  const hayEdicionAbierta = () => {
+    const activo = document.activeElement
+    return Boolean(document.querySelector('[role="dialog"]')) ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo?.tagName) || Boolean(activo?.isContentEditable)
+  }
+  const recargarSiSePuede = () => {
+    if (versionNueva && !hayEdicionAbierta()) window.location.reload()
+  }
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    versionNueva = true
+    recargarSiSePuede()
+  })
+  document.addEventListener('focusout', () => setTimeout(recargarSiSePuede, 0))
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && versionNueva) window.location.reload()
   })
+  setInterval(recargarSiSePuede, 60 * 1000)
 }
 
 
