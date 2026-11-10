@@ -209,10 +209,28 @@ export default function AdminDashboard() {
     { id: "clases", label: "Clases de hoy" },
   ]
 
+  // Saludo: primer nombre de quien inició sesión y una frase que cambia cada día
+  const primerNombre = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("usuario") || "null")
+      return String(u?.nombrecompleto || u?.nombre || u?.username || "").trim().split(/\s+/)[0] || ""
+    } catch {
+      return ""
+    }
+  })()
+  const fraseDelDia = [
+    "Hoy el box está en buenas manos.",
+    "Repasemos cómo viene el movimiento del box.",
+    "Un día ordenado hace al box más fuerte.",
+  ][Math.floor(Date.now() / 86400000) % 3]
+
   return (
     <div className="space-y-6">
       <div>
         <TituloPagina descripcion={"Panel de administración - Bravos Gym"}>Resumen</TituloPagina>
+        <p className="mt-3 text-base text-foreground/75">
+          {primerNombre ? `Hola, ${primerNombre}. ` : "¡Bienvenido! "}{fraseDelDia}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
