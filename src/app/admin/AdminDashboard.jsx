@@ -53,7 +53,6 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [pestana, setPestana] = useState("sinPago")
-  const [filtroActividad, setFiltroActividad] = useState("todas")
   const [ahora, setAhora] = useState(0) // momento en que llegaron los datos (para filtrar por hoy, semana y mes)
   const permisos = JSON.parse(localStorage.getItem('permisos') || '[]');
   // Solo oculta la pantalla: el permiso real lo controla el servidor en /dashboard/metrics
@@ -129,12 +128,6 @@ export default function AdminDashboard() {
     semana: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 7 * DIA_MS },
     mes: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 30 * DIA_MS },
   }
-  const opcionesActividad = [
-    { id: "todas", label: "Todas", total: recentActivity.length },
-    { id: "hoy", label: "Hoy", total: recentActivity.filter(filtrosActividad.hoy).length },
-    { id: "semana", label: "Semana pasada", total: recentActivity.filter(filtrosActividad.semana).length },
-    { id: "mes", label: "Mes pasado", total: recentActivity.filter(filtrosActividad.mes).length },
-  ].filter((o) => o.id === "todas" || o.total > 0)
   // Etiqueta chica por fila: "Semana pasada" o "Mes pasado" (las de hoy ya dicen "Hoy" en la fecha)
   const etiquetaPeriodo = (a) => {
     if (filtrosActividad.hoy(a)) return null
@@ -142,27 +135,18 @@ export default function AdminDashboard() {
     if (filtrosActividad.mes(a)) return "Mes pasado"
     return null
   }
-  const actividadFiltrada =filtroActividad === "todas" ? recentActivity : recentActivity.filter(filtrosActividad[filtroActividad] || (() => true))
 
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
-    <>{!loading && recentActivity.length > 0 && (
-      <div className="flex flex-wrap gap-1.5 border-b border-border px-4 py-2.5">
-        {opcionesActividad.map((o) => (
-          <button key={o.id} type="button" onClick={() => setFiltroActividad(o.id)} aria-pressed={filtroActividad === o.id}
-            className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${filtroActividad === o.id ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400" : "border-border text-foreground/55 hover:text-foreground"}`}>
-            {o.label} · {o.total}
-          </button>
-        ))}
-      </div>
-    )}{loading ? (
+    <>{loading ? (
       <Cargando filas={2} className="py-2" />
-    ) : actividadFiltrada.length === 0 ? (
-      <p className="text-sm text-foreground/40 text-center py-8">Sin actividad en este período.</p>
+    ) : recentActivity.length === 0 ? (
+      <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
     ) : (
       <div className="divide-y divide-border">
-        {actividadFiltrada.map((activity, index) => {
+        {recentActivity.map((activity, index) => {
           const { fecha, hora } = formatearActividad(activity.fecha_orden)
+          const periodo = etiquetaPeriodo(activity)
           return (
             <div key={index} className="flex items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
               <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
@@ -172,12 +156,12 @@ export default function AdminDashboard() {
                 <span className="font-bold text-foreground">{activity.user}</span>{" "}
                 {activity.action}
               </p>
+              {periodo && (
+                <span className="shrink-0 rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45">{periodo}</span>
+              )}
               <div className="text-right shrink-0">
                 <p className="text-[11px] text-foreground/40">{fecha}</p>
                 {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
-                {etiquetaPeriodo(activity) && (
-                  <span className="mt-1 inline-block rounded-full border border-border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45">{etiquetaPeriodo(activity)}</span>
-                )}
               </div>
             </div>
           )
