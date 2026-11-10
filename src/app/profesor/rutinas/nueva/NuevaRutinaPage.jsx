@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { BotonVolver } from "@/components/BotonVolver"
 import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -58,7 +57,6 @@ export default function NuevaRutinaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
         <TituloPagina descripcion={"Diseña una nueva rutina de entrenamiento para tus alumnos"}>Crear Nueva Rutina</TituloPagina>
       </div>
 

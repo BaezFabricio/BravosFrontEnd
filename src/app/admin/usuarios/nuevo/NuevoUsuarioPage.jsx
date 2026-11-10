@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { BotonVolver } from "@/components/BotonVolver"
 import { Loader2, User, Mail, Phone, CreditCard, Lock, Eye, EyeOff, Check, RefreshCw } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import { Input } from "@/components/ui/input"
@@ -181,7 +180,6 @@ export default function NuevoUsuarioPage() {
   return (
     <div className="space-y-5">
       {/* Encabezado: volver y título. El botón "Crear" va al final del cuadro de perfil y seguridad */}
-      <BotonVolver a="/admin/usuarios" texto="Volver" />
       <TituloPagina descripcion={"Alta rápida de usuario"}>Nuevo usuario</TituloPagina>
 
       <form id="form-nuevo-usuario" onSubmit={handleSubmit} noValidate>

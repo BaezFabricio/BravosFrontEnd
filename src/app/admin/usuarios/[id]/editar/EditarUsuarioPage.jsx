@@ -204,7 +204,6 @@ export default function EditarUsuarioPage() {
 
       {/* ENCABEZADO */}
       <div className="flex items-start justify-between gap-3">
-        <BotonVolver a={`/admin/usuarios/${id}`} texto="Volver" />
         <div className="text-right">
           <TituloPagina descripcion={"Datos personales, perfil y acceso"}>Editar usuario</TituloPagina>
         </div>

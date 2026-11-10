@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { BotonVolver } from "@/components/BotonVolver"
 import {
   Mail,
   Phone,
@@ -225,7 +224,6 @@ export default function DetalleUsuarioPage() {
     <div className="space-y-5">
 
       {/* VOLVER (la ruta "Usuarios / Ficha" va con el título, en la barra de arriba) */}
-      <BotonVolver a="/admin/usuarios" texto="Volver" />
 
       {/* ACCIONES: en el celular, grilla de 2x2. Se muestran según los permisos (el servidor vuelve a controlarlos) */}
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

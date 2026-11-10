@@ -2,7 +2,6 @@ import { Cargando } from '@/components/Cargando'
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { BotonVolver } from "@/components/BotonVolver"
 import { Clock, Users, Loader2, Dumbbell } from 'lucide-react'
 import apiClient from '@/api'
 import VideoPlayer from '@/components/VideoPlayer'
@@ -32,7 +31,6 @@ export default function DetalleRutinaPage() {
   if (error || !rutina) {
     return (
       <div className="space-y-4">
-        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" />
         <div className="border border-red-500/20 bg-card p-8 text-center">
           <p className="text-red-700 dark:text-red-400">{error || 'Rutina no encontrada.'}</p>
         </div>
@@ -43,7 +41,6 @@ export default function DetalleRutinaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <BotonVolver a="/profesor/rutinas" texto="Volver a Mis Rutinas" className="mb-4" />
         <TituloPagina descripcion={rutina.nombreClase ? `Clase: ${rutina.nombreClase}` : undefined}>{rutina.nombre}</TituloPagina>
       </div>
 

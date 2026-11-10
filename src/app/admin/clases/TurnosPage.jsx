@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react"
 import { Clock, Pencil, Plus, Trash2, Loader2 } from "lucide-react"
 import apiClient from "@/api"
 import { Cargando } from "@/components/Cargando"
-import { BotonVolver } from "@/components/BotonVolver"
 import { TituloPagina } from "@/components/TituloPagina"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -100,7 +99,6 @@ export default function TurnosPage() {
 
   return (
     <div className="space-y-8">
-      <BotonVolver a="/admin/clases" texto="Volver" className="-mt-2 lg:-mt-4" />
       <TituloPagina descripcion={"Los horarios de cada turno. Al crear una clase se eligen de esta lista."}>Gestión de Turnos</TituloPagina>
 
       {cargando && <Cargando filas={3} className="py-4" />}

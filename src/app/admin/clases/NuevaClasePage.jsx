@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { BotonVolver } from "@/components/BotonVolver"
 import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil, Users, Clock, CalendarDays, Mail, Dumbbell, Power } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
@@ -469,7 +468,6 @@ export default function NuevaClasePage() {
     <div className="space-y-6">
 
       {/* HEADER */}
-      <BotonVolver a="/admin/clases" texto="Volver" />
       <div className="flex items-start gap-4">
         <div>
           <TituloPagina descripcion={tipoSeleccionado ? `Tipo de clase: ${tipoSeleccionado.nombre}` : esEdicion ? "Modificá los datos de la clase" : "Completá los campos para registrar la clase"}>{esEdicion ? "Editar clase" : "Nueva Clase"}</TituloPagina>

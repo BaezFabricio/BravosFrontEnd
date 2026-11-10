@@ -4,6 +4,15 @@ import { SlotTituloContext } from "@/lib/slotTitulo"
 import { EVENTO_PERMISOS } from "@/lib/sincronizarPermisos"
 import { Link, useLocation } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
+
+// Submódulo = una pantalla dentro de un módulo (ej. /admin/usuarios/5/editar): su "Volver" lleva a la pantalla de arriba
+// Estas pantallas calculan su propio "Volver" (depende de la URL): el layout no pone otro
+const CON_VOLVER_PROPIO = ["/admin/usuarios/abonos/carga-masiva"]
+const rutaPadre = (pathname) => {
+  if (CON_VOLVER_PROPIO.includes(pathname)) return null
+  const partes = pathname.split("/").filter(Boolean)
+  return partes.length >= 3 ? "/" + partes.slice(0, -1).join("/") : null
+}
 import { useNavigate } from "react-router-dom"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
@@ -324,7 +333,8 @@ export default function AdminLayout({ children }) {
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
           {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
-          {location.pathname !== "/admin" && location.pathname !== "/admin/reportes" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
+          {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
+          {!rutaPadre(location.pathname) && location.pathname !== "/admin" && location.pathname !== "/admin/reportes" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
             <BotonVolver a="/admin" texto="Volver" className="mb-4 lg:hidden" />
           )}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
