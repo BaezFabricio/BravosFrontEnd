@@ -388,7 +388,10 @@ export default function AlumnoLayout({ children }) {
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
             <>
               {/* "Volver" en las subpáginas (celular y escritorio). En el inicio del módulo no hay botón */}
-              {pathname !== "/alumno" && <BotonVolver a="/alumno" texto="Volver" className="mb-4" />}
+              {/* Solo en submódulos (pantallas dentro de un módulo): en las pantallas principales no hay "Volver" */}
+              {pathname.split("/").filter(Boolean).length >= 3 && (
+                <BotonVolver a={"/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/")} texto="Volver" className="mb-4" />
+              )}
               <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
             </>
           )}
