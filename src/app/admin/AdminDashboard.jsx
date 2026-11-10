@@ -159,9 +159,13 @@ export default function AdminDashboard() {
                   {activity.action}
                 </p>
               </div>
-              <div className="flex h-7 items-center justify-self-center">
+              <div className={`flex h-7 items-center justify-self-stretch ${periodo ? "min-w-[9rem] gap-2" : ""}`}>
                 {periodo && (
-                  <span className="rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45 whitespace-nowrap">{periodo}</span>
+                  <>
+                    <span className="h-px flex-1 border-t border-border" aria-hidden="true" />
+                    <span className="shrink-0 whitespace-nowrap rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45">{periodo}</span>
+                    <span className="h-px flex-1 border-t border-border" aria-hidden="true" />
+                  </>
                 )}
               </div>
               <div className="flex h-7 flex-col justify-center justify-self-end text-right">
