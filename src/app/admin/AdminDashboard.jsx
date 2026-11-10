@@ -19,7 +19,8 @@ const FRASES_SALUDO = [
   "Repasemos cómo viene el movimiento del box.",
   "Un día ordenado hace al box más fuerte.",
 ]
-const FRASE_DEL_DIA = FRASES_SALUDO[Math.floor(Date.now() / 86400000) % FRASES_SALUDO.length]
+const DIA_MS = 24 * 60 * 60 * 1000
+const FRASE_DEL_DIA =FRASES_SALUDO[Math.floor(Date.now() / 86400000) % FRASES_SALUDO.length]
 
 function getInitials(name = "") {
   const partes = name.trim().split(/\s+/)
@@ -51,6 +52,8 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [pestana, setPestana] = useState("sinPago")
+  const [filtroActividad, setFiltroActividad] = useState("todas")
+  const [ahora, setAhora] = useState(0) // momento en que llegaron los datos (para filtrar por hoy, semana y mes)
   const permisos = JSON.parse(localStorage.getItem('permisos') || '[]');
   // Solo oculta la pantalla: el permiso real lo controla el servidor en /dashboard/metrics
   const puedeVer = permisos.includes('dashboard:consulta')
@@ -65,6 +68,7 @@ export default function AdminDashboard() {
           setTarjetas(resData.tarjetas)
           setSuspendedUsers(resData.suspendedUsers || [])
           setClasesHoy(resData.clasesDeHoy || [])
+          setAhora(Date.now())
           setRecentActivity(resData.recentActivity || [])
         }
       } catch (error) {
@@ -117,15 +121,39 @@ export default function AdminDashboard() {
     return <TrendingUp className="h-3.5 w-3.5 text-foreground/30" />
   }
 
+  // Filtros de la actividad por período (hoy, últimos 7 días, últimos 30 días). Un período aparece solo si hay actividad en él
+  const tiempoDe = (a) => new Date(a.fecha_orden).getTime()
+  const filtrosActividad = {
+    hoy: (a) => { const t = tiempoDe(a); return !isNaN(t) && new Date(t).toDateString() === new Date(ahora).toDateString() },
+    semana: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 7 * DIA_MS },
+    mes: (a) => { const t = tiempoDe(a); return !isNaN(t) && t <= ahora && ahora - t <= 30 * DIA_MS },
+  }
+  const opcionesActividad = [
+    { id: "todas", label: "Todas", total: recentActivity.length },
+    { id: "hoy", label: "Hoy", total: recentActivity.filter(filtrosActividad.hoy).length },
+    { id: "semana", label: "Semana pasada", total: recentActivity.filter(filtrosActividad.semana).length },
+    { id: "mes", label: "Mes pasado", total: recentActivity.filter(filtrosActividad.mes).length },
+  ].filter((o) => o.id === "todas" || o.total > 0)
+  const actividadFiltrada = filtroActividad === "todas" ? recentActivity : recentActivity.filter(filtrosActividad[filtroActividad] || (() => true))
+
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
-    <>{loading ? (
+    <>{!loading && recentActivity.length > 0 && (
+      <div className="flex flex-wrap gap-1.5 border-b border-border px-4 py-2.5">
+        {opcionesActividad.map((o) => (
+          <button key={o.id} type="button" onClick={() => setFiltroActividad(o.id)} aria-pressed={filtroActividad === o.id}
+            className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${filtroActividad === o.id ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400" : "border-border text-foreground/55 hover:text-foreground"}`}>
+            {o.label} · {o.total}
+          </button>
+        ))}
+      </div>
+    )}{loading ? (
       <Cargando filas={2} className="py-2" />
-    ) : recentActivity.length === 0 ? (
-      <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
+    ) : actividadFiltrada.length === 0 ? (
+      <p className="text-sm text-foreground/40 text-center py-8">Sin actividad en este período.</p>
     ) : (
       <div className="divide-y divide-border">
-        {recentActivity.map((activity, index) => {
+        {actividadFiltrada.map((activity, index) => {
           const { fecha, hora } = formatearActividad(activity.fecha_orden)
           return (
             <div key={index} className="flex items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
