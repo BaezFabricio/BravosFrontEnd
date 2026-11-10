@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import apiClient from "@/api"
 import { DialogoNovedad, FotoNovedad, TarjetaNovedad } from "@/components/Novedades"
 import { colorDe, esReciente, estiloTitulo, tipoDe } from "@/lib/novedades"
+import { TituloPagina } from "@/components/TituloPagina"
 
 /*
  * "Todas" de las novedades del alumno: todas las publicadas (también las vencidas), las nuevas primero y destacadas,
@@ -27,11 +28,8 @@ export default function NovedadesAlumnoPage() {
   const [destacada, ...otrasNuevas] = nuevas
 
   return (
-    <div className="mx-auto max-w-6xl space-y-7">
-      <header className="space-y-2">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">Novedades del box</p>
-        <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Todas las novedades</h1>
-      </header>
+    <div className="space-y-7">
+      <TituloPagina descripcion="Todas las novedades del box, las más nuevas primero.">Novedades</TituloPagina>
 
       {lista.length === 0 && (
         <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Todavía no hay novedades.</p>
