@@ -44,7 +44,7 @@ export default function NovedadesAlumnoPage() {
           </h2>
           <button type="button" onClick={() => setAbierta(destacada)}
             className="group grid w-full overflow-hidden rounded-3xl bg-zinc-950 text-left text-white ring-1 ring-white/10 md:grid-cols-2">
-            <div className="relative aspect-[16/10] overflow-hidden">
+            <div className="relative aspect-[16/9] overflow-hidden">
               <FotoNovedad novedad={destacada} className="transition-transform duration-500 group-hover:scale-105" />
             </div>
             <div className="flex flex-col gap-3 p-6 md:p-7">
@@ -54,7 +54,7 @@ export default function NovedadesAlumnoPage() {
               </div>
               <h3 className="text-[2.4rem] leading-none" style={estiloTitulo()}>{destacada.titulo}</h3>
               <p className="line-clamp-4 text-base leading-relaxed text-white/70">{destacada.texto}</p>
-              <span className="mt-auto pt-2 text-xs font-black uppercase tracking-[0.14em]" style={{ color: colorDe(destacada).hex }}>Leer la novedad →</span>
+              <span className="pt-1 text-xs font-black uppercase tracking-[0.14em]" style={{ color: colorDe(destacada).hex }}>Leer la novedad →</span>
             </div>
           </button>
 
