@@ -20,7 +20,6 @@ import {
   Trophy,
   Calculator,
   Wallet,
-  Newspaper,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -302,10 +301,6 @@ export default function AlumnoLayout({ children }) {
                 <Home className="h-4 w-4" />
               </Button>
 
-              <Button variant="ghost" size="icon" aria-label="Ver novedades" title="Ver novedades"
-                onClick={() => window.dispatchEvent(new Event("bravos:abrir-novedades"))}>
-                <Newspaper className="h-4 w-4" />
-              </Button>
 
               <NotificacionesBell />
 
