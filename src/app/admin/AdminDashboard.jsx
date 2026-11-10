@@ -20,6 +20,7 @@ const FRASES_SALUDO = [
   "Un día ordenado hace al box más fuerte.",
 ]
 const DIA_MS = 24 * 60 * 60 * 1000
+const FECHA_LARGA = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })
 const FRASE_DEL_DIA =FRASES_SALUDO[Math.floor(Date.now() / 86400000) % FRASES_SALUDO.length]
 
 function getInitials(name = "") {
@@ -134,7 +135,14 @@ export default function AdminDashboard() {
     { id: "semana", label: "Semana pasada", total: recentActivity.filter(filtrosActividad.semana).length },
     { id: "mes", label: "Mes pasado", total: recentActivity.filter(filtrosActividad.mes).length },
   ].filter((o) => o.id === "todas" || o.total > 0)
-  const actividadFiltrada = filtroActividad === "todas" ? recentActivity : recentActivity.filter(filtrosActividad[filtroActividad] || (() => true))
+  // Etiqueta chica por fila: "Semana pasada" o "Mes pasado" (las de hoy ya dicen "Hoy" en la fecha)
+  const etiquetaPeriodo = (a) => {
+    if (filtrosActividad.hoy(a)) return null
+    if (filtrosActividad.semana(a)) return "Semana pasada"
+    if (filtrosActividad.mes(a)) return "Mes pasado"
+    return null
+  }
+  const actividadFiltrada =filtroActividad === "todas" ? recentActivity : recentActivity.filter(filtrosActividad[filtroActividad] || (() => true))
 
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
@@ -167,6 +175,9 @@ export default function AdminDashboard() {
               <div className="text-right shrink-0">
                 <p className="text-[11px] text-foreground/40">{fecha}</p>
                 {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
+                {etiquetaPeriodo(activity) && (
+                  <span className="mt-1 inline-block rounded-full border border-border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45">{etiquetaPeriodo(activity)}</span>
+                )}
               </div>
             </div>
           )
@@ -258,9 +269,13 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <TituloPagina descripcion={"Panel de administración - Bravos Gym"}>Resumen</TituloPagina>
-        <p className="mt-3 text-base text-foreground/75">
-          {primerNombre ? `Hola, ${primerNombre}. ` : "¡Bienvenido! "}{FRASE_DEL_DIA}
-        </p>
+        <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card px-5 py-5 md:px-7 md:py-6">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-lime-400">{FECHA_LARGA}</p>
+          <h2 className="mt-2 text-4xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-5xl">
+            {primerNombre ? `Hola, ${primerNombre}` : "Bienvenido"}
+          </h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-foreground/65 md:text-base">{FRASE_DEL_DIA}</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
