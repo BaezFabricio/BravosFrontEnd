@@ -42,7 +42,7 @@ import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
 import { useEdicionFicha } from "./useEdicionFicha"
 import { TituloPagina } from "@/components/TituloPagina"
 import BotonWhatsApp from "@/components/BotonWhatsApp"
-import { descargarExcel, fechaHoyArchivo, fechaHoyLegible } from "@/lib/exportarExcel"
+import { descargarExcel, fechaHoyArchivo, fechaHoyLegible, PALETA } from "@/lib/exportarExcel"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -614,6 +614,21 @@ export default function UsuariosPage() {
           u.nombrePerfil || u.perfil || "", legible(u.membresia), legible(u.estado),
         ]),
         anchos: [30, 14, 32, 18, 16, 16, 14],
+        // Colores según la membresía y el estado de cada usuario
+        estilo: (valor, j) => {
+          const v = String(valor)
+          if (j === 5) {
+            if (v === "Vigente") return PALETA.verde
+            if (v === "Por vencer") return PALETA.ambar
+            if (v === "Vencida") return PALETA.rojo
+          }
+          if (j === 6) {
+            if (v === "Activo") return PALETA.verde
+            if (v === "Pendiente") return PALETA.ambar
+            if (v === "Inactivo") return PALETA.rojo
+          }
+          return null
+        },
       }],
     })
   }

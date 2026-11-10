@@ -10,6 +10,14 @@
 const MONEDA = '"$" #,##0'
 const BORDE = { style: "thin", color: { argb: "FFD4D4D8" } }
 
+// Colores para resaltar valores (por ejemplo, estados de una lista): fondo y texto
+export const PALETA = {
+  verde: { fill: "FFD9F99D", font: "FF3F6212" },
+  ambar: { fill: "FFFEF3C7", font: "FF92400E" },
+  rojo: { fill: "FFFEE2E2", font: "FF991B1B" },
+  gris: { fill: "FFE4E4E7", font: "FF3F3F46" },
+}
+
 export async function descargarExcel(nombreArchivo, { titulo, subtitulo, hojas }) {
   // Se carga solo al exportar (así no pesa en la carga normal de la app)
   const mod = await import("exceljs")
@@ -27,7 +35,7 @@ export async function descargarExcel(nombreArchivo, { titulo, subtitulo, hojas }
     ws.mergeCells(1, 1, 1, cols)
     const t = ws.getCell(1, 1)
     t.value = titulo
-    t.font = { bold: true, size: 14, color: { argb: "FF18181B" } }
+    t.font = { bold: true, size: 14, color: { argb: "FF3F6212" } }
     t.alignment = { vertical: "middle" }
     ws.getRow(1).height = 26
     ws.mergeCells(2, 1, 2, cols)
@@ -56,6 +64,12 @@ export async function descargarExcel(nombreArchivo, { titulo, subtitulo, hojas }
         if (i % 2 === 1) c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF4F4F5" } }
         const formato = hoja.formatos?.[j]
         if (formato) c.numFmt = formato === "moneda" ? MONEDA : formato
+        // Color según el valor (hoja.estilo devuelve una entrada de PALETA o nada)
+        const resaltado = hoja.estilo?.(valor, j)
+        if (resaltado) {
+          c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: resaltado.fill } }
+          c.font = { bold: true, color: { argb: resaltado.font } }
+        }
       })
     })
 
