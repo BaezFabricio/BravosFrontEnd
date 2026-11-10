@@ -144,12 +144,15 @@ export default function AdminDashboard() {
     ) : recentActivity.length === 0 ? (
       <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
     ) : (
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-border pt-2">
         {recentActivity.map((activity, index) => {
           const { hora } = formatearActividad(activity.fecha_orden)
           const periodo = etiquetaPeriodo(activity)
           return (
-            <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
+            <div key={index} className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
+              {periodo && (
+                <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-card px-2 text-[9px] font-bold uppercase tracking-wider text-foreground/50">{periodo}</span>
+              )}
               <div className="flex h-7 min-w-0 items-center gap-3">
                 <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
                   {actividadIcon(activity.action)}
@@ -158,11 +161,6 @@ export default function AdminDashboard() {
                   <span className="font-bold text-foreground">{activity.user}</span>{" "}
                   {activity.action}
                 </p>
-              </div>
-              <div className="flex h-7 items-center justify-self-center">
-                {periodo && (
-                  <span className="rounded-full border border-border px-2 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/45 whitespace-nowrap">{periodo}</span>
-                )}
               </div>
               <div className="flex h-7 flex-col justify-center justify-self-end text-right">
                 <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
