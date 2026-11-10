@@ -149,7 +149,7 @@ export default function AdminDashboard() {
           const { hora } = formatearActividad(activity.fecha_orden)
           const periodo = etiquetaPeriodo(activity)
           return (
-            <div key={index} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
+            <div key={index} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="shrink-0 w-7 h-7 rounded-full bg-lime-400/10 flex items-center justify-center">
                   {actividadIcon(activity.action)}
