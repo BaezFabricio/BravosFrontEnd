@@ -25,13 +25,20 @@ const navigation = [
   { name: 'INICIO', href: '#', hasDropdown: false },
   { name: 'CLASES', href: '#clases', hasDropdown: true },
   { name: 'HORARIOS', href: '#horarios', hasDropdown: false },
-  { name: 'NOVEDADES', href: '#novedades', hasDropdown: false, soloSesion: true },
+  { name: 'NOVEDADES', href: '#novedades', hasDropdown: false, soloSesion: true, accion: 'novedades' },
   { name: 'NOSOTROS', href: '#nosotros', hasDropdown: false },
   { name: 'CONTACTO', href: '#contacto', hasDropdown: false },
 ]
 
 // "Novedades" solo aparece con sesión iniciada: la sección de la portada también es solo para ellos
 const menuItems = () => navigation.filter((item) => !item.soloSesion || haySesion())
+
+// Un ítem con "accion" no hace scroll: hace algo en la página (NOVEDADES abre el aviso con todas las novedades)
+const abrirAccion = (e, item) => {
+  if (!item.accion) return
+  e.preventDefault()
+  if (item.accion === 'novedades') window.dispatchEvent(new Event('bravos:abrir-novedades'))
+}
 
 // En el celular la foto horizontal se recorta a los costados: para algunas fotos se elige qué parte
 // queda a la vista (posición horizontal). Se reconocen por el nombre del archivo en Cloudinary.
@@ -388,7 +395,7 @@ function LandingPage() {
                     onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
-                    <a href={item.href} className="group relative flex items-center gap-1 px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
+                    <a href={item.href} onClick={(e) => abrirAccion(e, item)} className="group relative flex items-center gap-1 px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
                       {item.name}
                       {item.hasDropdown && <ChevronDown className="h-3.5 w-3.5" />}
                       <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
@@ -513,7 +520,7 @@ function LandingPage() {
                           )}
                         </>
                       ) : (
-                        <a href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[44px] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
+                        <a href={item.href} onClick={(e) => { abrirAccion(e, item); setMobileMenuOpen(false) }} className="flex min-h-[44px] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
                           {item.name}
                         </a>
                       )}
@@ -853,7 +860,8 @@ function LandingPage() {
       </section>
 
       {/* Novedades del box (solo para quien tiene sesión): ventana que se muestra una vez */}
-      <NovedadesPortada />
+      {/* Solo el aviso con las novedades (se abre desde la palabra NOVEDADES del menú); la sección ya no se muestra en la página */}
+      <NovedadesPortada soloAviso />
 
       {/* SECCIÓN CONTACTO */}
       <section id="contacto" className="bg-zinc-950 py-12 text-white md:py-16">
