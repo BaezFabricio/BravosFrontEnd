@@ -5,6 +5,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import { AdminPageSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient from "@/api"
 import { TituloPagina } from "@/components/TituloPagina"
+import { descargarExcel } from "@/lib/exportarExcel"
 
 // Colores distintos entre sí (no variaciones del mismo verde), con el verde de marca como ancla
 const COLORES = ["#84cc16", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"]
@@ -16,13 +17,6 @@ const DIA_CORTO = { LUNES: "Lun", MARTES: "Mar", MIERCOLES: "Mié", JUEVES: "Jue
 const plata = (v) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(v) || 0)
 const mesCorto = (ym) => { const [a, m] = String(ym).split("-"); return `${MESES[Number(m) - 1]} ${a.slice(2)}` }
 
-// CSV para Excel: separador ";" y comillas; los textos que empiezan con = + - @ se neutralizan
-// (si no, Excel los puede ejecutar como fórmula al abrir el archivo)
-const celda = (v) => {
-  let t = String(v ?? "")
-  if (/^[=+\-@]/.test(t)) t = "'" + t
-  return `"${t.replace(/"/g, '""')}"`
-}
 
 // Dona con el total en el centro y su leyenda con barras
 function Dona({ data, total, centro }) {
@@ -142,28 +136,53 @@ export default function ReportesPage() {
     return [dias, c.horaInicio && c.horaFin ? `${c.horaInicio} – ${c.horaFin}` : null].filter(Boolean).join(" · ")
   }
 
-  const exportarCSV = () => {
-    const filas = [
-      ["Reporte Bravos", PERIODOS.find((p) => p.id === datos.periodo)?.label, `desde ${datos.rango.desde} hasta ${datos.rango.hasta}`],
-      [],
-      ["Ingresos por mes", "Total (ARS)"], ...datos.ingresosPorMes.map((r) => [r.mes, Number(r.total)]),
-      ["Total del período", datos.ingresoTotal], ["Período anterior", datos.ingresoPrevio],
-      [],
-      ["Ingresos por plan", "Total (ARS)"], ...datos.ingresoPorPlan.map((r) => [r.plan, Number(r.total)]),
-      [],
-      ["Alumnos con plan activo", "Cantidad"], ...planes.map((r) => [r.name, r.value]),
-      [],
-      ["Ocupación de clases", "Horario", "Ocupados", "Cupo"], ...clases.map((c) => [c.nombreClase, horarioDe(c), c.ocupados, c.cupoMaximo]),
-      [],
-      ["Reservas por estado", "Cantidad"], ...reservas.map((r) => [r.name, r.value]),
-    ]
-    const csv = "﻿" + filas.map((f) => f.map(celda).join(";")).join("\r\n") // BOM: Excel lee bien los acentos
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `reportes-bravos-${datos.periodo}-${datos.rango.hasta}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  // Exporta a Excel: una hoja por sección del informe, con encabezados y el período arriba de todo
+  const exportarExcel = () => {
+    const periodoLabel = PERIODOS.find((p) => p.id === datos.periodo)?.label || ""
+    const rangoTxt = `Desde ${datos.rango.desde} hasta ${datos.rango.hasta}`
+    descargarExcel(`reportes-bravos-${datos.periodo}-${datos.rango.hasta}.xlsx`, [
+      {
+        nombre: "Resumen",
+        encabezados: ["Indicador", "Valor"],
+        filas: [
+          ["Período", periodoLabel],
+          ["Rango", rangoTxt],
+          ["Ingreso total (ARS)", Number(datos.ingresoTotal)],
+          ["Ingreso del período anterior (ARS)", Number(datos.ingresoPrevio)],
+        ],
+        anchos: [36, 24],
+      },
+      {
+        nombre: "Ingresos por mes",
+        encabezados: ["Mes", "Total (ARS)"],
+        filas: datos.ingresosPorMes.map((r) => [r.mes, Number(r.total)]),
+        anchos: [18, 16],
+      },
+      {
+        nombre: "Ingresos por plan",
+        encabezados: ["Plan", "Total (ARS)"],
+        filas: datos.ingresoPorPlan.map((r) => [r.plan, Number(r.total)]),
+        anchos: [30, 16],
+      },
+      {
+        nombre: "Alumnos por plan",
+        encabezados: ["Plan", "Alumnos con plan activo"],
+        filas: planes.map((r) => [r.name, Number(r.value)]),
+        anchos: [30, 24],
+      },
+      {
+        nombre: "Ocupación",
+        encabezados: ["Clase", "Horario", "Ocupados", "Cupo"],
+        filas: clases.map((c) => [c.nombreClase, horarioDe(c), Number(c.ocupados), Number(c.cupoMaximo)]),
+        anchos: [28, 20, 12, 10],
+      },
+      {
+        nombre: "Reservas",
+        encabezados: ["Estado", "Cantidad"],
+        filas: reservas.map((r) => [r.name, Number(r.value)]),
+        anchos: [24, 12],
+      },
+    ])
   }
 
   const kpi = "rounded-2xl border border-border bg-card p-4"
@@ -191,14 +210,14 @@ export default function ReportesPage() {
           </button>
         ))}
         {/* Escritorio: CSV en la misma fila que los períodos, a la derecha */}
-        <button type="button" onClick={exportarCSV}
+        <button type="button" onClick={exportarExcel}
           className="ml-auto hidden min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:flex">
-          <Download className="h-3.5 w-3.5" aria-hidden="true" /> CSV
+          <Download className="h-3.5 w-3.5" aria-hidden="true" /> Excel
         </button>
         {/* Celular: CSV y Volver van en la misma fila que los períodos, para gastar menos alto */}
-        <button type="button" onClick={exportarCSV}
+        <button type="button" onClick={exportarExcel}
           className="flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:hidden">
-          <Download className="h-3.5 w-3.5" aria-hidden="true" /> CSV
+          <Download className="h-3.5 w-3.5" aria-hidden="true" /> Excel
         </button>
         <BotonVolver a="/admin" texto="Volver" className="min-h-[36px] text-xs lg:hidden" />
       </div>

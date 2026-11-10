@@ -42,6 +42,7 @@ import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
 import { useEdicionFicha } from "./useEdicionFicha"
 import { TituloPagina } from "@/components/TituloPagina"
 import BotonWhatsApp from "@/components/BotonWhatsApp"
+import { descargarExcel, fechaHoyArchivo } from "@/lib/exportarExcel"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -599,26 +600,18 @@ export default function UsuariosPage() {
     }), orden)
 
   // Si el elegido ya no está en la lista (por un filtro o una búsqueda), se muestra el primero
-  // Exporta a CSV la lista tal como se ve (con los filtros y el orden aplicados)
+  // Exporta a Excel la lista tal como se ve (con los filtros y el orden aplicados)
   const exportarUsuarios = () => {
-    const celdaCsv = (v) => {
-      let t = String(v ?? "")
-      if (/^[=+\-@]/.test(t)) t = "'" + t // evita que Excel ejecute una fórmula
-      return `"${t.replace(/"/g, '""')}"`
-    }
-    const filas = [
-      ["Nombre", "DNI", "Correo", "Teléfono", "Perfil", "Membresía", "Estado"],
-      ...filteredUsers.map((u) => [u.nombre, u.dni, u.email, u.telefono, u.nombrePerfil || u.perfil || "", u.membresia, u.estado]),
-    ]
-    const csv = "﻿" + filas.map((f) => f.map(celdaCsv).join(";")).join("\r\n") // BOM: Excel lee bien los acentos
-    const d = new Date()
-    const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `usuarios-bravos-${fecha}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    const legible = (s) => (s ? String(s).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "")
+    descargarExcel(`usuarios-bravos-${fechaHoyArchivo()}.xlsx`, [{
+      nombre: "Usuarios",
+      encabezados: ["Nombre", "DNI", "Correo", "Teléfono", "Perfil", "Membresía", "Estado"],
+      filas: filteredUsers.map((u) => [
+        u.nombre || "", u.dni || "", u.email || "", u.telefono || "",
+        u.nombrePerfil || u.perfil || "", legible(u.membresia), legible(u.estado),
+      ]),
+      anchos: [30, 12, 32, 16, 14, 14, 12],
+    }])
   }
 
   const seleccionado = filteredUsers.find((u) => (u.idUsuario || u.id) === seleccionadoId) || filteredUsers[0] || null
