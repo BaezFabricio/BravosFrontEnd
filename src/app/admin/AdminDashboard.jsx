@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   const [clasesHoy, setClasesHoy] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
-  const [pestana, setPestana] = useState("sinPago")
+  const [pestana, setPestana] = useState("actividad")
   const [ahora, setAhora] = useState(0) // momento en que llegaron los datos (para filtrar por hoy, semana y mes)
   const permisos = JSON.parse(localStorage.getItem('permisos') || '[]');
   // Solo oculta la pantalla: el permiso real lo controla el servidor en /dashboard/metrics
