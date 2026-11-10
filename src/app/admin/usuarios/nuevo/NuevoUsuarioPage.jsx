@@ -182,11 +182,7 @@ export default function NuevoUsuarioPage() {
     <div className="space-y-5">
       {/* Encabezado: volver y título. El botón "Crear" va al final del cuadro de perfil y seguridad */}
       <BotonVolver a="/admin/usuarios" texto="Volver" />
-      <div className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <TituloPagina descripcion={"Alta rápida de usuario"}>Nuevo usuario</TituloPagina>
-        </div>
-      </div>
+      <TituloPagina descripcion={"Alta rápida de usuario"}>Nuevo usuario</TituloPagina>
 
       <form id="form-nuevo-usuario" onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
