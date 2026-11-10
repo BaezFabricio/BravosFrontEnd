@@ -356,7 +356,7 @@ export default function AlumnoLayout({ children }) {
 
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
 
-        <main className="p-4 lg:p-6 pb-28 lg:pb-6">
+        <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
           <NovedadesPortada conAviso soloAviso />
           {validandoAcceso ? (

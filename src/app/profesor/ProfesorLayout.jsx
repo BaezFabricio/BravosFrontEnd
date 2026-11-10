@@ -205,7 +205,7 @@ export default function ProfesorLayout({ children }) {
         </header>
 
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
-        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
+        <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* Celular: "Volver" en Mis Rutinas (el Perfil ya trae el suyo); no en Asistencia, que es el inicio */}
           {location.pathname === "/profesor/rutinas" && (
             <BotonVolver a="/profesor" texto="Volver" className="mb-4 lg:hidden" />

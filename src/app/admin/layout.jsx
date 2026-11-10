@@ -321,7 +321,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
-        <main className="p-4 lg:p-6 pb-20 lg:pb-6">
+        <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
           {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
           {location.pathname !== "/admin" && location.pathname !== "/admin/reportes" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
