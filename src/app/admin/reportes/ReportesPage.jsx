@@ -139,7 +139,8 @@ export default function ReportesPage() {
   // Exporta a Excel: una hoja por sección del informe, con encabezados y el período arriba de todo
   const exportarExcel = () => {
     const periodoLabel = PERIODOS.find((p) => p.id === datos.periodo)?.label || ""
-    const rangoTxt = `Desde ${datos.rango.desde} hasta ${datos.rango.hasta}`
+    const aDdMmAaaa = (iso) => { const [a, m, d] = String(iso || "").slice(0, 10).split("-"); return a && m && d ? `${d}/${m}/${a}` : iso }
+    const rangoTxt = `Desde ${aDdMmAaaa(datos.rango.desde)} hasta ${aDdMmAaaa(datos.rango.hasta)}`
     descargarExcel(`reportes-bravos-${datos.periodo}-${datos.rango.hasta}.xlsx`, {
       titulo: "Reporte de Bravos",
       subtitulo: `${periodoLabel} · ${rangoTxt}`,
@@ -153,7 +154,7 @@ export default function ReportesPage() {
             ["Ingreso total", Number(datos.ingresoTotal)],
             ["Ingreso del período anterior", Number(datos.ingresoPrevio)],
           ],
-          anchos: [34, 26],
+          anchos: [34, 48],
           formatos: [null, "moneda"],
         },
         {
