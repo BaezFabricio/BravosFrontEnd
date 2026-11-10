@@ -643,7 +643,7 @@ export default function UsuariosPage() {
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
-              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-none"
+              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-full"
             >
               <Plus className="h-4 w-4" />
               <span className="md:hidden">Nuevo</span>
@@ -655,7 +655,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-none"
+              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-full"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               <span className="md:hidden">Sin cuenta</span>
@@ -830,7 +830,7 @@ export default function UsuariosPage() {
 
           {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
           {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-            <button className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
+            <button className="rounded-full border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
               <Download className="h-4 w-4" />
               Exportar
             </button>
