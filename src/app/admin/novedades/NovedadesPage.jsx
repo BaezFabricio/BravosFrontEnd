@@ -139,7 +139,7 @@ export default function NovedadesPage() {
           <TituloPagina descripcion={"Comunicados, eventos y promos que se ven en la portada de los alumnos con sesión iniciada."}>Novedades</TituloPagina>
           {puedeEditar && (
             <button type="button" onClick={() => setEditando({ ...VACIO })}
-              className="flex min-h-[44px] items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black hover:bg-lime-300 md:rounded-xl">
+              className="ml-auto flex min-h-[44px] items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black hover:bg-lime-300 md:rounded-xl">
               <Plus className="h-4 w-4" aria-hidden="true" /> Nueva novedad
             </button>
           )}
