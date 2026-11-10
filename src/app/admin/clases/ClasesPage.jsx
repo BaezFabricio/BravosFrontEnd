@@ -384,22 +384,6 @@ export default function ClasesPage() {
             )
           })}
 
-          {/* Últimas clases únicas realizadas (las 2 más recientes) */}
-          {historialClasesUnicas.length > 0 && (
-            <section aria-labelledby="titulo-realizadas">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <h2 id="titulo-realizadas" className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-foreground/70">
-                  <History className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Últimas clases realizadas
-                </h2>
-                <button type="button" onClick={() => setPestana("historial")} className="text-xs font-black uppercase tracking-wider text-lime-700 hover:underline dark:text-lime-400">
-                  Ver todas ({historialClasesUnicas.length})
-                </button>
-              </div>
-              <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-                {historialClasesUnicas.slice(0, 2).map((clase) => <FilaRealizada key={clase.idClase} clase={clase} />)}
-              </div>
-            </section>
-          )}
         </div>
       )}
 
