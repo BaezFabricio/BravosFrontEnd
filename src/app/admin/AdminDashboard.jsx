@@ -13,6 +13,14 @@ const AVATAR_COLORS = [
   { bg: "bg-teal-400/15",   text: "text-teal-700 dark:text-teal-400" },
 ]
 
+// Frase del saludo: cambia cada día (se calcula una vez al cargar la pantalla)
+const FRASES_SALUDO = [
+  "Hoy el box está en buenas manos.",
+  "Repasemos cómo viene el movimiento del box.",
+  "Un día ordenado hace al box más fuerte.",
+]
+const FRASE_DEL_DIA = FRASES_SALUDO[Math.floor(Date.now() / 86400000) % FRASES_SALUDO.length]
+
 function getInitials(name = "") {
   const partes = name.trim().split(/\s+/)
   if (!partes[0]) return "?"
@@ -218,18 +226,12 @@ export default function AdminDashboard() {
       return ""
     }
   })()
-  const fraseDelDia = [
-    "Hoy el box está en buenas manos.",
-    "Repasemos cómo viene el movimiento del box.",
-    "Un día ordenado hace al box más fuerte.",
-  ][Math.floor(Date.now() / 86400000) % 3]
-
   return (
     <div className="space-y-6">
       <div>
         <TituloPagina descripcion={"Panel de administración - Bravos Gym"}>Resumen</TituloPagina>
         <p className="mt-3 text-base text-foreground/75">
-          {primerNombre ? `Hola, ${primerNombre}. ` : "¡Bienvenido! "}{fraseDelDia}
+          {primerNombre ? `Hola, ${primerNombre}. ` : "¡Bienvenido! "}{FRASE_DEL_DIA}
         </p>
       </div>
 
