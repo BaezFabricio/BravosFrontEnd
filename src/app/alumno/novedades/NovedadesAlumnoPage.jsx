@@ -27,7 +27,7 @@ export default function NovedadesAlumnoPage() {
   const [destacada, ...otrasNuevas] = nuevas
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10">
+    <div className="mx-auto max-w-6xl space-y-7">
       <header className="space-y-2">
         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</p>
         <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Todas las novedades</h1>
@@ -44,10 +44,10 @@ export default function NovedadesAlumnoPage() {
           </h2>
           <button type="button" onClick={() => setAbierta(destacada)}
             className="group grid w-full overflow-hidden rounded-3xl bg-zinc-950 text-left text-white ring-1 ring-white/10 md:grid-cols-2">
-            <div className="relative aspect-[16/10] overflow-hidden md:aspect-auto md:min-h-[320px]">
+            <div className="relative aspect-[16/10] overflow-hidden">
               <FotoNovedad novedad={destacada} className="transition-transform duration-500 group-hover:scale-105" />
             </div>
-            <div className="flex flex-col gap-3 p-6 md:p-8">
+            <div className="flex flex-col gap-3 p-6 md:p-7">
               <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
                 <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>
                 <span>{destacada.fecha} · {tipoDe(destacada.tipo).nombre}</span>
