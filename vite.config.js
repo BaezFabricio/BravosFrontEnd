@@ -40,8 +40,8 @@ const pwa = VitePWA({
     globPatterns: ['**/*.{js,css,html,woff2}', 'pwa-*.png', 'favicon-48x48.png', 'apple-touch-icon-180x180.png'],
     // El paquete principal pesa ~2,1 MB; el límite por defecto (2 MB) lo dejaría afuera
     maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-    navigateFallback: '/index.html',
-    navigateFallbackDenylist: RUTAS_DEL_SERVIDOR,
+    // Las páginas (la app al abrirse y cada pantalla) se piden SIEMPRE a la red cuando hay conexión, así una versión nueva
+    // se ve enseguida. Sin conexión se usa la última copia guardada. Nunca se guardan respuestas de /api, /landing ni /uploads.
     cleanupOutdatedCaches: true,
     // La versión nueva se activa sola en cuanto se descarga; main.jsx recarga la página cuando la persona cambia de pestaña
     skipWaiting: true,
@@ -49,6 +49,13 @@ const pwa = VitePWA({
     // Notificaciones push: mostrar el aviso y abrir la pantalla al tocarlo (public/push-sw.js)
     importScripts: ['push-sw.js'],
     runtimeCaching: [
+      {
+        // Páginas de la app: red primero (siempre la versión nueva); si no hay red, la última copia guardada.
+        // OJO: esta función también se copia como texto en sw.js: no puede usar variables de este archivo.
+        urlPattern: ({ request, url }) => request.mode === 'navigate' && !/^\/(api|landing|uploads)\//.test(url.pathname),
+        handler: 'NetworkFirst',
+        options: { cacheName: 'paginas-app', networkTimeoutSeconds: 4, expiration: { maxEntries: 30, maxAgeSeconds: 7 * 24 * 60 * 60 } },
+      },
       {
         // Fotos y gráficos públicos de la app (mascotas, logos, fondos): se guardan al verse
         // OJO: Workbox copia esta función como texto dentro de sw.js, donde no existen las variables de este archivo
