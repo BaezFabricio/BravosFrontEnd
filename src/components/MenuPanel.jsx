@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { Globe, LogOut, Moon, Sun } from "lucide-react"
+import { ChevronRight, Globe, LogOut, Moon, Sun, X } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 
 /*
@@ -122,39 +122,69 @@ export function FondoMenuMovil({ abierto, onCerrar }) {
   return abierto ? <div className="lg:hidden fixed inset-0 z-10" onClick={onCerrar} aria-hidden="true" /> : null
 }
 
+// Datos de quien está conectado, para la cabecera del módulo "Más" (se leen del navegador, solo para mostrarlos)
+function datosDeSesion() {
+  try {
+    const u = JSON.parse(localStorage.getItem("usuario") || "{}")
+    const nombre = u.nombrecompleto || u.nombre || u.username || ""
+    const iniciales = nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "BB"
+    return { nombre, iniciales, avatarUrl: u.avatarUrl || localStorage.getItem("avatarUrl") || "" }
+  } catch {
+    return { nombre: "", iniciales: "BB", avatarUrl: "" }
+  }
+}
+
 /*
- * "Más" de la barra de abajo (celular): una hoja que sube desde abajo con todas las opciones en tarjetas,
- * agrupadas (como las apps de pagos). Toca el fondo oscuro o la barrita de arriba para cerrarla.
+ * "Más" de la barra de abajo (celular): un módulo a pantalla completa con la lista de opciones, una por fila
+ * (ícono, nombre y flecha), como en las apps de bancos. La barra de abajo queda visible encima: tocar "Más"
+ * otra vez, la X o una opción cierra el módulo.
  */
 export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, conTema = false }) {
   const { theme, setTheme } = useTheme()
   const oscuro = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches)
   const tab = abierto ? 0 : -1
-  return (
-    <>
-      <div
-        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden ${abierto ? "opacity-100" : "pointer-events-none opacity-0"}`}
-        onClick={onCerrar}
-        aria-hidden="true"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Más opciones"
-        aria-hidden={!abierto}
-        className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-sidebar-border bg-sidebar px-4 pb-10 pt-3 shadow-2xl transition-transform duration-300 lg:hidden ${abierto ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
-      >
-        <button type="button" onClick={onCerrar} tabIndex={tab} aria-label="Cerrar" className="mx-auto mb-4 block h-1.5 w-12 rounded-full bg-sidebar-foreground/25" />
+  const sesion = datosDeSesion()
 
-        {/* Ítems sin grupo conocido (por ejemplo, el panel del profesor) van al final, sin título */}
-        {[...grupos, ...(items.some((item) => !grupos.some((g) => g.key === item.grupo)) ? [{ key: "__otros", titulo: null }] : [])].map((g) => {
-          const delGrupo = items.filter((item) => (g.key === "__otros" ? !grupos.some((x) => x.key === item.grupo) : item.grupo === g.key))
-          if (delGrupo.length === 0) return null
+  // Ítems sin grupo conocido (por ejemplo, el panel del profesor) van al final, sin título
+  const clavesConocidas = grupos.map((g) => g.key)
+  const sinGrupo = items.filter((item) => !clavesConocidas.includes(item.grupo))
+  const gruposConOtros = sinGrupo.length > 0 ? [...grupos, { key: "__otros", titulo: null }] : grupos
+  const delGrupoDe = (g) => (g.key === "__otros" ? sinGrupo : items.filter((item) => item.grupo === g.key))
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Más opciones"
+      aria-hidden={!abierto}
+      className={`fixed inset-0 z-[25] overflow-y-auto bg-background transition-transform duration-300 ease-out lg:hidden ${abierto ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
+    >
+      <div className="mx-auto max-w-md pb-40 pt-[max(1.5rem,env(safe-area-inset-top))]">
+        {/* Cabecera: quién está conectado */}
+        <div className="flex items-center gap-4 px-5 pb-6">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-lime-400/15 text-lg font-black text-lime-700 dark:text-lime-400">
+            {sesion.avatarUrl ? <img src={sesion.avatarUrl} alt="" className="h-full w-full object-cover" /> : sesion.iniciales}
+          </div>
+          <p className="min-w-0 flex-1 truncate text-lg font-bold text-foreground">{sesion.nombre}</p>
+          <button
+            type="button"
+            onClick={onCerrar}
+            tabIndex={tab}
+            aria-label="Cerrar"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-foreground/60 hover:bg-sidebar-accent"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        {gruposConOtros.map((g) => {
+          const lista = delGrupoDe(g)
+          if (lista.length === 0) return null
           return (
-            <div key={g.key} className="mb-5">
-              {g.titulo && <p className="mb-2 px-1 text-[10px] font-black uppercase tracking-[0.2em] text-sidebar-foreground/40">{g.titulo}</p>}
-              <div className="grid grid-cols-3 gap-2">
-                {delGrupo.map((item) => {
+            <div key={g.key} className="mb-6">
+              {g.titulo && <p className="px-5 pb-2 text-xs font-bold uppercase tracking-wider text-foreground/50">{g.titulo}</p>}
+              <div className="divide-y divide-border border-y border-border">
+                {lista.map((item) => {
                   const activo = esActivo(item)
                   return (
                     <Link
@@ -163,14 +193,11 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
                       onClick={onCerrar}
                       tabIndex={tab}
                       aria-current={activo ? "page" : undefined}
-                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 text-center transition-colors ${
-                        activo
-                          ? "border-lime-400/50 bg-lime-400/15 text-lime-700 dark:text-lime-400"
-                          : "border-sidebar-border bg-sidebar-accent/40 text-sidebar-foreground/80 hover:bg-sidebar-accent"
-                      }`}
+                      className={`flex min-h-[60px] items-center gap-4 px-5 py-3.5 transition-colors ${activo ? "bg-lime-400/10" : "hover:bg-sidebar-accent/50"}`}
                     >
-                      <item.icon className="h-6 w-6" aria-hidden="true" />
-                      <span className="text-[11px] font-black uppercase leading-tight tracking-wide">{item.name}</span>
+                      <item.icon className={`h-6 w-6 shrink-0 ${activo ? "text-lime-700 dark:text-lime-400" : "text-foreground/75"}`} strokeWidth={1.75} aria-hidden="true" />
+                      <span className={`flex-1 text-base ${activo ? "font-bold text-lime-700 dark:text-lime-400" : "font-medium text-foreground"}`}>{item.name}</span>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-lime-600 dark:text-lime-400" aria-hidden="true" />
                     </Link>
                   )
                 })}
@@ -179,29 +206,32 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
           )
         })}
 
-        <div className="grid grid-cols-2 gap-2">
+        {/* Modo y cerrar sesión, en la misma lista */}
+        <div className="divide-y divide-border border-y border-border">
           {conTema && (
             <button
               type="button"
               onClick={() => setTheme(oscuro ? "light" : "dark")}
               tabIndex={tab}
-              className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-sidebar-border bg-sidebar-accent/40 text-xs font-black uppercase tracking-wide text-sidebar-foreground/80"
+              className="flex min-h-[60px] w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-sidebar-accent/50"
             >
-              {oscuro ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
-              {oscuro ? "Modo claro" : "Modo oscuro"}
+              {oscuro
+                ? <Sun className="h-6 w-6 shrink-0 text-foreground/75" strokeWidth={1.75} aria-hidden="true" />
+                : <Moon className="h-6 w-6 shrink-0 text-foreground/75" strokeWidth={1.75} aria-hidden="true" />}
+              <span className="flex-1 text-base font-medium text-foreground">{oscuro ? "Modo claro" : "Modo oscuro"}</span>
             </button>
           )}
           <button
             type="button"
             onClick={() => { onCerrar(); onLogout() }}
             tabIndex={tab}
-            className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/5 text-xs font-black uppercase tracking-wide text-red-600 dark:text-red-400"
+            className="flex min-h-[60px] w-full items-center gap-4 px-5 py-3.5 text-left text-red-600 transition-colors hover:bg-red-500/5 dark:text-red-400"
           >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            Cerrar sesión
+            <LogOut className="h-6 w-6 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+            <span className="flex-1 text-base font-medium">Cerrar sesión</span>
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
