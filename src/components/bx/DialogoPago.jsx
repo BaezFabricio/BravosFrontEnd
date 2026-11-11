@@ -64,13 +64,14 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
   const qrUrl = mpUrl || (preferenceId ? `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${preferenceId}` : null)
   const qrValor = qrData || qrUrl
   const hayBanco = configBanco.cbu || configBanco.alias
-  const metodo = (id, texto) => (
+  const LOGO_MP = <img src="/mercadopago.webp" alt="Mercado Pago" className="h-6 w-auto object-contain" />
+  const metodo = (id, texto, activoCls) => (
     <button
       key={id}
       type="button"
       aria-pressed={tab === id}
       onClick={() => setTab(id)}
-      className={`flex h-[3.75rem] items-center justify-center gap-2.5 rounded-xl text-[0.9375rem] font-bold text-bx-ink transition-colors hover:border-bx-lima ${tab === id ? "border-2 border-bx-lima bg-bx-ok-bg" : "border border-bx-btn-line bg-bx-surf"}`}
+      className={`flex h-[3.75rem] items-center justify-center gap-2.5 rounded-xl text-[0.9375rem] font-bold text-bx-ink transition-colors hover:border-bx-lima ${tab === id ? (activoCls || "border-2 border-bx-lima bg-bx-ok-bg") : "border border-bx-btn-line bg-bx-surf"}`}
     >
       {texto}
     </button>
@@ -146,7 +147,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
           <fieldset className="m-0 border-0 p-0">
             <legend className="mb-2.5 text-xs font-semibold tracking-[0.1em] text-bx-muted">ELEGÍ EL MÉTODO DE PAGO</legend>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12.5rem),1fr))] gap-2.5">
-              {metodo("mp", "Mercado Pago")}
+              {metodo("mp", LOGO_MP, "border-2 border-[#009ee3] bg-[#009ee3]/10")}
               {metodo("transferencia", "Transferencia")}
             </div>
           </fieldset>
@@ -173,7 +174,8 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
                   </div>
                 </div>
                 {acepto && qrUrl ? (
-                  <a href={qrUrl} target="_blank" rel="noopener noreferrer" className="flex h-[3.25rem] items-center justify-center rounded-[0.625rem] bg-[#009ee3] text-[0.9375rem] font-bold tracking-[0.04em] text-white hover:bg-[#008ecc]">
+                  <a href={qrUrl} target="_blank" rel="noopener noreferrer" className="flex h-[3.25rem] items-center justify-center gap-2 rounded-[0.625rem] bg-[#009ee3] text-[0.9375rem] font-bold tracking-[0.04em] text-white hover:bg-[#008ecc]">
+                    <img src="/mercadopago.webp" alt="" className="h-4 w-auto object-contain" />
                     Pagar con Mercado Pago
                   </a>
                 ) : (

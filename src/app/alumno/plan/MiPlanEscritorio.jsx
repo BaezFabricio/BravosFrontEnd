@@ -240,6 +240,7 @@ export default function MiPlanEscritorio() {
               <section aria-labelledby="t-pago" className="flex flex-col gap-3.5 rounded-2xl border border-bx-line bg-bx-card p-5">
                 <h2 id="t-pago" className="m-0 text-lg font-bold">Medios de pago</h2>
                 <div className="flex flex-wrap items-center gap-3.5">
+                  <div className="flex h-9 w-14 shrink-0 items-center justify-center rounded-lg bg-[#1a1169] px-1"><img src="/mercadopago.webp" alt="" className="h-6 w-auto object-contain" /></div>
                   <div className="min-w-[11.25rem] flex-1">
                     <div className="text-[0.9375rem] font-bold">Mercado Pago</div>
                     <div className="text-sm text-bx-muted">Tarjeta, débito o dinero en cuenta</div>
