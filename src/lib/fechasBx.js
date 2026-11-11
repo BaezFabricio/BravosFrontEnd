@@ -96,3 +96,12 @@ export function limiteCancelacion(f, hora) {
     pasado: Date.now() > limite.getTime(),
   }
 }
+
+// "11 nov – 10 dic 2026" (el año se dice una sola vez si es el mismo); con `sep` = " al " y `prefijo` = "Del " queda "Del 11 nov al 10 dic 2026"
+export function rangoFechas(ini, fin, { sep = " – ", prefijo = "" } = {}) {
+  const a = fechaDeTexto(ini)
+  const b = fechaDeTexto(fin)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return ""
+  const izq = a.getFullYear() === b.getFullYear() ? `${a.getDate()} ${MESES_CORTOS[a.getMonth()]}` : fechaCorta(ini)
+  return `${prefijo}${izq}${sep}${fechaCorta(fin)}`
+}

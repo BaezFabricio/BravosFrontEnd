@@ -1,27 +1,9 @@
-import { TituloPagina } from "@/components/TituloPagina"
-import { useState } from "react"
-import MiPlanPagos from "../documentacion/MiPlanPagos"
-import HistorialMembresias from "./HistorialMembresias"
+import { useAnchoPanel } from "@/lib/useEscritorio"
 import MiPlanMovil from "./MiPlanMovil"
+import MiPlanEscritorio from "./MiPlanEscritorio"
 
+// Desde 1024 px: diseño de escritorio; por debajo, el del celular (MiPlanMovil.jsx)
 export default function MiPlanPage() {
-  const [verHistorial, setVerHistorial] = useState(false)
-
-  return (
-    <>
-      {/* CELULAR: diseño propio (MiPlanMovil.jsx) */}
-      <div className="lg:hidden">
-        <MiPlanMovil />
-      </div>
-
-      {/* ESCRITORIO */}
-      <div className="hidden space-y-6 lg:block">
-        <TituloPagina descripcion={"Tu membresía, tus créditos y tus renovaciones."}>Mi Membresía</TituloPagina>
-
-        <MiPlanPagos onVerHistorial={() => setVerHistorial(true)} />
-
-        <HistorialMembresias open={verHistorial} onClose={() => setVerHistorial(false)} />
-      </div>
-    </>
-  )
+  const escritorio = useAnchoPanel()
+  return escritorio ? <MiPlanEscritorio /> : <MiPlanMovil />
 }

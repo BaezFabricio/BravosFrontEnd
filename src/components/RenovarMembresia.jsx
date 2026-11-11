@@ -11,6 +11,7 @@ import { toast } from "@/lib/notificar"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { featuresDelPlan } from "@/lib/planes"
+import { DialogoPago } from "@/components/bx/DialogoPago"
 
 initMercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, { locale: "es-AR" })
 
@@ -73,7 +74,8 @@ function etiquetaPlan(plan, esDestacado = false) {
 // los tiempos del <style> dentro de ModalPago — están documentados juntos ahí.
 const PAGO_EXITO_MS = 2700
 
-function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
+// variante "bx": diseño del módulo Alumno en escritorio (DialogoPago). La lógica de pago es la misma.
+function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
   const [tab, setTab]                   = useState("mp")
   const [preferenceId, setPreferenceId] = useState(null)
   const [mpUrl, setMpUrl]               = useState(null)
@@ -262,6 +264,22 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco }) {
   }
 
   if (!plan) return null
+
+  if (variante === "bx") {
+    return (
+      <DialogoPago
+        plan={plan}
+        open={open}
+        onClose={onClose}
+        onRenovado={onRenovado}
+        configBanco={configBanco}
+        e={{
+          tab, setTab, preferenceId, mpUrl, qrData, loadingUrl, setLoadingUrl, uploading, comprobante, pagando,
+          pagoConfirmado, yaPagadoAntes, acepto, setAcepto, fileRef, procesarPago, subirComprobante,
+        }}
+      />
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -1211,3 +1229,6 @@ export function ElegirMembresiaDialog({ open, onClose, onRenovado }) {
     </Dialog>
   )
 }
+
+// Para la pantalla de membresía de escritorio (diseño nuevo): el pago, los planes con datos bancarios, las preguntas y el WhatsApp
+export { ModalPago, useDatosPago, FAQS, numeroWhatsapp }

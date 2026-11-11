@@ -274,7 +274,7 @@ export function Esqueleto({ alto = 84, etiqueta = "Cargando", className }) {
 
 // Diálogo (role="dialog" aria-modal; foco al abrir y Escape cierra; fondo rgba(0,0,0,.6)).
 // `alerta` lo vuelve alertdialog (para confirmar acciones destructivas). Nunca abrir un diálogo encima de otro.
-export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false, ancho = 480, pie, idEnfocar, children }) {
+export function Dialogo({ abierto, onCerrar, titulo, descripcion, sobretitulo, alerta = false, ancho = 480, pie, pieClassName, cuerpoClassName, idEnfocar, children }) {
   return (
     <DialogPrimitive.Root open={abierto} onOpenChange={(v) => { if (!v) onCerrar() }}>
       <DialogPrimitive.Portal>
@@ -291,6 +291,7 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false
         >
           <div className="flex items-start justify-between gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0">
+              {sobretitulo && <div className="mb-1.5 text-xs font-semibold tracking-[0.1em] text-bx-ok-fg">{sobretitulo}</div>}
               <DialogPrimitive.Title className="text-xl font-bold text-bx-ink">{titulo}</DialogPrimitive.Title>
               {descripcion
                 ? <DialogPrimitive.Description className="mt-1 text-sm text-bx-muted">{descripcion}</DialogPrimitive.Description>
@@ -300,8 +301,8 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false
               <X className="h-[18px] w-[18px]" aria-hidden="true" />
             </DialogPrimitive.Close>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-3">{children}</div>
-          {pie && <div className="flex flex-wrap items-center justify-end gap-3 border-t border-bx-line px-6 py-4">{pie}</div>}
+          <div className={cn("min-h-0 flex-1 overflow-y-auto px-6 py-3", cuerpoClassName)}>{children}</div>
+          {pie && <div className={cn("flex flex-wrap items-center justify-end gap-3 border-t border-bx-line px-6 py-4", pieClassName)}>{pie}</div>}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

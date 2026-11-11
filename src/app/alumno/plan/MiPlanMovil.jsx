@@ -8,7 +8,7 @@ import apiClient from "@/api"
 import { Cargando } from '@/components/Cargando'
 
 /*
- * Mi membresía en el celular (debajo de lg). La versión de escritorio sigue en MiPlanPagos.jsx.
+ * Mi membresía en el celular (debajo de lg). La versión de escritorio está en MiPlanEscritorio.jsx.
  * Dos pestañas: la membresía activa (con renovar y contratar otra) y el historial de pagos.
  */
 
