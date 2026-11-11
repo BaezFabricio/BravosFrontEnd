@@ -106,7 +106,7 @@ export default function ProfesorLayout({ children }) {
               <X className="h-5 w-5" />
             </button>
           </div>
-          <nav className="flex-1 px-3 py-4 space-y-0.5">
+          <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
             {/* Primero: volver al sitio público del box */}
             <div className="mb-1 border-b border-sidebar-border pb-1">
               <EnlacePaginaPrincipal />
