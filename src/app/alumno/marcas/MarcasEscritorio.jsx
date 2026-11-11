@@ -198,7 +198,7 @@ export default function MarcasEscritorio() {
         className="gap-1"
       />
 
-      <div role="tabpanel" aria-label={vista === "ranking" ? "Ranking" : "Mis RM"} className="flex flex-col gap-4">
+      <div key={vista} role="tabpanel" aria-label={vista === "ranking" ? "Ranking" : "Mis RM"} className="bx-aparece flex flex-col gap-4">
         {vista === "ranking" && <RankingEscritorio idCatalogo={rankEj} onElegir={setRankEj} onEditar={editarDesdeRanking} />}
 
         {vista === "mis" && cargando && (
@@ -248,14 +248,14 @@ export default function MarcasEscritorio() {
               </div>
             )}
 
-            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,18.75rem),1fr))] gap-3.5 p-0">
+            <ul className="bx-lista m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,18.75rem),1fr))] gap-3.5 p-0">
               {lista.map((e) => {
                 const gr = grupos.find((x) => x.idCatalogo === e.idCatalogo)
                 const puesto = puestos[e.idCatalogo]
                 const valorTxt = gr ? formatearValor(gr.tipo, gr.mejor.valorMejor) : null
                 const [numero, ...unidad] = valorTxt ? valorTxt.split(" ") : []
                 return (
-                  <li key={e.idCatalogo} className="flex flex-col gap-4 rounded-2xl border border-bx-line bg-bx-card p-5">
+                  <li key={e.idCatalogo} className="bx-lift flex flex-col gap-4 rounded-2xl border border-bx-line bg-bx-card p-5">
                     <div className="flex items-start justify-between gap-3">
                       <h2 className="m-0 text-[1.0625rem] font-bold">{e.nombre}</h2>
                       {gr && puesto && (

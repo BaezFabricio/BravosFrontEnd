@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react"
 import apiClient from "@/api"
-import { Boton, Chip, ErrorBanner, Esqueleto, HeroCard, Pantalla, Pestanas, Progreso } from "@/components/bx"
+import { Boton, Chip, Desplegable, ErrorBanner, Esqueleto, HeroCard, Pantalla, Pestanas, Progreso } from "@/components/bx"
 import { Copiar } from "@/components/bx/DialogoPago"
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
 import { FAQS, ModalPago, numeroWhatsapp, useDatosPago } from "@/components/RenovarMembresia"
 import { fmtPrecio, useMiPlan } from "@/lib/miPlan"
+import { useContar } from "@/lib/useContar"
 import { featuresDelPlan, partesDescripcion } from "@/lib/planes"
 import { fechaCorta, rangoFechas } from "@/lib/fechasBx"
 
@@ -48,6 +49,7 @@ export default function MiPlanEscritorio() {
   // Después de pagar: se actualizan la membresía y el historial
   const alRenovar = () => { recargar(); cargarHistorial() }
 
+  const disponiblesContados = useContar(data?.vigente ? data.totalDisponibles : 0) // el número cuenta hasta su valor
   const ordenados = [...planesVenta].sort((a, b) => Number(a.precio) - Number(b.precio))
   const hayPopular = ordenados.length > 1
 
@@ -133,7 +135,7 @@ export default function MiPlanEscritorio() {
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-[0.8125rem] font-semibold text-[#a3a698]">Créditos disponibles</span>
               <span>
-                <span className="bx-num text-5xl leading-none text-bx-lima">{vigente ? totalDisponibles : 0}</span>
+                <span className="bx-num text-5xl leading-none text-bx-lima">{disponiblesContados}</span>
                 <span className="text-lg font-bold text-[#a3a698]"> / {vigente ? totalCreditos : 0}</span>
               </span>
             </div>
@@ -155,7 +157,7 @@ export default function MiPlanEscritorio() {
         className="gap-1"
       />
 
-      <div role="tabpanel" aria-label={pestana === "planes" ? "Planes" : "Historial"} className="flex flex-col gap-6">
+      <div key={pestana} role="tabpanel" aria-label={pestana === "planes" ? "Planes" : "Historial"} className="bx-aparece flex flex-col gap-6">
         {pestana === "planes" && (
           <>
             <div>
@@ -170,13 +172,13 @@ export default function MiPlanEscritorio() {
             ) : ordenados.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[0.9375rem] text-bx-muted">No hay membresías disponibles por ahora.</div>
             ) : (
-              <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,17.5rem),1fr))] gap-4 p-0">
+              <ul className="bx-lista m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,17.5rem),1fr))] gap-4 p-0">
                 {ordenados.map((p) => {
                   const pop = hayPopular && !!p.masPopular
                   const corta = partesDescripcion(p.descripcion).corta
                   const creditos = Number(p.cantidadCreditos) || 0
                   return (
-                    <li key={p.idPlan} className={`relative flex flex-col gap-4 rounded-2xl p-6 ${pop ? "border-2 border-bx-lima bg-bx-hero text-[#ecefe4]" : "border border-bx-line bg-bx-card text-bx-ink"}`}>
+                    <li key={p.idPlan} className={`bx-lift relative flex flex-col gap-4 rounded-2xl p-6 ${pop ? "border-2 border-bx-lima bg-bx-hero text-[#ecefe4]" : "border border-bx-line bg-bx-card text-bx-ink"}`}>
                       <div className="flex min-h-[1.625rem] items-center justify-between gap-2.5">
                         <span className={`text-xs font-semibold tracking-[0.1em] ${pop ? "text-[#a3a698]" : "text-bx-muted"}`}>{creditos > 0 ? `${creditos} CRÉDITOS` : "MEMBRESÍA"}</span>
                         {pop && <span className="rounded-full bg-bx-lima px-2.5 py-1 text-[0.6875rem] font-bold tracking-[0.06em] text-bx-negro">MÁS ELEGIDO</span>}
@@ -226,10 +228,10 @@ export default function MiPlanEscritorio() {
                           className="flex min-h-14 w-full items-center justify-between gap-3 px-[1.125rem] py-3 text-left text-[0.9375rem] font-semibold text-bx-ink"
                         >
                           {q.q}
-                          <Ico d={IC.chevDown} size={18} sw={2} className={`shrink-0 text-bx-muted ${abierta ? "rotate-180" : ""}`} />
+                          <Ico d={IC.chevDown} size={18} sw={2} className={`shrink-0 text-bx-muted transition-transform duration-300 ${abierta ? "rotate-180" : ""}`} />
                         </button>
                       </h3>
-                      {abierta && <div id={`faq-${i}`} className="px-[1.125rem] pb-4 text-[0.9375rem] leading-normal text-bx-muted">{q.a}</div>}
+                      <Desplegable abierto={abierta}><div id={`faq-${i}`} className="px-[1.125rem] pb-4 text-[0.9375rem] leading-normal text-bx-muted">{q.a}</div></Desplegable>
                     </div>
                   )
                 })}

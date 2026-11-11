@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import apiClient from "@/api"
-import { ErrorBanner, Esqueleto, Pantalla } from "@/components/bx"
+import { Desplegable, ErrorBanner, Esqueleto, Pantalla } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
 import { toast } from "@/lib/notificar"
 import { fechaCorta } from "@/lib/fechasBx"
@@ -95,10 +95,10 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
             {anteriores.length > 0 && (
               <>
                 <button type="button" onClick={() => setHistorial((v) => !v)} aria-expanded={historial} className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[0.8125rem] font-bold text-bx-muted hover:text-bx-ink">
-                  <Ico d="m6 9 6 6 6-6" size={14} sw={2} className={historial ? "rotate-180" : ""} />
+                  <Ico d="m6 9 6 6 6-6" size={14} sw={2} className={`transition-transform duration-300 ${historial ? "rotate-180" : ""}`} />
                   {historial ? "Ocultar historial" : `Ver historial (${anteriores.length})`}
                 </button>
-                {historial && (
+                <Desplegable abierto={historial}>
                   <ul className="m-0 list-none rounded-[0.625rem] border border-dashed border-bx-line2 p-0">
                     {anteriores.map((d, i) => (
                       <li key={d.idDocumento || i} className="flex items-center gap-3 border-b border-bx-line2 px-3.5 py-1 last:border-b-0">
@@ -108,7 +108,7 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
                       </li>
                     ))}
                   </ul>
-                )}
+                </Desplegable>
               </>
             )}
           </div>
@@ -230,7 +230,7 @@ export default function DocumentosEscritorio() {
           <Esqueleto alto={150} className="rounded-2xl" /><Esqueleto alto={150} className="rounded-2xl" />
         </div>
       ) : (
-        <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+        <ul className="bx-lista m-0 flex list-none flex-col gap-3.5 p-0">
           {TIPOS.map((t) => (
             <Fila key={t.key} tipo={t} docs={porTipo(t.key)} subiendo={subiendo?.tipo === t.key ? subiendo.nombre : null} progreso={progreso} onSubir={subir} />
           ))}

@@ -74,10 +74,10 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
         aria-haspopup="menu"
         aria-expanded={abierto}
         aria-controls="menu-cuenta"
-        className="flex h-11 items-center gap-1.5 bg-transparent pl-0.5 pr-1.5 text-bx-ink"
+        className="flex h-11 items-center gap-1.5 bg-transparent pl-0.5 pr-1.5 text-bx-ink transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} className={`box-border border-2 ${abierto ? "border-bx-lima" : "border-transparent"}`} />
-        <Ico d={IC.chevDown} size={16} sw={2} className={abierto ? "rotate-180" : ""} />
+        <Ico d={IC.chevDown} size={16} sw={2} className={`transition-transform duration-300 ${abierto ? "rotate-180" : ""}`} />
       </button>
 
       {abierto && (
@@ -86,7 +86,7 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
           role="menu"
           aria-label="Cuenta"
           onKeyDown={onKey}
-          className="absolute right-0 top-14 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
+          className="bx-pop absolute right-0 top-14 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
         >
           <div className="flex items-center gap-3 p-4">
             <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} tam={48} />

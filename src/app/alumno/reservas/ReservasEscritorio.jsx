@@ -101,7 +101,7 @@ export default function ReservasEscritorio({
         className="gap-1"
       />
 
-      <div role="tabpanel" aria-label={pestana === "prox" ? "Próximas" : "Historial"} className="flex flex-col gap-4">
+      <div key={pestana} role="tabpanel" aria-label={pestana === "prox" ? "Próximas" : "Historial"} className="bx-aparece flex flex-col gap-4">
         {cargando && (
           <div aria-busy="true" aria-label="Cargando reservas" className="flex flex-col gap-2.5">
             <Esqueleto alto={88} className="rounded-[0.875rem]" etiqueta="Cargando reserva" />
@@ -123,7 +123,7 @@ export default function ReservasEscritorio({
         )}
 
         {!cargando && pestana === "prox" && proximas.length > 0 && (
-          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          <ul className="bx-lista m-0 flex list-none flex-col gap-3 p-0">
             {proximas.map((r) => {
               const dur = duracion(r.hora, r.horaFin)
               const limite = limiteCancelacion(r.fecha, r.hora)
@@ -173,7 +173,7 @@ export default function ReservasEscritorio({
               {grupos.map((g) => (
                 <section key={g.mes} aria-label={g.mes} className="flex flex-col gap-2.5">
                   <h2 className="m-0 text-xs font-semibold tracking-[0.1em] text-bx-muted">{g.mes}</h2>
-                  <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+                  <ul className="bx-lista m-0 flex list-none flex-col gap-2.5 p-0">
                     {g.items.map((r) => {
                       const est = ESTADOS[r.estado] || ESTADOS.cancelada
                       return (

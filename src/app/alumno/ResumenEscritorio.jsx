@@ -83,15 +83,24 @@ export default function ResumenEscritorio({
                 {logros.map((l) => {
                   const Icono = l.icono
                   return (
-                    <li key={l.codigo}>
+                    <li key={l.codigo} className="group relative">
                       <button
                         type="button"
                         aria-label={`${l.nombre}, ${l.completado ? "desbloqueado" : "bloqueado"}`}
-                        title={`${l.nombre}: ${l.descripcion}`}
-                        className={`grid h-12 w-12 place-items-center rounded-[0.625rem] border transition-colors hover:border-bx-lima ${l.completado ? "border-[#3d5a10] bg-[#1f2a0e] text-bx-lima" : "border-[#2a2a2a] bg-[#1a1a1a] text-[#5d6152]"}`}
+                        aria-describedby={`logro-${l.codigo}`}
+                        className={`grid h-12 w-12 place-items-center rounded-[0.625rem] border transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-bx-lima active:scale-95 ${l.completado ? "border-[#3d5a10] bg-[#1f2a0e] text-bx-lima" : "border-[#2a2a2a] bg-[#1a1a1a] text-[#5d6152]"}`}
                       >
                         <Icono className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
                       </button>
+                      <div
+                        id={`logro-${l.codigo}`}
+                        role="tooltip"
+                        className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 w-52 translate-y-1 rounded-lg border border-[#262626] bg-[#141510] px-3 py-2 text-left opacity-0 shadow-lg transition-[opacity,transform] duration-200 group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100"
+                      >
+                        <p className="m-0 text-xs font-bold text-[#ecefe4]">{l.nombre}</p>
+                        <p className="m-0 mt-0.5 text-xs text-[#a3a698]">{l.descripcion}</p>
+                        <p className={`m-0 mt-1.5 text-[0.625rem] font-bold tracking-[0.1em] ${l.completado ? "text-bx-lima" : "text-[#8b8e80]"}`}>{l.completado ? "✓ DESBLOQUEADO" : "BLOQUEADO"}</p>
+                      </div>
                     </li>
                   )
                 })}
@@ -144,14 +153,14 @@ export default function ResumenEscritorio({
           <Link
             key={a.to}
             to={a.to}
-            className="flex min-h-[4.5rem] items-center gap-3.5 rounded-xl border border-bx-line bg-bx-card px-4 py-3 text-bx-ink transition-colors hover:border-bx-lima hover:bg-bx-surf"
+            className="bx-lift group flex min-h-[4.5rem] items-center gap-3.5 rounded-xl border border-bx-line bg-bx-card px-4 py-3 text-bx-ink hover:border-bx-lima hover:bg-bx-surf"
           >
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] bg-bx-tile text-bx-ok-fg"><Ico d={a.d} /></span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] bg-bx-tile text-bx-ok-fg transition-transform duration-300 group-hover:scale-110"><Ico d={a.d} /></span>
             <span className="min-w-0 flex-1">
               <span className="block text-[0.9375rem] font-bold">{a.titulo}</span>
               <span className="block text-[0.8125rem] text-bx-muted">{a.sub}</span>
             </span>
-            <Ico d={IC.chevRight} size={18} sw={2} className="text-bx-muted" />
+            <Ico d={IC.chevRight} size={18} sw={2} className="text-bx-muted transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         ))}
       </nav>
@@ -170,7 +179,7 @@ export default function ResumenEscritorio({
               />
             )}
             {!cargando && !errorDatos && proximasReservadas.length > 0 && (
-              <ul className="m-0 flex list-none flex-col gap-3 p-0">
+              <ul className="bx-lista m-0 flex list-none flex-col gap-3 p-0">
                 {proximasReservadas.slice(0, 3).map((r) => {
                   const dur = duracion(r.horaInicio, r.horaFin)
                   return (
@@ -203,7 +212,7 @@ export default function ResumenEscritorio({
               <Vacio titulo="No hay más clases programadas para hoy" />
             )}
             {!cargandoClases && !errorClases && clasesHoy.length > 0 && (
-              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+              <ul className="bx-lista m-0 flex list-none flex-col gap-2 p-0">
                 {clasesHoy.map((c) => {
                   const hora = horaCorta(c.horaInicio)
                   const libres = c.cupoDisponible

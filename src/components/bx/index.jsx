@@ -1,4 +1,5 @@
-import { useId } from "react"
+import { useEffect, useId, useRef } from "react"
+import { useContar } from "@/lib/useContar"
 import { Link } from "react-router-dom"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { AlertTriangle, ChevronRight, Minus, Plus, X } from "lucide-react"
@@ -18,12 +19,12 @@ export function Bx({ className, ...props }) {
 // Contenido de cada pantalla: columna con separación de 24px (20px en algunas pantallas, con className="gap-5").
 // El ancho máximo (1600px, centrado) y el margen de 24px los pone el marco de escritorio (LayoutEscritorio).
 export function Pantalla({ className, ...props }) {
-  return <div className={cn("flex w-full flex-col gap-6", className)} {...props} />
+  return <div className={cn("bx-entrada flex w-full flex-col gap-6", className)} {...props} />
 }
 
 /* ───────── Botones ───────── */
 
-const BASE_BOTON = "inline-flex items-center justify-center gap-2 rounded-lg font-bold text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 select-none"
+const BASE_BOTON = "inline-flex items-center justify-center gap-2 rounded-lg font-bold text-sm transition-[background-color,border-color,color,transform,opacity] duration-200 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 select-none"
 const VARIANTES_BOTON = {
   // Una sola acción primaria lima por bloque
   primario: "bg-bx-lima text-bx-negro hover:bg-bx-lima-hover disabled:hover:bg-bx-lima",
@@ -49,7 +50,7 @@ export function BotonIcono({ etiqueta, className, children, ...props }) {
     <button
       type="button"
       aria-label={etiqueta}
-      className={cn("relative grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf", className)}
+      className={cn("relative grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-[background-color,transform] duration-200 hover:bg-bx-surf active:scale-95", className)}
       {...props}
     >
       {children}
@@ -98,7 +99,7 @@ export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", c
             aria-pressed={activo}
             onClick={() => onChange(o.id)}
             className={cn(
-              "h-9 rounded-full border px-3.5 text-[0.8125rem] font-bold transition-colors",
+              "h-9 rounded-full border px-3.5 text-[0.8125rem] font-bold transition-[background-color,border-color,color,transform] duration-200 active:scale-95",
               activo ? "border-bx-ink bg-bx-ink text-bx-bg" : "border-bx-btn-line bg-transparent text-bx-ink hover:border-bx-ink"
             )}
           >
@@ -112,11 +113,32 @@ export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", c
 
 /* ───────── Pestañas ───────── */
 
-// role="tablist", subrayado lima de 3px y contador en círculo. `items`: [{ id, label, contador? }]
+// role="tablist". El subrayado lima se desliza de una pestaña a la otra. `items`: [{ id, label, contador? }]
 export function Pestanas({ items, valor, onChange, etiqueta = "Secciones", className }) {
   const base = useId()
+  const raiz = useRef(null)
+  const barra = useRef(null)
+  const primera = useRef(true)
+
+  // Mide la pestaña activa y mueve el subrayado (sin pasar por el estado de React: es solo posición en pantalla)
+  useEffect(() => {
+    const mover = () => {
+      const boton = document.getElementById(`${base}-${valor}`)
+      const linea = barra.current
+      if (!boton || !linea) return
+      if (primera.current) linea.style.transition = "none" // la primera vez aparece en su lugar, sin recorrer desde la izquierda
+      linea.style.width = `${boton.offsetWidth}px`
+      linea.style.transform = `translateX(${boton.offsetLeft}px)`
+      if (primera.current) { void linea.offsetWidth; linea.style.transition = ""; primera.current = false }
+    }
+    mover()
+    const ro = new ResizeObserver(mover) // el número de la pestaña puede cambiar su ancho cuando llegan los datos
+    Array.from(raiz.current?.children || []).forEach((c) => ro.observe(c))
+    return () => ro.disconnect()
+  }, [valor, items.length, base])
+
   return (
-    <div role="tablist" aria-label={etiqueta} className={cn("flex gap-6 border-b border-bx-line", className)}>
+    <div ref={raiz} role="tablist" aria-label={etiqueta} className={cn("relative flex gap-6 border-b border-bx-line", className)}>
       {items.map((it) => {
         const activa = it.id === valor
         return (
@@ -136,19 +158,29 @@ export function Pestanas({ items, valor, onChange, etiqueta = "Secciones", class
               document.getElementById(`${base}-${sig.id}`)?.focus()
             }}
             className={cn(
-              "-mb-px flex h-12 items-center gap-2 border-b-[0.1875rem] text-[0.9375rem] font-bold transition-colors",
-              activa ? "border-bx-lima text-bx-ink" : "border-transparent text-bx-muted hover:text-bx-ink"
+              "flex h-12 items-center gap-2 text-[0.9375rem] font-bold transition-colors duration-200",
+              activa ? "text-bx-ink" : "text-bx-muted hover:text-bx-ink"
             )}
           >
             {it.label}
             {it.contador != null && (
-              <span className={cn("grid h-[1.375rem] min-w-[1.375rem] place-items-center rounded-full px-1.5 text-[0.75rem] font-bold", activa ? "bg-bx-lima text-bx-negro" : "bg-bx-track text-bx-ink")}>
+              <span className={cn("grid h-[1.375rem] min-w-[1.375rem] place-items-center rounded-full px-1.5 text-[0.75rem] font-bold transition-colors duration-300", activa ? "bg-bx-lima text-bx-negro" : "bg-bx-track text-bx-ink")}>
                 {it.contador}
               </span>
             )}
           </button>
         )
       })}
+      <span ref={barra} aria-hidden="true" className="pointer-events-none absolute -bottom-px left-0 h-[0.1875rem] rounded-full bg-bx-lima transition-[transform,width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+    </div>
+  )
+}
+
+// Contenido que se abre y se cierra con suavidad (preguntas frecuentes, rutinas, historiales). Cerrado no se puede tocar ni leer.
+export function Desplegable({ abierto, className, children }) {
+  return (
+    <div className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-out", abierto ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0", className)} inert={!abierto}>
+      <div className="min-h-0 overflow-hidden">{children}</div>
     </div>
   )
 }
@@ -200,10 +232,11 @@ export function HeroCard({ className, children, logo = true, ...props }) {
 
 // Mini tarjeta de dato dentro de un hero (fondo #1a1a1a)
 export function DatoHero({ etiqueta, valor, nota, className }) {
+  const mostrado = useContar(valor)
   return (
     <div className={cn("rounded-xl border border-[#262626] bg-[#1a1a1a] p-5", className)}>
       <div className="text-[0.8125rem] font-semibold text-[#a3a698]">{etiqueta}</div>
-      <div className="bx-num mt-2 text-[2.75rem] leading-none text-bx-lima">{valor}</div>
+      <div className="bx-num mt-2 text-[2.75rem] leading-none text-bx-lima">{mostrado}</div>
       {nota && <div className="mt-1.5 text-xs text-[#8b8e80]">{nota}</div>}
     </div>
   )
@@ -223,7 +256,7 @@ export function Progreso({ valor, max = 100, etiqueta, className, alto = 10, col
       style={{ height: `${alto / 16}rem`, borderRadius: `${alto / 32}rem` }}
       className={cn("overflow-hidden bg-bx-track", className)}
     >
-      <div className={cn("h-full", color)} style={{ width: `${pct}%`, borderRadius: `${alto / 32}rem` }} />
+      <div className={cn("bx-barra h-full transition-[width] duration-700 ease-out", color)} style={{ width: `${pct}%`, borderRadius: `${alto / 32}rem` }} />
     </div>
   )
 }
@@ -278,7 +311,7 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, sobretitulo, a
   return (
     <DialogPrimitive.Root open={abierto} onOpenChange={(v) => { if (!v) onCerrar() }}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-black/60" />
+        <DialogPrimitive.Overlay className="bx-overlay fixed inset-0 z-[100] bg-black/60" />
         <DialogPrimitive.Content
           role={alerta ? "alertdialog" : "dialog"}
           style={{ maxWidth: `${ancho / 16}rem` }}
@@ -287,7 +320,7 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, sobretitulo, a
             const el = idEnfocar ? document.getElementById(idEnfocar) : null
             if (el) { e.preventDefault(); el.focus() }
           }}
-          className="bx fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card text-bx-ink shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
+          className="bx bx-modal fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card text-bx-ink shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
         >
           <div className="flex items-start justify-between gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0">

@@ -61,7 +61,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
       id="panel-notif"
       role="dialog"
       aria-labelledby="t-notif"
-      className="absolute right-0 top-14 z-50 flex max-h-[min(40rem,calc(100vh-6rem))] w-[min(26.25rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
+      className="bx-pop absolute right-0 top-14 z-50 flex max-h-[min(40rem,calc(100vh-6rem))] w-[min(26.25rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
     >
       <div className="flex items-center justify-between gap-3 py-4 pl-5 pr-4">
         <div>
@@ -103,7 +103,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
         {grupos.map((g) => (
           <div key={g.dia}>
             <h3 className="px-5 pb-1.5 pt-3 text-xs font-semibold tracking-[0.1em] text-bx-muted">{g.dia}</h3>
-            <ul className="m-0 list-none p-0">
+            <ul className="bx-lista m-0 list-none p-0">
               {g.items.map((n, idx) => {
                 const { tono, d } = aspecto(n)
                 const sinLeer = !n.leida
@@ -229,7 +229,7 @@ export function AvisosAbajo({ toasts, onClick }) {
           <div
             key={t.pid}
             onClick={() => onClick(t)}
-            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-[0_0.5rem_1.5rem_rgba(0,0,0,.3)] ${tono.caja} ${t.link ? "cursor-pointer" : ""}`}
+            className={`bx-aviso pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-[0_0.5rem_1.5rem_rgba(0,0,0,.3)] ${tono.caja} ${t.link ? "cursor-pointer" : ""}`}
           >
             <Icono className={`h-[1.125rem] w-[1.125rem] shrink-0 ${tono.icono}`} aria-hidden="true" />
             <p className="leading-snug">{!generico && <span className="font-bold">{t.titulo}. </span>}{t.mensaje}</p>

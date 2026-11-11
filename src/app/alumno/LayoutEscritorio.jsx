@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useTheme } from "@/components/theme-provider"
 import NotificacionesBell from "@/components/NotificacionesBell"
@@ -59,18 +60,38 @@ function paginaActual(pathname) {
 const esActivo = (item, pathname) =>
   item.href === "/alumno" ? pathname === "/alumno" : pathname === item.href || pathname.startsWith(item.href + "/")
 
+const LEE_MENU = () => { try { return localStorage.getItem("bx-menu-cerrado") !== "1" } catch { return true } }
+
 export default function LayoutEscritorio({ userData, avatarUrl, onLogout, children }) {
   const { pathname } = useLocation()
   const { theme, setTheme } = useTheme()
   const oscuro = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches)
   const { titulo, subtitulo } = paginaActual(pathname)
+  // El menú se puede ocultar (se desliza hacia la izquierda y el contenido ocupa su lugar); se recuerda la elección
+  const [menuAbierto, setMenuAbierto] = useState(LEE_MENU)
+  const cambiarMenu = (abierto) => {
+    setMenuAbierto(abierto)
+    try { localStorage.setItem("bx-menu-cerrado", abierto ? "0" : "1") } catch { /* sin almacenamiento: no se recuerda */ }
+  }
 
   return (
-    <div className="bx flex min-h-screen bg-bx-bg text-bx-ink">
-      <aside aria-label="Menú del alumno" className="sticky top-0 z-20 flex h-screen w-[17rem] shrink-0 flex-col bg-bx-lateral text-[#ecefe4]">
+    <div className="bx min-h-screen bg-bx-bg text-bx-ink">
+      <aside
+        aria-label="Menú del alumno"
+        inert={!menuAbierto}
+        className={`fixed left-0 top-0 z-20 flex h-screen w-[17rem] flex-col bg-bx-lateral text-[#ecefe4] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "translate-x-0" : "-translate-x-full"}`}
+      >
         <div className="flex h-[4.75rem] items-center gap-3 border-b border-[#26281f] px-5">
           <img src="/logo.jpg" alt="" className="h-10 w-10 rounded-lg object-cover" />
           <span className="flex-1 text-lg font-extrabold tracking-[0.12em]">BRAVOS</span>
+          <button
+            type="button"
+            onClick={() => cambiarMenu(false)}
+            aria-label="Ocultar el menú"
+            className="grid h-11 w-11 place-items-center rounded-lg text-[#8b8e80] transition-[background-color,color,transform] duration-200 hover:bg-[#1f2119] hover:text-white active:scale-90"
+          >
+            <Ico d="m15 6-6 6 6 6" size={20} sw={2} />
+          </button>
         </div>
 
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
@@ -82,9 +103,10 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
                 <Link
                   to={n.href}
                   aria-current={activo ? "page" : undefined}
-                  className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-[0.9375rem] font-semibold transition-colors ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
+                  className={`group relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-[0.9375rem] font-semibold transition-[background-color,color,transform] duration-200 active:scale-[0.98] ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
                 >
-                  <Ico d={n.icono} />
+                  {activo && <span aria-hidden="true" className="bx-barra-v absolute bottom-2 left-0 top-2 w-[0.1875rem] rounded-full bg-bx-lima" />}
+                  <span className="flex transition-transform duration-200 group-hover:translate-x-0.5"><Ico d={n.icono} /></span>
                   <span>{n.name}</span>
                 </Link>
               </div>
@@ -93,7 +115,7 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
         </nav>
 
         {/* Tocar la tarjeta lleva al perfil */}
-        <Link to="/alumno/perfil" title="Ver mi perfil" className="flex items-center gap-3 border-t border-[#26281f] px-5 py-4 hover:bg-[#1f2119]">
+        <Link to="/alumno/perfil" title="Ver mi perfil" className="flex items-center gap-3 border-t border-[#26281f] px-5 py-4 transition-colors duration-200 hover:bg-[#1f2119]">
           <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} className="!bg-[#2a2c24]" />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">{userData.nombrecompleto}</div>
@@ -102,19 +124,31 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
         </Link>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className={`flex min-h-screen min-w-0 flex-col transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "pl-[17rem]" : "pl-0"}`}>
         <header className="sticky top-0 z-10 flex h-[4.5rem] items-center gap-3 border-b border-bx-line bg-bx-bg px-6">
+          {!menuAbierto && (
+            <button
+              type="button"
+              onClick={() => cambiarMenu(true)}
+              aria-label="Mostrar el menú"
+              className="bx-aparece grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-[background-color,transform] duration-200 hover:bg-bx-surf active:scale-95"
+            >
+              <Ico d={IC.menu} />
+            </button>
+          )}
           <div className="min-w-0 flex-1">
-            <h1 data-guia="titulo" className="m-0 truncate text-xl font-bold">{titulo}</h1>
-            {subtitulo && <div className="truncate text-[0.8125rem] text-bx-muted">{subtitulo}</div>}
+            <h1 data-guia="titulo" key={titulo} className="bx-aparece m-0 truncate text-xl font-bold">{titulo}</h1>
+            {subtitulo && <div key={subtitulo} className="bx-aparece truncate text-[0.8125rem] text-bx-muted">{subtitulo}</div>}
           </div>
           <button
             type="button"
             onClick={() => setTheme(oscuro ? "light" : "dark")}
             aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink hover:bg-bx-surf"
+            className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-[background-color,transform] duration-200 hover:bg-bx-surf active:scale-95"
           >
-            <Ico d={oscuro ? IC.sun : IC.moon} />
+            {/* El sol y la luna se cruzan girando */}
+            <span className={`absolute flex transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${oscuro ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}><Ico d={IC.sun} /></span>
+            <span className={`absolute flex transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${oscuro ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}><Ico d={IC.moon} /></span>
           </button>
           <NotificacionesBell variante="bx" />
           <MenuCuenta

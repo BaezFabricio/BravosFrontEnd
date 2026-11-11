@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Boton, Dialogo, ErrorBanner, Esqueleto, Pantalla, Progreso, Tarjeta, Vacio } from "@/components/bx"
+import { Boton, Desplegable, Dialogo, ErrorBanner, Esqueleto, Pantalla, Progreso, Tarjeta, Vacio } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
@@ -126,8 +126,8 @@ export default function ReservarEscritorio({
                 aria-pressed={sel}
                 aria-label={`${NOMBRES_DIA[date.getDay()]} ${date.getDate()}${esDiaHoy ? ", hoy" : ""}${hayClases ? ", hay clases" : ", sin clases"}${pasado ? ", no disponible" : ""}`}
                 onClick={() => { setSelectedDate(date); setTurnoFiltro(null) }}
-                className={`flex h-[5.25rem] flex-col items-center justify-center gap-1 rounded-xl border transition-colors ${
-                  sel ? "border-bx-lima bg-bx-lima text-bx-negro"
+                className={`flex h-[5.25rem] flex-col items-center justify-center gap-1 rounded-xl border transition-[transform,background-color,border-color,color,opacity] duration-200 enabled:active:scale-95 ${
+                  sel ? "scale-[1.04] border-bx-lima bg-bx-lima text-bx-negro shadow-[0_0.5rem_1.25rem_-0.25rem_rgba(155,230,0,0.35)]"
                   : pasado ? "cursor-not-allowed border-bx-line bg-transparent text-bx-muted opacity-45"
                   : "border-bx-line2 bg-bx-surf text-bx-ink hover:border-bx-lima"
                 }`}
@@ -193,7 +193,7 @@ export default function ReservarEscritorio({
               <h2 className="m-0 text-lg font-bold">{plan.nombre}</h2>
               <span aria-live="polite" className="text-sm font-medium text-bx-muted">{plural(clases.length, "clase", "clases")}</span>
             </div>
-            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,21.25rem),1fr))] gap-3.5 p-0">
+            <ul className="bx-lista m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,21.25rem),1fr))] gap-3.5 p-0">
               {clases.map((c) => {
                 const sinCupos = c.cuposDisponibles === 0
                 const puedeRes = puedeReservar(selectedDate, c.hora)
@@ -203,7 +203,7 @@ export default function ReservarEscritorio({
                 const ocupados = Math.max(0, c.cuposTotales - c.cuposDisponibles)
                 const idAyuda = `ayuda-${c.id}`
                 return (
-                  <li key={c.id} className={`flex flex-col gap-3.5 rounded-2xl border bg-bx-card p-5 ${c.reservado ? "border-bx-ok-line" : "border-bx-line"}`}>
+                  <li key={c.id} className={`bx-lift flex flex-col gap-3.5 rounded-2xl border bg-bx-card p-5 ${c.reservado ? "border-bx-ok-line" : "border-bx-line"}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="bx-num text-[2.5rem] leading-none">{c.hora}</div>
@@ -245,15 +245,15 @@ export default function ReservarEscritorio({
                                   onClick={() => setRutinaAbierta((p) => ({ ...p, [c.id]: !p[c.id] }))}
                                   className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-bx-ok-fg hover:text-bx-ink"
                                 >
-                                  <Ico d={IC.chevDown} size={16} sw={2} className={rutinaAbierta[c.id] ? "rotate-180" : ""} />
+                                  <Ico d={IC.chevDown} size={16} sw={2} className={`transition-transform duration-300 ${rutinaAbierta[c.id] ? "rotate-180" : ""}`} />
                                   {rutinaAbierta[c.id] ? "Ocultar rutina" : "Ver rutina"}
                                 </button>
-                                {rutinaAbierta[c.id] && (
+                                <Desplegable abierto={!!rutinaAbierta[c.id]}>
                                   <div
                                     className="mt-1 rounded-[0.625rem] border border-bx-line2 bg-bx-surf p-3 text-[0.8125rem] leading-relaxed text-bx-muted [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-bx-ink [&_ul]:list-disc [&_ul]:pl-4"
                                     dangerouslySetInnerHTML={{ __html: sanitizarHtml(typeof c.rutina === "string" ? c.rutina : JSON.stringify(c.rutina)) }}
                                   />
-                                )}
+                                </Desplegable>
                               </>
                             )}
                           </>

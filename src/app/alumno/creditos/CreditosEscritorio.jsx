@@ -3,6 +3,7 @@ import { Boton, ErrorBanner, Esqueleto, FiltroChips, HeroCard, Pantalla, Progres
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
 import { fechaDeTexto, fechaCorta, hoyTexto } from "@/lib/fechasBx"
+import { useContar } from "@/lib/useContar"
 import { Link } from "react-router-dom"
 
 /*
@@ -53,6 +54,7 @@ function vencimientoLargo(f) {
 
 export default function CreditosEscritorio({ datos, cargando, error, onReintentar }) {
   const [filtro, setFiltro] = useState("todos")
+  const disponiblesContados = useContar(datos?.abono?.creditosCisponibles || 0) // el número cuenta hasta su valor
 
   if (error) {
     return <Pantalla><ErrorBanner titulo="No pudimos cargar tus créditos" texto="Revisá tu conexión e intentá de nuevo." onReintentar={onReintentar} /></Pantalla>
@@ -121,7 +123,7 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
             <div className="flex min-w-0 flex-col gap-2">
               <h2 id="t-disp" className="m-0 text-xs font-semibold tracking-[0.1em] text-[#a3a698]">CRÉDITOS DISPONIBLES</h2>
               <div className="flex items-baseline gap-2.5">
-                <span className="bx-num text-[clamp(5rem,9vw,7.5rem)] leading-[0.85] text-bx-lima">{disponibles}</span>
+                <span className="bx-num text-[clamp(5rem,9vw,7.5rem)] leading-[0.85] text-bx-lima">{disponiblesContados}</span>
                 <span className="text-[1.375rem] font-bold text-[#a3a698]">de {total}</span>
               </div>
               <div className="text-[0.9375rem] text-[#b9bcae]">
@@ -164,7 +166,7 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
           ) : lista.length === 0 ? (
             <div className="border-t border-bx-line2 px-5 py-6 text-[0.9375rem] font-medium text-bx-muted">No hay movimientos de este tipo.</div>
           ) : (
-            <ul className="m-0 list-none p-0">
+            <ul className="bx-lista m-0 list-none p-0">
               {lista.map((m, i) => {
                 const est = ESTILO[m.k]
                 const monto = m.n > 0 ? `+${m.n}` : m.n < 0 ? `−${Math.abs(m.n)}` : "0"
