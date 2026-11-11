@@ -59,17 +59,14 @@ export default function RutinasPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
 
       {/* HEADER */}
-      <div className="flex items-start justify-between">
-        <div>
-          <TituloPagina descripcion={"Rutinas asignadas a tus clases por el administrador"}>Mis Rutinas</TituloPagina>
-        </div>
-        {rutinas.length > 0 && (
-          <div className="text-right">
-            <p className="text-3xl font-black text-primary">{rutinas.length}</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">rutinas</p>
-          </div>
-        )}
+      <div>
+        <TituloPagina descripcion={"Rutinas asignadas a tus clases por el administrador"}>Mis Rutinas</TituloPagina>
       </div>
+
+      {/* Cantidad, en una línea simple a la izquierda */}
+      {rutinas.length > 0 && (
+        <p className="text-sm text-muted-foreground">{rutinas.length} {rutinas.length === 1 ? 'rutina' : 'rutinas'}</p>
+      )}
 
       {/* PESTAÑAS: próximas o historial */}
       <div className="grid grid-cols-2 gap-1 rounded-xl border border-border p-1" role="tablist">
