@@ -284,14 +284,14 @@ export default function ProfesorDashboard() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       {isPresente || isAusente ? (
                         <>
-                          <span className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg ${
+                          <span className={`flex min-h-[40px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold ${
                             isPresente
                               ? "bg-lime-400 text-black"
                               : "bg-red-500 text-foreground"
                           }`}>
                             {isPresente
-                              ? <><CheckCircle2 className="h-3 w-3" /> <span className="hidden sm:inline">Presente</span> ✓</>
-                              : <><XCircle className="h-3 w-3" /> <span className="hidden sm:inline">Ausente</span> ✓</>
+                              ? <><CheckCircle2 className="h-4 w-4" /> Presente</>
+                              : <><XCircle className="h-4 w-4" /> Ausente</>
                             }
                           </span>
                           <button
@@ -305,15 +305,15 @@ export default function ProfesorDashboard() {
                         <>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "presente")}
-                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Presente</span>
+                            <CheckCircle2 className="h-4 w-4" /> Presente
                           </button>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "ausente")}
-                            className="flex items-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
+                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
                           >
-                            <XCircle className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ausente</span>
+                            <XCircle className="h-4 w-4" /> Ausente
                           </button>
                         </>
                       )}
