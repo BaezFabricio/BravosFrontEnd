@@ -229,7 +229,7 @@ export default function AdminLayout({ children }) {
             <div className="flex items-center gap-1">
               {/* Tocar la tarjeta lleva al perfil */}
               <Link
-                to="/perfil"
+                to="/admin/perfil"
                 title="Ver mi perfil"
                 onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"

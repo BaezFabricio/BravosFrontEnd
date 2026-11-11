@@ -22,7 +22,8 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
 
   // "Mi Perfil" se abre dentro del panel en el que está la persona (alumno o profesor);
   // desde el panel admin o el sitio usa el perfil compartido.
-  const rutaPerfil = pathname.startsWith('/alumno') ? '/alumno/perfil'
+  const rutaPerfil = pathname.startsWith('/admin') ? '/admin/perfil'
+    : pathname.startsWith('/alumno') ? '/alumno/perfil'
     : pathname.startsWith('/profesor') ? '/profesor/perfil'
     : '/perfil';
 

@@ -180,6 +180,8 @@ function App() {
         {/* RUTAS DE ADMINISTRADOR */}
         <Route path="/admin" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
         <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
+        {/* Mi perfil desde el panel admin: se queda en el layout de admin */}
+        <Route path="/admin/perfil" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AlumnoPerfilPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/abonos/carga-masiva" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><CargaMasivaAbonosPage /></AdminLayout></RequireAuth>} />

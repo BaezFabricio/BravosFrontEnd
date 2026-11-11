@@ -3,6 +3,8 @@ import { Mail, Phone, Save, Loader2, AlertCircle, Pencil } from 'lucide-react'
 import { toast } from '@/lib/notificar'
 import { TituloPagina } from "@/components/TituloPagina"
 import FotoAmpliable from "@/components/FotoAmpliable"
+import { Link } from "react-router-dom"
+import { panelesPermitidos } from "@/lib/paneles"
 
 const getIniciales = (name) => {
   if (!name) return "??"
@@ -54,6 +56,17 @@ export default function ProfesorPerfilPage() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <TituloPagina descripcion={"Tus datos de contacto"}>Mi perfil</TituloPagina>
+
+      {/* Si también es alumno, su membresía está en el panel de alumno */}
+      {panelesPermitidos().alumno && (
+        <Link
+          to="/alumno/perfil"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 transition-colors hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+        >
+          <span className="text-sm font-semibold text-foreground">También sos alumno: ver mi membresía</span>
+          <span className="text-[11px] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">Ver</span>
+        </Link>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         {/* TARJETA DE PERFIL */}

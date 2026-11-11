@@ -347,7 +347,9 @@ export default function PerfilPage() {
 
   // Fechas "AAAA-MM-DD…" mostradas sin pasar por la zona horaria (evita que se corran un día)
   const fechaCorta = (f) => (f ? fmtFechaPlan(String(f).slice(0, 10)) : "—")
-  const puedeRenovar = panelesPermitidos().alumno
+  // Sin permiso de alumno (ej. un admin que no es alumno) no se muestra nada de membresía
+  const esAlumno = panelesPermitidos().alumno
+  const puedeRenovar = esAlumno
 
   return (
     <div className="space-y-6">
@@ -358,7 +360,7 @@ export default function PerfilPage() {
           <h1 data-guia="titulo" className="titulo-app text-3xl font-black uppercase leading-none tracking-tight text-foreground">Mi perfil</h1>
         </div>
 
-        {(membershipStatus === "por_vencer" || membershipStatus === "vencida") && (
+        {esAlumno && (membershipStatus === "por_vencer" || membershipStatus === "vencida") && (
           <div className={`flex items-center gap-3 rounded-2xl border p-3 ${
             membershipStatus === "vencida" ? "border-red-500/40 bg-red-500/10" : "border-yellow-500/40 bg-yellow-500/10"
           }`}>
@@ -377,7 +379,7 @@ export default function PerfilPage() {
             )}
           </div>
         )}
-        {userData.estado === "suspendido" && (
+        {esAlumno && userData.estado === "suspendido" && (
           <div className="flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700 dark:text-red-400" aria-hidden="true" />
             <p className="text-sm text-foreground/80"><span className="font-black text-red-700 dark:text-red-400">Cuenta suspendida.</span> Regularizá tu membresía para volver a reservar clases.</p>
@@ -403,7 +405,8 @@ export default function PerfilPage() {
         {avatarError && <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-700 dark:text-red-400">{avatarError}</p>}
 
         {/* Créditos y estado */}
-        <div data-guia="perfil-resumen" className="grid grid-cols-2 gap-3">
+        <div data-guia="perfil-resumen" className={`grid gap-3 ${esAlumno ? "grid-cols-2" : "grid-cols-1"}`}>
+          {esAlumno && (
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
             <p className="mt-1 flex items-baseline gap-1.5">
@@ -411,6 +414,7 @@ export default function PerfilPage() {
               <span className="text-xs font-bold text-foreground/55">clases</span>
             </p>
           </div>
+          )}
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Estado</p>
             <p className="mt-1 flex items-center gap-2">
@@ -446,7 +450,7 @@ export default function PerfilPage() {
               { label: "Usuario", badge: status.label, style: statusBadgeStyle[userData.estado] || statusBadgeStyle.inactivo },
               { label: "Membresía", badge: membership?.label || "—", style: membershipBadgeStyle[membershipStatus] || "text-foreground/60 border border-border" },
               { label: "Perfil", badge: userData.perfil || perfilVisible, style: "text-foreground/70 border border-border" },
-            ].map(({ label, badge, style }) => (
+            ].filter((f) => esAlumno || f.label !== "Membresía").map(({ label, badge, style }) => (
               <div key={label} className="flex items-center justify-between gap-3 px-4 py-3">
                 <dt className="text-sm text-foreground/65">{label}</dt>
                 <dd><span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${style}`}>{badge}</span></dd>
@@ -472,11 +476,11 @@ export default function PerfilPage() {
 
       {/* Título */}
       <div>
-        <TituloPagina descripcion={"Información personal y estado de membresía"}>Mi Perfil</TituloPagina>
+        <TituloPagina descripcion={esAlumno ? "Información personal y estado de membresía" : "Información personal y estado de cuenta"}>Mi Perfil</TituloPagina>
       </div>
 
       {/* Alertas de membresía */}
-      {membershipStatus === "por_vencer" && (
+      {esAlumno && membershipStatus === "por_vencer" && (
         <div className="flex items-start gap-3 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3">
           <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0" />
           <div>
@@ -485,7 +489,7 @@ export default function PerfilPage() {
           </div>
         </div>
       )}
-      {membershipStatus === "vencida" && (
+      {esAlumno && membershipStatus === "vencida" && (
         <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
           <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
           <div>
@@ -494,7 +498,7 @@ export default function PerfilPage() {
           </div>
         </div>
       )}
-      {userData.estado === "suspendido" && (
+      {esAlumno && userData.estado === "suspendido" && (
         <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
           <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
           <div>
@@ -582,7 +586,7 @@ export default function PerfilPage() {
                 { label: 'Usuario', badge: status.label, style: statusBadgeStyle[userData.estado] || statusBadgeStyle.inactivo },
                 { label: 'Membresía', badge: membership?.label || '—', style: membershipBadgeStyle[membershipStatus] || 'text-muted-foreground border border-border' },
                 { label: 'Perfil', badge: userData.perfil || 'Alumno', style: 'text-foreground/60 border border-border' },
-              ].map(({ label, badge, style }) => (
+              ].filter((f) => esAlumno || f.label !== "Membresía").map(({ label, badge, style }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">{label}</p>
                   <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${style}`}>{badge}</span>
@@ -592,7 +596,7 @@ export default function PerfilPage() {
           </div>
 
           {/* Créditos / vencimiento */}
-          {abonoData.vencimiento && (
+          {esAlumno && abonoData.vencimiento && (
             <div className="border border-border bg-card">
               <div className="border-b border-border px-5 py-3">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresía Activa</p>
@@ -610,7 +614,7 @@ export default function PerfilPage() {
             </div>
           )}
 
-          {membershipStatus === "vigente" && (
+          {esAlumno && membershipStatus === "vigente" && (
             <div className="border border-lime-400/20 bg-lime-400/5 px-4 py-3">
               <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Al día</p>
               <p className="text-xs text-foreground/40 mt-1">Próximo vencimiento: {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</p>
