@@ -155,8 +155,8 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
             <>
               <div className="flex flex-col gap-4 rounded-[0.875rem] border border-bx-line2 bg-bx-surf p-5">
                 <div className="flex flex-wrap items-center gap-[1.125rem]">
-                  <div role="img" aria-label="Código QR de Mercado Pago" className="grid h-[7.5rem] w-[7.5rem] shrink-0 place-items-center rounded-[0.625rem] border border-dashed border-[#b9bcae] bg-white p-2 text-center text-xs font-semibold text-[#5f6156]">
-                    {acepto && qrValor ? <QRCode value={qrValor} size={104} /> : acepto && loadingUrl ? "Preparando el QR…" : acepto ? <>No se pudo<br />generar el QR</> : <>Aceptá los términos<br />(abajo) para<br />ver el QR</>}
+                  <div role="img" aria-label="Código QR de Mercado Pago" className="grid h-[6.5rem] w-[6.5rem] shrink-0 place-items-center overflow-hidden rounded-[0.625rem] border border-dashed border-[#b9bcae] bg-white p-1.5 text-center text-xs font-semibold text-[#5f6156]">
+                    {acepto && qrValor ? <QRCode value={qrValor} size={256} style={{ width: "100%", height: "auto", display: "block" }} /> : acepto && loadingUrl ? "Preparando el QR…" : acepto ? <>No se pudo<br />generar el QR</> : <>Aceptá los términos<br />(abajo) para<br />ver el QR</>}
                   </div>
                   <div className="flex min-w-[13.75rem] flex-1 flex-col gap-2">
                     <strong className="text-base font-bold">{qrData ? "Pagá con cualquier billetera" : "Pagá con tu cuenta de Mercado Pago"}</strong>
