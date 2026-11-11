@@ -136,7 +136,7 @@ function ConfiguracionLandingPage() {
   const [legalCuit, setLegalCuit] = useState('')
   const [legalDomicilio, setLegalDomicilio] = useState('')
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
-  const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
+  const [horarioSabado, setHorarioSabado] = useState('Sábado: 17:00 - 19:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaUrl, setMapaUrl] = useState('')
 
@@ -185,7 +185,7 @@ function ConfiguracionLandingPage() {
       setLegalCuit(d.legalCuit || '')
       setLegalDomicilio(d.legalDomicilio || '')
       setHorarioSemana(d.horario_semana || 'Lun-Vie: 6:00 - 22:00')
-      setHorarioSabado(d.horario_sabado || 'Sábado: 8:00 - 14:00')
+      setHorarioSabado(d.horario_sabado || 'Sábado: 17:00 - 19:00')
       setHorarioDomingo(d.horario_domingo || 'Domingo: Cerrado')
       setMapaUrl(d.mapaUrl || '')
     } catch {
@@ -534,7 +534,7 @@ function ConfiguracionLandingPage() {
                   <input disabled={!puedeModificar} type="text" value={horarioSemana} onChange={e => setHorarioSemana(e.target.value)} placeholder="6:00 - 22:00" className={inputCls} />
                 </Field>
                 <Field label="Sábado">
-                  <input disabled={!puedeModificar} type="text" value={horarioSabado} onChange={e => setHorarioSabado(e.target.value)} placeholder="8:00 - 14:00" className={inputCls} />
+                  <input disabled={!puedeModificar} type="text" value={horarioSabado} onChange={e => setHorarioSabado(e.target.value)} placeholder="17:00 - 19:00" className={inputCls} />
                 </Field>
                 <Field label="Domingo">
                   <input disabled={!puedeModificar} type="text" value={horarioDomingo} onChange={e => setHorarioDomingo(e.target.value)} placeholder="Cerrado" className={inputCls} />

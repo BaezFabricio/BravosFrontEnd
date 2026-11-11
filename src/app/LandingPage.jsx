@@ -120,7 +120,7 @@ function LandingPage() {
   const [emailContacto, setEmailContacto] = useState('')
   const [instagram, setInstagram] = useState('')
   const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
-  const [horarioSabado, setHorarioSabado] = useState('Sábado: 8:00 - 14:00')
+  const [horarioSabado, setHorarioSabado] = useState('Sábado: 17:00 - 19:00')
   const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
   const [mapaVisible, setMapaVisible] = useState(false)
   const [filtroClase, setFiltroClase] = useState('todas') // "todas" o el índice de la tarjeta
@@ -161,6 +161,14 @@ function LandingPage() {
     { label: 'VIERNES', corto: 'VIE', value: 'VIERNES' },
     { label: 'SÁBADO', corto: 'SÁB', value: 'SABADO' }
   ]
+
+  // Sábado: el box solo abre para Planificación Atleta, turno Siesta. Los demás días se muestran todos los turnos.
+  const turnosDelDia = diaSeleccionado === 'SABADO'
+    ? turnosBox
+        .filter((t) => /atleta/i.test(t.nombre))
+        .map((t) => ({ ...t, horarios: t.horarios.filter((h) => /siesta/i.test(h.turno)) }))
+        .filter((t) => t.horarios.length > 0)
+    : turnosBox
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)
@@ -804,9 +812,9 @@ function LandingPage() {
 
           {loadingHorarios ? (
             <div className="space-y-3 animate-pulse" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-16 rounded-md border border-border bg-white/5" />)}</div>
-          ) : turnosBox.length === 0 ? (
+          ) : turnosDelDia.length === 0 ? (
             <div className="rounded-md border border-border bg-white/5 p-6 text-center">
-              <p className="text-sm text-white/50">Los horarios se publican muy pronto.</p>
+              <p className="text-sm text-white/50">{turnosBox.length === 0 ? 'Los horarios se publican muy pronto.' : 'No hay turnos publicados este día.'}</p>
             </div>
           ) : (
             <div key={diaSeleccionado} className="horarios-cambio grid gap-3 md:grid-cols-2">
@@ -817,7 +825,7 @@ function LandingPage() {
                 @media (prefers-reduced-motion: reduce) { .horarios-cambio > article { animation: none } }
               `}</style>
               {/* Un bloque por tipo de clase (como en las publicaciones de Instagram), con sus turnos y horas */}
-              {turnosBox.map((tipo) => {
+              {turnosDelDia.map((tipo) => {
                 const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
                 const turnos = Object.values(
                   [...tipo.horarios]
