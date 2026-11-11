@@ -10,13 +10,13 @@ import { useTheme } from "@/components/theme-provider"
 // Título de cada grupo (mismo estilo en el menú lateral y en el desplegable del celular)
 export const TituloGrupo = ({ titulo }) =>
   titulo ? (
-    <p className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
+    <p className="px-3 pb-1 pt-3 text-[0.625rem] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
   ) : null
 
 const claseItem = (activo, extra = "") =>
   `flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${extra} ${
     activo
-      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
       : "px-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
   }`
 
@@ -72,11 +72,11 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
             if (delGrupo.length === 0) return null
             return (
               <div key={g.key} className="space-y-0.5">
-                {g.titulo && <p className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/35">{g.titulo}</p>}
+                {g.titulo && <p className="px-3 pb-1 pt-3 text-[0.625rem] font-black uppercase tracking-widest text-sidebar-foreground/35">{g.titulo}</p>}
                 {delGrupo.map((item) => {
                   const activo = esActivo(item)
                   return (
-                    <Link key={item.name} to={item.href} onClick={onCerrar} tabIndex={tab} aria-current={activo ? "page" : undefined} className={claseItem(activo, "min-h-[42px]")}>
+                    <Link key={item.name} to={item.href} onClick={onCerrar} tabIndex={tab} aria-current={activo ? "page" : undefined} className={claseItem(activo, "min-h-[2.625rem]")}>
                       <item.icon className={`h-4 w-4 flex-shrink-0 ${activo ? "text-lime-700 dark:text-lime-400" : ""}`} />
                       {item.name}
                     </Link>
@@ -93,7 +93,7 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
                 type="button"
                 onClick={() => setTheme(oscuro ? "light" : "dark")}
                 tabIndex={tab}
-                className={claseItem(false, "min-h-[42px] w-full")}
+                className={claseItem(false, "min-h-[2.625rem] w-full")}
               >
                 {oscuro ? <Sun className="h-4 w-4 flex-shrink-0" aria-hidden="true" /> : <Moon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />}
                 {oscuro ? "Modo claro" : "Modo oscuro"}
@@ -103,7 +103,7 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
               type="button"
               onClick={() => { onCerrar(); onLogout() }}
               tabIndex={tab}
-              className="flex min-h-[42px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
+              className="flex min-h-[2.625rem] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:text-red-400"
             >
               <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
               Cerrar sesión
@@ -180,7 +180,7 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
         {/* Primero: volver al sitio público del box (sin cerrar la sesión) */}
         <div className="mb-6">
           <div className="divide-y divide-border border-y border-border">
-            <Link to="/inicio" onClick={onCerrar} tabIndex={tab} className="flex min-h-[60px] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-sidebar-accent/50">
+            <Link to="/inicio" onClick={onCerrar} tabIndex={tab} className="flex min-h-[3.75rem] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-sidebar-accent/50">
               <Globe className="h-6 w-6 shrink-0 text-foreground/75" strokeWidth={1.75} aria-hidden="true" />
               <span className="flex-1 text-base font-medium text-foreground">Página principal</span>
               <ChevronRight className="h-5 w-5 shrink-0 text-lime-600 dark:text-lime-400" aria-hidden="true" />
@@ -204,7 +204,7 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
                       onClick={onCerrar}
                       tabIndex={tab}
                       aria-current={activo ? "page" : undefined}
-                      className={`flex min-h-[60px] items-center gap-4 px-5 py-3.5 transition-colors ${activo ? "bg-lime-400/10" : "hover:bg-sidebar-accent/50"}`}
+                      className={`flex min-h-[3.75rem] items-center gap-4 px-5 py-3.5 transition-colors ${activo ? "bg-lime-400/10" : "hover:bg-sidebar-accent/50"}`}
                     >
                       <item.icon className={`h-6 w-6 shrink-0 ${activo ? "text-lime-700 dark:text-lime-400" : "text-foreground/75"}`} strokeWidth={1.75} aria-hidden="true" />
                       <span className={`flex-1 text-base ${activo ? "font-bold text-lime-700 dark:text-lime-400" : "font-medium text-foreground"}`}>{item.name}</span>
@@ -224,7 +224,7 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
               type="button"
               onClick={() => setTheme(oscuro ? "light" : "dark")}
               tabIndex={tab}
-              className="flex min-h-[60px] w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-sidebar-accent/50"
+              className="flex min-h-[3.75rem] w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-sidebar-accent/50"
             >
               {oscuro
                 ? <Sun className="h-6 w-6 shrink-0 text-foreground/75" strokeWidth={1.75} aria-hidden="true" />
@@ -236,7 +236,7 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
             type="button"
             onClick={() => { onCerrar(); onLogout() }}
             tabIndex={tab}
-            className="flex min-h-[60px] w-full items-center gap-4 px-5 py-3.5 text-left text-red-600 transition-colors hover:bg-red-500/5 dark:text-red-400"
+            className="flex min-h-[3.75rem] w-full items-center gap-4 px-5 py-3.5 text-left text-red-600 transition-colors hover:bg-red-500/5 dark:text-red-400"
           >
             <LogOut className="h-6 w-6 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             <span className="flex-1 text-base font-medium">Cerrar sesión</span>

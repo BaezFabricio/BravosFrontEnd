@@ -175,29 +175,29 @@ export default function LoginPage() {
   const vistaMovil = (
     <div className={`lm${saliendo ? " sale" : ""}`} style={{ margin: 0, background: "#0e100a", color: "#ecefe4", fontFamily: "Archivo,sans-serif", lineHeight: "normal", minHeight: "100dvh" }}>
       <style>{ESTILOS_MOVIL}</style>
-      <div style={{ position: "relative", width: "100%", maxWidth: "480px", margin: "0 auto", minHeight: "100dvh", overflowX: "hidden", background: "#0e100a" }}>
-        <div style={{ position: "relative", height: "270px", overflow: "hidden" }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: "30rem", margin: "0 auto", minHeight: "100dvh", overflowX: "hidden", background: "#0e100a" }}>
+        <div style={{ position: "relative", height: "16.875rem", overflow: "hidden" }}>
           <img src="/acceso/grupo-c.png" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 55%", filter: "grayscale(1) contrast(1.1) brightness(0.9)" }} />
           <div style={{ position: "absolute", inset: 0, background: "#4a5626", mixBlendMode: "multiply", opacity: 0.5 }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(14,16,10,0.55) 0%,rgba(14,16,10,0) 30%,rgba(14,16,10,0.2) 60%,#0e100a 100%)" }} />
-          <div style={{ position: "absolute", top: "calc(env(safe-area-inset-top) + 16px)", left: "20px", right: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}><img src="/acceso/brvs.png" alt="" style={{ width: "34px", height: "34px", borderRadius: "8px" }} /><span style={{ font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: "0.3em", color: "#9be600", whiteSpace: "nowrap" }}>BRAVOS BOX</span></div>
-            <Link to="/inicio" style={{ font: "600 14px Archivo, sans-serif", textDecoration: "none", whiteSpace: "nowrap", color: "#ecefe4", display: "inline-flex", alignItems: "center", minHeight: "44px", padding: "0 16px", border: "1px solid rgba(236,239,228,.28)", borderRadius: "999px", background: "rgba(14,16,10,.5)", margin: "-4px -6px -4px 0" }}>Sitio</Link>
+          <div style={{ position: "absolute", top: "calc(env(safe-area-inset-top) + 1rem)", left: "1.25rem", right: "1.25rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}><img src="/acceso/brvs.png" alt="" style={{ width: "2.125rem", height: "2.125rem", borderRadius: "0.5rem" }} /><span style={{ font: "900 0.9375rem 'Big Shoulders Stencil Display'", letterSpacing: "0.3em", color: "#9be600", whiteSpace: "nowrap" }}>BRAVOS BOX</span></div>
+            <Link to="/inicio" style={{ font: "600 0.875rem Archivo, sans-serif", textDecoration: "none", whiteSpace: "nowrap", color: "#ecefe4", display: "inline-flex", alignItems: "center", minHeight: "2.75rem", padding: "0 1rem", border: "1px solid rgba(236,239,228,.28)", borderRadius: "62.4375rem", background: "rgba(14,16,10,.5)", margin: "-0.25rem -0.375rem -0.25rem 0" }}>Sitio</Link>
           </div>
-          <div role="heading" aria-level={1} style={{ position: "absolute", left: "20px", top: "calc(env(safe-area-inset-top) + 64px)", font: "900 46px/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>Nadie<br />entrena <span style={{ color: "#9be600" }}>solo.</span></div>
+          <div role="heading" aria-level={1} style={{ position: "absolute", left: "1.25rem", top: "calc(env(safe-area-inset-top) + 4rem)", font: "900 2.875rem/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>Nadie<br />entrena <span style={{ color: "#9be600" }}>solo.</span></div>
         </div>
-        <div style={{ position: "absolute", left: "-30px", right: "-30px", top: "236px", transform: "rotate(-3deg)", background: "#9be600", color: "#0b0c09", padding: "8px 46px", display: "flex", justifyContent: "space-between", alignItems: "center", whiteSpace: "nowrap", font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", boxShadow: "rgba(0,0,0,0.45) 0 6px 18px" }}><span>✦</span><span>EMPIEZA AUNQUE NO SEPAS LO QUE VIENE</span><span>✦</span></div>
+        <div style={{ position: "absolute", left: "-1.875rem", right: "-1.875rem", top: "14.75rem", transform: "rotate(-3deg)", background: "#9be600", color: "#0b0c09", padding: "0.5rem 2.875rem", display: "flex", justifyContent: "space-between", alignItems: "center", whiteSpace: "nowrap", font: "900 0.9375rem 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", boxShadow: "rgba(0,0,0,0.45) 0 0.375rem 1.125rem" }}><span>✦</span><span>EMPIEZA AUNQUE NO SEPAS LO QUE VIENE</span><span>✦</span></div>
 
-        <div style={{ position: "relative", margin: "92px 20px 0" }}>
-          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: "relative", borderRadius: "14px", padding: "20px 18px 18px", ...FICHA_FLOTANTE }}>
-            <img src="/acceso/dog-t.png" alt="" style={{ position: "absolute", right: "18px", bottom: "calc(100% - 2px)", width: "84px", height: "84px" }} />
-            <div style={{ font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#9be600", paddingBottom: "10px", borderBottom: "1px dashed #3a3d32" }}>ACCESO SOCIOS</div>
-            <div role="heading" aria-level={2} style={{ font: "900 42px/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase", margin: "14px 0 4px" }}>Ingresar<span style={{ color: "#9be600" }}>.</span></div>
-            <div style={{ color: "#8a8f7a", fontSize: "13px", marginBottom: "16px" }}>Ingresá con tu cuenta para continuar.</div>
+        <div style={{ position: "relative", margin: "5.75rem 1.25rem 0" }}>
+          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: "relative", borderRadius: "0.875rem", padding: "1.25rem 1.125rem 1.125rem", ...FICHA_FLOTANTE }}>
+            <img src="/acceso/dog-t.png" alt="" style={{ position: "absolute", right: "1.125rem", bottom: "calc(100% - 2px)", width: "5.25rem", height: "5.25rem" }} />
+            <div style={{ font: "600 0.6875rem Archivo, sans-serif", letterSpacing: "0.08em", color: "#9be600", paddingBottom: "0.625rem", borderBottom: "1px dashed #3a3d32" }}>ACCESO SOCIOS</div>
+            <div role="heading" aria-level={2} style={{ font: "900 2.625rem/0.9 'Big Shoulders Stencil Display'", textTransform: "uppercase", margin: "0.875rem 0 0.25rem" }}>Ingresar<span style={{ color: "#9be600" }}>.</span></div>
+            <div style={{ color: "#8a8f7a", fontSize: "0.8125rem", marginBottom: "1rem" }}>Ingresá con tu cuenta para continuar.</div>
 
             {/* Contraseña incorrecta: Bravo ofrece ayuda */}
             {pistaOlvido && (
-              <div role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px", padding: "12px", border: "1px solid #9be600", borderRadius: "10px", background: "rgba(155,230,0,.08)", fontSize: "14px", lineHeight: 1.35 }}>
+              <div role="alert" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", marginBottom: "1rem", padding: "0.75rem", border: "1px solid #9be600", borderRadius: "0.625rem", background: "rgba(155,230,0,.08)", fontSize: "0.875rem", lineHeight: 1.35 }}>
                 <BravoAvatar size={36} className="rounded-full" />
                 <div style={{ minWidth: 0 }}>
                   <p style={{ margin: 0, fontWeight: 700 }}>El correo o la contraseña no coinciden.</p>
@@ -206,19 +206,19 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
               <div className="mf">
                 <label className="lbl" htmlFor="email-m">Correo electrónico</label>
                 <div className="mfw">
                   <Mail className="ic" aria-hidden="true" />
                   <input id="email-m" className={`campo${errors.email ? " error" : ""}`} type="email" autoComplete="email" placeholder="tu@email.com" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
-                {errors.email && <p role="alert" style={{ margin: 0, font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.email}</p>}
+                {errors.email && <p role="alert" style={{ margin: 0, font: "500 0.8125rem Archivo", color: "#ff6b4a" }}>{errors.email}</p>}
               </div>
               <div className="mf">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <label className="lbl" htmlFor="password-m">Contraseña</label>
-                  <Link to="/recuperar-contrasena" style={{ font: "600 12px Archivo", textDecoration: "none", padding: "8px 0 8px 12px", margin: "-8px 0" }}>¿La olvidaste?</Link>
+                  <Link to="/recuperar-contrasena" style={{ font: "600 0.75rem Archivo", textDecoration: "none", padding: "0.5rem 0 0.5rem 0.75rem", margin: "-0.5rem 0" }}>¿La olvidaste?</Link>
                 </div>
                 <div className="mfw">
                   <Lock className="ic" aria-hidden="true" />
@@ -227,17 +227,17 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {errors.password && <p role="alert" style={{ margin: 0, font: "500 13px Archivo", color: "#ff6b4a" }}>{errors.password}</p>}
+                {errors.password && <p role="alert" style={{ margin: 0, font: "500 0.8125rem Archivo", color: "#ff6b4a" }}>{errors.password}</p>}
               </div>
-              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: "4px" }}>{isLoading ? "Ingresando…" : "Iniciar sesión"}</button>
+              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: "0.25rem" }}>{isLoading ? "Ingresando…" : "Iniciar sesión"}</button>
             </form>
           </div>
-          <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", alignItems: "stretch", gap: "8px" }}>
-            <span style={{ textAlign: "center", font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#8a8f7a" }}>¿PRIMERA VEZ?</span>
-            <Link to="/registro" onClick={irA("/registro")} className="btn2" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "44px", border: "1px solid rgba(155,230,0,.55)", borderRadius: "10px", textDecoration: "none", color: "#9be600", font: "900 16px 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", textTransform: "uppercase" }}>Crear una cuenta →</Link>
+          <div style={{ marginTop: "0.875rem", display: "flex", flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}>
+            <span style={{ textAlign: "center", font: "600 0.6875rem Archivo, sans-serif", letterSpacing: "0.08em", color: "#8a8f7a" }}>¿PRIMERA VEZ?</span>
+            <Link to="/registro" onClick={irA("/registro")} className="btn2" style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "2.75rem", border: "1px solid rgba(155,230,0,.55)", borderRadius: "0.625rem", textDecoration: "none", color: "#9be600", font: "900 1rem 'Big Shoulders Stencil Display'", letterSpacing: "0.12em", textTransform: "uppercase" }}>Crear una cuenta →</Link>
           </div>
         </div>
-        <div style={{ marginTop: "28px", paddingBottom: "18px", textAlign: "center", font: "600 11px Archivo, sans-serif", letterSpacing: "0.08em", color: "#4b5233" }}>FORMOSA · EVA PERÓN 552</div>
+        <div style={{ marginTop: "1.75rem", paddingBottom: "1.125rem", textAlign: "center", font: "600 0.6875rem Archivo, sans-serif", letterSpacing: "0.08em", color: "#4b5233" }}>FORMOSA · EVA PERÓN 552</div>
       </div>
     </div>
   )
@@ -286,7 +286,7 @@ export default function LoginPage() {
 
         {/* PANEL DERECHO: FORMULARIO */}
         <div style={{ position: "relative", padding: `${U(40)} 0 ${U(28)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", background: "#0e100a" }}>
-          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: "absolute", top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '999px', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
+          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: "absolute", top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '62.4375rem', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
           <div style={{ position: "relative", width: `${U(480)}`, margin: "auto 0" }}>
           <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: "relative", width: "100%", border: `${U(1)} solid #4a4e3f`, borderRadius: `${U(16)}`, padding: `${U(24)} ${U(30)}`,  background: "linear-gradient(160deg, #16190f 0%, #0e100a 60%)", boxShadow: `0 ${U(1)} 0 rgba(236,239,228,.08) inset, 0 ${U(30)} ${U(60)} ${U(-12)} rgba(0,0,0,.75), 0 ${U(12)} ${U(24)} ${U(-8)} rgba(0,0,0,.6), 0 0 ${U(60)} ${U(-20)} rgba(155,230,0,.18)` }}>
             <img src="/acceso/dog-t.png" alt="" style={{ position: "absolute", left: `${U(30)}`, bottom: `calc(100% - ${U(2)})`, width: `${U(110)}`, height: `${U(110)}` }} />

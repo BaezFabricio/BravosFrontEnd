@@ -66,17 +66,17 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
   }
 
   return (
-    <li className={`grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] gap-x-7 gap-y-[18px] rounded-2xl border bg-bx-card px-6 py-5 ${clave === "rechazado" ? "border-bx-err-line" : clave === "aprobado" ? "border-bx-ok-line" : "border-bx-line"}`}>
+    <li className={`grid grid-cols-[repeat(auto-fit,minmax(min(100%,22.5rem),1fr))] gap-x-7 gap-y-[1.125rem] rounded-2xl border bg-bx-card px-6 py-5 ${clave === "rechazado" ? "border-bx-err-line" : clave === "aprobado" ? "border-bx-ok-line" : "border-bx-line"}`}>
       <div className="flex min-w-0 gap-4">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-bx-tile text-bx-ok-fg"><Ico d={tipo.icono} size={22} /></span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="m-0 text-[17px] font-bold">{tipo.titulo}</h3>
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-xs font-bold ${est.chip}`}>
+            <h3 className="m-0 text-[1.0625rem] font-bold">{tipo.titulo}</h3>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[0.1875rem] text-xs font-bold ${est.chip}`}>
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{est.etiqueta}
             </span>
           </div>
-          <p className="mb-0 mt-1 text-[15px] leading-normal text-bx-muted">{tipo.descripcion}</p>
+          <p className="mb-0 mt-1 text-[0.9375rem] leading-normal text-bx-muted">{tipo.descripcion}</p>
           {clave === "rechazado" && ultimo?.motivo && <p role="alert" className="mb-0 mt-2 text-sm font-medium leading-normal text-bx-err-fg">Motivo: {ultimo.motivo}</p>}
         </div>
       </div>
@@ -84,7 +84,7 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
       <div className="flex min-w-0 flex-col gap-3">
         {ultimo && (
           <div>
-            <div className="flex items-center gap-3 rounded-[10px] border border-bx-line2 bg-bx-surf px-3.5 py-3">
+            <div className="flex items-center gap-3 rounded-[0.625rem] border border-bx-line2 bg-bx-surf px-3.5 py-3">
               <span className="flex text-bx-muted"><Ico d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5" size={20} sw={2} /></span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold">{ultimo.nombreArchivo}</div>
@@ -94,17 +94,17 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
             </div>
             {anteriores.length > 0 && (
               <>
-                <button type="button" onClick={() => setHistorial((v) => !v)} aria-expanded={historial} className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold text-bx-muted hover:text-bx-ink">
+                <button type="button" onClick={() => setHistorial((v) => !v)} aria-expanded={historial} className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[0.8125rem] font-bold text-bx-muted hover:text-bx-ink">
                   <Ico d="m6 9 6 6 6-6" size={14} sw={2} className={historial ? "rotate-180" : ""} />
                   {historial ? "Ocultar historial" : `Ver historial (${anteriores.length})`}
                 </button>
                 {historial && (
-                  <ul className="m-0 list-none rounded-[10px] border border-dashed border-bx-line2 p-0">
+                  <ul className="m-0 list-none rounded-[0.625rem] border border-dashed border-bx-line2 p-0">
                     {anteriores.map((d, i) => (
                       <li key={d.idDocumento || i} className="flex items-center gap-3 border-b border-bx-line2 px-3.5 py-1 last:border-b-0">
-                        <span className="min-w-0 flex-1 truncate text-[13px] text-bx-muted">{d.nombreArchivo}</span>
+                        <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-bx-muted">{d.nombreArchivo}</span>
                         <span className="shrink-0 text-xs text-bx-muted">{fechaCorta(d.creadoEn)}</span>
-                        <a href={d.urlArchivo} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${d.nombreArchivo}`} className="inline-flex min-h-11 items-center text-[13px] font-bold text-bx-ok-fg">Ver</a>
+                        <a href={d.urlArchivo} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${d.nombreArchivo}`} className="inline-flex min-h-11 items-center text-[0.8125rem] font-bold text-bx-ok-fg">Ver</a>
                       </li>
                     ))}
                   </ul>
@@ -116,7 +116,7 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
 
         {tipo.salud && (
           <label className="flex cursor-pointer items-start gap-3 text-sm leading-normal text-bx-muted">
-            <input type="checkbox" checked={consiente} onChange={(e) => setConsiente(e.target.checked)} className="m-0 h-[22px] w-[22px] shrink-0 accent-[#7fbf00]" />
+            <input type="checkbox" checked={consiente} onChange={(e) => setConsiente(e.target.checked)} className="m-0 h-[1.375rem] w-[1.375rem] shrink-0 accent-[#7fbf00]" />
             <span>
               Autorizo a Bravos Box a guardar este documento con datos de mi salud para controlar mi aptitud física, según la{" "}
               <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="font-bold text-bx-ink underline">Política de privacidad</a>.
@@ -125,9 +125,9 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
         )}
 
         {subiendo ? (
-          <div role="status" className="flex flex-col gap-2 rounded-[10px] border border-bx-line2 bg-bx-surf p-3.5">
+          <div role="status" className="flex flex-col gap-2 rounded-[0.625rem] border border-bx-line2 bg-bx-surf p-3.5">
             <div className="text-sm font-semibold">Subiendo {subiendo}…{progreso > 0 && progreso < 100 ? ` ${progreso}%` : ""}</div>
-            <div className="h-1.5 overflow-hidden rounded-[3px] bg-bx-track"><div className="h-full rounded-[3px] bg-bx-barra transition-[width]" style={{ width: `${Math.max(progreso, 8)}%` }} /></div>
+            <div className="h-1.5 overflow-hidden rounded-[0.1875rem] bg-bx-track"><div className="h-full rounded-[0.1875rem] bg-bx-barra transition-[width]" style={{ width: `${Math.max(progreso, 8)}%` }} /></div>
           </div>
         ) : (
           <>
@@ -145,13 +145,13 @@ function Fila({ tipo, docs, subiendo, progreso, onSubir }) {
                 onChange={(e) => { elegir(e.target.files?.[0]); e.target.value = "" }}
                 className="absolute h-px w-px opacity-0"
               />
-              <span className="inline-flex items-center gap-2 text-[15px] font-bold">
+              <span className="inline-flex items-center gap-2 text-[0.9375rem] font-bold">
                 <Ico d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" size={18} sw={2} />
                 {clave === "rechazado" ? "Subir uno nuevo" : ultimo ? "Reemplazar archivo" : "Subir archivo"}
               </span>
-              <span className="text-[13px] text-bx-muted">o arrastralo acá</span>
+              <span className="text-[0.8125rem] text-bx-muted">o arrastralo acá</span>
             </label>
-            <span id={idAyuda} className="text-center text-[13px] font-medium text-bx-muted">
+            <span id={idAyuda} className="text-center text-[0.8125rem] font-medium text-bx-muted">
               {bloqueado ? "Marcá la autorización para poder subirlo." : "PDF, JPG o PNG · Máx. 10 MB"}
             </span>
           </>
@@ -209,14 +209,14 @@ export default function DocumentosEscritorio() {
       {errorCarga && <ErrorBanner titulo="No pudimos cargar tus documentos" texto="Revisá tu conexión e intentá de nuevo." onReintentar={() => { setCargando(true); cargar() }} />}
 
       <section aria-labelledby="t-prog" className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-2xl border border-bx-line bg-bx-card px-6 py-5">
-        <div className="min-w-[260px] flex-1">
+        <div className="min-w-[16.25rem] flex-1">
           <h2 id="t-prog" className="m-0 text-lg font-bold">{aprobados === TIPOS.length ? "Tu documentación está al día" : "Tu documentación"}</h2>
-          <p className="mb-0 mt-1 text-[15px] leading-normal text-bx-muted">
+          <p className="mb-0 mt-1 text-[0.9375rem] leading-normal text-bx-muted">
             Los documentos son revisados por el administrador. Una vez validados, tu membresía quedará regularizada. Podés reemplazar cualquier documento subiendo uno nuevo en cualquier momento.
           </p>
         </div>
-        <div className="min-w-[200px] flex-[0_1_280px]">
-          <div className="mb-2 flex justify-between text-[13px] font-semibold"><span>Aprobados</span><span className="text-bx-muted">{aprobados} de {TIPOS.length}</span></div>
+        <div className="min-w-[12.5rem] flex-[0_1_17.5rem]">
+          <div className="mb-2 flex justify-between text-[0.8125rem] font-semibold"><span>Aprobados</span><span className="text-bx-muted">{aprobados} de {TIPOS.length}</span></div>
           <div role="progressbar" aria-label="Documentos aprobados" aria-valuemin={0} aria-valuemax={TIPOS.length} aria-valuenow={aprobados} className="grid grid-cols-3 gap-1">
             {estados.map((e, i) => (
               <span key={i} className={`h-2 rounded ${e === "aprobado" ? "bg-bx-lima" : e === "revision" ? "bg-bx-warn-fg" : "bg-bx-track"}`} />

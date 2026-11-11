@@ -21,7 +21,7 @@ function iniciales(nombre) {
 export function AvatarBx({ nombre, url, tam = 40, className = "", estilo }) {
   return (
     <span
-      style={{ width: tam, height: tam, fontSize: tam >= 48 ? 16 : 14, ...estilo }}
+      style={{ width: `${tam / 16}rem`, height: `${tam / 16}rem`, fontSize: tam >= 48 ? "1rem" : "0.875rem", ...estilo }}
       className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-bx-lateral font-bold text-bx-lima ${className}`}
     >
       {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : iniciales(nombre)}
@@ -62,7 +62,7 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
     els[n]?.focus()
   }
 
-  const itemClase = "flex min-h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] font-semibold text-bx-ink hover:bg-bx-surf"
+  const itemClase = "flex min-h-11 items-center gap-3 rounded-[0.625rem] px-3 text-[0.9375rem] font-semibold text-bx-ink hover:bg-bx-surf"
 
   return (
     <div className="relative" ref={raiz}>
@@ -86,13 +86,13 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
           role="menu"
           aria-label="Cuenta"
           onKeyDown={onKey}
-          className="absolute right-0 top-14 z-50 w-[min(320px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_16px_40px_rgba(0,0,0,.35)]"
+          className="absolute right-0 top-14 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
         >
           <div className="flex items-center gap-3 p-4">
             <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} tam={48} />
             <div className="min-w-0">
               <div className="truncate text-base font-bold text-bx-ink">{userData.nombrecompleto}</div>
-              <div className="truncate text-[13px] text-bx-muted">{userData.correo}</div>
+              <div className="truncate text-[0.8125rem] text-bx-muted">{userData.correo}</div>
             </div>
           </div>
 
@@ -109,7 +109,7 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
                       role="menuitemradio"
                       aria-checked={actual}
                       onClick={() => { setAbierto(false); if (!actual) navigate(p.href) }}
-                      className={`flex min-h-11 items-center gap-3 rounded-[10px] border px-3 text-left text-[15px] text-bx-ink ${actual ? "border-bx-ok-line bg-bx-ok-bg font-bold" : "border-transparent font-semibold hover:bg-bx-surf"}`}
+                      className={`flex min-h-11 items-center gap-3 rounded-[0.625rem] border px-3 text-left text-[0.9375rem] text-bx-ink ${actual ? "border-bx-ok-line bg-bx-ok-bg font-bold" : "border-transparent font-semibold hover:bg-bx-surf"}`}
                     >
                       <Ico d={ICONO_PANEL[p.key]} className={actual ? "text-bx-ok-fg" : "text-bx-muted"} />
                       <span className="flex-1">{p.label}</span>
@@ -137,7 +137,7 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
               role="menuitem"
               disabled={saliendo}
               onClick={() => { setSaliendo(true); onLogout() }}
-              className="flex min-h-11 w-full items-center gap-3 rounded-[10px] px-3 text-left text-[15px] font-semibold text-bx-err-fg hover:bg-bx-err-bg"
+              className="flex min-h-11 w-full items-center gap-3 rounded-[0.625rem] px-3 text-left text-[0.9375rem] font-semibold text-bx-err-fg hover:bg-bx-err-bg"
             >
               <Ico d={IC.logout} />{saliendo ? "Cerrando sesión…" : "Cerrar sesión"}
             </button>

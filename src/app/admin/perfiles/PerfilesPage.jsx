@@ -279,7 +279,7 @@ export default function PerfilesPage() {
         </div>
         {/* Celular: botón ancho arriba de la lista. Computadora: botón chico al lado del título */}
         <button type="button" onClick={() => openEditDialog(null)}
-          className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black shadow-lg shadow-lime-500/20 hover:bg-lime-300 md:hidden">
+          className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black shadow-lg shadow-lime-500/20 hover:bg-lime-300 md:hidden">
           <Plus className="h-5 w-5" /> Crear nuevo perfil
         </button>
         <Button className="hidden md:inline-flex bg-lime-400 hover:bg-lime-300 text-black font-bold shrink-0 self-start sm:self-auto" onClick={() => openEditDialog(null)}>
@@ -302,14 +302,14 @@ export default function PerfilesPage() {
               <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400"><Shield className="h-5 w-5" aria-hidden="true" /></span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Perfiles</p>
+                  <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">Perfiles</p>
                   <p className="text-lg font-black leading-tight text-foreground">{perfiles.length} <span className="text-xs font-bold text-foreground/55">creados</span></p>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/15 text-sky-700 dark:text-sky-400"><Users className="h-5 w-5" aria-hidden="true" /></span>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Usuarios</p>
+                  <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">Usuarios</p>
                   <p className="text-lg font-black leading-tight text-foreground">{totalUsuarios} <span className="text-xs font-bold text-foreground/55">asignados</span></p>
                 </div>
               </div>
@@ -318,17 +318,17 @@ export default function PerfilesPage() {
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar perfiles">
               {[{ id: "all", nombre: `Todos (${perfiles.length})` }, ...perfiles.map((p, i) => ({ id: String(p.id_perfil || p.idPerfil || i), nombre: p.nombre || p.nombrePerfil }))].map(op => (
                 <button key={op.id} type="button" onClick={() => setFiltroPerfil(op.id)} aria-pressed={filtroPerfil === op.id}
-                  className={`min-h-[36px] shrink-0 rounded-full border px-3.5 text-xs font-black transition-colors ${filtroPerfil === op.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
+                  className={`min-h-[2.25rem] shrink-0 rounded-full border px-3.5 text-xs font-black transition-colors ${filtroPerfil === op.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
                   {op.nombre}
                 </button>
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-foreground/60" aria-label="Permisos">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.6875rem] text-foreground/60" aria-label="Permisos">
               <span className="font-black uppercase tracking-widest text-foreground/50">Permisos:</span>
               {permisosConfig.map(p => (
                 <span key={p.id} className="flex items-center gap-1">
-                  <span className={`flex h-4 w-4 items-center justify-center rounded text-[9px] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>
+                  <span className={`flex h-4 w-4 items-center justify-center rounded text-[0.5625rem] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>
                   {p.nombre}
                 </span>
               ))}
@@ -348,7 +348,7 @@ export default function PerfilesPage() {
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2">
                           <span className="text-base font-black text-foreground">{perfil.nombre || perfil.nombrePerfil || "Sin nombre"}</span>
-                          <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-400">{conPermisos.length} {conPermisos.length === 1 ? "módulo" : "módulos"}</span>
+                          <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-black text-lime-700 dark:text-lime-400">{conPermisos.length} {conPermisos.length === 1 ? "módulo" : "módulos"}</span>
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-foreground/55">{perfil.descripcion || "Sin descripción"}</span>
                       </span>
@@ -360,7 +360,7 @@ export default function PerfilesPage() {
 
                     {estaAbierto && (
                       <div className="border-t border-border px-4 pb-4 pt-3">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">Módulos y permisos</p>
+                        <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">Módulos y permisos</p>
                         {conPermisos.length === 0 ? (
                           <p className="mt-2 text-sm text-foreground/55">Este perfil todavía no tiene permisos.</p>
                         ) : (
@@ -370,11 +370,11 @@ export default function PerfilesPage() {
                               return (
                                 <div key={m.id} className="rounded-xl border border-border bg-background/50 p-2.5">
                                   <p className="truncate text-sm font-bold text-foreground">{m.nombre.replace(/^Panel (Alumno|Profesor): /, "")}</p>
-                                  <p className="truncate text-[11px] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
+                                  <p className="truncate text-[0.6875rem] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
                                   <div className="mt-1.5 flex gap-1">
                                     {permisosConfig.map(p => (
                                       <span key={p.id} title={`${p.nombre}: ${per[p.id] ? "sí" : "no"}`}
-                                        className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-black ${per[p.id] ? `${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}` : "bg-foreground/5 text-foreground/25"}`}>
+                                        className={`flex h-5 w-5 items-center justify-center rounded text-[0.625rem] font-black ${per[p.id] ? `${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}` : "bg-foreground/5 text-foreground/25"}`}>
                                         {LETRA_PERMISO[p.id]}<span className="sr-only">{per[p.id] ? ` ${p.nombre}` : ` sin ${p.nombre}`}</span>
                                       </span>
                                     ))}
@@ -386,12 +386,12 @@ export default function PerfilesPage() {
                         )}
                         <div className="mt-4 flex gap-2">
                           <button type="button" onClick={() => openEditDialog(perfil)}
-                            className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black hover:bg-lime-300">
+                            className="flex min-h-[3rem] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black hover:bg-lime-300">
                             <Pencil className="h-4 w-4" /> Editar permisos
                           </button>
                           <button type="button" aria-label={`Eliminar el perfil ${perfil.nombre || ""}`}
                             onClick={() => { const idReal = perfil.id_perfil || perfil.idPerfil; setDeleteDialog({ open: true, perfil: { ...perfil, id_perfil: idReal, idPerfil: idReal } }) }}
-                            className="flex min-h-[48px] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400">
+                            className="flex min-h-[3rem] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400">
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -436,20 +436,20 @@ export default function PerfilesPage() {
 
                 {/* Módulos activos */}
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{activos} módulo{activos !== 1 ? 's' : ''} asignado{activos !== 1 ? 's' : ''}</p>
+                  <p className="text-[0.625rem] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{activos} módulo{activos !== 1 ? 's' : ''} asignado{activos !== 1 ? 's' : ''}</p>
                   <div className="flex flex-wrap gap-1">
                     {modNombres.slice(0, 6).map(k => (
-                      <span key={k} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted border border-border/60 text-muted-foreground">
+                      <span key={k} className="text-[0.625rem] font-mono px-1.5 py-0.5 rounded bg-muted border border-border/60 text-muted-foreground">
                         {k}
                       </span>
                     ))}
                     {modNombres.length > 6 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border/60 text-muted-foreground">
+                      <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-muted border border-border/60 text-muted-foreground">
                         +{modNombres.length - 6}
                       </span>
                     )}
                     {modNombres.length === 0 && (
-                      <span className="text-[10px] text-muted-foreground italic">Sin permisos asignados</span>
+                      <span className="text-[0.625rem] text-muted-foreground italic">Sin permisos asignados</span>
                     )}
                   </div>
                 </div>
@@ -529,16 +529,16 @@ export default function PerfilesPage() {
             <section className="rounded-2xl border border-border bg-card p-4" aria-labelledby="sec-identidad">
               <div className="flex items-center justify-between gap-2">
                 <h2 id="sec-identidad" className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground"><User className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Identidad del perfil</h2>
-                <span className="text-[10px] font-bold text-foreground/50">El nombre es obligatorio</span>
+                <span className="text-[0.625rem] font-bold text-foreground/50">El nombre es obligatorio</span>
               </div>
               <div className="mt-3 space-y-3">
                 <div>
-                  <label htmlFor="perfil-nombre" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Nombre del perfil</label>
+                  <label htmlFor="perfil-nombre" className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Nombre del perfil</label>
                   <input id="perfil-nombre" maxLength={60} value={formData.nombre} onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))} placeholder="Ej: Recepción"
                     className="h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-base text-foreground outline-none focus:border-lime-500" />
                 </div>
                 <div>
-                  <label htmlFor="perfil-desc" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Para qué sirve</label>
+                  <label htmlFor="perfil-desc" className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Para qué sirve</label>
                   <textarea id="perfil-desc" maxLength={255} rows={2} value={formData.descripcion} onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))} placeholder="Ej: Carga abonos y toma reservas en el mostrador"
                     className="w-full resize-none rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground outline-none focus:border-lime-500" />
                 </div>
@@ -557,7 +557,7 @@ export default function PerfilesPage() {
                   </div>
                   <button type="button" role="switch" aria-checked={completo} aria-label="Acceso total" onClick={() => marcarModulos(modulosConfig, !completo)}
                     className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${completo ? "bg-lime-400" : "bg-foreground/15"}`}>
-                    <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${completo ? "left-[22px]" : "left-0.5"}`} />
+                    <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${completo ? "left-[1.375rem]" : "left-0.5"}`} />
                   </button>
                 </div>
               )
@@ -567,12 +567,12 @@ export default function PerfilesPage() {
             <section className="rounded-2xl border border-border bg-card p-4" aria-labelledby="sec-permisos">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 id="sec-permisos" className="text-sm font-black uppercase tracking-wide text-foreground">Módulos y permisos</h2>
-                <span className="text-[11px] font-semibold text-foreground/50">Tocá las letras para activarlas</span>
+                <span className="text-[0.6875rem] font-semibold text-foreground/50">Tocá las letras para activarlas</span>
               </div>
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-foreground/60">
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.6875rem] text-foreground/60">
                 {permisosConfig.map(p => (
                   <span key={p.id} className="flex items-center gap-1">
-                    <span className={`flex h-4 w-4 items-center justify-center rounded text-[9px] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>{p.nombre}
+                    <span className={`flex h-4 w-4 items-center justify-center rounded text-[0.5625rem] font-black ${PERMISO_COLORS[p.color].bg} ${PERMISO_COLORS[p.color].check}`}>{LETRA_PERMISO[p.id]}</span>{p.nombre}
                   </span>
                 ))}
               </div>
@@ -580,7 +580,7 @@ export default function PerfilesPage() {
               <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-background/60 p-1" role="tablist" aria-label="Panel">
                 {[["admin", "Admin", Settings], ["alumno", "Alumno", User], ["profesor", "Profesor", GraduationCap]].map(([id, txt, Ic]) => (
                   <button key={id} type="button" role="tab" aria-selected={pestanaEditor === id} onClick={() => setPestanaEditor(id)}
-                    className={`flex min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-black uppercase tracking-wide transition-colors ${pestanaEditor === id ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60"}`}>
+                    className={`flex min-h-[2.75rem] flex-col items-center justify-center gap-0.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wide transition-colors ${pestanaEditor === id ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60"}`}>
                     <Ic className="h-4 w-4" aria-hidden="true" /> {txt}
                   </button>
                 ))}
@@ -595,7 +595,7 @@ export default function PerfilesPage() {
                     <div className="flex items-center justify-between gap-2 pb-2">
                       <p className="text-xs font-black uppercase tracking-wide text-foreground/70">{titulo}</p>
                       <button type="button" onClick={() => marcarModulos(lista, !todo)}
-                        className="rounded-lg border border-lime-500/40 bg-lime-400/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-lime-700 dark:text-lime-400">
+                        className="rounded-lg border border-lime-500/40 bg-lime-400/10 px-2.5 py-1 text-[0.6875rem] font-black uppercase tracking-wide text-lime-700 dark:text-lime-400">
                         {todo ? "Quitar todo" : "Marcar todo"}
                       </button>
                     </div>
@@ -608,7 +608,7 @@ export default function PerfilesPage() {
                             <Icon className="h-4 w-4 shrink-0 text-foreground/50" aria-hidden="true" />
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-bold text-foreground">{m.nombre.replace(/^Panel (Alumno|Profesor): /, "")}</p>
-                              <p className="truncate text-[11px] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
+                              <p className="truncate text-[0.6875rem] text-foreground/50">{DETALLE_MODULO[m.id]}</p>
                             </div>
                             <div className="flex shrink-0 gap-1">
                               {permisosConfig.map(p => {

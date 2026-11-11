@@ -169,11 +169,11 @@ export default function NotificacionesBell({ variante } = {}) {
             aria-label={`Notificaciones${noLeidas > 0 ? `, ${noLeidas > 9 ? '9 o más' : noLeidas} sin leer` : ''}`}
             aria-expanded={open}
             aria-controls="panel-notif"
-            className="relative grid h-11 w-11 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf"
+            className="relative grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf"
           >
             <Ico d={IC.bell} />
             {noLeidas > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 h-[22px] min-w-[22px] rounded-[11px] bg-bx-lima px-[5px] text-center text-[11px] font-extrabold leading-[22px] text-bx-negro">
+              <span className="absolute -right-1.5 -top-1.5 h-[1.375rem] min-w-[1.375rem] rounded-[0.6875rem] bg-bx-lima px-[0.3125rem] text-center text-[0.6875rem] font-extrabold leading-[1.375rem] text-bx-negro">
                 {noLeidas > 9 ? '9+' : noLeidas}
               </span>
             )}
@@ -206,7 +206,7 @@ export default function NotificacionesBell({ variante } = {}) {
         >
           <Bell className={`h-5 w-5 transition-colors ${noLeidas > 0 ? 'text-lime-700 dark:text-lime-400' : 'text-muted-foreground'}`} />
           {noLeidas > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-lime-400 text-[10px] font-black text-black ring-2 ring-background">
+            <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-lime-400 text-[0.625rem] font-black text-black ring-2 ring-background">
               {noLeidas > 9 ? '9+' : noLeidas}
             </span>
           )}
@@ -219,19 +219,19 @@ export default function NotificacionesBell({ variante } = {}) {
               <span className="text-sm font-bold text-foreground uppercase tracking-wide">Notificaciones</span>
               <div className="flex items-center gap-3">
                 {noLeidas > 0 && (
-                  <button onClick={marcarTodas} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-lime-700 dark:hover:text-lime-400 transition-colors font-semibold">
+                  <button onClick={marcarTodas} className="flex items-center gap-1 text-[0.6875rem] text-muted-foreground hover:text-lime-700 dark:hover:text-lime-400 transition-colors font-semibold">
                     <CheckCheck className="h-3.5 w-3.5" /> Marcar todas
                   </button>
                 )}
                 {notifs.length > 0 && (
-                  <button onClick={limpiar} disabled={limpiando} className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors font-semibold">
+                  <button onClick={limpiar} disabled={limpiando} className="flex items-center gap-1 text-[0.6875rem] text-muted-foreground hover:text-red-600 dark:hover:text-red-400 transition-colors font-semibold">
                     <Trash2 className="h-3.5 w-3.5" /> Limpiar
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="max-h-[420px] overflow-y-auto divide-y divide-border">
+            <div className="max-h-[26.25rem] overflow-y-auto divide-y divide-border">
               {notifs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-2">
                   <Bell className="h-8 w-8 text-muted-foreground/40" />
@@ -246,7 +246,7 @@ export default function NotificacionesBell({ variante } = {}) {
                   return (
                     <Fragment key={n.idNotificacion}>
                     {nuevoDia && (
-                      <div className="sticky top-0 z-10 border-b border-border bg-muted/90 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">{dia}</div>
+                      <div className="sticky top-0 z-10 border-b border-border bg-muted/90 px-4 py-1.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">{dia}</div>
                     )}
                     <div
                       onClick={() => handleClickNotif(n)}
@@ -261,8 +261,8 @@ export default function NotificacionesBell({ variante } = {}) {
                           <p className="text-xs font-bold text-foreground leading-tight">{n.titulo}</p>
                           {!n.leida && <span className="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-lime-400" />}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{n.mensaje}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[0.6875rem] text-muted-foreground mt-0.5 leading-relaxed">{n.mensaje}</p>
+                        <p className="text-[0.625rem] text-muted-foreground mt-1">
                           {formatearFechaNotif(n.creadoEn)}
                           <span className="text-muted-foreground/40 ml-1">· {tiempoRelativo(n.creadoEn)}</span>
                         </p>
@@ -289,9 +289,9 @@ export default function NotificacionesBell({ variante } = {}) {
             const generico = ['Éxito', 'Error', 'Atención', 'Info'].includes(t.titulo)
             return (
               <div key={t.pid} onClick={() => handleClickToast(t)}
-                className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-2xl border-2 px-4 py-3.5 shadow-[0_14px_36px_-8px_rgba(0,0,0,0.6)] animate-in slide-in-from-top-4 zoom-in-95 fade-in duration-300 ${col.caja} ${t.link ? 'cursor-pointer' : ''}`}>
+                className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-2xl border-2 px-4 py-3.5 shadow-[0_0.875rem_2.25rem_-0.5rem_rgba(0,0,0,0.6)] animate-in slide-in-from-top-4 zoom-in-95 fade-in duration-300 ${col.caja} ${t.link ? 'cursor-pointer' : ''}`}>
                 <Icono className={`mt-0.5 h-5 w-5 flex-shrink-0 ${col.icono}`} />
-                <p className="text-[13px] font-bold leading-snug">
+                <p className="text-[0.8125rem] font-bold leading-snug">
                   {!generico && <span className="font-black">{t.titulo}. </span>}{t.mensaje}
                 </p>
               </div>

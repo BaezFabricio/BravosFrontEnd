@@ -61,16 +61,16 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
       id="panel-notif"
       role="dialog"
       aria-labelledby="t-notif"
-      className="absolute right-0 top-14 z-50 flex max-h-[min(640px,calc(100vh-96px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_16px_40px_rgba(0,0,0,.35)]"
+      className="absolute right-0 top-14 z-50 flex max-h-[min(40rem,calc(100vh-6rem))] w-[min(26.25rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
     >
       <div className="flex items-center justify-between gap-3 py-4 pl-5 pr-4">
         <div>
           <h2 id="t-notif" className="text-lg font-bold text-bx-ink">Notificaciones</h2>
-          <div aria-live="polite" className="mt-0.5 text-[13px] font-medium text-bx-muted">
+          <div aria-live="polite" className="mt-0.5 text-[0.8125rem] font-medium text-bx-muted">
             {noLeidas === 0 ? "Todo leído" : noLeidas === 1 ? "1 sin leer" : `${noLeidas} sin leer`}
           </div>
         </div>
-        <button ref={cerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar notificaciones" className="grid h-11 w-11 place-items-center rounded-[10px] text-bx-ink hover:bg-bx-surf">
+        <button ref={cerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar notificaciones" className="grid h-11 w-11 place-items-center rounded-[0.625rem] text-bx-ink hover:bg-bx-surf">
           <Ico d={IC.close} size={18} sw={2} />
         </button>
       </div>
@@ -87,7 +87,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
           type="button"
           onClick={onMarcarTodas}
           disabled={noLeidas === 0}
-          className={`h-9 px-2.5 text-[13px] font-bold ${noLeidas ? "cursor-pointer text-bx-ok-fg" : "cursor-default text-bx-muted"}`}
+          className={`h-9 px-2.5 text-[0.8125rem] font-bold ${noLeidas ? "cursor-pointer text-bx-ok-fg" : "cursor-default text-bx-muted"}`}
         >
           Marcar todo como leído
         </button>
@@ -123,7 +123,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
                         <Ico d={d} size={18} sw={2} />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className={`block text-[15px] ${sinLeer ? "font-bold" : "font-semibold"}`}>{n.titulo}</span>
+                        <span className={`block text-[0.9375rem] ${sinLeer ? "font-bold" : "font-semibold"}`}>{n.titulo}</span>
                         <span className="mt-0.5 block text-sm leading-[1.45] text-bx-muted">{n.mensaje}</span>
                         <span title={formatearFechaNotif(n.creadoEn)} className="mt-1.5 block text-xs font-medium text-bx-muted">{haceTiempo(n.creadoEn)}</span>
                       </span>
@@ -139,12 +139,12 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
           <div className="border-t border-bx-line2 px-5 pb-4 pt-3">
             {confirmar ? (
               <div role="alert" className="flex flex-wrap items-center gap-2.5">
-                <span className="min-w-[160px] flex-1 text-sm font-medium text-bx-ink">¿Borrar todas las notificaciones?</span>
-                <button type="button" onClick={() => setConfirmar(false)} className="h-10 rounded-lg border border-bx-btn-line px-3.5 text-[13px] font-bold text-bx-ink">No</button>
-                <button type="button" onClick={() => { setConfirmar(false); onBorrarTodas() }} className="h-10 rounded-lg bg-bx-err-fg px-3.5 text-[13px] font-bold text-bx-card">Sí, borrar</button>
+                <span className="min-w-[10rem] flex-1 text-sm font-medium text-bx-ink">¿Borrar todas las notificaciones?</span>
+                <button type="button" onClick={() => setConfirmar(false)} className="h-10 rounded-lg border border-bx-btn-line px-3.5 text-[0.8125rem] font-bold text-bx-ink">No</button>
+                <button type="button" onClick={() => { setConfirmar(false); onBorrarTodas() }} className="h-10 rounded-lg bg-bx-err-fg px-3.5 text-[0.8125rem] font-bold text-bx-card">Sí, borrar</button>
               </div>
             ) : (
-              <button type="button" onClick={() => setConfirmar(true)} className="h-10 text-[13px] font-semibold text-bx-muted underline">Borrar todas</button>
+              <button type="button" onClick={() => setConfirmar(true)} className="h-10 text-[0.8125rem] font-semibold text-bx-muted underline">Borrar todas</button>
             )}
           </div>
         )}
@@ -197,7 +197,7 @@ function PiePush() {
       <span className={`flex ${activas ? "text-bx-ok-fg" : "text-bx-muted"}`}><Ico d={activas ? IC.bell : IC.bellOff} /></span>
       <span className="flex-1 text-sm font-medium leading-snug text-bx-ink">{texto}</span>
       {puedeActivar && (
-        <button type="button" onClick={activar} disabled={trabajando} className="h-11 rounded-full bg-bx-lima px-[18px] text-sm font-bold text-bx-negro hover:bg-bx-lima-hover disabled:opacity-60">
+        <button type="button" onClick={activar} disabled={trabajando} className="h-11 rounded-full bg-bx-lima px-[1.125rem] text-sm font-bold text-bx-negro hover:bg-bx-lima-hover disabled:opacity-60">
           {trabajando ? "Activando…" : "Activar"}
         </button>
       )}
@@ -229,9 +229,9 @@ export function AvisosAbajo({ toasts, onClick }) {
           <div
             key={t.pid}
             onClick={() => onClick(t)}
-            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(0,0,0,.3)] ${tono.caja} ${t.link ? "cursor-pointer" : ""}`}
+            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-[0_0.5rem_1.5rem_rgba(0,0,0,.3)] ${tono.caja} ${t.link ? "cursor-pointer" : ""}`}
           >
-            <Icono className={`h-[18px] w-[18px] shrink-0 ${tono.icono}`} aria-hidden="true" />
+            <Icono className={`h-[1.125rem] w-[1.125rem] shrink-0 ${tono.icono}`} aria-hidden="true" />
             <p className="leading-snug">{!generico && <span className="font-bold">{t.titulo}. </span>}{t.mensaje}</p>
             {t.accion && <span className="whitespace-nowrap font-bold text-bx-lima">{t.accion}</span>}
           </div>

@@ -377,7 +377,7 @@ function PerfilClasico() {
             </div>
             {puedeRenovar && (
               <button type="button" onClick={() => navigate("/alumno/plan")}
-                className={`min-h-[40px] shrink-0 rounded-lg border border-yellow-600/50 px-3 text-xs font-black uppercase text-yellow-800 dark:border-yellow-400/50 dark:text-yellow-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+                className={`min-h-[2.5rem] shrink-0 rounded-lg border border-yellow-600/50 px-3 text-xs font-black uppercase text-yellow-800 dark:border-yellow-400/50 dark:text-yellow-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
                 Renovar
               </button>
             )}
@@ -396,10 +396,10 @@ function PerfilClasico() {
             {getIniciales(nombreVisible)}
           </FotoAmpliable>
           <div className="min-w-0 flex-1">
-            <span className="rounded bg-lime-400/15 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
+            <span className="rounded bg-lime-400/15 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
             <h2 className="mt-1 truncate text-xl font-black uppercase leading-tight text-foreground">{nombreVisible}</h2>
             <p className="truncate text-xs text-foreground/60">{correoVisible}</p>
-            <label data-guia="perfil-foto" className={`mt-2 inline-flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-[11px] font-bold uppercase tracking-wide text-foreground/80 focus-within:ring-2 focus-within:ring-lime-500`}>
+            <label data-guia="perfil-foto" className={`mt-2 inline-flex min-h-[2.25rem] cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-[0.6875rem] font-bold uppercase tracking-wide text-foreground/80 focus-within:ring-2 focus-within:ring-lime-500`}>
               <Camera className="h-3.5 w-3.5" aria-hidden="true" />
               {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
               <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
@@ -412,7 +412,7 @@ function PerfilClasico() {
         <div data-guia="perfil-resumen" className={`grid gap-3 ${esAlumno ? "grid-cols-2" : "grid-cols-1"}`}>
           {esAlumno && (
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
             <p className="mt-1 flex items-baseline gap-1.5">
               <span className="text-3xl font-black tabular-nums text-lime-700 dark:text-lime-400">{abonoData.vencimiento ? abonoData.creditos || 0 : 0}</span>
               <span className="text-xs font-bold text-foreground/55">clases</span>
@@ -420,7 +420,7 @@ function PerfilClasico() {
           </div>
           )}
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Estado</p>
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Estado</p>
             <p className="mt-1 flex items-center gap-2">
               <span className="text-xl font-black uppercase text-foreground">{status.label}</span>
               <span className={`h-2.5 w-2.5 rounded-full ${userData.estado === "activo" ? "bg-lime-500" : userData.estado === "suspendido" ? "bg-red-500" : "bg-foreground/30"}`} aria-hidden="true" />
@@ -457,7 +457,7 @@ function PerfilClasico() {
             ].filter((f) => esAlumno || f.label !== "Membresía").map(({ label, badge, style }) => (
               <div key={label} className="flex items-center justify-between gap-3 px-4 py-3">
                 <dt className="text-sm text-foreground/65">{label}</dt>
-                <dd><span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${style}`}>{badge}</span></dd>
+                <dd><span className={`rounded-full px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${style}`}>{badge}</span></dd>
               </div>
             ))}
           </dl>
@@ -465,11 +465,11 @@ function PerfilClasico() {
 
         <div className="space-y-2.5">
           <button type="button" data-guia="perfil-clave" onClick={() => setShowChangePassword(true)}
-            className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-black uppercase tracking-wide text-foreground active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+            className={`flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-black uppercase tracking-wide text-foreground active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
             <Lock className="h-4 w-4" aria-hidden="true" /> Cambiar contraseña
           </button>
           <button type="button" onClick={handleLogout}
-            className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-red-500/50 bg-red-500/10 text-sm font-black uppercase tracking-wide text-red-700 active:bg-red-500/20 dark:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
+            className={`flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-red-500/50 bg-red-500/10 text-sm font-black uppercase tracking-wide text-red-700 active:bg-red-500/20 dark:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background`}>
             <LogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
           </button>
         </div>
@@ -524,10 +524,10 @@ function PerfilClasico() {
                 {getIniciales(nombreVisible)}
               </FotoAmpliable>
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
+                <span className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
                 <h2 className="text-xl font-black uppercase text-foreground leading-tight truncate mt-0.5">{nombreVisible}</h2>
                 <p className="text-xs text-foreground/40 truncate">{correoVisible}</p>
-                <label className="mt-3 inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors">
+                <label className="mt-3 inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors">
                   <Camera className="h-3.5 w-3.5" />
                   {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
                   <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
@@ -542,7 +542,7 @@ function PerfilClasico() {
           {/* Card datos */}
           <div className="border border-border bg-card">
             <div className="border-b border-border px-5 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">
               {[
@@ -552,7 +552,7 @@ function PerfilClasico() {
                 { icon: Calendar, label: 'Miembro desde', value: userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—' },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="px-5 py-4">
-                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                  <p className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">
                     <Icon className="h-3 w-3" />{label}
                   </p>
                   <p className="text-sm font-semibold text-foreground">{value}</p>
@@ -563,7 +563,7 @@ function PerfilClasico() {
 
           {/* Acciones */}
           <div className="border border-border bg-card px-5 py-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Acciones</p>
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground mb-3">Acciones</p>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => setShowChangePassword(true)}
                 className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
@@ -583,7 +583,7 @@ function PerfilClasico() {
           {/* Estado cuenta */}
           <div className="border border-border bg-card">
             <div className="border-b border-border px-5 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado de Cuenta</p>
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Estado de Cuenta</p>
             </div>
             <div className="divide-y divide-border">
               {[
@@ -593,7 +593,7 @@ function PerfilClasico() {
               ].filter((f) => esAlumno || f.label !== "Membresía").map(({ label, badge, style }) => (
                 <div key={label} className="flex items-center justify-between px-5 py-3">
                   <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">{label}</p>
-                  <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${style}`}>{badge}</span>
+                  <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${style}`}>{badge}</span>
                 </div>
               ))}
             </div>
@@ -603,7 +603,7 @@ function PerfilClasico() {
           {esAlumno && abonoData.vencimiento && (
             <div className="border border-border bg-card">
               <div className="border-b border-border px-5 py-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membresía Activa</p>
+                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Membresía Activa</p>
               </div>
               <div className="divide-y divide-border">
                 <div className="flex items-center justify-between px-5 py-3">
@@ -620,7 +620,7 @@ function PerfilClasico() {
 
           {esAlumno && membershipStatus === "vigente" && (
             <div className="border border-lime-400/20 bg-lime-400/5 px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Al día</p>
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Al día</p>
               <p className="text-xs text-foreground/40 mt-1">Próximo vencimiento: {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</p>
             </div>
           )}

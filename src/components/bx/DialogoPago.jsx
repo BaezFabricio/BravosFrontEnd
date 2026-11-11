@@ -70,7 +70,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
       type="button"
       aria-pressed={tab === id}
       onClick={() => setTab(id)}
-      className={`flex h-[60px] items-center justify-center gap-2.5 rounded-xl text-[15px] font-bold text-bx-ink transition-colors hover:border-bx-lima ${tab === id ? "border-2 border-bx-lima bg-bx-ok-bg" : "border border-bx-btn-line bg-bx-surf"}`}
+      className={`flex h-[3.75rem] items-center justify-center gap-2.5 rounded-xl text-[0.9375rem] font-bold text-bx-ink transition-colors hover:border-bx-lima ${tab === id ? "border-2 border-bx-lima bg-bx-ok-bg" : "border border-bx-btn-line bg-bx-surf"}`}
     >
       {texto}
     </button>
@@ -78,12 +78,12 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
 
   const pie = !pagoConfirmado && !yaPagadoAntes && (
     <div className="flex w-full flex-col items-stretch gap-2">
-      <label className="flex cursor-pointer items-start gap-3.5 py-1 text-[15px] leading-normal text-bx-muted">
+      <label className="flex cursor-pointer items-start gap-3.5 py-1 text-[0.9375rem] leading-normal text-bx-muted">
         <input
           type="checkbox"
           checked={acepto}
           onChange={(ev) => { setAcepto(ev.target.checked); if (ev.target.checked && !preferenceId) setLoadingUrl(true) }}
-          className="mt-px h-[22px] w-[22px] shrink-0 accent-[#7fbf00]"
+          className="mt-px h-[1.375rem] w-[1.375rem] shrink-0 accent-[#7fbf00]"
         />
         <span>
           Acepto los <a href="/terminos" target="_blank" rel="noopener noreferrer" className="font-bold text-bx-ink underline">Términos y condiciones</a>{" "}
@@ -91,7 +91,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
           {" "}Puedo arrepentirme de la compra dentro de los 10 días.
         </span>
       </label>
-      {!acepto && <span id="terms-help" className="text-[13px] font-medium text-bx-muted">Aceptá los términos para habilitar el pago.</span>}
+      {!acepto && <span id="terms-help" className="text-[0.8125rem] font-medium text-bx-muted">Aceptá los términos para habilitar el pago.</span>}
     </div>
   )
 
@@ -145,7 +145,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
         <div className="flex flex-col gap-5 px-8 pb-7 pt-6">
           <fieldset className="m-0 border-0 p-0">
             <legend className="mb-2.5 text-xs font-semibold tracking-[0.1em] text-bx-muted">ELEGÍ EL MÉTODO DE PAGO</legend>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-2.5">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12.5rem),1fr))] gap-2.5">
               {metodo("mp", "Mercado Pago")}
               {metodo("transferencia", "Transferencia")}
             </div>
@@ -153,19 +153,19 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
 
           {tab === "mp" && (
             <>
-              <div className="flex flex-col gap-4 rounded-[14px] border border-bx-line2 bg-bx-surf p-5">
-                <div className="flex flex-wrap items-center gap-[18px]">
-                  <div role="img" aria-label="Código QR de Mercado Pago" className="grid h-[120px] w-[120px] shrink-0 place-items-center rounded-[10px] border border-dashed border-[#b9bcae] bg-white p-2 text-center text-xs font-semibold text-[#5f6156]">
+              <div className="flex flex-col gap-4 rounded-[0.875rem] border border-bx-line2 bg-bx-surf p-5">
+                <div className="flex flex-wrap items-center gap-[1.125rem]">
+                  <div role="img" aria-label="Código QR de Mercado Pago" className="grid h-[7.5rem] w-[7.5rem] shrink-0 place-items-center rounded-[0.625rem] border border-dashed border-[#b9bcae] bg-white p-2 text-center text-xs font-semibold text-[#5f6156]">
                     {acepto && qrValor ? <QRCode value={qrValor} size={104} /> : acepto && loadingUrl ? "Preparando…" : <>QR de<br />Mercado Pago</>}
                   </div>
-                  <div className="flex min-w-[220px] flex-1 flex-col gap-2">
+                  <div className="flex min-w-[13.75rem] flex-1 flex-col gap-2">
                     <strong className="text-base font-bold">{qrData ? "Pagá con cualquier billetera" : "Pagá con tu cuenta de Mercado Pago"}</strong>
                     <span className="text-sm text-bx-muted">
                       {qrData ? "Escaneá el QR desde la app de tu banco o billetera favorita." : "Usá tus tarjetas guardadas, dinero disponible y cuotas sin tarjeta."}
                     </span>
                     <div aria-label="Tarjetas aceptadas" className="flex flex-wrap gap-1.5">
                       {TARJETAS.map((t) => (
-                        <span key={t.label || t.img} className={`inline-flex h-7 items-center rounded-md border border-[#e2e2da] px-2.5 text-[11px] font-extrabold ${t.cls || "bg-white"}`}>
+                        <span key={t.label || t.img} className={`inline-flex h-7 items-center rounded-md border border-[#e2e2da] px-2.5 text-[0.6875rem] font-extrabold ${t.cls || "bg-white"}`}>
                           {t.img ? <img src={t.img} alt="" className="h-4 w-auto" /> : t.label}
                         </span>
                       ))}
@@ -173,11 +173,11 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
                   </div>
                 </div>
                 {acepto && qrUrl ? (
-                  <a href={qrUrl} target="_blank" rel="noopener noreferrer" className="flex h-[52px] items-center justify-center rounded-[10px] bg-[#009ee3] text-[15px] font-bold tracking-[0.04em] text-white hover:bg-[#008ecc]">
+                  <a href={qrUrl} target="_blank" rel="noopener noreferrer" className="flex h-[3.25rem] items-center justify-center rounded-[0.625rem] bg-[#009ee3] text-[0.9375rem] font-bold tracking-[0.04em] text-white hover:bg-[#008ecc]">
                     Pagar con Mercado Pago
                   </a>
                 ) : (
-                  <button type="button" disabled aria-describedby="terms-help" className="h-[52px] cursor-not-allowed rounded-[10px] bg-bx-line2 text-[15px] font-bold tracking-[0.04em] text-bx-muted">
+                  <button type="button" disabled aria-describedby="terms-help" className="h-[3.25rem] cursor-not-allowed rounded-[0.625rem] bg-bx-line2 text-[0.9375rem] font-bold tracking-[0.04em] text-bx-muted">
                     Pagar con Mercado Pago
                   </button>
                 )}
@@ -189,7 +189,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
 
               {acepto && preferenceId ? (
                 <>
-                  <div className="rounded-[14px] border border-bx-line2 bg-bx-surf p-5">
+                  <div className="rounded-[0.875rem] border border-bx-line2 bg-bx-surf p-5">
                     <Payment
                       initialization={{ amount: Number(plan.precio), preferenceId }}
                       customization={{
@@ -211,11 +211,11 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
                   </Boton>
                 </>
               ) : acepto && loadingUrl ? (
-                <div aria-busy="true" className="bx-sk h-40 rounded-[14px] bg-bx-skeleton" />
+                <div aria-busy="true" className="bx-sk h-40 rounded-[0.875rem] bg-bx-skeleton" />
               ) : acepto ? (
-                <p className="m-0 rounded-[14px] border border-dashed border-bx-btn-line p-5 text-sm text-bx-muted">No se pudo cargar el formulario de pago. Cerrá esta ventana y volvé a intentarlo.</p>
+                <p className="m-0 rounded-[0.875rem] border border-dashed border-bx-btn-line p-5 text-sm text-bx-muted">No se pudo cargar el formulario de pago. Cerrá esta ventana y volvé a intentarlo.</p>
               ) : (
-                <button type="button" disabled aria-describedby="terms-help" className="h-14 cursor-not-allowed rounded-[10px] bg-bx-line2 text-[15px] font-bold tracking-[0.04em] text-bx-muted">
+                <button type="button" disabled aria-describedby="terms-help" className="h-14 cursor-not-allowed rounded-[0.625rem] bg-bx-line2 text-[0.9375rem] font-bold tracking-[0.04em] text-bx-muted">
                   Elegí un medio de pago
                 </button>
               )}
@@ -223,7 +223,7 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
           )}
 
           {tab === "transferencia" && (
-            <div className="flex flex-col gap-3.5 rounded-[14px] border border-bx-line2 bg-bx-surf p-5">
+            <div className="flex flex-col gap-3.5 rounded-[0.875rem] border border-bx-line2 bg-bx-surf p-5">
               {hayBanco ? (
                 <dl className="m-0 flex flex-col gap-3">
                   {[["Banco / entidad", configBanco.banco], ["Titular", configBanco.titular], ["CUIT", configBanco.cuit, "Copiar CUIT"], ["CBU", configBanco.cbu, "Copiar CBU"], ["Alias", configBanco.alias, "Copiar alias", true]]
@@ -231,8 +231,8 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
                     .map(([k, v, copiar, grande]) => (
                       <div key={k} className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <dt className="text-[13px] font-medium text-bx-muted">{k}</dt>
-                          <dd className={`m-0 ${grande ? "text-xl font-extrabold" : "text-[15px] font-bold"} ${copiar ? "font-mono tracking-wide" : ""}`}>{v}</dd>
+                          <dt className="text-[0.8125rem] font-medium text-bx-muted">{k}</dt>
+                          <dd className={`m-0 ${grande ? "text-xl font-extrabold" : "text-[0.9375rem] font-bold"} ${copiar ? "font-mono tracking-wide" : ""}`}>{v}</dd>
                         </div>
                         {copiar && <Copiar texto={v} etiqueta={copiar} />}
                       </div>
@@ -260,11 +260,11 @@ export function DialogoPago({ plan, open, onClose, onRenovado, configBanco, e })
                 disabled={!acepto || uploading}
                 aria-describedby="terms-help"
                 onClick={comprobante ? onClose : () => fileRef.current?.click()}
-                className={`h-[52px] rounded-[10px] text-[15px] font-bold ${acepto && !uploading ? "cursor-pointer bg-bx-lima text-bx-negro hover:bg-bx-lima-hover" : "cursor-not-allowed bg-bx-line2 text-bx-muted"}`}
+                className={`h-[3.25rem] rounded-[0.625rem] text-[0.9375rem] font-bold ${acepto && !uploading ? "cursor-pointer bg-bx-lima text-bx-negro hover:bg-bx-lima-hover" : "cursor-not-allowed bg-bx-line2 text-bx-muted"}`}
               >
                 {uploading ? "Subiendo comprobante…" : comprobante ? "Listo: esperá la confirmación" : "Ya transferí: adjuntar comprobante"}
               </button>
-              <span className="text-[13px] text-bx-muted">PDF, JPG o PNG de hasta 10 MB.</span>
+              <span className="text-[0.8125rem] text-bx-muted">PDF, JPG o PNG de hasta 10 MB.</span>
             </div>
           )}
         </div>

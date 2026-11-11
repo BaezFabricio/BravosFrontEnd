@@ -31,7 +31,7 @@ function Dona({ data, total, centro }) {
     </ResponsiveContainer>
     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
       <span className="text-2xl font-black tabular-nums text-foreground">{total}</span>
-      <span className="text-[10px] font-black uppercase tracking-widest text-foreground/55">{centro}</span>
+      <span className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">{centro}</span>
     </div>
   </div>
   )
@@ -67,7 +67,7 @@ function Desglose({ filas }) {
   return (
     <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
       {filas.map(([etiqueta, valor]) => (
-        <li key={etiqueta} className="flex items-baseline justify-between gap-2 text-[11px]">
+        <li key={etiqueta} className="flex items-baseline justify-between gap-2 text-[0.6875rem]">
           <span className="min-w-0 truncate text-foreground/60">{etiqueta}</span>
           <span className="shrink-0 font-bold tabular-nums text-foreground">{valor}</span>
         </li>
@@ -194,7 +194,7 @@ export default function ReportesPage() {
   }
 
   const kpi = "rounded-2xl border border-border bg-card p-4"
-  const kpiTitulo = "text-[10px] font-black uppercase tracking-widest text-foreground/55"
+  const kpiTitulo = "text-[0.625rem] font-black uppercase tracking-widest text-foreground/55"
   const tooltipEstilo = { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--popover-foreground)" }
 
   return (
@@ -212,22 +212,22 @@ export default function ReportesPage() {
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Período">
         {PERIODOS.map((p) => (
           <button key={p.id} type="button" onClick={() => cambiarPeriodo(p.id)} aria-pressed={periodo === p.id}
-            className={`flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black transition-colors ${periodo === p.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
+            className={`flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black transition-colors ${periodo === p.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
             {periodo === p.id && cargando && <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />}
             {p.label}
           </button>
         ))}
         {/* Escritorio: CSV en la misma fila que los períodos, a la derecha */}
         <button type="button" onClick={exportarExcel}
-          className="ml-auto hidden min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:flex">
+          className="ml-auto hidden min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:flex">
           <Download className="h-3.5 w-3.5" aria-hidden="true" /> Excel
         </button>
         {/* Celular: CSV y Volver van en la misma fila que los períodos, para gastar menos alto */}
         <button type="button" onClick={exportarExcel}
-          className="flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:hidden">
+          className="flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:hidden">
           <Download className="h-3.5 w-3.5" aria-hidden="true" /> Excel
         </button>
-        <BotonVolver a="/admin" texto="Volver" className="min-h-[36px] text-xs lg:hidden" />
+        <BotonVolver a="/admin" texto="Volver" className="min-h-[2.25rem] text-xs lg:hidden" />
       </div>
       {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
 
@@ -237,9 +237,9 @@ export default function ReportesPage() {
           <p className={kpiTitulo}>Ingreso total</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{plata(datos.ingresoTotal)}</p>
           {variacion === null ? (
-            <p className="mt-1 text-[11px] text-foreground/50">Sin cobros en {textoPrevio}</p>
+            <p className="mt-1 text-[0.6875rem] text-foreground/50">Sin cobros en {textoPrevio}</p>
           ) : (
-            <p className={`mt-1 flex items-center gap-1 text-[11px] font-semibold ${variacion >= 0 ? "text-lime-700 dark:text-lime-400" : "text-red-700 dark:text-red-400"}`}>
+            <p className={`mt-1 flex items-center gap-1 text-[0.6875rem] font-semibold ${variacion >= 0 ? "text-lime-700 dark:text-lime-400" : "text-red-700 dark:text-red-400"}`}>
               {variacion >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
               {variacion >= 0 ? "+" : ""}{variacion.toFixed(1).replace(".", ",")}% vs {textoPrevio}
             </p>
@@ -249,19 +249,19 @@ export default function ReportesPage() {
         <div className={kpi}>
           <p className={kpiTitulo}>Alumnos con plan</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{datos.alumnosConPlan}</p>
-          <p className="mt-1 text-[11px] text-foreground/55">con el plan activo hoy</p>
+          <p className="mt-1 text-[0.6875rem] text-foreground/55">con el plan activo hoy</p>
           <Desglose filas={datos.alumnosPorPlan.map((a) => [a.plan, a.cantidad])} />
         </div>
         <div className={kpi}>
           <p className={kpiTitulo}>Clases activas</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{clases.length}</p>
-          <p className="mt-1 text-[11px] text-foreground/55">{capacidad} lugares en total</p>
+          <p className="mt-1 text-[0.6875rem] text-foreground/55">{capacidad} lugares en total</p>
           <Desglose filas={clases.length ? [["Lugares en total", capacidad], ["Ocupados", ocupadosTotal], ["Libres", Math.max(capacidad - ocupadosTotal, 0)]] : []} />
         </div>
         <div className={kpi}>
           <p className={kpiTitulo}>Reservas</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{datos.reservasProximas}</p>
-          <p className="mt-1 text-[11px] text-foreground/55">próximas, desde hoy</p>
+          <p className="mt-1 text-[0.6875rem] text-foreground/55">próximas, desde hoy</p>
           <Desglose filas={datos.reservasPorEstado.map((r) => [ESTADO_LABELS[r.estado] || r.estado, r.cantidad])} />
         </div>
       </div>
@@ -271,7 +271,7 @@ export default function ReportesPage() {
         <div className="grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/60 p-1" role="tablist">
           {[["ingresos", "Ingresos"], ["ocupacion", "Ocupación"], ["planes", "Planes"], ["reservas", "Reservas"]].map(([id, txt]) => (
             <button key={id} type="button" role="tab" aria-selected={pestana === id} onClick={() => setPestana(id)}
-              className={`min-h-[38px] rounded-lg text-[11px] font-black transition-colors ${pestana === id ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60"}`}>
+              className={`min-h-[2.375rem] rounded-lg text-[0.6875rem] font-black transition-colors ${pestana === id ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60"}`}>
               {txt}
             </button>
           ))}
@@ -285,7 +285,7 @@ export default function ReportesPage() {
                   <h2 className="text-sm font-black uppercase tracking-wide text-foreground">Evolución de ingresos</h2>
                   {ingresos.length > 0 && <p className="text-xs text-foreground/55">{datos.ingresosPorMes.length > 1 ? `${MESES_LARGOS[Number(datos.ingresosPorMes[0].mes.slice(5)) - 1]} a ${MESES_LARGOS[Number(datos.ingresosPorMes.at(-1).mes.slice(5)) - 1]} ${datos.ingresosPorMes.at(-1).mes.slice(0, 4)}` : mesCorto(datos.ingresosPorMes[0].mes)}</p>}
                 </div>
-                <span className="shrink-0 rounded-md bg-lime-400/15 px-2 py-0.5 text-[11px] font-black tabular-nums text-lime-700 dark:text-lime-400">{plata(ingresos.reduce((a, r) => a + r.total, 0))}</span>
+                <span className="shrink-0 rounded-md bg-lime-400/15 px-2 py-0.5 text-[0.6875rem] font-black tabular-nums text-lime-700 dark:text-lime-400">{plata(ingresos.reduce((a, r) => a + r.total, 0))}</span>
               </div>
               {ingresos.length === 0 ? (
                 <p className="py-12 text-center text-sm text-foreground/55">Sin cobros confirmados en este período.</p>
@@ -357,7 +357,7 @@ export default function ReportesPage() {
                   <h2 className="text-sm font-black uppercase tracking-wide text-foreground">Alumnos por plan</h2>
                   <p className="text-xs text-foreground/55">Con el plan activo hoy.</p>
                 </div>
-                <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-[11px] font-black text-foreground/70">Total: {totalPlanes}</span>
+                <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-[0.6875rem] font-black text-foreground/70">Total: {totalPlanes}</span>
               </div>
               {planes.length === 0 ? (
                 <p className="py-12 text-center text-sm text-foreground/55">Ningún alumno tiene un plan activo.</p>
@@ -377,7 +377,7 @@ export default function ReportesPage() {
                   <h2 className="text-sm font-black uppercase tracking-wide text-foreground">Reservas por estado</h2>
                   <p className="text-xs text-foreground/55">{datos.rango.desde ? `Reservas de clases desde el ${datos.rango.desde.split("-").reverse().join("/")}.` : "Reservas de clases."}</p>
                 </div>
-                <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-[11px] font-black text-foreground/70">{totalReservas} en total</span>
+                <span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-[0.6875rem] font-black text-foreground/70">{totalReservas} en total</span>
               </div>
               {reservas.length === 0 ? (
                 <p className="py-12 text-center text-sm text-foreground/55">Sin reservas en este período.</p>
@@ -401,7 +401,7 @@ export default function ReportesPage() {
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {lider && (
               <div className="rounded-xl bg-foreground/5 p-3">
-                <p className="flex items-center gap-1.5 text-[11px] font-bold text-foreground/60"><Trophy className="h-3.5 w-3.5 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Plan que más recaudó</p>
+                <p className="flex items-center gap-1.5 text-[0.6875rem] font-bold text-foreground/60"><Trophy className="h-3.5 w-3.5 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Plan que más recaudó</p>
                 <p className="mt-1 text-base font-black uppercase text-foreground">{lider.plan}</p>
                 <p className="text-xs font-semibold text-lime-700 dark:text-lime-400">
                   {plata(lider.total)}{datos.ingresoTotal > 0 ? ` · ${Math.round((Number(lider.total) / datos.ingresoTotal) * 100)}% de lo cobrado` : ""}
@@ -410,7 +410,7 @@ export default function ReportesPage() {
             )}
             {masLlena && (
               <div className="rounded-xl bg-foreground/5 p-3">
-                <p className="flex items-center gap-1.5 text-[11px] font-bold text-foreground/60"><Flame className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" /> Clase más reservada</p>
+                <p className="flex items-center gap-1.5 text-[0.6875rem] font-bold text-foreground/60"><Flame className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" /> Clase más reservada</p>
                 <p className="mt-1 text-base font-black uppercase text-foreground">{masLlena.nombreClase}</p>
                 <p className="text-xs text-foreground/60">{masLlena.ocupados} de {masLlena.cupoMaximo} lugares · {horarioDe(masLlena)}</p>
               </div>

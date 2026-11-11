@@ -289,7 +289,7 @@ export default function ProfesorDashboard() {
                     <div className="flex items-center gap-1.5 shrink-0">
                       {isPresente || isAusente ? (
                         <>
-                          <span className={`flex min-h-[40px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold ${
+                          <span className={`flex min-h-[2.5rem] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold ${
                             isPresente
                               ? "bg-lime-400 text-black"
                               : "bg-red-500 text-foreground"
@@ -301,7 +301,7 @@ export default function ProfesorDashboard() {
                           </span>
                           <button
                             onClick={() => setAlumnos(prev => prev.map(al => al.idReserva === a.idReserva ? { ...al, asistencia: null } : al))}
-                            className="text-[10px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                            className="text-[0.625rem] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
                           >
                             Cambiar
                           </button>
@@ -310,13 +310,13 @@ export default function ProfesorDashboard() {
                         <>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "presente")}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
+                            className="flex min-h-[2.75rem] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
                           >
                             <CheckCircle2 className="h-4 w-4" /> Presente
                           </button>
                           <button
                             onClick={() => marcarAsistencia(a.idReserva, "ausente")}
-                            className="flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
+                            className="flex min-h-[2.75rem] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
                           >
                             <XCircle className="h-4 w-4" /> Ausente
                           </button>

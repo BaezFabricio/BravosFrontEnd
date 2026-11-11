@@ -30,11 +30,11 @@ export function AdminPageSkeleton({ rows = 6, showHeader = true }) {
         {/* Rows */}
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="px-4 py-3.5 flex gap-4 border-t border-border">
-            <div className="h-4 w-[120px] bg-foreground/8 rounded" />
-            <div className="h-4 w-[200px] bg-foreground/6 rounded" />
-            <div className="h-4 w-[100px] bg-foreground/6 rounded" />
-            <div className="h-5 w-[80px] bg-foreground/8 rounded-full" />
-            <div className="h-4 w-[100px] bg-foreground/5 rounded" />
+            <div className="h-4 w-[7.5rem] bg-foreground/8 rounded" />
+            <div className="h-4 w-[12.5rem] bg-foreground/6 rounded" />
+            <div className="h-4 w-[6.25rem] bg-foreground/6 rounded" />
+            <div className="h-5 w-[5rem] bg-foreground/8 rounded-full" />
+            <div className="h-4 w-[6.25rem] bg-foreground/5 rounded" />
           </div>
         ))}
       </div>

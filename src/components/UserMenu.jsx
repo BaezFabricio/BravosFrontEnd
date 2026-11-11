@@ -9,9 +9,9 @@ function Iniciales({ nombre }) {
 }
 
 function RolBadge({ tieneModulosAdmin, tieneModulosProfesor }) {
-  if (tieneModulosAdmin) return <span className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Admin</span>;
-  if (tieneModulosProfesor) return <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">Profesor</span>;
-  return <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumno</span>;
+  if (tieneModulosAdmin) return <span className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Admin</span>;
+  if (tieneModulosProfesor) return <span className="text-[0.625rem] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">Profesor</span>;
+  return <span className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Alumno</span>;
 }
 
 export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual }) {
@@ -81,7 +81,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
                 ) : null;
               })()}
               <span className="min-w-0 flex-1">
-                <span className="block text-[10px] font-black uppercase leading-tight tracking-widest text-muted-foreground">
+                <span className="block text-[0.625rem] font-black uppercase leading-tight tracking-widest text-muted-foreground">
                   {panelActual ? "Cambiar de panel" : "Ir a un panel"}
                 </span>
                 {panelActual && (

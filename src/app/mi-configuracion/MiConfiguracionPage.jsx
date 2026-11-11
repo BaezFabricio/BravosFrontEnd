@@ -20,7 +20,7 @@ function Seccion({ titulo, detalle, children }) {
   return (
     <section aria-label={titulo} className="space-y-2">
       <div className="px-1">
-        <h2 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-foreground/60">
+        <h2 className="flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">
           <span className="h-3 w-1 rounded-full bg-lime-400" aria-hidden="true" /> {titulo}
         </h2>
         {detalle && <p className="mt-1 text-xs text-foreground/50">{detalle}</p>}
@@ -66,7 +66,7 @@ export default function MiConfiguracionPage() {
             const elegido = theme === valor
             return (
               <button key={valor} type="button" role="radio" aria-checked={elegido} onClick={() => setTheme(valor)}
-                className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-2xl border text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                className={`relative flex min-h-[4.75rem] flex-col items-center justify-center gap-1.5 rounded-2xl border text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                   elegido ? "border-lime-500 bg-lime-400/10 text-foreground" : "border-border bg-card text-foreground/65 hover:border-foreground/30"
                 }`}>
                 {elegido && (
@@ -85,7 +85,7 @@ export default function MiConfiguracionPage() {
 
       <Seccion titulo="Cuenta">
         <Link to={rutaPerfil}
-          className="flex min-h-[64px] items-center gap-3 rounded-2xl border border-border bg-card px-4 transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+          className="flex min-h-[4rem] items-center gap-3 rounded-2xl border border-border bg-card px-4 transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
             <UserCog className="h-5 w-5" aria-hidden="true" />
           </span>
@@ -102,7 +102,7 @@ export default function MiConfiguracionPage() {
         <Seccion titulo="Ayuda">
           <button type="button"
             onClick={() => { try { sessionStorage.setItem("bravos-guia-repetir", "bienvenida") } catch { /* nada */ } window.dispatchEvent(new CustomEvent("bravos:abrir-guia", { detail: "bienvenida" })) }}
-            className="flex min-h-[64px] w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 text-left transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            className="flex min-h-[4rem] w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 text-left transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
             </span>

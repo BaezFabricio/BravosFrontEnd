@@ -165,7 +165,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
                 <span className={`latido-centro flex items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-400/30 motion-safe:transition-all motion-safe:duration-300 active:scale-90 ${compacta ? "-mt-3 h-11 w-11" : "-mt-8 h-[3.75rem] w-[3.75rem]"} ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                   <Icono className="h-6 w-6" strokeWidth={2.75} />
                 </span>
-                <span className={`max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide text-lime-700 motion-safe:transition-all motion-safe:duration-300 dark:text-lime-400 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
+                <span className={`max-w-full truncate px-0.5 text-[0.5625rem] font-black uppercase leading-none tracking-wide text-lime-700 motion-safe:transition-all motion-safe:duration-300 dark:text-lime-400 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
               </Link>
             )
           }
@@ -179,16 +179,16 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
               <span className={`relative transition-transform duration-300 ease-out ${resaltada ? "-translate-y-0.5 scale-110" : ""}`}>
                 <Icono className="h-5 w-5 shrink-0" strokeWidth={resaltada || item.centro ? 2.5 : 2} />
                 {item.insignia > 0 && (
-                  <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-lime-400 px-1 text-[9px] font-black leading-none text-black ring-2 ring-sidebar" aria-label={`${item.insignia} reservas próximas`}>
+                  <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-lime-400 px-1 text-[0.5625rem] font-black leading-none text-black ring-2 ring-sidebar" aria-label={`${item.insignia} reservas próximas`}>
                     {item.insignia > 9 ? "9+" : item.insignia}
                   </span>
                 )}
               </span>
-              <span className={`max-w-full truncate px-0.5 text-[9px] font-black uppercase leading-none tracking-wide motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
+              <span className={`max-w-full truncate px-0.5 text-[0.5625rem] font-black uppercase leading-none tracking-wide motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
               {/* Puntito verde bajo la opción activa */}
-              <span aria-hidden="true" className={`absolute bottom-[2px] h-[3px] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
+              <span aria-hidden="true" className={`absolute bottom-[2px] h-[0.1875rem] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
               {item.pista && (
-                <span role="status" className="pista-barra pointer-events-none absolute -top-12 left-1/2 z-20 -ml-10 w-20 rounded-lg bg-lime-400 px-2 py-1.5 text-center text-[10px] font-black uppercase leading-tight tracking-wide text-black shadow-lg">
+                <span role="status" className="pista-barra pointer-events-none absolute -top-12 left-1/2 z-20 -ml-10 w-20 rounded-lg bg-lime-400 px-2 py-1.5 text-center text-[0.625rem] font-black uppercase leading-tight tracking-wide text-black shadow-lg">
                   {item.pista}
                   <span aria-hidden="true" className="absolute -bottom-1 left-1/2 -ml-1 h-2 w-2 rotate-45 bg-lime-400" />
                 </span>

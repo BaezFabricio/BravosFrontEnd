@@ -45,7 +45,7 @@ export default function LegalLayout({ titulo, children }) {
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <h1 className="text-3xl font-black uppercase tracking-tight text-balance sm:text-4xl">{titulo}</h1>
         <p className="mt-2 text-sm text-foreground/50">Última actualización: {ACTUALIZACION_LEGAL}</p>
-        <div className="legal-texto mt-8 space-y-4 text-[15px] leading-relaxed text-foreground/80">
+        <div className="legal-texto mt-8 space-y-4 text-[0.9375rem] leading-relaxed text-foreground/80">
           {children}
         </div>
       </main>

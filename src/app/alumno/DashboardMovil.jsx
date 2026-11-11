@@ -77,7 +77,7 @@ export default function DashboardMovil({
         <img src="/bravos-logo.png" className="hero-logo" alt="" aria-hidden="true" />
         <div className="hero-sheen" aria-hidden="true" />
         <div className="flex items-center gap-1">
-          <span className="inline-flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-lime-400/30 bg-lime-400/15 px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
             <Flame className="h-3 w-3" />
             {racha === 0 ? "Sin racha" : `${racha} ${racha === 1 ? "día" : "días"} de racha`}
           </span>
@@ -99,7 +99,7 @@ export default function DashboardMovil({
       <div data-guia="res-numeros" className="grid grid-cols-2 gap-3">
         <div className="relative rounded-xl border border-border bg-card p-4">
           <Ayuda texto="Créditos disponibles para reservar clases. Cada clase usa uno." className="absolute right-1.5 top-1.5" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
           <p className="mt-1 flex items-baseline gap-1.5">
             <span className="text-3xl font-black tabular-nums text-lime-700 dark:text-lime-400">{cargando ? "…" : creditos}</span>
             <span className="text-xs font-bold text-foreground/50">disp.</span>
@@ -107,7 +107,7 @@ export default function DashboardMovil({
         </div>
         <div className="relative rounded-xl border border-border bg-card p-4">
           <Ayuda texto="Clases que reservaste y todavía no se dieron." className="absolute right-1.5 top-1.5" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Clases</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Clases</p>
           <p className="mt-1 flex items-baseline gap-1.5">
             <span className="text-3xl font-black tabular-nums text-lime-700 dark:text-lime-400">{cargando ? "…" : agendadas}</span>
             <span className="text-xs font-bold text-foreground/50">{agendadas === 1 ? "agendada" : "agendadas"}</span>
@@ -120,7 +120,7 @@ export default function DashboardMovil({
           <div data-guia="res-membresia" className="space-y-3 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-black uppercase tracking-widest text-foreground/60">Mi membresía</h2>
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${meta.cls}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${meta.cls}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
                 {meta.label}
               </span>
@@ -177,7 +177,7 @@ export default function DashboardMovil({
               <PopoverContent side="top" className="w-60 border border-border bg-card p-3 text-card-foreground">
                 <p className="text-xs font-black uppercase tracking-wide text-foreground">{l.nombre}</p>
                 <p className="mt-0.5 text-sm text-foreground/70">{l.descripcion}</p>
-                <p className={`mt-1.5 text-[10px] font-black uppercase tracking-widest ${l.completado ? "text-lime-700 dark:text-lime-400" : "text-foreground/40"}`}>
+                <p className={`mt-1.5 text-[0.625rem] font-black uppercase tracking-widest ${l.completado ? "text-lime-700 dark:text-lime-400" : "text-foreground/40"}`}>
                   {l.completado ? "✓ Desbloqueado" : "Bloqueado"}
                 </p>
               </PopoverContent>

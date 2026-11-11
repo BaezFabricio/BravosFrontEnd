@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 
 export default function PagoExitosoPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6 px-4">
+    <div className="flex flex-col items-center justify-center min-h-[25rem] text-center space-y-6 px-4">
       <style>{`
         @keyframes pop-in {
           0%   { transform: scale(0.4); opacity: 0; }

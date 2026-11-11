@@ -56,7 +56,7 @@ function TarjetaClase({ clase, abiertaAlInicio }) {
         onClick={() => setAbierta((v) => !v)}
         aria-expanded={abierta}
         aria-controls={id}
-        className="flex min-h-[56px] w-full items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500"
+        className="flex min-h-[3.5rem] w-full items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500"
       >
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${r ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "bg-foreground/5 text-foreground/40"}`}>
           <Dumbbell className="h-5 w-5" />
@@ -65,7 +65,7 @@ function TarjetaClase({ clase, abiertaAlInicio }) {
           <span className="block truncate text-sm font-bold text-foreground">{clase.nombreClase}</span>
           <span className="block text-xs capitalize text-foreground/60">{fechaClase(clase.fecha, clase.horaInicio)}</span>
         </span>
-        {!r && <span className="shrink-0 text-[10px] font-bold uppercase text-foreground/45">Sin rutina</span>}
+        {!r && <span className="shrink-0 text-[0.625rem] font-bold uppercase text-foreground/45">Sin rutina</span>}
         <ChevronDown className={`h-4 w-4 shrink-0 text-foreground/50 transition-transform ${abierta ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
 
@@ -78,8 +78,8 @@ function TarjetaClase({ clase, abiertaAlInicio }) {
             <>
               {(r.categoria || r.nivel) && (
                 <div className="flex flex-wrap gap-1.5">
-                  {r.categoria && <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{r.categoria}</span>}
-                  {r.nivel && <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-foreground/70">{r.nivel}</span>}
+                  {r.categoria && <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{r.categoria}</span>}
+                  {r.nivel && <span className="rounded-full border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-foreground/70">{r.nivel}</span>}
                 </div>
               )}
               {r.descripcion && <div className={HTML_RUTINA} dangerouslySetInnerHTML={{ __html: sanitizarHtml(r.descripcion) }} />}
@@ -164,7 +164,7 @@ export default function MisRutinasModal({ open, onOpenChange }) {
               <Link
                 to="/alumno/reservar"
                 onClick={() => cerrarYLimpiar(false)}
-                className="mt-4 flex min-h-[44px] items-center rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-wider text-black"
+                className="mt-4 flex min-h-[2.75rem] items-center rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-wider text-black"
               >
                 Reservar clase
               </Link>

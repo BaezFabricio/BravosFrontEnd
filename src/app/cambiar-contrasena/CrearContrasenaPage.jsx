@@ -158,7 +158,7 @@ export default function CrearContrasenaPage() {
           </div>
 
           <button type="button" onClick={salir}
-            className="mx-auto mt-4 flex min-h-[44px] items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-foreground/60 transition-colors hover:text-foreground">
+            className="mx-auto mt-4 flex min-h-[2.75rem] items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-foreground/60 transition-colors hover:text-foreground">
             <LogOut className="h-4 w-4" aria-hidden="true" /> Salir
           </button>
         </div>

@@ -17,7 +17,7 @@ const Toaster = ({ ...props }) => {
           fontFamily: 'inherit',
         },
         classNames: {
-          toast: 'border-l-[3px] !border-l-[var(--border)]',
+          toast: 'border-l-[0.1875rem] !border-l-[var(--border)]',
           title: 'font-bold text-sm tracking-wide',
           description: 'text-xs opacity-60 mt-0.5 leading-relaxed',
           closeButton: '!bg-[var(--secondary)] !border-[var(--border)] !text-[var(--muted-foreground)]',

@@ -85,7 +85,7 @@ export default function CheckinAdminPage() {
           <Card className="gap-4 rounded-2xl border-border bg-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Enlace para el equipo de recepción</p>
+                <p className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Enlace para el equipo de recepción</p>
                 <p className="mt-1 break-all font-mono text-sm text-foreground">{enlace}</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ export default function CheckinAdminPage() {
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {estado.porTipo.map((t) => (
                       <div key={t.tipo} className="rounded-xl border border-border p-3">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
+                        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
                         <p className="mt-1 text-sm text-foreground">
                           <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
                         </p>

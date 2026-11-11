@@ -116,7 +116,7 @@ export default function NuevaRutinaPage() {
                 value={formData.descripcion}
                 onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                 placeholder="Detalla los ejercicios, series, repeticiones, objetivos y cualquier nota importante..."
-                className="w-full px-3 py-2 bg-secondary border border-input rounded text-sm min-h-[120px]"
+                className="w-full px-3 py-2 bg-secondary border border-input rounded text-sm min-h-[7.5rem]"
                 required
               />
               <p className="text-xs text-muted-foreground">Incluye calentamiento, ejercicio principal, metcon y enfriamiento</p>

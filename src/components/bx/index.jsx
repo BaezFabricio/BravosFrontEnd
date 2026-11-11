@@ -34,7 +34,7 @@ const VARIANTES_BOTON = {
   // Confirmar una acción destructiva dentro de un diálogo
   peligroSolido: "bg-bx-err-fg text-bx-card hover:opacity-90",
 }
-const TAMANOS_BOTON = { md: "h-11 px-[18px]", lg: "h-[50px] px-[22px] text-[15px]" }
+const TAMANOS_BOTON = { md: "h-11 px-[1.125rem]", lg: "h-[3.125rem] px-[1.375rem] text-[0.9375rem]" }
 
 // Botón o enlace (si trae `to`). Mínimo 44px de alto.
 export function Boton({ variante = "primario", tamano = "md", to, className, children, ...props }) {
@@ -49,7 +49,7 @@ export function BotonIcono({ etiqueta, className, children, ...props }) {
     <button
       type="button"
       aria-label={etiqueta}
-      className={cn("relative grid h-11 w-11 shrink-0 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf", className)}
+      className={cn("relative grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf", className)}
       {...props}
     >
       {children}
@@ -69,7 +69,7 @@ const TONOS_CHIP = {
 // Chip de estado (ok / warn / err / neutral)
 export function Chip({ tono = "neutral", icono: Icono, className, children, ...props }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-bold", TONOS_CHIP[tono], className)} {...props}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8125rem] font-bold", TONOS_CHIP[tono], className)} {...props}>
       {Icono && <Icono className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" />}
       {children}
     </span>
@@ -79,7 +79,7 @@ export function Chip({ tono = "neutral", icono: Icono, className, children, ...p
 // Insignia pequeña sobre fondo oscuro (NUEVO, VOS, contadores)
 export function Insignia({ className, children, ...props }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full bg-bx-chip px-2 py-0.5 text-[11px] font-bold tracking-[0.06em] text-bx-lima", className)} {...props}>
+    <span className={cn("inline-flex items-center rounded-full bg-bx-chip px-2 py-0.5 text-[0.6875rem] font-bold tracking-[0.06em] text-bx-lima", className)} {...props}>
       {children}
     </span>
   )
@@ -98,7 +98,7 @@ export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", c
             aria-pressed={activo}
             onClick={() => onChange(o.id)}
             className={cn(
-              "h-9 rounded-full border px-3.5 text-[13px] font-bold transition-colors",
+              "h-9 rounded-full border px-3.5 text-[0.8125rem] font-bold transition-colors",
               activo ? "border-bx-ink bg-bx-ink text-bx-bg" : "border-bx-btn-line bg-transparent text-bx-ink hover:border-bx-ink"
             )}
           >
@@ -136,13 +136,13 @@ export function Pestanas({ items, valor, onChange, etiqueta = "Secciones", class
               document.getElementById(`${base}-${sig.id}`)?.focus()
             }}
             className={cn(
-              "-mb-px flex h-12 items-center gap-2 border-b-[3px] text-[15px] font-bold transition-colors",
+              "-mb-px flex h-12 items-center gap-2 border-b-[0.1875rem] text-[0.9375rem] font-bold transition-colors",
               activa ? "border-bx-lima text-bx-ink" : "border-transparent text-bx-muted hover:text-bx-ink"
             )}
           >
             {it.label}
             {it.contador != null && (
-              <span className={cn("grid h-[22px] min-w-[22px] place-items-center rounded-full px-1.5 text-[12px] font-bold", activa ? "bg-bx-lima text-bx-negro" : "bg-bx-track text-bx-ink")}>
+              <span className={cn("grid h-[1.375rem] min-w-[1.375rem] place-items-center rounded-full px-1.5 text-[0.75rem] font-bold", activa ? "bg-bx-lima text-bx-negro" : "bg-bx-track text-bx-ink")}>
                 {it.contador}
               </span>
             )}
@@ -183,13 +183,13 @@ export function EnlaceVer({ to, children }) {
 // Bloque "hero": siempre oscuro, con el logo de fondo muy tenue (radio 20px)
 export function HeroCard({ className, children, logo = true, ...props }) {
   return (
-    <section className={cn("relative overflow-hidden rounded-[20px] border border-bx-hero-line bg-bx-hero p-[clamp(24px,3vw,40px)] text-[#ecefe4]", className)} {...props}>
+    <section className={cn("relative overflow-hidden rounded-[1.25rem] border border-bx-hero-line bg-bx-hero p-[clamp(1.5rem,3vw,2.5rem)] text-[#ecefe4]", className)} {...props}>
       {logo && (
         <img
           src="/bravos-logo.png"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute left-[38%] top-1/2 h-[284px] w-[880px] max-w-none -translate-y-1/2 -rotate-6 opacity-[0.05] [filter:grayscale(1)_brightness(1.4)] [mask-image:linear-gradient(125deg,#000_0%,rgba(0,0,0,.25)_45%,#000_55%,rgba(0,0,0,.15)_100%)]"
+          className="pointer-events-none absolute left-[38%] top-1/2 h-[17.75rem] w-[55rem] max-w-none -translate-y-1/2 -rotate-6 opacity-[0.05] [filter:grayscale(1)_brightness(1.4)] [mask-image:linear-gradient(125deg,#000_0%,rgba(0,0,0,.25)_45%,#000_55%,rgba(0,0,0,.15)_100%)]"
         />
       )}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0)_35%,rgba(255,255,255,.03)_48%,rgba(255,255,255,0)_60%)]" />
@@ -202,8 +202,8 @@ export function HeroCard({ className, children, logo = true, ...props }) {
 export function DatoHero({ etiqueta, valor, nota, className }) {
   return (
     <div className={cn("rounded-xl border border-[#262626] bg-[#1a1a1a] p-5", className)}>
-      <div className="text-[13px] font-semibold text-[#a3a698]">{etiqueta}</div>
-      <div className="bx-num mt-2 text-[44px] leading-none text-bx-lima">{valor}</div>
+      <div className="text-[0.8125rem] font-semibold text-[#a3a698]">{etiqueta}</div>
+      <div className="bx-num mt-2 text-[2.75rem] leading-none text-bx-lima">{valor}</div>
       {nota && <div className="mt-1.5 text-xs text-[#8b8e80]">{nota}</div>}
     </div>
   )
@@ -220,10 +220,10 @@ export function Progreso({ valor, max = 100, etiqueta, className, alto = 10, col
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(pct)}
-      style={{ height: alto, borderRadius: alto / 2 }}
+      style={{ height: `${alto / 16}rem`, borderRadius: `${alto / 32}rem` }}
       className={cn("overflow-hidden bg-bx-track", className)}
     >
-      <div className={cn("h-full", color)} style={{ width: `${pct}%`, borderRadius: alto / 2 }} />
+      <div className={cn("h-full", color)} style={{ width: `${pct}%`, borderRadius: `${alto / 32}rem` }} />
     </div>
   )
 }
@@ -235,7 +235,7 @@ export function Vacio({ titulo, texto, accion, className }) {
   return (
     <div className={cn("flex flex-col items-start gap-3 rounded-xl border border-dashed border-bx-btn-line p-5", className)}>
       <div>
-        <div className="text-[15px] font-bold text-bx-ink">{titulo}</div>
+        <div className="text-[0.9375rem] font-bold text-bx-ink">{titulo}</div>
         {texto && <div className="text-sm text-bx-muted">{texto}</div>}
       </div>
       {accion}
@@ -247,16 +247,16 @@ export function Vacio({ titulo, texto, accion, className }) {
 export function ErrorBanner({ titulo, texto, onReintentar, className }) {
   return (
     <div role="alert" className={cn("flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-bx-err-line bg-bx-err-bg px-5 py-4 text-bx-err-fg", className)}>
-      <AlertTriangle className="h-[22px] w-[22px] shrink-0" aria-hidden="true" />
-      <div className="min-w-[220px] flex-1">
-        <div className="text-[15px] font-bold">{titulo}</div>
+      <AlertTriangle className="h-[1.375rem] w-[1.375rem] shrink-0" aria-hidden="true" />
+      <div className="min-w-[13.75rem] flex-1">
+        <div className="text-[0.9375rem] font-bold">{titulo}</div>
         {texto && <div className="text-sm">{texto}</div>}
       </div>
       {onReintentar && (
         <button
           type="button"
           onClick={onReintentar}
-          className="h-11 rounded-lg border border-bx-err-fg bg-transparent px-[18px] text-sm font-bold text-bx-err-fg transition-colors hover:bg-bx-err-fg hover:text-bx-bg"
+          className="h-11 rounded-lg border border-bx-err-fg bg-transparent px-[1.125rem] text-sm font-bold text-bx-err-fg transition-colors hover:bg-bx-err-fg hover:text-bx-bg"
         >
           Reintentar
         </button>
@@ -267,7 +267,7 @@ export function ErrorBanner({ titulo, texto, onReintentar, className }) {
 
 // Esqueleto de carga (se anuncia con aria-busy)
 export function Esqueleto({ alto = 84, etiqueta = "Cargando", className }) {
-  return <div aria-busy="true" aria-label={etiqueta} style={{ height: alto }} className={cn("bx-sk rounded-xl bg-bx-skeleton", className)} />
+  return <div aria-busy="true" aria-label={etiqueta} style={{ height: `${alto / 16}rem` }} className={cn("bx-sk rounded-xl bg-bx-skeleton", className)} />
 }
 
 /* ───────── Diálogo ───────── */
@@ -281,13 +281,13 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, sobretitulo, a
         <DialogPrimitive.Overlay className="fixed inset-0 z-[100] bg-black/60" />
         <DialogPrimitive.Content
           role={alerta ? "alertdialog" : "dialog"}
-          style={{ maxWidth: ancho }}
+          style={{ maxWidth: `${ancho / 16}rem` }}
           onOpenAutoFocus={(e) => {
             // Foco al abrir: en el botón que se indique (por defecto Radix enfoca el primero)
             const el = idEnfocar ? document.getElementById(idEnfocar) : null
             if (el) { e.preventDefault(); el.focus() }
           }}
-          className="bx fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card text-bx-ink shadow-[0_16px_40px_rgba(0,0,0,.35)]"
+          className="bx fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card text-bx-ink shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
         >
           <div className="flex items-start justify-between gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0">
@@ -297,8 +297,8 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, sobretitulo, a
                 ? <DialogPrimitive.Description className="mt-1 text-sm text-bx-muted">{descripcion}</DialogPrimitive.Description>
                 : <DialogPrimitive.Description className="sr-only">{titulo}</DialogPrimitive.Description>}
             </div>
-            <DialogPrimitive.Close aria-label="Cerrar" className="-mr-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-[10px] text-bx-ink hover:bg-bx-surf">
-              <X className="h-[18px] w-[18px]" aria-hidden="true" />
+            <DialogPrimitive.Close aria-label="Cerrar" className="-mr-2 -mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] text-bx-ink hover:bg-bx-surf">
+              <X className="h-[1.125rem] w-[1.125rem]" aria-hidden="true" />
             </DialogPrimitive.Close>
           </div>
           <div className={cn("min-h-0 flex-1 overflow-y-auto px-6 py-3", cuerpoClassName)}>{children}</div>
@@ -325,14 +325,14 @@ export function Campo({ etiqueta, ayuda, error, id, className, inputClassName, .
         aria-invalid={error ? true : undefined}
         aria-describedby={[idAyuda, idError].filter(Boolean).join(" ") || undefined}
         className={cn(
-          "h-11 w-full rounded-[10px] border bg-bx-surf px-3.5 text-[15px] text-bx-ink placeholder:text-bx-muted disabled:cursor-not-allowed disabled:opacity-60",
+          "h-11 w-full rounded-[0.625rem] border bg-bx-surf px-3.5 text-[0.9375rem] text-bx-ink placeholder:text-bx-muted disabled:cursor-not-allowed disabled:opacity-60",
           error ? "border-bx-err-fg" : "border-bx-btn-line",
           inputClassName
         )}
         {...props}
       />
-      {ayuda && !error && <p id={idAyuda} className="text-[13px] text-bx-muted">{ayuda}</p>}
-      {error && <p id={idError} className="text-[13px] font-semibold text-bx-err-fg">{error}</p>}
+      {ayuda && !error && <p id={idAyuda} className="text-[0.8125rem] text-bx-muted">{ayuda}</p>}
+      {error && <p id={idError} className="text-[0.8125rem] font-semibold text-bx-err-fg">{error}</p>}
     </div>
   )
 }
@@ -343,12 +343,12 @@ export function Stepper({ valor, onChange, paso = 1, min = 0, max = Infinity, et
   const inc = () => onChange(Math.min(max, Math.round((valor + paso) * 100) / 100))
   return (
     <div role="group" aria-label={etiqueta} className={cn("inline-flex items-center gap-2", className)}>
-      <button type="button" onClick={dec} disabled={valor <= min} aria-label={`Restar ${paso}`} className="grid h-11 w-11 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima disabled:opacity-40">
-        <Minus className="h-[18px] w-[18px]" aria-hidden="true" />
+      <button type="button" onClick={dec} disabled={valor <= min} aria-label={`Restar ${paso}`} className="grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima disabled:opacity-40">
+        <Minus className="h-[1.125rem] w-[1.125rem]" aria-hidden="true" />
       </button>
-      <span className="min-w-[72px] text-center text-lg font-bold tabular-nums text-bx-ink" aria-live="polite">{formato(valor)}</span>
-      <button type="button" onClick={inc} disabled={valor >= max} aria-label={`Sumar ${paso}`} className="grid h-11 w-11 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima disabled:opacity-40">
-        <Plus className="h-[18px] w-[18px]" aria-hidden="true" />
+      <span className="min-w-[4.5rem] text-center text-lg font-bold tabular-nums text-bx-ink" aria-live="polite">{formato(valor)}</span>
+      <button type="button" onClick={inc} disabled={valor >= max} aria-label={`Sumar ${paso}`} className="grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima disabled:opacity-40">
+        <Plus className="h-[1.125rem] w-[1.125rem]" aria-hidden="true" />
       </button>
     </div>
   )

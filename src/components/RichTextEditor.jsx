@@ -87,7 +87,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Escrib√
       </div>
 
       {/* √Årea de escritura: tocar en cualquier parte empieza a escribir */}
-      <div style={{ minHeight }} className="cursor-text px-4 py-3 text-[15px] leading-relaxed" onClick={() => editor.chain().focus().run()}>
+      <div style={{ minHeight }} className="cursor-text px-4 py-3 text-[0.9375rem] leading-relaxed" onClick={() => editor.chain().focus().run()}>
         <EditorContent editor={editor} />
       </div>
     </div>

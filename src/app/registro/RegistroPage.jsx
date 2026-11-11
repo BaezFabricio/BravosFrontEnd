@@ -293,32 +293,32 @@ function RegistroPage() {
   const vistaMovil = (
     <div className={`lm${saliendo ? ' sale' : ''}`} style={{ margin: 0, background: '#0e100a', color: '#ecefe4', fontFamily: 'Archivo,sans-serif', lineHeight: 'normal', minHeight: '100dvh' }}>
       <style>{ESTILOS_MOVIL}</style>
-      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', minHeight: '100dvh', overflowX: 'hidden', background: '#0e100a' }}>
-        <div style={{ position: 'relative', height: '250px', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '30rem', margin: '0 auto', minHeight: '100dvh', overflowX: 'hidden', background: '#0e100a' }}>
+        <div style={{ position: 'relative', height: '15.625rem', overflow: 'hidden' }}>
           <img src="/acceso/hookgrip-c.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 12%', filter: 'grayscale(1) contrast(1.1) brightness(0.85)' }} />
           <div style={{ position: 'absolute', inset: 0, background: '#4a5626', mixBlendMode: 'multiply', opacity: 0.35 }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(14,16,10,0.55) 0%,rgba(14,16,10,0) 30%,rgba(14,16,10,0.25) 60%,#0e100a 100%)' }} />
-          <div style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 16px)', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><img src="/acceso/brvs.png" alt="" style={{ width: '34px', height: '34px', borderRadius: '8px' }} /><span style={{ font: "900 15px 'Big Shoulders Stencil Display'", letterSpacing: '0.3em', color: '#9be600', whiteSpace: 'nowrap' }}>BRAVOS BOX</span></div>
-            <Link to="/inicio" style={{ font: "600 14px Archivo, sans-serif", textDecoration: 'none', whiteSpace: 'nowrap', color: '#ecefe4', display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 16px', border: '1px solid rgba(236,239,228,.28)', borderRadius: '999px', background: 'rgba(14,16,10,.5)', margin: '-4px -6px -4px 0' }}>Sitio</Link>
+          <div style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 1rem)', left: '1.25rem', right: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}><img src="/acceso/brvs.png" alt="" style={{ width: '2.125rem', height: '2.125rem', borderRadius: '0.5rem' }} /><span style={{ font: "900 0.9375rem 'Big Shoulders Stencil Display'", letterSpacing: '0.3em', color: '#9be600', whiteSpace: 'nowrap' }}>BRAVOS BOX</span></div>
+            <Link to="/inicio" style={{ font: "600 0.875rem Archivo, sans-serif", textDecoration: 'none', whiteSpace: 'nowrap', color: '#ecefe4', display: 'inline-flex', alignItems: 'center', minHeight: '2.75rem', padding: '0 1rem', border: '1px solid rgba(236,239,228,.28)', borderRadius: '62.4375rem', background: 'rgba(14,16,10,.5)', margin: '-0.25rem -0.375rem -0.25rem 0' }}>Sitio</Link>
           </div>
-          <div style={{ position: 'absolute', left: '20px', right: '20px', bottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div role="heading" aria-level={1} style={{ font: "900 46px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase' }}>Sumate al<br /><span style={{ color: '#9be600' }}>equipo.</span></div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', paddingBottom: '4px' }}><img src="/acceso/malvinas.png" alt="" style={{ width: '58px', filter: 'saturate(0.8)' }} /><span style={{ font: "600 10px/1.4 Archivo, sans-serif", letterSpacing: '0.08em', color: '#ecefe4', textAlign: 'right' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
+          <div style={{ position: 'absolute', left: '1.25rem', right: '1.25rem', bottom: '1.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div role="heading" aria-level={1} style={{ font: "900 2.875rem/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase' }}>Sumate al<br /><span style={{ color: '#9be600' }}>equipo.</span></div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem', paddingBottom: '0.25rem' }}><img src="/acceso/malvinas.png" alt="" style={{ width: '3.625rem', filter: 'saturate(0.8)' }} /><span style={{ font: "600 0.625rem/1.4 Archivo, sans-serif", letterSpacing: '0.08em', color: '#ecefe4', textAlign: 'right' }}>MALVINAS<br /><span style={{ color: '#9be600' }}>51°41′S</span></span></div>
           </div>
         </div>
 
-        <div style={{ position: 'relative', margin: '80px 20px 0', paddingBottom: '40px' }}>
-          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: 'relative', borderRadius: '14px', padding: '20px 18px 18px', ...FICHA_FLOTANTE }}>
-            <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: '18px', bottom: 'calc(100% - 2px)', width: '84px', height: '84px' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', font: '600 11px Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a', paddingBottom: '10px', borderBottom: '1px dashed #3a3d32' }}><span style={{ color: '#9be600' }}>ALTA DE SOCIO</span></div>
-            <div role="heading" aria-level={2} style={{ font: "900 42px/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase', margin: '14px 0 4px' }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
-            <div style={{ color: '#8a8f7a', fontSize: '13px', marginBottom: '16px' }}>Completá tus datos para registrarte.</div>
+        <div style={{ position: 'relative', margin: '5rem 1.25rem 0', paddingBottom: '2.5rem' }}>
+          <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="flota" style={{ position: 'relative', borderRadius: '0.875rem', padding: '1.25rem 1.125rem 1.125rem', ...FICHA_FLOTANTE }}>
+            <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: '1.125rem', bottom: 'calc(100% - 2px)', width: '5.25rem', height: '5.25rem' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', font: '600 0.6875rem Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a', paddingBottom: '0.625rem', borderBottom: '1px dashed #3a3d32' }}><span style={{ color: '#9be600' }}>ALTA DE SOCIO</span></div>
+            <div role="heading" aria-level={2} style={{ font: "900 2.625rem/0.9 'Big Shoulders Stencil Display'", textTransform: 'uppercase', margin: '0.875rem 0 0.25rem' }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>
+            <div style={{ color: '#8a8f7a', fontSize: '0.8125rem', marginBottom: '1rem' }}>Completá tus datos para registrarte.</div>
 
             <form onSubmit={handleSubmit} noValidate>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                 {campoM('nombre', { id: 'nombre-m', texto: 'Nombre completo', Icono: User, tipo: 'text', auto: 'name', ph: 'Juan Pérez' })}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   {campoM('dni', { id: 'dni-m', texto: 'DNI', Icono: CreditCard, tipo: 'text', modo: 'numeric', ph: '12345678' })}
                   {campoM('telefono', { id: 'telefono-m', texto: 'Teléfono', Icono: Phone, tipo: 'tel', auto: 'tel', ph: '1123456789' })}
                 </div>
@@ -329,11 +329,11 @@ function RegistroPage() {
 
               {/* Requisitos de la contraseña: aparecen cuando empieza a escribir */}
               {formData.password.length > 0 && (
-                <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', font: "600 12px Archivo, sans-serif" }}>
+                <ul aria-label="Requisitos de la contraseña" style={{ listStyle: 'none', margin: '0.75rem 0 0', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem 0.75rem', font: "600 0.75rem Archivo, sans-serif" }}>
                   {PASSWORD_RULES.map(rule => {
                     const ok = rule.test(formData.password)
                     return (
-                      <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: ok ? '#9be600' : '#8a8f7a' }}>
+                      <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: ok ? '#9be600' : '#8a8f7a' }}>
                         <span aria-hidden="true">{ok ? '✓' : '○'}</span>{rule.label}
                       </li>
                     )
@@ -341,19 +341,19 @@ function RegistroPage() {
                 </ul>
               )}
 
-              <label htmlFor="aceptaTerminos-m" style={{ display: 'flex', gap: '10px', marginTop: '14px', fontSize: '11.5px', lineHeight: 1.5, color: '#8a8f7a' }}>
+              <label htmlFor="aceptaTerminos-m" style={{ display: 'flex', gap: '0.625rem', marginTop: '0.875rem', fontSize: '0.7188rem', lineHeight: 1.5, color: '#8a8f7a' }}>
                 <input id="aceptaTerminos-m" type="checkbox" checked={aceptaTerminos}
                   onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked) setErrorTerminos('') }}
-                  style={{ accentColor: '#9be600', width: '20px', height: '20px', flex: 'none', margin: 0 }} />
+                  style={{ accentColor: '#9be600', width: '1.25rem', height: '1.25rem', flex: 'none', margin: 0 }} />
                 <span>Leí y acepto los <Link to="/terminos" target="_blank">Términos y condiciones</Link> y la <Link to="/privacidad" target="_blank">Política de privacidad</Link>. Si soy menor de 18 años, cuento con la autorización de mi madre, padre o tutor.</span>
               </label>
-              {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '6px 0 0' }}><XCircle size={15} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
-              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: '16px' }}>{isLoading ? 'Creando…' : 'Crear mi cuenta'}</button>
+              {errorTerminos && <p role="alert" style={{ ...msjErrorM, margin: '0.375rem 0 0' }}><XCircle size={15} aria-hidden="true" style={{ flexShrink: 0 }} />{errorTerminos}</p>}
+              <button type="submit" disabled={isLoading} className="boton" style={{ marginTop: '1rem' }}>{isLoading ? 'Creando…' : 'Crear mi cuenta'}</button>
             </form>
           </div>
-          <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '8px' }}>
-            <span style={{ textAlign: 'center', font: '600 11px Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a' }}>¿YA TENÉS CUENTA?</span>
-            <Link to="/login" onClick={irA('/login')} className="btn2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '44px', border: '1px solid rgba(155,230,0,.55)', borderRadius: '10px', textDecoration: 'none', color: '#9be600', font: "900 16px 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Iniciar sesión →</Link>
+          <div style={{ marginTop: '0.875rem', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '0.5rem' }}>
+            <span style={{ textAlign: 'center', font: '600 0.6875rem Archivo, sans-serif', letterSpacing: '0.08em', color: '#8a8f7a' }}>¿YA TENÉS CUENTA?</span>
+            <Link to="/login" onClick={irA('/login')} className="btn2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '2.75rem', border: '1px solid rgba(155,230,0,.55)', borderRadius: '0.625rem', textDecoration: 'none', color: '#9be600', font: "900 1rem 'Big Shoulders Stencil Display'", letterSpacing: '0.12em', textTransform: 'uppercase' }}>Iniciar sesión →</Link>
           </div>
         </div>
       </div>
@@ -415,10 +415,10 @@ function RegistroPage() {
 
         {/* PANEL DERECHO */}
         <div style={{ position: 'relative', padding: `${U(40)} 0 ${U(28)}`, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', overflowY: 'auto', background: '#0e100a', paddingLeft: `max(0px, calc(min(${U(800)}, 52vw) - min(100vh * 873 / 1140, 52vw)))` }}>
-          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '999px', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
+          <a href="#volver" onClick={(e) => { e.preventDefault(); volver() }} style={{ position: 'absolute', top: U(46), right: U(59), font: `600 ${U(14)} Archivo, sans-serif`, display: 'inline-flex', alignItems: 'center', height: U(39), padding: `0 ${U(16)}`, border: `${U(1)} solid #4b5233`, borderRadius: '62.4375rem', background: 'rgba(14,16,10,.55)', whiteSpace: 'nowrap', textDecoration: 'none', color: '#ecefe4' }}>Volver al sitio</a>
           {/* La referencia centra el bloque; acá se fija desde arriba en la posición centrada para que no salte al aparecer errores */}
           <div style={{ width: U(480), flexShrink: 0, margin: 'auto 0' }}>
-            <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(22)} ${U(30)}`, background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 30px 60px -12px rgba(0,0,0,.75), 0 12px 24px -8px rgba(0,0,0,.6), 0 0 60px -20px rgba(155,230,0,.18)' }}>
+            <div ref={fichaRef} onMouseMove={inclinar} onMouseLeave={soltar} className="ficha-flota" style={{ position: 'relative', border: `${U(1)} solid #4a4e3f`, borderRadius: U(16), padding: `${U(22)} ${U(30)}`, background: 'linear-gradient(160deg, #16190f 0%, #0e100a 60%)', boxShadow: '0 1px 0 rgba(236,239,228,.08) inset, 0 1.875rem 3.75rem -0.75rem rgba(0,0,0,.75), 0 0.75rem 1.5rem -0.5rem rgba(0,0,0,.6), 0 0 3.75rem -1.25rem rgba(155,230,0,.18)' }}>
               <img src="/acceso/dog-t.png" alt="" style={{ position: 'absolute', left: U(30), bottom: `calc(100% - 2 * var(--u))`, width: U(110), height: U(110) }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', font: `500 ${U(10.5)} ${MONO_REF}`, letterSpacing: '0.16em', color: '#8a8f7a', paddingBottom: U(12), borderBottom: `${U(1)} dashed #3a3d32` }}><span style={{ color: '#9be600', whiteSpace: 'nowrap' }}>ALTA DE SOCIO</span></div>
               <div role="heading" aria-level={2} style={{ font: `900 ${U(54)}/0.9 ${BIG_REF}`, textTransform: 'uppercase', margin: `${U(16)} 0 ${U(4)}` }}>Crear cuenta<span style={{ color: '#9be600' }}>.</span></div>

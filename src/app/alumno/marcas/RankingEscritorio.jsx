@@ -14,7 +14,7 @@ const MEDALLAS = {
   3: "bg-[#d9a066] text-[#4a2a00]",
 }
 
-const campoCls = "h-12 w-full rounded-[10px] border border-bx-btn-line bg-bx-surf text-[15px] font-medium text-bx-ink placeholder:text-bx-muted"
+const campoCls = "h-12 w-full rounded-[0.625rem] border border-bx-btn-line bg-bx-surf text-[0.9375rem] font-medium text-bx-ink placeholder:text-bx-muted"
 
 const ordinal = (n) => `${n}º`
 
@@ -54,8 +54,8 @@ export default function RankingEscritorio({ idCatalogo, onElegir, onEditar }) {
   return (
     <>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex min-w-[220px] flex-col gap-1.5">
-          <span className="text-[13px] font-semibold text-bx-muted">Ejercicio</span>
+        <label className="flex min-w-[13.75rem] flex-col gap-1.5">
+          <span className="text-[0.8125rem] font-semibold text-bx-muted">Ejercicio</span>
           <select
             value={actual.idCatalogo}
             onChange={(e) => { onElegir(Number(e.target.value)); setBusqueda("") }}
@@ -68,10 +68,10 @@ export default function RankingEscritorio({ idCatalogo, onElegir, onEditar }) {
             ))}
           </select>
         </label>
-        <label className="relative min-w-[240px] max-w-[520px] flex-1">
+        <label className="relative min-w-[15rem] max-w-[32.5rem] flex-1">
           <span className="sr-only">Buscar alumno</span>
           <span className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 text-bx-muted"><Ico d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3" size={18} /></span>
-          <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar alumno" className={`${campoCls} pl-[42px] pr-3.5`} />
+          <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar alumno" className={`${campoCls} pl-[2.625rem] pr-3.5`} />
         </label>
       </div>
 
@@ -84,10 +84,10 @@ export default function RankingEscritorio({ idCatalogo, onElegir, onEditar }) {
               {mio ? (
                 <>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="bx-num text-[56px] leading-none text-bx-lima">{ordinal(mio.posicion)}</span>
-                    <span className="text-[15px] font-semibold text-[#a3a698]">de {ranking.length}</span>
+                    <span className="bx-num text-[3.5rem] leading-none text-bx-lima">{ordinal(mio.posicion)}</span>
+                    <span className="text-[0.9375rem] font-semibold text-[#a3a698]">de {ranking.length}</span>
                   </div>
-                  <div className="min-w-[200px] flex-1">
+                  <div className="min-w-[12.5rem] flex-1">
                     <div className="text-base font-bold">{mio.posicion === 1 ? `Estás primero en ${actual.nombre}` : `Estás en el puesto ${mio.posicion} en ${actual.nombre}`}</div>
                     <div className="text-sm text-[#a3a698]">Tu RM: {formatearValor(actual.tipoMarca, mio.valor)}</div>
                   </div>
@@ -101,7 +101,7 @@ export default function RankingEscritorio({ idCatalogo, onElegir, onEditar }) {
                 </>
               ) : (
                 <>
-                  <div className="min-w-[200px] flex-1">
+                  <div className="min-w-[12.5rem] flex-1">
                     <div className="text-base font-bold">Todavía no estás en el ranking de {actual.nombre}</div>
                     <div className="text-sm text-[#a3a698]">Cargá tu RM para sumarte.</div>
                   </div>
@@ -112,14 +112,14 @@ export default function RankingEscritorio({ idCatalogo, onElegir, onEditar }) {
           </HeroCard>
 
           {filas.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[15px] font-medium text-bx-muted">Nadie coincide con “{busqueda}”.</div>
+            <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[0.9375rem] font-medium text-bx-muted">Nadie coincide con “{busqueda}”.</div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-bx-line bg-bx-card">
-              <table className="w-full border-collapse text-[15px] font-medium">
+              <table className="w-full border-collapse text-[0.9375rem] font-medium">
                 <caption className="sr-only">Ranking de {actual.nombre}</caption>
                 <thead>
                   <tr className="border-b border-bx-line">
-                    <th scope="col" className="w-[90px] px-5 py-3.5 text-left text-xs font-semibold tracking-[0.1em] text-bx-muted">PUESTO</th>
+                    <th scope="col" className="w-[5.625rem] px-5 py-3.5 text-left text-xs font-semibold tracking-[0.1em] text-bx-muted">PUESTO</th>
                     <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold tracking-[0.1em] text-bx-muted">ALUMNO</th>
                     <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold tracking-[0.1em] text-bx-muted">RM</th>
                   </tr>

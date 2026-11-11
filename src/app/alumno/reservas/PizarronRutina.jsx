@@ -127,14 +127,14 @@ export default function PizarronRutina({ reserva, onClose }) {
                           type="button"
                           onClick={() => setVideo(video === i ? null : i)}
                           aria-pressed={video === i}
-                          className={`flex min-h-[36px] items-center gap-1 rounded-full border px-3 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                          className={`flex min-h-[2.25rem] items-center gap-1 rounded-full border px-3 text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                             video === i ? "border-lime-400 bg-lime-400 text-black" : "border-lime-500/40 text-foreground"
                           }`}
                         >
                           <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" /> {i + 1}. {e.nombre}
                         </button>
                       ) : (
-                        <span key={i} className="flex min-h-[36px] items-center rounded-full border border-border px-3 text-xs font-bold text-foreground/80">
+                        <span key={i} className="flex min-h-[2.25rem] items-center rounded-full border border-border px-3 text-xs font-bold text-foreground/80">
                           {i + 1}. {e.nombre}
                         </span>
                       )

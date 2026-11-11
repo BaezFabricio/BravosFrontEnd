@@ -155,7 +155,7 @@ export default function AdminDashboard() {
         {grupos.map((g) => (
           <div key={g.k}>
             <div className="relative border-t border-border">
-              <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-card px-2 text-[9px] font-bold uppercase tracking-wider text-foreground/50">{g.label}</span>
+              <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-card px-2 text-[0.5625rem] font-bold uppercase tracking-wider text-foreground/50">{g.label}</span>
             </div>
             <div className="divide-y divide-border">
               {g.items.map((activity, index) => {
@@ -172,8 +172,8 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                     <div className="flex h-7 flex-col justify-center justify-self-end text-right">
-                      <p className="text-[11px] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
-                      {hora && <p className="text-[11px] text-foreground/30">{hora} hs</p>}
+                      <p className="text-[0.6875rem] text-foreground/40 whitespace-nowrap">{fechaDeActividad(activity.fecha_orden)}</p>
+                      {hora && <p className="text-[0.6875rem] text-foreground/30">{hora} hs</p>}
                     </div>
                   </div>
                 )
@@ -199,14 +199,14 @@ export default function AdminDashboard() {
             const avatar = getAvatarColor(user.name)
             return (
               <div key={user.dni} className="flex items-center gap-3 px-5 py-3 hover:bg-foreground/[0.02] transition-colors">
-                <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black ${avatar.bg} ${avatar.text}`}>
+                <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[0.6875rem] font-black ${avatar.bg} ${avatar.text}`}>
                   {getInitials(user.name)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                  <p className="text-[11px] text-foreground/40 mt-0.5 truncate">{user.email || "sin correo"}</p>
+                  <p className="text-[0.6875rem] text-foreground/40 mt-0.5 truncate">{user.email || "sin correo"}</p>
                 </div>
-                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md shrink-0 ${colorDias(user.daysOverdue)}`}>
+                <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md shrink-0 ${colorDias(user.daysOverdue)}`}>
                   {user.daysOverdue <= 0 ? "Sin créditos" : `${user.daysOverdue} días`}
                 </span>
               </div>
@@ -234,10 +234,10 @@ export default function AdminDashboard() {
                 <span className="text-xs font-black text-foreground/50 w-12 shrink-0">{cls.time}</span>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground truncate">{cls.name}</p>
-                  <p className="text-[11px] text-foreground/40 truncate">{cls.coach}</p>
+                  <p className="text-[0.6875rem] text-foreground/40 truncate">{cls.coach}</p>
                 </div>
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md shrink-0 ${lleno ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20" : "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"}`}>
+              <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md shrink-0 ${lleno ? "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20" : "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20"}`}>
                 {cls.spots || "0/0"}
               </span>
             </div>
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
       <div>
         <TituloPagina descripcion={"Panel de administración - Bravos Gym"}>Resumen</TituloPagina>
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card px-5 py-5 md:px-7 md:py-6">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-lime-400">{FECHA_LARGA}</p>
+          <p className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-lime-400">{FECHA_LARGA}</p>
           <h2 className="mt-2 text-4xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-5xl">
             {primerNombre ? `Hola, ${primerNombre}` : "Bienvenido"}
           </h2>
@@ -288,9 +288,9 @@ export default function AdminDashboard() {
                 <div key={stat.title} className={`rounded-xl border border-border border-l-2 ${s.border} bg-card px-5 py-4`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground leading-tight">{stat.title}</p>
+                      <p className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground leading-tight">{stat.title}</p>
                       <p className="text-4xl font-black text-foreground mt-2 leading-none">{stat.value}</p>
-                      <p className={`text-[11px] font-semibold mt-2 ${s.sub}`}>{stat.sub}</p>
+                      <p className={`text-[0.6875rem] font-semibold mt-2 ${s.sub}`}>{stat.sub}</p>
                     </div>
                     <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${s.badgeBg}`}>
                       <stat.icon className={`h-4 w-4 ${s.icon}`} />
@@ -311,13 +311,13 @@ export default function AdminDashboard() {
                   role="tab"
                   aria-selected={pestana === p.id}
                   onClick={() => setPestana(p.id)}
-                  className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-1 text-center text-[10px] font-black uppercase leading-tight tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                  className={`flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-lg px-1 text-center text-[0.625rem] font-black uppercase leading-tight tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                     pestana === p.id ? "bg-foreground/10 text-foreground" : "text-foreground/55 hover:text-foreground"
                   }`}
                 >
                   {p.label}
                   {!loading && p.cantidad > 0 && (
-                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] text-white">{p.cantidad}</span>
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[0.5625rem] text-white">{p.cantidad}</span>
                   )}
                 </button>
               ))}
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                   {pestana === "sinPago" ? "Usuarios sin pago" : pestana === "clases" ? "Clases de hoy" : "Actividad reciente"}
                 </p>
                 {pestana === "sinPago" && !loading && suspendedUsers.length > 0 && (
-                  <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                  <span className="rounded-full bg-red-600 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-white">
                     {suspendedUsers.length} {suspendedUsers.length === 1 ? "usuario" : "usuarios"}
                   </span>
                 )}
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
           <div className="hidden rounded-xl border border-border bg-card lg:block">
             <div className="border-b border-border px-5 py-3 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-foreground/40" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Actividad Reciente</p>
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Actividad Reciente</p>
             </div>
 
             {listaActividad}
@@ -358,10 +358,10 @@ export default function AdminDashboard() {
             <div className="border-b border-border px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-400" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sin pago</p>
+                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Sin pago</p>
               </div>
               {!loading && (
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border border-yellow-400/20 rounded-md">
+                <span className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border border-yellow-400/20 rounded-md">
                   {suspendedUsers.length} {suspendedUsers.length === 1 ? 'usuario' : 'usuarios'}
                 </span>
               )}
@@ -374,7 +374,7 @@ export default function AdminDashboard() {
           <div className="rounded-xl border border-border bg-card">
             <div className="border-b border-border px-5 py-3 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-foreground/40" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clases de hoy</p>
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Clases de hoy</p>
             </div>
 
             {listaClases}

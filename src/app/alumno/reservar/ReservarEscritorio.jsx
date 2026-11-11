@@ -67,11 +67,11 @@ export default function ReservarEscritorio({
         <ErrorBanner titulo="No pudimos cargar las clases" texto="Revisá tu conexión e intentá de nuevo." onReintentar={onReintentar} />
       )}
 
-      <section aria-label="Créditos" className={`flex flex-wrap items-center gap-x-[18px] gap-y-3.5 rounded-[14px] border bg-bx-card px-5 py-4 ${sinCreditos ? "border-bx-err-line" : "border-bx-line"}`}>
-        <span className={`bx-num grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 text-[26px] leading-none ${sinCreditos ? "border-bx-err-fg text-bx-err-fg" : "border-bx-ok-fg text-bx-ok-fg"}`}>
+      <section aria-label="Créditos" className={`flex flex-wrap items-center gap-x-[1.125rem] gap-y-3.5 rounded-[0.875rem] border bg-bx-card px-5 py-4 ${sinCreditos ? "border-bx-err-line" : "border-bx-line"}`}>
+        <span className={`bx-num grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 text-[1.625rem] leading-none ${sinCreditos ? "border-bx-err-fg text-bx-err-fg" : "border-bx-ok-fg text-bx-ok-fg"}`}>
           {cargandoCreditos ? "…" : creditos}
         </span>
-        <div className="min-w-[220px] flex-1">
+        <div className="min-w-[13.75rem] flex-1">
           <div className="text-base font-bold">{sinCreditos ? "No tenés créditos" : "Créditos disponibles"}</div>
           <div className="text-sm leading-[1.45] text-bx-muted">
             {semana
@@ -84,11 +84,11 @@ export default function ReservarEscritorio({
           : <Boton to="/alumno/creditos" variante="secundario" className="text-bx-ink">Ver mis créditos</Boton>}
       </section>
 
-      <Tarjeta aria-labelledby="t-dia" className="flex flex-col gap-[18px]">
+      <Tarjeta aria-labelledby="t-dia" className="flex flex-col gap-[1.125rem]">
         <div className="flex items-end justify-between gap-3">
           <div>
             <div className="text-xs font-semibold tracking-[0.1em] text-bx-muted">ELEGÍ EL DÍA</div>
-            <h2 id="t-dia" className="mt-1 text-[22px] font-bold">{fechaLarga(selectedDate)}</h2>
+            <h2 id="t-dia" className="mt-1 text-[1.375rem] font-bold">{fechaLarga(selectedDate)}</h2>
           </div>
           <div className="flex gap-2">
             <button
@@ -96,7 +96,7 @@ export default function ReservarEscritorio({
               aria-label="Semana anterior"
               disabled={prevDeshabilitada}
               onClick={() => mover(-7)}
-              className="grid h-11 w-11 place-items-center rounded-[10px] border border-bx-line2 bg-transparent text-bx-muted disabled:cursor-not-allowed disabled:opacity-45 enabled:border-bx-btn-line enabled:bg-bx-surf enabled:text-bx-ink enabled:hover:border-bx-lima"
+              className="grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-line2 bg-transparent text-bx-muted disabled:cursor-not-allowed disabled:opacity-45 enabled:border-bx-btn-line enabled:bg-bx-surf enabled:text-bx-ink enabled:hover:border-bx-lima"
             >
               <Ico d="m15 6-6 6 6 6" size={18} sw={2} />
             </button>
@@ -104,7 +104,7 @@ export default function ReservarEscritorio({
               type="button"
               aria-label="Semana siguiente"
               onClick={() => mover(7)}
-              className="grid h-11 w-11 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima"
+              className="grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-surf text-bx-ink hover:border-bx-lima"
             >
               <Ico d={IC.chevRight} size={18} sw={2} />
             </button>
@@ -126,20 +126,20 @@ export default function ReservarEscritorio({
                 aria-pressed={sel}
                 aria-label={`${NOMBRES_DIA[date.getDay()]} ${date.getDate()}${esDiaHoy ? ", hoy" : ""}${hayClases ? ", hay clases" : ", sin clases"}${pasado ? ", no disponible" : ""}`}
                 onClick={() => { setSelectedDate(date); setTurnoFiltro(null) }}
-                className={`flex h-[84px] flex-col items-center justify-center gap-1 rounded-xl border transition-colors ${
+                className={`flex h-[5.25rem] flex-col items-center justify-center gap-1 rounded-xl border transition-colors ${
                   sel ? "border-bx-lima bg-bx-lima text-bx-negro"
                   : pasado ? "cursor-not-allowed border-bx-line bg-transparent text-bx-muted opacity-45"
                   : "border-bx-line2 bg-bx-surf text-bx-ink hover:border-bx-lima"
                 }`}
               >
                 <span className="text-xs font-bold tracking-[0.08em]">{esDiaHoy ? "HOY" : ABREV_DIA[i]}</span>
-                <span className="bx-num text-[30px] leading-none">{date.getDate()}</span>
+                <span className="bx-num text-[1.875rem] leading-none">{date.getDate()}</span>
                 <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${hayClases ? (sel ? "bg-bx-negro" : "bg-bx-lima") : "bg-transparent"}`} />
               </button>
             )
           })}
         </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-medium text-bx-muted">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[0.8125rem] font-medium text-bx-muted">
           <span className="inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-bx-lima" />Hay clases ese día</span>
           <span>Los días pasados no se pueden reservar</span>
         </div>
@@ -158,7 +158,7 @@ export default function ReservarEscritorio({
             >
               <span className="text-sm font-bold">{f.label}</span>
               {f.rango && <span className="text-xs font-medium opacity-80">{f.rango}</span>}
-              <span className={`h-[22px] min-w-[22px] rounded-[11px] px-1.5 text-center text-xs font-bold leading-[22px] ${activa ? "bg-[#c9ccbe] text-bx-negro dark:bg-[#c9ccbe]" : "bg-bx-line2"}`}>{f.cantidad}</span>
+              <span className={`h-[1.375rem] min-w-[1.375rem] rounded-[0.6875rem] px-1.5 text-center text-xs font-bold leading-[1.375rem] ${activa ? "bg-[#c9ccbe] text-bx-negro dark:bg-[#c9ccbe]" : "bg-bx-line2"}`}>{f.cantidad}</span>
             </button>
           )
         })}
@@ -166,7 +166,7 @@ export default function ReservarEscritorio({
 
       <section className="flex flex-col gap-3.5">
         {cargando && (
-          <div aria-busy="true" aria-label="Cargando clases" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3.5">
+          <div aria-busy="true" aria-label="Cargando clases" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,21.25rem),1fr))] gap-3.5">
             <Esqueleto alto={220} className="rounded-2xl" etiqueta="Cargando clase" />
             <Esqueleto alto={220} className="rounded-2xl" etiqueta="Cargando clase" />
           </div>
@@ -193,7 +193,7 @@ export default function ReservarEscritorio({
               <h2 className="m-0 text-lg font-bold">{plan.nombre}</h2>
               <span aria-live="polite" className="text-sm font-medium text-bx-muted">{plural(clases.length, "clase", "clases")}</span>
             </div>
-            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-3.5 p-0">
+            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,21.25rem),1fr))] gap-3.5 p-0">
               {clases.map((c) => {
                 const sinCupos = c.cuposDisponibles === 0
                 const puedeRes = puedeReservar(selectedDate, c.hora)
@@ -206,21 +206,21 @@ export default function ReservarEscritorio({
                   <li key={c.id} className={`flex flex-col gap-3.5 rounded-2xl border bg-bx-card p-5 ${c.reservado ? "border-bx-ok-line" : "border-bx-line"}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="bx-num text-[40px] leading-none">{c.hora}</div>
-                        <div className="mt-1 text-[13px] font-medium text-bx-muted">{c.duracion}</div>
+                        <div className="bx-num text-[2.5rem] leading-none">{c.hora}</div>
+                        <div className="mt-1 text-[0.8125rem] font-medium text-bx-muted">{c.duracion}</div>
                       </div>
                       {c.reservado && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-bx-ok-line bg-bx-ok-bg px-3 py-1.5 text-[13px] font-bold text-bx-ok-fg">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-bx-ok-line bg-bx-ok-bg px-3 py-1.5 text-[0.8125rem] font-bold text-bx-ok-fg">
                           <Ico d={IC.check} size={14} sw={2.4} />Reservada
                         </span>
                       )}
                     </div>
                     <div>
-                      <div className="text-[17px] font-bold">{c.nombre}</div>
+                      <div className="text-[1.0625rem] font-bold">{c.nombre}</div>
                       <div className="mt-1 flex items-center gap-2 text-sm text-bx-muted"><Ico d={IC.user} size={16} />Coach: {c.coach}</div>
                     </div>
                     <div>
-                      <div className="mb-1.5 flex justify-between text-[13px] font-medium">
+                      <div className="mb-1.5 flex justify-between text-[0.8125rem] font-medium">
                         <span>{sinCupos ? "Sin lugares libres" : plural(c.cuposDisponibles, "lugar libre", "lugares libres")}</span>
                         <span className="text-bx-muted">de {c.cuposTotales}</span>
                       </div>
@@ -233,7 +233,7 @@ export default function ReservarEscritorio({
                           <>
                             {c.descripcion && (
                               <div
-                                className="mb-2 text-[13px] leading-relaxed text-bx-muted [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-bx-ink [&_ul]:list-disc [&_ul]:pl-4"
+                                className="mb-2 text-[0.8125rem] leading-relaxed text-bx-muted [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-bx-ink [&_ul]:list-disc [&_ul]:pl-4"
                                 dangerouslySetInnerHTML={{ __html: sanitizarHtml(c.descripcion) }}
                               />
                             )}
@@ -250,7 +250,7 @@ export default function ReservarEscritorio({
                                 </button>
                                 {rutinaAbierta[c.id] && (
                                   <div
-                                    className="mt-1 rounded-[10px] border border-bx-line2 bg-bx-surf p-3 text-[13px] leading-relaxed text-bx-muted [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-bx-ink [&_ul]:list-disc [&_ul]:pl-4"
+                                    className="mt-1 rounded-[0.625rem] border border-bx-line2 bg-bx-surf p-3 text-[0.8125rem] leading-relaxed text-bx-muted [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-bx-ink [&_ul]:list-disc [&_ul]:pl-4"
                                     dangerouslySetInnerHTML={{ __html: sanitizarHtml(typeof c.rutina === "string" ? c.rutina : JSON.stringify(c.rutina)) }}
                                   />
                                 )}
@@ -258,7 +258,7 @@ export default function ReservarEscritorio({
                             )}
                           </>
                         ) : (
-                          <div className="flex items-center gap-2 text-[13px] text-bx-muted">
+                          <div className="flex items-center gap-2 text-[0.8125rem] text-bx-muted">
                             Rutina disponible el <strong className="text-bx-ink">{fechaPublicacion(c.publicarEn)}</strong>
                           </div>
                         )}
@@ -270,29 +270,29 @@ export default function ReservarEscritorio({
                         <button
                           type="button"
                           onClick={() => onCancelar(c)}
-                          className="h-12 rounded-lg border border-bx-btn-line bg-transparent text-[15px] font-bold text-bx-ink transition-colors hover:border-bx-err-fg hover:text-bx-err-fg"
+                          className="h-12 rounded-lg border border-bx-btn-line bg-transparent text-[0.9375rem] font-bold text-bx-ink transition-colors hover:border-bx-err-fg hover:text-bx-err-fg"
                         >
                           Cancelar reserva
                         </button>
                       ) : (
                         <div className="flex flex-col gap-1.5">
-                          <button type="button" disabled aria-describedby={idAyuda} className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[15px] font-bold text-bx-muted">Reservada</button>
-                          <span id={idAyuda} className="text-[13px] font-medium text-bx-muted">Faltan menos de 2 horas: ya no se puede cancelar.</span>
+                          <button type="button" disabled aria-describedby={idAyuda} className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[0.9375rem] font-bold text-bx-muted">Reservada</button>
+                          <span id={idAyuda} className="text-[0.8125rem] font-medium text-bx-muted">Faltan menos de 2 horas: ya no se puede cancelar.</span>
                         </div>
                       )
                     ) : sinCupos ? (
-                      <button type="button" disabled className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[15px] font-bold text-bx-muted">Sin cupos disponibles</button>
+                      <button type="button" disabled className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[0.9375rem] font-bold text-bx-muted">Sin cupos disponibles</button>
                     ) : sinCreditos || !puedeRes ? (
                       <div className="flex flex-col gap-1.5">
-                        <button type="button" disabled aria-describedby={idAyuda} className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[15px] font-bold text-bx-muted">Reservar · 1 crédito</button>
-                        <span id={idAyuda} className="text-[13px] font-medium text-bx-muted">{sinCreditos ? "Necesitás al menos 1 crédito para reservar." : motivoNoReservable}</span>
+                        <button type="button" disabled aria-describedby={idAyuda} className="h-12 cursor-not-allowed rounded-lg border border-bx-line2 bg-bx-surf text-[0.9375rem] font-bold text-bx-muted">Reservar · 1 crédito</button>
+                        <span id={idAyuda} className="text-[0.8125rem] font-medium text-bx-muted">{sinCreditos ? "Necesitás al menos 1 crédito para reservar." : motivoNoReservable}</span>
                       </div>
                     ) : (
                       <button
                         type="button"
                         onClick={() => onReservar(c)}
                         aria-label={`Reservar ${c.nombre} a las ${c.hora}, usa 1 crédito`}
-                        className="h-12 rounded-lg bg-bx-lima text-[15px] font-bold text-bx-negro transition-colors hover:bg-bx-lima-hover"
+                        className="h-12 rounded-lg bg-bx-lima text-[0.9375rem] font-bold text-bx-negro transition-colors hover:bg-bx-lima-hover"
                       >
                         Reservar · 1 crédito
                       </button>
@@ -323,11 +323,11 @@ export default function ReservarEscritorio({
         {selectedClass && (
           <div className="flex flex-col gap-4">
             <div className="rounded-xl border border-bx-line2 bg-bx-surf p-4">
-              <div className="bx-num text-[32px] leading-none">{selectedClass.hora}</div>
-              <div className="mt-1.5 text-[15px] font-bold">{selectedClass.nombre}{selectedClass.tipo ? ` · ${selectedClass.tipo}` : ""}</div>
+              <div className="bx-num text-[2rem] leading-none">{selectedClass.hora}</div>
+              <div className="mt-1.5 text-[0.9375rem] font-bold">{selectedClass.nombre}{selectedClass.tipo ? ` · ${selectedClass.tipo}` : ""}</div>
               <div className="text-sm text-bx-muted">{fechaLarga(selectedDate)} · {selectedClass.duracion} · Coach: {selectedClass.coach}</div>
             </div>
-            <ul className="m-0 pl-[18px] text-sm leading-[1.6] text-bx-muted">
+            <ul className="m-0 pl-[1.125rem] text-sm leading-[1.6] text-bx-muted">
               {semana ? (
                 <>
                   <li>Se descuenta 1 crédito. Te quedan {Math.max(0, creditos - 1)}.</li>
@@ -363,8 +363,8 @@ export default function ReservarEscritorio({
         {cancelDialog.clase && (
           <div className="flex flex-col gap-4">
             <div className="rounded-xl border border-bx-line2 bg-bx-surf p-4">
-              <div className="bx-num text-[32px] leading-none">{cancelDialog.clase.hora}</div>
-              <div className="mt-1.5 text-[15px] font-bold">{cancelDialog.clase.nombre}</div>
+              <div className="bx-num text-[2rem] leading-none">{cancelDialog.clase.hora}</div>
+              <div className="mt-1.5 text-[0.9375rem] font-bold">{cancelDialog.clase.nombre}</div>
               <div className="text-sm text-bx-muted">{fechaLarga(selectedDate)} · Coach: {cancelDialog.clase.coach}</div>
             </div>
             <p className="m-0 text-sm leading-[1.6] text-bx-muted">

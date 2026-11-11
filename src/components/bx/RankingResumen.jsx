@@ -40,9 +40,9 @@ export default function RankingResumen() {
       </div>
       <ol className="m-0 flex list-none flex-col gap-2 p-0">
         {top.map((f, i) => (
-          <li key={`${f.posicion}-${i}`} className="flex items-center gap-3.5 rounded-[10px] border border-bx-line2 bg-bx-surf px-3.5 py-3">
+          <li key={`${f.posicion}-${i}`} className="flex items-center gap-3.5 rounded-[0.625rem] border border-bx-line2 bg-bx-surf px-3.5 py-3">
             <span aria-label={`Puesto ${f.posicion}`} className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-extrabold ${MEDALLAS[f.posicion] || "bg-bx-track text-bx-ink"}`}>{f.posicion}</span>
-            <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-bx-ink">
+            <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold text-bx-ink">
               {f.nombre}
               {f.esMio && <Insignia className="ml-1.5">VOS</Insignia>}
             </span>

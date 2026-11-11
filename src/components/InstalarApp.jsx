@@ -73,7 +73,7 @@ export default function InstalarApp() {
           <div role="tablist" aria-label="Tu celular" className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/50 p-1">
             {Object.entries(PASOS).map(([clave, d]) => (
               <button key={clave} type="button" role="tab" aria-selected={elegido === clave} onClick={() => setElegido(clave)}
-                className={`min-h-[40px] rounded-lg text-sm font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                className={`min-h-[2.5rem] rounded-lg text-sm font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                   elegido === clave ? "bg-lime-400 text-black" : "text-foreground/60 hover:text-foreground"
                 }`}>
                 {d.titulo}

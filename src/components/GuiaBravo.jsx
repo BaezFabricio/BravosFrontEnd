@@ -265,11 +265,11 @@ export default function GuiaBravo({ guia, pasos, navegar = false, onFin }) {
 
           <div className="relative">
             <div key={`texto-${i}`} className="guia-texto">
-              <p id="guia-titulo" className="text-[15px] font-black uppercase leading-tight tracking-wide text-lime-400">{paso.titulo}</p>
+              <p id="guia-titulo" className="text-[0.9375rem] font-black uppercase leading-tight tracking-wide text-lime-400">{paso.titulo}</p>
               <p className="mt-1 text-xs font-medium leading-snug text-white">{paso.texto}</p>
-              <ul className="mt-1.5 grid gap-[3px]">
+              <ul className="mt-1.5 grid gap-[0.1875rem]">
                 {paso.puntos.map((p) => (
-                  <li key={p} className="flex gap-1 text-[11px] leading-snug text-zinc-300">
+                  <li key={p} className="flex gap-1 text-[0.6875rem] leading-snug text-zinc-300">
                     <ChevronRight className="mt-px h-3 w-3 shrink-0 text-lime-400" aria-hidden="true" />
                     <span>{p}</span>
                   </li>
@@ -281,22 +281,22 @@ export default function GuiaBravo({ guia, pasos, navegar = false, onFin }) {
             </div>
             <div className="mt-1.5 flex items-center gap-1">
               {paso.soloAvisos ? (
-                <button type="button" onClick={ahoraNo} disabled={trabajando} className="min-h-[34px] px-1 text-[11px] text-zinc-400 underline">Ahora no</button>
+                <button type="button" onClick={ahoraNo} disabled={trabajando} className="min-h-[2.125rem] px-1 text-[0.6875rem] text-zinc-400 underline">Ahora no</button>
               ) : (
-                <button type="button" onClick={terminar} className="min-h-[34px] px-1 text-[11px] text-zinc-400 underline">Saltar</button>
+                <button type="button" onClick={terminar} className="min-h-[2.125rem] px-1 text-[0.6875rem] text-zinc-400 underline">Saltar</button>
               )}
               {i > 0 && !paso.soloAvisos && (
-                <button type="button" onClick={() => setI((k) => k - 1)} className="min-h-[34px] px-1 text-[11px] text-zinc-400">Atrás</button>
+                <button type="button" onClick={() => setI((k) => k - 1)} className="min-h-[2.125rem] px-1 text-[0.6875rem] text-zinc-400">Atrás</button>
               )}
               {armados.length > 1 && (
-                <span className="ml-1 text-[10px] tabular-nums text-zinc-500" aria-label={`Paso ${i + 1} de ${armados.length}`}>{i + 1}/{armados.length}</span>
+                <span className="ml-1 text-[0.625rem] tabular-nums text-zinc-500" aria-label={`Paso ${i + 1} de ${armados.length}`}>{i + 1}/{armados.length}</span>
               )}
               <button
                 ref={principal}
                 type="button"
                 disabled={trabajando}
                 onClick={paso.soloAvisos ? activarAvisos : esUltimo ? terminar : () => setI((k) => k + 1)}
-                className="ml-auto min-h-[34px] rounded-bl-[3px] rounded-br-[10px] rounded-tl-[10px] rounded-tr-[3px] bg-lime-400 px-4 text-xs font-bold text-[#1a2a00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+                className="ml-auto min-h-[2.125rem] rounded-bl-[0.1875rem] rounded-br-[0.625rem] rounded-tl-[0.625rem] rounded-tr-[0.1875rem] bg-lime-400 px-4 text-xs font-bold text-[#1a2a00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
               >
                 {paso.soloAvisos ? "Activar avisos" : esUltimo ? "Listo" : "Dale"}
               </button>

@@ -2,7 +2,7 @@
 // Dibuja un ícono a partir de su trazo (`d`). Decorativo: aria-hidden.
 export function Ico({ d, size = 20, sw = 1.8, className, style }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} style={style}>
+    <svg width={`${size / 16}rem`} height={`${size / 16}rem`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} style={style}>
       <path d={d} />
     </svg>
   )

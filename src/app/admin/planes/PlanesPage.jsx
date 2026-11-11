@@ -122,7 +122,7 @@ export default function PlanesPage() {
         <div className="grid grid-cols-2 gap-2 sm:flex sm:self-start">
           <button
             onClick={() => setTiposAbierto(true)}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+            className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
           >
             <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
             Tipos de clase
@@ -130,7 +130,7 @@ export default function PlanesPage() {
           {permisos.includes("membresias:alta") && (
             <button
               onClick={abrirNuevo}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-lime-400 px-3 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+              className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full bg-lime-400 px-3 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
             >
               <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
               Nuevo plan
@@ -156,8 +156,8 @@ export default function PlanesPage() {
             return (
               <article key={plan.idPlan} className="flex flex-col rounded-2xl border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Plan</p>
-                  <span className="shrink-0 rounded-md border border-border bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                  <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Plan</p>
+                  <span className="shrink-0 rounded-md border border-border bg-foreground/5 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">
                     {plan.nombreTipo || plan.tipo}
                   </span>
                 </div>
@@ -166,11 +166,11 @@ export default function PlanesPage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Precio</p>
+                    <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Precio</p>
                     <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{formatearPrecio(plan.precio)}</p>
                   </div>
                   <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+                    <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
                     <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{plan.cantidadCreditos} <span className="text-xs font-bold text-foreground/55">clases{plan.creditosPorSemana ? ` · ${plan.creditosPorSemana} por semana` : ""}</span></p>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function PlanesPage() {
                   {permisos.includes("membresias:modificacion") && (
                     <button
                       onClick={() => abrirEditar(plan)}
-                      className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background/60 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+                      className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background/60 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
                     >
                       <Edit2 className="h-4 w-4" />
                       Editar
@@ -196,7 +196,7 @@ export default function PlanesPage() {
                     <button
                       onClick={() => setDeleteDialog({ open: true, plan })}
                       aria-label={`Eliminar el plan ${plan.nombre}`}
-                      className="flex min-h-[44px] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 transition-colors hover:bg-red-500/20 dark:text-red-400"
+                      className="flex min-h-[2.75rem] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 transition-colors hover:bg-red-500/20 dark:text-red-400"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

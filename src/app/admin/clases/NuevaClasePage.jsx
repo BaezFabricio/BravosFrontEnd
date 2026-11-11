@@ -94,7 +94,7 @@ function HorariosDeTurno({ tipoPlan, horaInicio, horaFin, onElegir, compacto = f
         const h = lista.find(x => String(x.idTurnoHorario) === e.target.value)
         if (h) onElegir(h)
       }}
-      className={`w-full cursor-pointer rounded-lg border border-border bg-card px-3 text-sm font-bold tabular-nums text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${compacto ? "min-h-[40px]" : "min-h-[44px]"}`}
+      className={`w-full cursor-pointer rounded-lg border border-border bg-card px-3 text-sm font-bold tabular-nums text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${compacto ? "min-h-[2.5rem]" : "min-h-[2.75rem]"}`}
     >
       {!elegido && <option value="">Elegí un horario del box</option>}
       {grupos.map(g => (
@@ -507,16 +507,16 @@ export default function NuevaClasePage() {
         {/* Progreso */}
         <div className={caja}>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Paso {paso + 1} de 4</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Paso {paso + 1} de 4</p>
             {tipoSeleccionado && (
-              <span className="truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">{tipoSeleccionado.nombre}</span>
+              <span className="truncate rounded-md border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/65">{tipoSeleccionado.nombre}</span>
             )}
           </div>
           <ol className="mt-3 grid grid-cols-4 gap-1.5" aria-label={esEdicion ? "Pasos para editar la clase" : "Pasos para crear la clase"}>
             {PASOS.map((nombre, i) => (
               <li key={nombre} aria-current={i === paso ? "step" : undefined}>
                 <span className={`block h-1.5 rounded-full ${i <= paso ? "bg-lime-400" : "bg-foreground/10"}`} />
-                <span className={`mt-1.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${i < paso ? "text-lime-700 dark:text-lime-400" : i === paso ? "text-foreground" : "text-foreground/40"}`}>
+                <span className={`mt-1.5 flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wide ${i < paso ? "text-lime-700 dark:text-lime-400" : i === paso ? "text-foreground" : "text-foreground/40"}`}>
                   {i < paso ? <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" /> : <span className="tabular-nums">{String(i + 1).padStart(2, "0")}</span>}
                   {nombre}
                 </span>
@@ -543,14 +543,14 @@ export default function NuevaClasePage() {
             <div className={caja}>
               <div className="flex items-center justify-between gap-2">
                 <label htmlFor="m-nombre-clase" className={titulo}><Dumbbell className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Nombre de la clase</label>
-                <span className="text-[10px] font-bold text-foreground/50">Obligatorio</span>
+                <span className="text-[0.625rem] font-bold text-foreground/50">Obligatorio</span>
               </div>
               <input id="m-nombre-clase" type="text" value={formData.nombre} onChange={e => set("nombre", e.target.value)} placeholder="Ej: WOD Competitivo"
                 className={`mt-3 h-12 w-full rounded-xl border bg-background/60 px-3 text-base text-foreground outline-none focus:border-lime-500 ${errors.nombre ? "border-red-500/60" : "border-border"}`} />
               <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {["WOD Competitivo", "Open Box", "Fuerza", "Funcional"].map(n => (
                   <button key={n} type="button" onClick={() => set("nombre", n)}
-                    className="min-h-[36px] shrink-0 rounded-full border border-border bg-background/60 px-3 text-xs font-bold text-foreground/75 hover:border-lime-500">
+                    className="min-h-[2.25rem] shrink-0 rounded-full border border-border bg-background/60 px-3 text-xs font-bold text-foreground/75 hover:border-lime-500">
                     {n}
                   </button>
                 ))}
@@ -573,11 +573,11 @@ export default function NuevaClasePage() {
                     const activo = String(p.idProfesor) === String(formData.idProfesor)
                     return (
                       <button key={p.idProfesor} type="button" role="radio" aria-checked={activo} onClick={() => set("idProfesor", String(p.idProfesor))}
-                        className={`flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-1 text-center transition-colors ${
+                        className={`flex min-h-[5.75rem] flex-col items-center justify-center gap-1.5 rounded-xl border-2 px-1 text-center transition-colors ${
                           activo ? "border-lime-500 bg-lime-400/10 dark:border-lime-400" : "border-border bg-background/60"
                         }`}>
                         <span className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-black ${activo ? "bg-lime-400 text-black" : "bg-foreground/10 text-foreground/70"}`}>{inicialesDe(p.nombreProfesor)}</span>
-                        <span className="line-clamp-2 text-[11px] font-bold leading-tight text-foreground">{p.nombreProfesor}</span>
+                        <span className="line-clamp-2 text-[0.6875rem] font-bold leading-tight text-foreground">{p.nombreProfesor}</span>
                       </button>
                     )
                   })}
@@ -596,7 +596,7 @@ export default function NuevaClasePage() {
               <button type="button" onClick={() => irAPaso(0)} className="flex shrink-0 items-center gap-1 text-xs font-bold text-lime-700 dark:text-lime-400"><Pencil className="h-3.5 w-3.5" /> Editar</button>
             </div>
             <div className={caja}>
-              <p className={titulo}>Descripción <span className="text-[10px] font-bold normal-case tracking-normal text-foreground/50">(opcional)</span></p>
+              <p className={titulo}>Descripción <span className="text-[0.625rem] font-bold normal-case tracking-normal text-foreground/50">(opcional)</span></p>
               <div className="mt-3">
                 <RichTextEditor value={formData.descripcion} onChange={v => set("descripcion", v)} placeholder="De qué se trata la clase, para los alumnos..." minHeight={80} />
               </div>
@@ -606,7 +606,7 @@ export default function NuevaClasePage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 {BLOQUES.map(b => (
                   <button key={b.label} type="button" onClick={() => agregarBloque(b.html)}
-                    className="flex min-h-[34px] items-center gap-1 rounded-full border border-lime-500/40 bg-lime-400/10 px-3 text-xs font-bold text-lime-700 dark:text-lime-400">
+                    className="flex min-h-[2.125rem] items-center gap-1 rounded-full border border-lime-500/40 bg-lime-400/10 px-3 text-xs font-bold text-lime-700 dark:text-lime-400">
                     <Plus className="h-3.5 w-3.5" aria-hidden="true" /> {b.label}
                   </button>
                 ))}
@@ -649,15 +649,15 @@ export default function NuevaClasePage() {
               <div className="mt-3">
                 <HorariosDeTurno tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} />
               </div>
-              <p className="mt-4 text-[11px] font-black uppercase tracking-widest text-foreground/55">O elegí la hora a mano</p>
+              <p className="mt-4 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">O elegí la hora a mano</p>
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <div>
-                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Inicio</p>
+                  <p className="mb-1.5 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Inicio</p>
                   <TimeSelect value={formData.horaInicio} onChange={v => set("horaInicio", v)} hasError={!!errors.horario && !formData.horaInicio} />
-                  {formData.horaInicio && <p className="mt-1 text-[11px] font-semibold text-lime-700 dark:text-lime-400">Turno {turnoDe(formData.horaInicio).toLowerCase()}</p>}
+                  {formData.horaInicio && <p className="mt-1 text-[0.6875rem] font-semibold text-lime-700 dark:text-lime-400">Turno {turnoDe(formData.horaInicio).toLowerCase()}</p>}
                 </div>
                 <div>
-                  <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Fin</p>
+                  <p className="mb-1.5 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Fin</p>
                   <TimeSelect value={formData.horaFin} onChange={v => set("horaFin", v)} hasError={!!errors.horario && !formData.horaFin} />
                 </div>
               </div>
@@ -667,7 +667,7 @@ export default function NuevaClasePage() {
             <div className={caja}>
               <p className={titulo}><CalendarDays className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> ¿Cuándo se dicta?</p>
               <div className="mt-4">
-                <p className="mb-1.5 text-[11px] font-black uppercase tracking-widest text-foreground/55">Elegí la fecha</p>
+                <p className="mb-1.5 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Elegí la fecha</p>
                 <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
               </div>
               {errorTxt(errors.diasSemana)}
@@ -683,9 +683,9 @@ export default function NuevaClasePage() {
                 <span className="h-2 w-2 rounded-full bg-lime-400" aria-hidden="true" /> {esEdicion ? "Revisá los cambios" : "¡Todo listo para publicar!"}
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {tipoPlan && <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">{tipoPlan}</span>}
-                {dur && <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">{dur} min</span>}
-                <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/65">{esClaseUnica ? "Sesión única" : "Recurrente"}</span>
+                {tipoPlan && <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/65">{tipoPlan}</span>}
+                {dur && <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/65">{dur} min</span>}
+                <span className="rounded-md bg-foreground/5 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/65">{esClaseUnica ? "Sesión única" : "Recurrente"}</span>
               </div>
               <div className="mt-2 flex items-start justify-between gap-2">
                 <p className="text-lg font-black uppercase leading-tight text-foreground">{formData.nombre}</p>
@@ -700,9 +700,9 @@ export default function NuevaClasePage() {
                   { label: "Rutina", valor: formData.rutina ? `${bloquesRutina} ${bloquesRutina === 1 ? "bloque" : "bloques"}` : "Sin rutina", paso: 1 },
                 ].map(d => (
                   <button key={d.label} type="button" onClick={() => irAPaso(d.paso)} className="rounded-xl bg-foreground/5 px-3 py-2.5 text-left">
-                    <span className="block text-[10px] font-black uppercase tracking-widest text-foreground/50">{d.label}</span>
+                    <span className="block text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">{d.label}</span>
                     <span className="mt-0.5 block truncate text-sm font-bold text-foreground">{d.valor}</span>
-                    {d.sub && <span className="block truncate text-[11px] text-foreground/55">{d.sub}</span>}
+                    {d.sub && <span className="block truncate text-[0.6875rem] text-foreground/55">{d.sub}</span>}
                   </button>
                 ))}
               </div>
@@ -713,12 +713,12 @@ export default function NuevaClasePage() {
               <div className={caja}>
                 <div className="flex items-center justify-between gap-2">
                   <p className={titulo} id="m-estado-clase"><Power className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Estado</p>
-                  <span className="text-[11px] font-bold text-foreground/55">{formData.estado === "Activo" ? "Se puede reservar" : "No se puede reservar"}</span>
+                  <span className="text-[0.6875rem] font-bold text-foreground/55">{formData.estado === "Activo" ? "Se puede reservar" : "No se puede reservar"}</span>
                 </div>
                 <div role="radiogroup" aria-labelledby="m-estado-clase" className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/60 p-1">
                   {[{ v: "Activo", t: "Activa" }, { v: "Inactivo", t: "Inactiva" }].map(({ v, t }) => (
                     <button key={v} type="button" role="radio" aria-checked={formData.estado === v} onClick={() => set("estado", v)}
-                      className={`min-h-[40px] rounded-lg text-xs font-black uppercase tracking-wide ${formData.estado === v ? (v === "Activo" ? "bg-lime-400 text-black" : "bg-foreground/80 text-background") : "text-foreground/60"}`}>
+                      className={`min-h-[2.5rem] rounded-lg text-xs font-black uppercase tracking-wide ${formData.estado === v ? (v === "Activo" ? "bg-lime-400 text-black" : "bg-foreground/80 text-background") : "text-foreground/60"}`}>
                       {t}
                     </button>
                   ))}
@@ -736,7 +736,7 @@ export default function NuevaClasePage() {
                 <button type="button" role="switch" aria-checked={publicarProgramado} aria-label="Avisar por email"
                   onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
                   className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${publicarProgramado ? "bg-lime-400" : "bg-foreground/15"}`}>
-                  <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${publicarProgramado ? "left-[22px]" : "left-0.5"}`} />
+                  <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${publicarProgramado ? "left-[1.375rem]" : "left-0.5"}`} />
                 </button>
               </div>
               {publicarProgramado && (
@@ -772,13 +772,13 @@ export default function NuevaClasePage() {
       {/* ── COMPUTADORA: el formulario completo ── */}
       <div className="hidden lg:block">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_21.25rem] gap-4 items-start">
 
             {/* ── IZQUIERDA: contenido ── */}
             <div className="border border-border divide-y divide-border">
 
               <div className="p-5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Nombre de la clase *</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Nombre de la clase *</label>
                 <input
                   type="text"
                   value={formData.nombre}
@@ -790,7 +790,7 @@ export default function NuevaClasePage() {
               </div>
 
               <div className="p-5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Descripción</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Descripción</label>
                 <RichTextEditor
                   value={formData.descripcion}
                   onChange={v => set("descripcion", v)}
@@ -800,7 +800,7 @@ export default function NuevaClasePage() {
               </div>
 
               <div className="p-5">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Rutina de la clase</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Rutina de la clase</label>
                 <RichTextEditor
                   value={formData.rutina}
                   onChange={v => set("rutina", v)}
@@ -813,13 +813,13 @@ export default function NuevaClasePage() {
               <div className="p-5">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">Avisar a los alumnos</label>
+                    <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block">Avisar a los alumnos</label>
                     <p className="text-xs text-foreground/60 mt-0.5">Les llega un email y una notificación en el celular cuando la clase esté lista para reservar. Sin fecha, se envía apenas guardes.</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
-                    className={`shrink-0 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
+                    className={`shrink-0 flex items-center gap-1.5 text-[0.625rem] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
                       publicarProgramado
                         ? "border-lime-500/40 text-lime-700 dark:text-lime-400 bg-lime-400/10"
                         : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30"
@@ -843,17 +843,17 @@ export default function NuevaClasePage() {
               {(esEdicion || !tipoDesdeUrl) && (
                 <div className="p-4 space-y-3">
                   <div>
-                    <label htmlFor="d-plan-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Tipo de clase</label>
+                    <label htmlFor="d-plan-clase" className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Tipo de clase</label>
                     <select id="d-plan-clase" value={formData.tipoPlan} onChange={e => set("tipoPlan", e.target.value)} style={{ colorScheme: "dark" }}
                       className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
                       <option value="" disabled>Elegí el tipo de clase</option>
                       {opcionesTipo.map(t => <option key={t.codigo} value={t.codigo}>{t.nombre}</option>)}
                     </select>
                     {errors.tipoPlan && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.tipoPlan}</p>}
-                    <p className="mt-1.5 text-[10px] text-foreground/50">Solo los alumnos con una membresía vigente de este tipo ven la clase y reciben el aviso.</p>
+                    <p className="mt-1.5 text-[0.625rem] text-foreground/50">Solo los alumnos con una membresía vigente de este tipo ven la clase y reciben el aviso.</p>
                   </div>
                   <div>
-                    <label htmlFor="d-estado-clase" className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
+                    <label htmlFor="d-estado-clase" className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
                     <select id="d-estado-clase" value={formData.estado} onChange={e => set("estado", e.target.value)} style={{ colorScheme: "dark" }}
                       className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
                       <option value="Activo">Activa</option>
@@ -864,7 +864,7 @@ export default function NuevaClasePage() {
               )}
 
               <div className="p-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Coach *</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Coach *</label>
                 <select
                   value={formData.idProfesor}
                   onChange={e => set("idProfesor", e.target.value)}
@@ -879,7 +879,7 @@ export default function NuevaClasePage() {
               </div>
 
               <div className="p-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-2">Cupo máximo *</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Cupo máximo *</label>
                 <input
                   type="number" min="1"
                   value={formData.capacidadMaxima}
@@ -890,31 +890,31 @@ export default function NuevaClasePage() {
               </div>
 
               <div className="p-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block mb-3">Horario *</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-3">Horario *</label>
                 <div className="mb-3">
                   <HorariosDeTurno tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} compacto />
                 </div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-foreground/50">O elegí la hora a mano</p>
+                <p className="mb-2 text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">O elegí la hora a mano</p>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-[10px] text-foreground/60 mb-1.5">Inicio</p>
+                    <p className="text-[0.625rem] text-foreground/60 mb-1.5">Inicio</p>
                     <TimeSelect value={formData.horaInicio} onChange={v => set("horaInicio", v)} hasError={!!errors.horario && !formData.horaInicio} />
                   </div>
                   <div>
-                    <p className="text-[10px] text-foreground/60 mb-1.5">Fin</p>
+                    <p className="text-[0.625rem] text-foreground/60 mb-1.5">Fin</p>
                     <TimeSelect value={formData.horaFin} onChange={v => set("horaFin", v)} hasError={!!errors.horario && !formData.horaFin} />
                   </div>
                 </div>
-                {errors.horario && <p className="mt-1.5 text-[10px] text-red-700 dark:text-red-400">{errors.horario}</p>}
+                {errors.horario && <p className="mt-1.5 text-[0.625rem] text-red-700 dark:text-red-400">{errors.horario}</p>}
                 {dur && !errors.horario && (
-                  <p className="mt-1.5 text-[10px] text-foreground/60">{dur} min de duración</p>
+                  <p className="mt-1.5 text-[0.625rem] text-foreground/60">{dur} min de duración</p>
                 )}
               </div>
 
               <div className="p-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-foreground/70 block">¿Cuándo se dicta?</label>
+                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block">¿Cuándo se dicta?</label>
                 <div className="mt-3">
-                  <p className="text-[10px] text-foreground/50 mb-1.5">Elegí la fecha *</p>
+                  <p className="text-[0.625rem] text-foreground/50 mb-1.5">Elegí la fecha *</p>
                   <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
                 </div>
                 {errors.diasSemana && <p className="mt-2 text-xs text-red-700 dark:text-red-400">{errors.diasSemana}</p>}

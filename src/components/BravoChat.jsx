@@ -186,7 +186,7 @@ export default function BravoChat({ rol = "alumno" }) {
         role="dialog"
         aria-label={`Chat con ${mascota.nombre}`}
         aria-hidden={!abierto}
-        className={`bravo-anim fixed z-[15] right-4 bottom-[10.5rem] lg:bottom-[5.25rem] w-[320px] max-w-[calc(100vw-2rem)] h-[440px] max-h-[calc(100vh-16rem)] origin-bottom-right transition-all duration-300 ease-out ${
+        className={`bravo-anim fixed z-[15] right-4 bottom-[10.5rem] lg:bottom-[5.25rem] w-[20rem] max-w-[calc(100vw-2rem)] h-[27.5rem] max-h-[calc(100vh-16rem)] origin-bottom-right transition-all duration-300 ease-out ${
           abierto ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4 pointer-events-none"
         }`}
       >
@@ -199,7 +199,7 @@ export default function BravoChat({ rol = "alumno" }) {
             src={src}
             alt={mascota.nombre}
             draggable={false}
-            className={`${tema} bravo-anim pointer-events-none select-none absolute left-1/2 z-20 drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)] transition-all duration-500 ease-[cubic-bezier(.2,.9,.3,1.25)] ${
+            className={`${tema} bravo-anim pointer-events-none select-none absolute left-1/2 z-20 drop-shadow-[0_0.25rem_0.375rem_rgba(0,0,0,0.4)] transition-all duration-500 ease-[cubic-bezier(.2,.9,.3,1.25)] ${
               abierto ? "translate-y-0 scale-100 opacity-100 delay-150" : "translate-y-8 scale-75 opacity-0"
             }`}
             style={mascota.ventana.ajuste}
@@ -208,7 +208,7 @@ export default function BravoChat({ rol = "alumno" }) {
 
         <div className="absolute inset-0 z-10 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
         {/* Encabezado */}
-        <div className="relative shrink-0 border-b border-border bg-sidebar pt-[18px] pb-2.5 text-center">
+        <div className="relative shrink-0 border-b border-border bg-sidebar pt-[1.125rem] pb-2.5 text-center">
           <p className="flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.2em] text-sidebar-foreground leading-tight">
             {mascota.nombre}
             {/* Circulito verde de "conectado": pulso suave, se detiene con la opción de reducir animaciones */}
@@ -217,7 +217,7 @@ export default function BravoChat({ rol = "alumno" }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-500 dark:bg-lime-400" />
             </span>
           </p>
-          <p className="text-[11px] text-sidebar-foreground/50">Asistente de Bravos Box</p>
+          <p className="text-[0.6875rem] text-sidebar-foreground/50">Asistente de Bravos Box</p>
           <button
             onClick={() => setAbierto(false)}
             aria-label="Cerrar chat"
@@ -325,7 +325,7 @@ export default function BravoChat({ rol = "alumno" }) {
       {/* Globito de saludo */}
       {globoVisible && (
         <div
-          className={`bravo-anim fixed z-[15] max-w-[200px] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
+          className={`bravo-anim fixed z-[15] max-w-[12.5rem] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
           style={{
             animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both",
             ...(posVista ? { left: Math.max(8, posVista.x - 190), top: Math.max(8, posVista.y - 84) } : {}),
@@ -334,7 +334,7 @@ export default function BravoChat({ rol = "alumno" }) {
           <div className="relative rounded-2xl rounded-br-sm bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2">
             <button
               onClick={() => { setAbierto(true); setGlobo(false); setGloboHover(false) }}
-              className="text-left text-[13px] font-semibold text-foreground leading-snug"
+              className="text-left text-[0.8125rem] font-semibold text-foreground leading-snug"
             >
               Soy {mascota.nombre} 🐾 ¿Te ayudo con algo?
             </button>
@@ -346,7 +346,7 @@ export default function BravoChat({ rol = "alumno" }) {
               <X className="h-3.5 w-3.5" />
             </button>
             {/* colita que apunta al botón */}
-            <span className="absolute -right-[7px] bottom-3 h-3 w-3 rotate-45 bg-card border-t border-r border-lime-400/50" />
+            <span className="absolute -right-[0.4375rem] bottom-3 h-3 w-3 rotate-45 bg-card border-t border-r border-lime-400/50" />
           </div>
         </div>
       )}
@@ -366,7 +366,7 @@ export default function BravoChat({ rol = "alumno" }) {
         onFocus={() => setGloboHover(true)}
         onBlur={() => setGloboHover(false)}
         aria-label={abierto ? `Cerrar chat con ${mascota.nombre}` : `Abrir chat con ${mascota.nombre}`}
-        className="touch-none group bravo-anim fixed z-[15] right-4 bottom-28 lg:bottom-6 h-[52px] w-[52px] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="touch-none group bravo-anim fixed z-[15] right-4 bottom-28 lg:bottom-6 h-[3.25rem] w-[3.25rem] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         <span className="absolute inset-0 rounded-full bg-lime-400 shadow-lg ring-0 group-focus-visible:ring-2 group-focus-visible:ring-lime-200" />
         {abierto ? (

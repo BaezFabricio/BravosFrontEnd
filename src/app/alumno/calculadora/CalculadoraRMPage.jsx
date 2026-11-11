@@ -31,9 +31,9 @@ const aMedio = (n) => Math.round(n * 2) / 2
 const fmtNum = (n) => String(Math.round(n * 10) / 10)
 
 const STENCIL = { fontWeight: 900 }
-const etiqueta = "block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
-const cabecera = "flex items-center justify-between gap-3 border-b border-dashed border-border px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em]"
-const paso = "h-11 rounded-xl border border-border bg-foreground/[0.03] text-[15px] font-bold text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+const etiqueta = "block text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+const cabecera = "flex items-center justify-between gap-3 border-b border-dashed border-border px-5 py-3 text-[0.6875rem] font-bold uppercase tracking-[0.08em]"
+const paso = "h-11 rounded-xl border border-border bg-foreground/[0.03] text-[0.9375rem] font-bold text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
 
 // Celular: el diseño de siempre (en escritorio se usa CalculadoraEscritorio)
 function CalculadoraMovil() {
@@ -67,8 +67,8 @@ function CalculadoraMovil() {
             <label htmlFor="calc-peso" className={etiqueta}>Peso levantado</label>
             <div className="mt-1.5 flex items-baseline gap-2">
               <input id="calc-peso" type="number" inputMode="decimal" min="0" step="0.5" placeholder="80" value={peso} onChange={(e) => setPeso(e.target.value)}
-                className="w-full min-w-0 bg-transparent p-0 text-[44px] leading-none text-foreground placeholder:text-foreground/25 focus:outline-none sm:text-[52px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" style={STENCIL} />
-              <span className="text-[22px] uppercase text-muted-foreground" style={STENCIL}>kg</span>
+                className="w-full min-w-0 bg-transparent p-0 text-[2.75rem] leading-none text-foreground placeholder:text-foreground/25 focus:outline-none sm:text-[3.25rem] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" style={STENCIL} />
+              <span className="text-[1.375rem] uppercase text-muted-foreground" style={STENCIL}>kg</span>
             </div>
           </div>
 
@@ -76,8 +76,8 @@ function CalculadoraMovil() {
             <label htmlFor="calc-reps" className={etiqueta}>Repeticiones</label>
             <div className="mt-1.5 flex items-baseline gap-2">
               <input id="calc-reps" type="number" inputMode="numeric" min="1" max="30" placeholder="5" value={reps} onChange={(e) => setReps(e.target.value)}
-                className="w-full min-w-0 bg-transparent p-0 text-[44px] leading-none text-foreground placeholder:text-foreground/25 focus:outline-none sm:text-[52px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" style={STENCIL} />
-              <span className="text-[22px] uppercase text-muted-foreground" style={STENCIL}>reps</span>
+                className="w-full min-w-0 bg-transparent p-0 text-[2.75rem] leading-none text-foreground placeholder:text-foreground/25 focus:outline-none sm:text-[3.25rem] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" style={STENCIL} />
+              <span className="text-[1.375rem] uppercase text-muted-foreground" style={STENCIL}>reps</span>
             </div>
             <div className="mt-2.5 grid grid-cols-2 gap-2">
               <button type="button" className={paso} onClick={() => mover(setReps, reps, -1, 1)} aria-label="Restar una repetición">− 1</button>
@@ -97,15 +97,15 @@ function CalculadoraMovil() {
           {rm ? (
             <>
               <div className="flex items-baseline justify-center gap-3.5 text-lime-700 dark:text-lime-400">
-                <span className="text-[84px] leading-[0.82] sm:text-[104px]" style={STENCIL}>{fmtNum(rm)}</span>
-                <span className="text-[34px] uppercase" style={STENCIL}>kg</span>
+                <span className="text-[5.25rem] leading-[0.82] sm:text-[6.5rem]" style={STENCIL}>{fmtNum(rm)}</span>
+                <span className="text-[2.125rem] uppercase" style={STENCIL}>kg</span>
               </div>
-              <p className="mt-3 text-center text-[15px] text-muted-foreground">
+              <p className="mt-3 text-center text-[0.9375rem] text-muted-foreground">
                 Según {fmtNum(pesoNum)} kg × {repsNum} {repsNum === 1 ? "repetición" : "repeticiones"} · fórmula Epley
               </p>
               {repsNum > 10 && (
-                <div className="mx-auto mt-4 flex max-w-xl gap-2.5 rounded-xl border border-dashed border-border px-3.5 py-2.5 text-[13px] text-foreground/75">
-                  <span className="mt-px shrink-0 text-[11px] font-bold uppercase tracking-[0.08em] text-yellow-700 dark:text-yellow-400">Ojo</span>
+                <div className="mx-auto mt-4 flex max-w-xl gap-2.5 rounded-xl border border-dashed border-border px-3.5 py-2.5 text-[0.8125rem] text-foreground/75">
+                  <span className="mt-px shrink-0 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-yellow-700 dark:text-yellow-400">Ojo</span>
                   Con más de 10 repeticiones la estimación pierde precisión. Es mejor usar una serie más pesada y corta.
                 </div>
               )}
@@ -113,11 +113,11 @@ function CalculadoraMovil() {
           ) : (
             <>
               <div className="flex items-baseline justify-center gap-3.5 text-foreground/15">
-                <span className="text-[84px] leading-[0.82] sm:text-[104px]" style={STENCIL}>—</span>
-                <span className="text-[34px] uppercase" style={STENCIL}>kg</span>
+                <span className="text-[5.25rem] leading-[0.82] sm:text-[6.5rem]" style={STENCIL}>—</span>
+                <span className="text-[2.125rem] uppercase" style={STENCIL}>kg</span>
               </div>
-              <p className="mt-3 text-center text-[19px] font-bold text-foreground">Ingresá el peso y las repeticiones</p>
-              <p className="mt-1.5 text-center text-[15px] text-muted-foreground">Por ejemplo, 80 kg × 5 repeticiones.</p>
+              <p className="mt-3 text-center text-[1.1875rem] font-bold text-foreground">Ingresá el peso y las repeticiones</p>
+              <p className="mt-1.5 text-center text-[0.9375rem] text-muted-foreground">Por ejemplo, 80 kg × 5 repeticiones.</p>
             </>
           )}
         </div>
@@ -131,22 +131,22 @@ function CalculadoraMovil() {
           </div>
           <div>
             {TABLA_PORCENTAJES.map((f) => (
-              <div key={f.pct} className="grid grid-cols-[56px_minmax(0,1fr)_92px] items-center gap-3 border-b border-border/60 px-5 py-2 last:border-b-0 hover:bg-lime-400/[0.04] sm:grid-cols-[76px_minmax(0,1fr)_120px_90px] sm:gap-5">
+              <div key={f.pct} className="grid grid-cols-[3.5rem_minmax(0,1fr)_5.75rem] items-center gap-3 border-b border-border/60 px-5 py-2 last:border-b-0 hover:bg-lime-400/[0.04] sm:grid-cols-[4.75rem_minmax(0,1fr)_7.5rem_5.625rem] sm:gap-5">
                 <span className={`text-2xl ${f.pct === 100 ? "text-lime-700 dark:text-lime-400" : "text-foreground"}`} style={STENCIL}>{f.pct}%</span>
                 <div className="h-2.5 overflow-hidden rounded-full bg-foreground/10" aria-hidden="true">
                   <i className={`block h-full rounded-full ${f.pct === 100 ? "bg-lime-400" : "bg-lime-400/40"}`} style={{ width: `${f.pct}%` }} />
                 </div>
-                <span className="whitespace-nowrap text-right text-[26px] text-foreground" style={STENCIL}>
+                <span className="whitespace-nowrap text-right text-[1.625rem] text-foreground" style={STENCIL}>
                   {fmtNum(aMedio((rm * f.pct) / 100))} <small className="text-base text-muted-foreground">KG</small>
                 </span>
-                <span className="hidden whitespace-nowrap text-right text-[13px] text-muted-foreground sm:block">≈ {f.reps} {f.reps === "1" ? "rep" : "reps"}</span>
+                <span className="hidden whitespace-nowrap text-right text-[0.8125rem] text-muted-foreground sm:block">≈ {f.reps} {f.reps === "1" ? "rep" : "reps"}</span>
               </div>
             ))}
           </div>
         </Card>
       )}
 
-      <p className="pt-1 text-center text-[13px] text-muted-foreground">
+      <p className="pt-1 text-center text-[0.8125rem] text-muted-foreground">
         Es una estimación: no reemplaza probar tu máximo real y puede variar según el ejercicio y tu técnica.
       </p>
     </div>

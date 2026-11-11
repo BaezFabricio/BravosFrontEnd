@@ -104,8 +104,8 @@ export default function ReservasEscritorio({
       <div role="tabpanel" aria-label={pestana === "prox" ? "Próximas" : "Historial"} className="flex flex-col gap-4">
         {cargando && (
           <div aria-busy="true" aria-label="Cargando reservas" className="flex flex-col gap-2.5">
-            <Esqueleto alto={88} className="rounded-[14px]" etiqueta="Cargando reserva" />
-            <Esqueleto alto={88} className="rounded-[14px]" etiqueta="Cargando reserva" />
+            <Esqueleto alto={88} className="rounded-[0.875rem]" etiqueta="Cargando reserva" />
+            <Esqueleto alto={88} className="rounded-[0.875rem]" etiqueta="Cargando reserva" />
           </div>
         )}
 
@@ -114,7 +114,7 @@ export default function ReservasEscritorio({
             <span className="grid h-16 w-16 place-items-center rounded-2xl bg-bx-tile text-bx-ok-fg"><Ico d={IC.cal} size={28} /></span>
             <div>
               <h2 className="m-0 text-xl font-bold">No tenés reservas próximas</h2>
-              <p className="mb-0 mt-1.5 text-[15px] text-bx-muted">
+              <p className="mb-0 mt-1.5 text-[0.9375rem] text-bx-muted">
                 Reservá una clase para empezar a entrenar.{creditos != null ? ` Tenés ${creditos} ${creditos === 1 ? "crédito disponible" : "créditos disponibles"}.` : ""}
               </p>
             </div>
@@ -129,18 +129,18 @@ export default function ReservasEscritorio({
               const limite = limiteCancelacion(r.fecha, r.hora)
               return (
                 <li key={r.idReserva} className="flex flex-wrap items-center gap-x-5 gap-y-4 rounded-2xl border border-bx-ok-line bg-bx-card p-5">
-                  <div className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-xl bg-bx-lateral text-[#ecefe4]">
-                    <span className="text-[11px] font-semibold tracking-[0.08em] text-bx-lima">{mesAbreviado(r.fecha)}</span>
-                    <span className="bx-num text-[32px] leading-none">{diaDelMes(r.fecha)}</span>
+                  <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-xl bg-bx-lateral text-[#ecefe4]">
+                    <span className="text-[0.6875rem] font-semibold tracking-[0.08em] text-bx-lima">{mesAbreviado(r.fecha)}</span>
+                    <span className="bx-num text-[2rem] leading-none">{diaDelMes(r.fecha)}</span>
                   </div>
-                  <div className="min-w-[200px] flex-1">
+                  <div className="min-w-[12.5rem] flex-1">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="bx-num text-[30px] leading-none">{r.hora}</span>
+                      <span className="bx-num text-[1.875rem] leading-none">{r.hora}</span>
                       <span className="inline-flex items-center rounded-full border border-bx-ok-line bg-bx-ok-bg px-2.5 py-1 text-xs font-bold text-bx-ok-fg">Confirmada</span>
                     </div>
-                    <div className="mt-1.5 text-[15px] font-bold">{etiquetaFecha(r.fecha)} · {r.clase}</div>
+                    <div className="mt-1.5 text-[0.9375rem] font-bold">{etiquetaFecha(r.fecha)} · {r.clase}</div>
                     <div className="text-sm text-bx-muted">Coach: {r.coach}{dur ? ` · ${dur}` : ""}</div>
-                    <div className="mt-1.5 text-[13px] font-medium text-bx-muted">
+                    <div className="mt-1.5 text-[0.8125rem] font-medium text-bx-muted">
                       {semana
                         ? "En tu plan, cancelar no devuelve el crédito: cuenta para los de la semana."
                         : limite.pasado
@@ -166,7 +166,7 @@ export default function ReservasEscritorio({
 
         {!cargando && !errorCarga && pestana === "hist" && (
           historial.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[15px] text-bx-muted">Todavía no tenés reservas anteriores.</div>
+            <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[0.9375rem] text-bx-muted">Todavía no tenés reservas anteriores.</div>
           ) : (
             <>
               <FiltroChips opciones={filtros} valor={filtro} onChange={setFiltro} etiqueta="Filtrar historial" className="[&>button]:h-11 [&>button]:px-4 [&>button]:text-sm" />
@@ -177,15 +177,15 @@ export default function ReservasEscritorio({
                     {g.items.map((r) => {
                       const est = ESTADOS[r.estado] || ESTADOS.cancelada
                       return (
-                        <li key={r.idReserva} className="flex flex-wrap items-center gap-x-[18px] gap-y-3.5 rounded-[14px] border border-bx-line bg-bx-card px-[18px] py-4">
-                          <div className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[10px] border border-bx-line2 bg-bx-surf ${r.estado === "cancelada" ? "opacity-60" : ""}`}>
-                            <span className="text-[10px] font-semibold tracking-[0.08em] text-bx-muted">{diaSemanaCorto(r.fecha)}</span>
+                        <li key={r.idReserva} className="flex flex-wrap items-center gap-x-[1.125rem] gap-y-3.5 rounded-[0.875rem] border border-bx-line bg-bx-card px-[1.125rem] py-4">
+                          <div className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[0.625rem] border border-bx-line2 bg-bx-surf ${r.estado === "cancelada" ? "opacity-60" : ""}`}>
+                            <span className="text-[0.625rem] font-semibold tracking-[0.08em] text-bx-muted">{diaSemanaCorto(r.fecha)}</span>
                             <span className="bx-num text-2xl leading-none">{diaDelMes(r.fecha)}</span>
                           </div>
-                          <div className="min-w-[180px] flex-1">
+                          <div className="min-w-[11.25rem] flex-1">
                             <div className="flex flex-wrap items-center gap-2.5">
                               <span className="text-base font-bold">{r.clase}</span>
-                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-xs font-bold ${est.clases}`}>
+                              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[0.1875rem] text-xs font-bold ${est.clases}`}>
                                 <Ico d={est.icono} size={12} sw={2.6} />{est.etiqueta}
                               </span>
                             </div>
@@ -219,7 +219,7 @@ export default function ReservasEscritorio({
           </>
         }
       >
-        <p className="m-0 text-[15px] leading-[1.5] text-bx-muted">
+        <p className="m-0 text-[0.9375rem] leading-[1.5] text-bx-muted">
           {cancelDialog.claseNombre} · {cancelDialog.fechaStr}.{" "}
           {semana
             ? "En tu plan, cancelar no devuelve el crédito: cuenta para los de esta semana."

@@ -29,8 +29,8 @@ function ArticuloAviso({ novedad, nueva }) {
       <div className={`relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black ${nueva ? "ring-1 ring-[#9be600]/50" : ""}`}>
         <FotoNovedad novedad={novedad} />
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
-        {nueva && <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>}
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-white/50">
+        {nueva && <span className="rounded-full bg-white px-2 py-0.5 text-[0.625rem] font-black text-black">Nuevo</span>}
         <span>{novedad.fecha} · {tipoDe(novedad.tipo).nombre}</span>
       </div>
       <h3 className="mt-2 text-3xl leading-tight" style={estiloTitulo()}>{novedad.titulo}</h3>
@@ -113,7 +113,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
             {limite && <EnlaceVer to="/alumno/novedades">Ver todas</EnlaceVer>}
           </div>
           {lista.length === 0 && <Vacio titulo="No hay noticias disponibles por ahora" />}
-          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3 p-0">
+          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,17.5rem),1fr))] gap-3 p-0">
             {visibles.map((n) => (
               <li key={n.idNovedad}>
                 <button
@@ -121,7 +121,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
                   onClick={() => setAbierta(n)}
                   className="flex h-full w-full items-center gap-3.5 rounded-xl border border-bx-line bg-bx-card p-3.5 text-left text-bx-ink transition-colors hover:border-bx-lima hover:bg-bx-surf"
                 >
-                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-[10px] ${n.tipo === "noticia" ? "bg-bx-chip text-bx-lima" : "bg-bx-tile text-bx-ok-fg"}`}>
+                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-[0.625rem] ${n.tipo === "noticia" ? "bg-bx-chip text-bx-lima" : "bg-bx-tile text-bx-ok-fg"}`}>
                     <Ico d={n.tipo === "noticia" ? IC.news : IC.mega} size={22} />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -129,7 +129,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
                       {esReciente(n.fecha) && <Insignia>NUEVO</Insignia>}
                       <span className="text-xs font-medium text-bx-muted">{n.fecha} · {tipoDe(n.tipo).nombre}</span>
                     </span>
-                    <span className="mt-1 block truncate text-[15px] font-bold">{n.titulo}</span>
+                    <span className="mt-1 block truncate text-[0.9375rem] font-bold">{n.titulo}</span>
                   </span>
                 </button>
               </li>
@@ -139,7 +139,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
       ) : compacta ? (
         <section aria-labelledby="novedades-titulo" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
+            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
               <span className="h-2 w-2 rounded-full bg-lime-700 dark:bg-[#9be600]" aria-hidden="true" />
               Novedades
             </h2>
@@ -175,7 +175,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
       ) : (
         <section id="novedades" aria-labelledby="novedades-titulo" className="scroll-mt-24 border-t border-white/10 bg-zinc-950 py-10 text-white md:py-14">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">
+            <h2 id="novedades-titulo" className="flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-[0.2em] text-[#9be600]">
               <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" />
               Novedades
             </h2>
@@ -194,7 +194,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
       <Dialog open={resumen} onOpenChange={(o) => { if (!o) cerrarResumen() }}>
         <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden rounded-3xl border-white/10 bg-zinc-950 p-0 text-white sm:max-w-2xl">
           <div className="border-b border-white/10 px-6 pb-4 pt-6">
-            <DialogTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</DialogTitle>
+            <DialogTitle className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-[#9be600]">Novedades del box</DialogTitle>
             <DialogDescription className="mt-1 text-sm text-white/60">
               {nuevas.length > 0 ? `${nuevas.length} ${nuevas.length === 1 ? "nueva" : "nuevas"}` : "Sin novedades nuevas"}
               {anteriores.length > 0 ? ` · ${anteriores.length} ${anteriores.length === 1 ? "anterior" : "anteriores"}` : ""}.
@@ -204,7 +204,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
           <div className="min-h-0 flex-1 overflow-y-auto">
             {nuevas.length > 0 && (
               <>
-                <p className="px-6 pt-5 text-[10px] font-black uppercase tracking-[0.2em] text-[#9be600]">Nuevas</p>
+                <p className="px-6 pt-5 text-[0.625rem] font-black uppercase tracking-[0.2em] text-[#9be600]">Nuevas</p>
                 {nuevas.map((n) => (
                   <ArticuloAviso key={n.idNovedad} novedad={n} nueva />
                 ))}
@@ -212,7 +212,7 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
             )}
             {anteriores.length > 0 && (
               <>
-                <p className="px-6 pt-5 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Anteriores</p>
+                <p className="px-6 pt-5 text-[0.625rem] font-black uppercase tracking-[0.2em] text-white/40">Anteriores</p>
                 {anteriores.map((n) => (
                   <ArticuloAviso key={n.idNovedad} novedad={n} />
                 ))}

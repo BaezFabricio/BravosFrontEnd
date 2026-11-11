@@ -26,7 +26,7 @@ const CENTRO_X = ((290 + 992) / 2 / 1024) * ANCHO_IMG
 
 function MascotaEnCaja() {
   return (
-    <div className="bravo-caja relative mt-[64px] h-[52px] w-[68px]" role="img" aria-label="Bravo se asoma sobre el cuadrito">
+    <div className="bravo-caja relative mt-[4rem] h-[3.25rem] w-[4.25rem]" role="img" aria-label="Bravo se asoma sobre el cuadrito">
       <style>{`
         @keyframes bravo-asoma { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         /* Saltito sutil cada 3 segundos: Bravo y el cuadrito suben juntos, se estiran y vuelven a apoyarse */
@@ -107,11 +107,11 @@ export default function ReservarMovil({
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-sm font-bold text-foreground">
               Créditos disponibles
-              {vencimiento && <span className="rounded-full bg-lime-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">Activo</span>}
+              {vencimiento && <span className="rounded-full bg-lime-400/15 px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">Activo</span>}
             </p>
             {venceTxt && <p className="text-xs leading-snug text-foreground/60">Vence: {venceTxt}</p>}
           </div>
-          <Link to="/alumno/plan" className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-lg border border-lime-600/50 px-3 text-xs font-bold text-lime-700 dark:border-lime-400/50 dark:text-lime-400">
+          <Link to="/alumno/plan" className="flex min-h-[2.75rem] shrink-0 items-center gap-1 rounded-lg border border-lime-600/50 px-3 text-xs font-bold text-lime-700 dark:border-lime-400/50 dark:text-lime-400">
             <Plus className="h-3.5 w-3.5" /> Comprar
           </Link>
         </div>
@@ -162,7 +162,7 @@ export default function ReservarMovil({
                 onClick={() => setSelectedDate(d)}
                 aria-pressed={sel}
                 aria-label={`${d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}${esHoy(d) ? ", hoy" : ""}${conClases ? ", hay clases" : ", sin clases"}`}
-                className={`flex min-h-[76px] flex-col items-center justify-center rounded-2xl border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+                className={`flex min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                   sel
                     ? "scale-[1.06] border-lime-400 bg-lime-400 text-black shadow-lg shadow-lime-500/30"
                     : conClases
@@ -170,7 +170,7 @@ export default function ReservarMovil({
                     : "border-border bg-transparent text-foreground/45 active:scale-95"
                 }`}
               >
-                <span aria-hidden="true" className={`text-[11px] font-black uppercase tracking-wide ${
+                <span aria-hidden="true" className={`text-[0.6875rem] font-black uppercase tracking-wide ${
                   sel ? "text-black/75" : esHoy(d) ? "text-lime-700 dark:text-lime-400" : conClases ? "text-foreground/75" : ""
                 }`}>{etiqueta}</span>
                 <span aria-hidden="true" className="mt-0.5 text-2xl font-black leading-none tabular-nums">{d.getDate()}</span>
@@ -185,7 +185,7 @@ export default function ReservarMovil({
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-lime-500" /> Días con clases
           </p>
           {bloque > 0 && (
-            <button type="button" onClick={() => setSelectedDate(new Date())} className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-bold text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
+            <button type="button" onClick={() => setSelectedDate(new Date())} className="min-h-[2.75rem] rounded-xl border border-border px-4 text-sm font-bold text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
               Volver a hoy
             </button>
           )}
@@ -212,7 +212,7 @@ export default function ReservarMovil({
                 onClick={() => setTurnoFiltro(t.id)}
                 aria-pressed={activo}
                 aria-label={t.id ? undefined : "Todas las clases del día"}
-                className={`min-h-[44px] rounded-full border px-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
+                className={`min-h-[2.75rem] rounded-full border px-1 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card ${
                   activo ? "border-lime-400 bg-lime-400 text-black" : "border-border text-foreground/80"
                 }`}
               >
@@ -257,18 +257,18 @@ export default function ReservarMovil({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xl font-black tabular-nums text-foreground">{c.hora}</span>
                       {plan && (
-                        <span className="rounded border border-lime-500/40 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{plan}</span>
+                        <span className="rounded border border-lime-500/40 px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{plan}</span>
                       )}
                     </div>
                     <p className="mt-1 text-base font-bold leading-snug text-foreground">{c.nombre}</p>
                   </div>
-                  <span className={`shrink-0 rounded-lg border px-2 py-1 text-[10px] font-black ${e.chip}`}>
+                  <span className={`shrink-0 rounded-lg border px-2 py-1 text-[0.625rem] font-black ${e.chip}`}>
                     {c.reservado && <CheckCircle2 className="mr-1 inline h-3 w-3" />}{e.texto}
                   </span>
                 </div>
 
                 {c.reservado && (
-                  <Link to="/alumno/reservas" className="mt-3 flex min-h-[40px] items-center justify-between gap-2 rounded-xl bg-lime-400/10 px-3 text-xs font-black uppercase tracking-wide text-lime-700 active:bg-lime-400/20 dark:text-lime-400">
+                  <Link to="/alumno/reservas" className="mt-3 flex min-h-[2.5rem] items-center justify-between gap-2 rounded-xl bg-lime-400/10 px-3 text-xs font-black uppercase tracking-wide text-lime-700 active:bg-lime-400/20 dark:text-lime-400">
                     <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Ya la reservaste · Ver mi reserva</span>
                     <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
@@ -296,12 +296,12 @@ export default function ReservarMovil({
                         <XCircle className="h-3.5 w-3.5" /> Cancelar
                       </button>
                     ) : (
-                      <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-foreground/50">Ya no se<br />puede cancelar</span>
+                      <span className="shrink-0 text-right text-[0.625rem] font-bold leading-tight text-foreground/50">Ya no se<br />puede cancelar</span>
                     )
                   ) : c.cuposDisponibles <= 0 ? null : creditos <= 0 ? (
-                    <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-red-700 dark:text-red-400">Sin<br />créditos</span>
+                    <span className="shrink-0 text-right text-[0.625rem] font-bold leading-tight text-red-700 dark:text-red-400">Sin<br />créditos</span>
                   ) : !puedeRes ? (
-                    <span className="shrink-0 text-right text-[10px] font-bold leading-tight text-foreground/50">{esDeHoy(selectedDate) ? <>Cerrada<br />(2 h antes)</> : <>Solo el<br />mismo día</>}</span>
+                    <span className="shrink-0 text-right text-[0.625rem] font-bold leading-tight text-foreground/50">{esDeHoy(selectedDate) ? <>Cerrada<br />(2 h antes)</> : <>Solo el<br />mismo día</>}</span>
                   ) : (
                     <button type="button" data-guia="reservar" onClick={() => onReservar(c)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-lime-400 px-3.5 py-2.5 text-xs font-black uppercase text-black active:bg-lime-300">
                       Reservar <ArrowRight className="h-3.5 w-3.5" />

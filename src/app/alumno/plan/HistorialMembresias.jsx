@@ -32,9 +32,9 @@ export function TarjetaMembresia({ m }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-black uppercase tracking-tight text-foreground">{m.nombrePlan}</p>
-          <p className="text-[11px] text-foreground/40">N.º {m.idCredito}</p>
+          <p className="text-[0.6875rem] text-foreground/40">N.º {m.idCredito}</p>
         </div>
-        <span className={`shrink-0 border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${estado.cls}`}>
+        <span className={`shrink-0 border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${estado.cls}`}>
           {estado.label}
         </span>
       </div>

@@ -81,7 +81,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
   }
 
   const campo = (err) => `h-11 w-full rounded-xl border bg-background/60 px-3 text-base text-foreground outline-none transition-colors focus:border-lime-500 ${err ? "border-red-500/60" : "border-border"}`
-  const etiqueta = "mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55"
+  const etiqueta = "mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55"
   const seccion = "rounded-2xl border border-border bg-card p-4"
   const tituloSec = "flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground"
   const error = (m) => m && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{m}</p>
@@ -168,7 +168,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
             <section className={seccion} aria-labelledby="sec-clases">
               <div className="flex items-center justify-between gap-2">
                 <h2 id="sec-clases" className={tituloSec}><Users className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Clases de este tipo</h2>
-                {clases && <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-black text-lime-700 dark:text-lime-400">{clases.filter((c) => c.estado === "Activo").length} activas</span>}
+                {clases && <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-black text-lime-700 dark:text-lime-400">{clases.filter((c) => c.estado === "Activo").length} activas</span>}
               </div>
               <p className="mt-1 text-xs text-foreground/55">Los alumnos con este plan pueden reservar estas clases, igual que los de cualquier otro plan del mismo tipo.</p>
               {clases === null ? (
@@ -180,7 +180,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
                   {clases.map((c) => (
                     <li key={c.idClase} className="flex items-center gap-3 bg-background/40 px-3 py-2.5">
                       <div className="w-12 shrink-0 text-center">
-                        <p className="text-[10px] font-black uppercase text-foreground/55">
+                        <p className="text-[0.625rem] font-black uppercase text-foreground/55">
                           {c.fechaEspecifica ? "Única" : (c.diasSemana || "").split(",").map((d) => DIAS_CORTOS[d.trim().toUpperCase()]).filter(Boolean)[0] || "—"}
                         </p>
                         <p className="text-sm font-black tabular-nums text-foreground">{(c.horaInicio || "").slice(0, 5)}</p>
@@ -202,7 +202,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
               )}
               {puedeCrearClases && (
                 <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.tipo)}`}
-                  className="mt-3 flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-dashed border-lime-500/50 text-xs font-black uppercase tracking-wider text-lime-700 hover:bg-lime-400/10 dark:text-lime-400">
+                  className="mt-3 flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-xl border border-dashed border-lime-500/50 text-xs font-black uppercase tracking-wider text-lime-700 hover:bg-lime-400/10 dark:text-lime-400">
                   <Plus className="h-4 w-4" /> Crear clase de este tipo
                 </Link>
               )}
@@ -213,7 +213,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
           <section className={seccion} aria-labelledby="sec-condiciones">
             <div className="flex items-center justify-between gap-2">
               <h2 id="sec-condiciones" className={tituloSec}><ListChecks className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> 3. Lo que ve el alumno</h2>
-              <span className="text-[11px] font-bold text-foreground/50">{condiciones.length}/{MAX_CONDICIONES}</span>
+              <span className="text-[0.6875rem] font-bold text-foreground/50">{condiciones.length}/{MAX_CONDICIONES}</span>
             </div>
             <p className="mt-1 text-xs leading-snug text-foreground/55">
               Lo que incluye el plan. Poné solo lo que el box ofrece de verdad: lo publicado en una oferta obliga.
@@ -257,17 +257,17 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
           <section className={seccion} aria-labelledby="sec-vista">
             <div className="flex items-center justify-between gap-2">
               <h2 id="sec-vista" className={tituloSec}><Eye className="h-4 w-4 text-lime-700 dark:text-lime-400" aria-hidden="true" /> Vista previa</h2>
-              <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/55">Pantalla del alumno</span>
+              <span className="rounded-md border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">Pantalla del alumno</span>
             </div>
             <div className="mt-3 rounded-2xl border-2 border-lime-500 bg-lime-400/10 dark:border-lime-400">
               <div className="flex items-center gap-3 px-4 py-3">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-lime-500 bg-lime-400 dark:border-lime-400" aria-hidden="true"><Check className="h-3 w-3 text-black" strokeWidth={3} /></span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-black uppercase leading-tight text-foreground">{vistaPrevia.nombre}</span>
+                  <span className="block truncate text-[0.9375rem] font-black uppercase leading-tight text-foreground">{vistaPrevia.nombre}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block text-lg font-black leading-none tabular-nums text-foreground">${(Number(precio) || 0).toLocaleString("es-AR")}</span>
-                  <span className="text-[10px] font-bold text-foreground/50">ARS</span>
+                  <span className="text-[0.625rem] font-bold text-foreground/50">ARS</span>
                 </span>
               </div>
               <ul className="mx-4 mb-4 space-y-2 border-t border-border pt-3">
@@ -279,7 +279,7 @@ export default function EditorPlan({ open, plan, tipos, onClose, onGuardar, guar
                 ))}
               </ul>
             </div>
-            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-foreground/50"><Clock className="h-3 w-3" aria-hidden="true" /> Se actualiza mientras editás.</p>
+            <p className="mt-2 flex items-center gap-1.5 text-[0.6875rem] text-foreground/50"><Clock className="h-3 w-3" aria-hidden="true" /> Se actualiza mientras editás.</p>
           </section>
         </div>
 

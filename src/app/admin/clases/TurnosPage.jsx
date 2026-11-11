@@ -134,7 +134,7 @@ export default function TurnosPage() {
                   </div>
                   <ul className="divide-y divide-border">
                     {t.horarios.map((h) => (
-                      <li key={h.idTurnoHorario} className="flex min-h-[56px] items-center gap-3 px-4 py-2">
+                      <li key={h.idTurnoHorario} className="flex min-h-[3.5rem] items-center gap-3 px-4 py-2">
                         <div className="min-w-0 flex-1">
                           <p className="text-lg font-black tabular-nums text-foreground">{h.horaInicio} <span className="font-semibold text-foreground/45">a</span> {h.horaFin}</p>
                           {h.etiqueta && <p className="truncate text-xs text-foreground/60">{h.etiqueta}</p>}

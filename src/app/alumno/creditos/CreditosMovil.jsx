@@ -122,7 +122,7 @@ export default function CreditosMovil({ abono, movimientos }) {
           </div>
           <div className="text-right">
             <p className="text-3xl font-black leading-none tabular-nums text-foreground/25">{porcentaje}%</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-foreground/50">Restante</p>
+            <p className="mt-1 text-[0.625rem] font-bold uppercase tracking-widest text-foreground/50">Restante</p>
           </div>
         </div>
         <p className="mt-2 text-sm text-foreground/70">
@@ -147,12 +147,12 @@ export default function CreditosMovil({ abono, movimientos }) {
       {/* Total y usados */}
       <div data-guia="cred-totales" className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Total del plan</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Total del plan</p>
           <p className="mt-1 text-3xl font-black tabular-nums text-foreground">{total}</p>
           <p className="text-xs text-foreground/50">créditos</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Usados</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Usados</p>
           <p className="mt-1 text-3xl font-black tabular-nums text-foreground">{usados}</p>
           <p className={`text-xs font-bold ${usados === 0 ? "text-lime-700 dark:text-lime-400" : "text-foreground/50"}`}>
             {usados === 0 ? "Sin uso todavía" : `${usados === 1 ? "clase" : "clases"}`}
@@ -177,7 +177,7 @@ export default function CreditosMovil({ abono, movimientos }) {
 
       <Link
         to="/alumno/reservar"
-        className="flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black active:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex min-h-[3.25rem] items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black active:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <CalendarCheck className="h-5 w-5" aria-hidden="true" /> Reservar clase
       </Link>
@@ -186,7 +186,7 @@ export default function CreditosMovil({ abono, movimientos }) {
       <section data-guia="cred-historial" className="overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="titulo-historial">
         <div className="flex items-center justify-between gap-2 px-4 pt-4">
           <h2 id="titulo-historial" className="text-sm font-black uppercase tracking-wide text-foreground">Historial de movimientos</h2>
-          <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[11px] font-bold text-foreground/60">{movimientos.length} registros</span>
+          <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-[0.6875rem] font-bold text-foreground/60">{movimientos.length} registros</span>
         </div>
         <div className="mt-3 flex gap-2 px-4" role="group" aria-label="Filtrar movimientos">
           {filtros.map((f) => (
@@ -195,7 +195,7 @@ export default function CreditosMovil({ abono, movimientos }) {
               type="button"
               aria-pressed={filtro === f.id}
               onClick={() => { setFiltro(f.id); setVisibles(POR_PAGINA) }}
-              className={`min-h-[40px] rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+              className={`min-h-[2.5rem] rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                 filtro === f.id ? "border-lime-400 bg-lime-400 text-black" : "border-border text-foreground/75"
               }`}
             >
@@ -216,7 +216,7 @@ export default function CreditosMovil({ abono, movimientos }) {
             <button
               type="button"
               onClick={() => setVisibles((v) => v + POR_PAGINA)}
-              className="min-h-[44px] w-full rounded-xl border border-border text-sm font-bold text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
+              className="min-h-[2.75rem] w-full rounded-xl border border-border text-sm font-bold text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
             >
               Ver más ({lista.length - visibles} restantes)
             </button>

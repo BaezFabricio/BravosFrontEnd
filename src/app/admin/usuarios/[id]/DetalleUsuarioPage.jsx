@@ -218,7 +218,7 @@ export default function DetalleUsuarioPage() {
       ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/30"
       : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30"
 
-  const botonAccion = "flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-4 text-xs font-black uppercase tracking-widest transition-colors"
+  const botonAccion = "flex min-h-[3rem] items-center justify-center gap-2 rounded-xl border px-4 text-xs font-black uppercase tracking-widest transition-colors"
 
   return (
     <div className="space-y-5">
@@ -269,16 +269,16 @@ export default function DetalleUsuarioPage() {
           <div className="min-w-0 flex-1">
             <TituloPagina descripcion={"Usuarios / Ficha"}>{user?.nombre}</TituloPagina>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${estaInactivo ? "border-border bg-foreground/5 text-foreground/55" : "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"}`}>
+              <span className={`rounded-full border px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${estaInactivo ? "border-border bg-foreground/5 text-foreground/55" : "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"}`}>
                 {status.label}
               </span>
-              <span className="rounded-full border border-border bg-foreground/5 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">
+              <span className="rounded-full border border-border bg-foreground/5 px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">
                 {user?.perfil || "Sin perfil"}
               </span>
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Créditos</p>
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Créditos</p>
             <p className="mt-0.5 text-3xl font-black leading-none tabular-nums text-lime-700 dark:text-lime-400 sm:text-4xl">{user?.creditos ?? 0}</p>
           </div>
         </div>
@@ -291,7 +291,7 @@ export default function DetalleUsuarioPage() {
             { label: "Registro", value: formatearFecha(user?.fechaRegistro), icon: Calendar },
           ].map(({ label, value, icon: Icon, ancho, tel }) => (
             <div key={label} className={`min-w-0 rounded-xl border border-border bg-background/50 px-3 py-2.5 ${ancho ? "col-span-2 lg:col-span-1" : ""}`}>
-              <dt className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <dt className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground">
                 <Icon className="h-3 w-3" aria-hidden="true" /> {label}
               </dt>
               <dd className="mt-1 truncate text-sm font-semibold text-foreground">
@@ -307,9 +307,9 @@ export default function DetalleUsuarioPage() {
             </div>
           ))}
           <div className="rounded-xl border border-border bg-background/50 px-3 py-2.5">
-            <dt className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Membresía</dt>
+            <dt className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground">Membresía</dt>
             <dd className="mt-1.5">
-              <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${claseMembresia}`}>{membership.label}</span>
+              <span className={`rounded-full border px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${claseMembresia}`}>{membership.label}</span>
             </dd>
           </div>
         </dl>
@@ -322,7 +322,7 @@ export default function DetalleUsuarioPage() {
           { key: "documentos", label: "Documentos" },
         ].map(({ key, label }) => (
           <button key={key} type="button" role="tab" aria-selected={vistaActiva === key}
-            className={`min-h-[40px] rounded-lg px-4 text-xs font-black uppercase tracking-widest transition-colors ${vistaActiva === key ? "bg-lime-400 text-black" : "text-foreground/55 hover:text-foreground"}`}
+            className={`min-h-[2.5rem] rounded-lg px-4 text-xs font-black uppercase tracking-widest transition-colors ${vistaActiva === key ? "bg-lime-400 text-black" : "text-foreground/55 hover:text-foreground"}`}
             onClick={() => setVistaActiva(key)}>
             {label}
           </button>
@@ -348,7 +348,7 @@ export default function DetalleUsuarioPage() {
                   <li key={r.idReserva} className="rounded-xl border border-border bg-card px-4 py-3">
                     <div className="flex items-start justify-between gap-3">
                       <p className="min-w-0 font-bold text-foreground">{r.nombreClase}</p>
-                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
                     </div>
                     <p className="mt-1 text-xs text-foreground/60">
                       {formatearFecha(r.fechaReserva)} · {r.horaInicio ? `${r.horaInicio.slice(0, 5)} hs` : "—"}
@@ -365,7 +365,7 @@ export default function DetalleUsuarioPage() {
                 <thead>
                   <tr className="border-b border-border">
                     {["Clase", "Fecha", "Hora", "Coach", "Estado"].map((t) => (
-                      <th key={t} className="px-4 py-2.5 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">{t}</th>
+                      <th key={t} className="px-4 py-2.5 text-left text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">{t}</th>
                     ))}
                   </tr>
                 </thead>
@@ -379,7 +379,7 @@ export default function DetalleUsuarioPage() {
                         <td className="px-4 py-3 font-semibold text-foreground">{r.horaInicio ? `${r.horaInicio.slice(0, 5)} hs` : "—"}</td>
                         <td className="px-4 py-3 text-foreground/60">{r.nombreProfesor || "—"}</td>
                         <td className="px-4 py-3">
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
+                          <span className={`rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${badge.cls}`}>{badge.label}</span>
                         </td>
                       </tr>
                     )
@@ -414,7 +414,7 @@ export default function DetalleUsuarioPage() {
                   </div>
                   {ultimo && (
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${
                         ultimo.estado === "aprobado"
                           ? "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                           : "border-yellow-400/30 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400"
@@ -423,7 +423,7 @@ export default function DetalleUsuarioPage() {
                         {ultimo.estado === "aprobado" ? "Aprobado" : "En revisión"}
                       </span>
                       <a href={ultimo.urlArchivo} target="_blank" rel="noopener noreferrer"
-                        className="flex min-h-[36px] items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-black uppercase tracking-widest text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground">
+                        className="flex min-h-[2.25rem] items-center gap-1.5 rounded-full border border-border px-3 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground">
                         <Eye className="h-3.5 w-3.5" /> Ver
                       </a>
                     </div>

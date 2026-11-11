@@ -25,7 +25,7 @@ export default function FotoAmpliable({ src, alt = "", className = "", children 
       </button>
 
       <Dialog open={abierta} onOpenChange={setAbierta}>
-        <DialogContent showCloseButton={false} className="w-auto max-w-[min(92vw,640px)] gap-0 border-0 bg-transparent p-0 shadow-none sm:max-w-[min(92vw,640px)]">
+        <DialogContent showCloseButton={false} className="w-auto max-w-[min(92vw,40rem)] gap-0 border-0 bg-transparent p-0 shadow-none sm:max-w-[min(92vw,40rem)]">
           <DialogTitle className="sr-only">{alt ? `Foto de ${alt}` : "Foto de perfil"}</DialogTitle>
           <img
             src={src}

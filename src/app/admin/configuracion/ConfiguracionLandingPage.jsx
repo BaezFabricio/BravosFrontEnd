@@ -19,13 +19,13 @@ const SECCIONES = {
 
 const Field = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="block text-[11px] font-black uppercase tracking-widest text-foreground/60">{label}</label>
+    <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">{label}</label>
     {children}
     {hint && <p className="text-xs text-foreground/50">{hint}</p>}
   </div>
 )
 
-const inputCls = "w-full min-h-[48px] rounded-xl border border-border bg-background/60 px-3.5 py-2.5 text-base text-foreground placeholder:text-foreground/35 outline-none transition-colors focus:border-lime-500 focus:ring-2 focus:ring-lime-400/25 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+const inputCls = "w-full min-h-[3rem] rounded-xl border border-border bg-background/60 px-3.5 py-2.5 text-base text-foreground placeholder:text-foreground/35 outline-none transition-colors focus:border-lime-500 focus:ring-2 focus:ring-lime-400/25 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
 const textareaCls = inputCls + " resize-y leading-relaxed"
 
 const SectionCard = ({ title, subtitle, children }) => (
@@ -48,7 +48,7 @@ const ImageUpload = ({ preview, onChange, label, aspect = 'aspect-video', disabl
       : <div className="flex h-full items-center justify-center"><ImageIcon className="h-8 w-8 text-foreground/25" /></div>
     }
     {!disabled && (
-      <label className="absolute bottom-2 right-2 flex min-h-[36px] cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-bold text-white backdrop-blur transition-colors hover:bg-black/85 focus-within:ring-2 focus-within:ring-lime-400">
+      <label className="absolute bottom-2 right-2 flex min-h-[2.25rem] cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-bold text-white backdrop-blur transition-colors hover:bg-black/85 focus-within:ring-2 focus-within:ring-lime-400">
         <Camera className="h-3.5 w-3.5" aria-hidden="true" />
         {label}
         <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onChange} className="sr-only" />
@@ -62,7 +62,7 @@ const SelectorTres = ({ valor, onChange, etiquetas, nombre }) => (
   <div role="tablist" aria-label={nombre} className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-background/60 p-1 md:hidden">
     {etiquetas.map((e, i) => (
       <button key={i} type="button" role="tab" aria-selected={valor === i} onClick={() => onChange(i)}
-        className={`min-h-[40px] truncate rounded-lg px-2 text-xs font-black transition-colors ${valor === i ? 'bg-lime-400 text-black' : 'text-foreground/60'}`}>
+        className={`min-h-[2.5rem] truncate rounded-lg px-2 text-xs font-black transition-colors ${valor === i ? 'bg-lime-400 text-black' : 'text-foreground/60'}`}>
         {e}
       </button>
     ))}
@@ -309,14 +309,14 @@ function ConfiguracionLandingPage() {
       {/* Encabezado de la sección */}
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          {esLanding && puedeModificar && botonGuardar('min-h-[40px] px-4 text-xs', 'Guardar')}
+          {esLanding && puedeModificar && botonGuardar('min-h-[2.5rem] px-4 text-xs', 'Guardar')}
           <button type="button" onClick={volverAlMenu}
-            className="ml-auto inline-flex min-h-[40px] items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground/80 transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+            className="ml-auto inline-flex min-h-[2.5rem] items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold text-foreground/80 transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Configuración del Box
           </button>
         </div>
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>
           <TituloPagina descripcion={seccion.detalle}>{seccion.titulo}</TituloPagina>
         </div>
         {!puedeModificar && (
@@ -366,7 +366,7 @@ function ConfiguracionLandingPage() {
                   }
                 </div>
                 {puedeModificar && (
-                  <label className="flex min-h-[48px] cursor-pointer items-center gap-2 rounded-xl border border-dashed border-lime-500/50 bg-lime-400/10 px-4 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/15 focus-within:ring-2 focus-within:ring-lime-500 dark:text-lime-400">
+                  <label className="flex min-h-[3rem] cursor-pointer items-center gap-2 rounded-xl border border-dashed border-lime-500/50 bg-lime-400/10 px-4 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/15 focus-within:ring-2 focus-within:ring-lime-500 dark:text-lime-400">
                     <Camera className="h-4 w-4" aria-hidden="true" />
                     Cambiar logo
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => handleFileChange(e, 'logo')} className="sr-only" />
@@ -385,7 +385,7 @@ function ConfiguracionLandingPage() {
                   { preview: heroPreview3, tipo: 'hero3' },
                 ].map(({ preview, tipo }, i) => (
                   <div key={tipo} className={i === fotoHero ? '' : 'hidden md:block'}>
-                    <p className="mb-1.5 hidden text-[11px] font-black uppercase tracking-widest text-foreground/60 md:block">Foto {i + 1}</p>
+                    <p className="mb-1.5 hidden text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60 md:block">Foto {i + 1}</p>
                     <ImageUpload
                       preview={preview}
                       onChange={e => handleFileChange(e, tipo)}
@@ -461,7 +461,7 @@ function ConfiguracionLandingPage() {
               {cards.map((card, i) => (
                 <div key={i} className={`space-y-3 rounded-xl border border-border bg-background/50 p-4 ${i === tarjeta ? '' : 'hidden md:block'}`}>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-md bg-lime-400/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tarjeta {i + 1}</span>
+                    <span className="rounded-md bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tarjeta {i + 1}</span>
                   </div>
 
                   <Field label="Foto de la tarjeta">
@@ -571,8 +571,8 @@ function ConfiguracionLandingPage() {
 
         {/* Guardar: en el celular queda fijo arriba de la barra de navegación (con lugar para la mascota del chat) */}
         {puedeModificar && (
-          <div className="fixed inset-x-0 bottom-[64px] z-20 border-t border-border bg-background/95 py-3 pl-4 pr-[76px] backdrop-blur lg:static lg:flex lg:justify-end lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-            {botonGuardar('min-h-[48px] w-full px-6 text-xs lg:w-auto')}
+          <div className="fixed inset-x-0 bottom-[4rem] z-20 border-t border-border bg-background/95 py-3 pl-4 pr-[4.75rem] backdrop-blur lg:static lg:flex lg:justify-end lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+            {botonGuardar('min-h-[3rem] w-full px-6 text-xs lg:w-auto')}
           </div>
         )}
       </form>

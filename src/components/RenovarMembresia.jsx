@@ -40,7 +40,7 @@ function CopyBtn({ text, label = "Copiar" }) {
           setTimeout(() => setCopied(false), 2000)
         })
       }
-      className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground/40 hover:text-foreground/70 transition-colors whitespace-nowrap"
+      className="inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-foreground/40 hover:text-foreground/70 transition-colors whitespace-nowrap"
     >
       {copied ? (
         <><Check className="h-3 w-3 text-lime-600 dark:text-lime-400" /> Copiado</>
@@ -287,7 +287,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
 
         {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-border">
-          <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 mb-1">
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 mb-1">
             PASARELA DE PAGO SEGURA
           </p>
           <h2 className="text-lg font-black text-foreground">
@@ -342,7 +342,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
 
         {/* Tabs método */}
         <div className="px-6 pt-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55 mb-3">
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55 mb-3">
             SELECCIONA MÉTODO DE PAGO
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -471,7 +471,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                             <p className="text-sm font-black text-foreground">
                               {qrData ? "Pagá con cualquier billetera" : "Pagá con tu cuenta de Mercado Pago"}
                             </p>
-                            <p className="text-[11px] text-foreground/60 leading-snug">
+                            <p className="text-[0.6875rem] text-foreground/60 leading-snug">
                               {qrData
                                 ? "Escaneá el QR desde la app de tu banco o billetera favorita."
                                 : "Usá tus tarjetas guardadas, dinero disponible, cuotas sin tarjeta y mucho más."}
@@ -486,10 +486,10 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                                 { label: "OCA",   color: "#c00",    bg: "#fff" },
                                 { label: "Ualá",  color: "#7c3aed", bg: "#fff" },
                               ].map((item) => (
-                                <div key={item.label || item.img} className="rounded flex items-center justify-center shrink-0 px-2" style={{height:"26px", minWidth:"34px", background: item.bg}}>
+                                <div key={item.label || item.img} className="rounded flex items-center justify-center shrink-0 px-2" style={{height:"1.625rem", minWidth:"2.125rem", background: item.bg}}>
                                   {item.img
                                     ? <img src={item.img} alt="" className={item.big ? "h-5 w-auto" : "h-4 w-auto"} />
-                                    : <span className="text-[11px] font-black leading-none" style={{color: item.color, fontStyle: item.italic ? "italic" : "normal"}}>{item.label}</span>
+                                    : <span className="text-[0.6875rem] font-black leading-none" style={{color: item.color, fontStyle: item.italic ? "italic" : "normal"}}>{item.label}</span>
                                   }
                                 </div>
                               ))}
@@ -500,7 +500,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                           href={qrUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#008ecc] text-white font-black uppercase tracking-widest text-[10px] py-2.5 rounded-lg transition-colors"
+                          className="flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#008ecc] text-white font-black uppercase tracking-widest text-[0.625rem] py-2.5 rounded-lg transition-colors"
                         >
                           <MPLogo className="h-4 w-auto" />
                           PAGAR CON MERCADO PAGO
@@ -508,7 +508,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex-1 border-t border-border" />
-                        <span className="text-[10px] text-foreground/50 uppercase tracking-widest font-bold">O PAGÁ CON TARJETA</span>
+                        <span className="text-[0.625rem] text-foreground/50 uppercase tracking-widest font-bold">O PAGÁ CON TARJETA</span>
                         <div className="flex-1 border-t border-border" />
                       </div>
                     </div>
@@ -570,13 +570,13 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                   <div className="grid grid-cols-2 divide-x divide-border border-b border-border">
                     {configBanco.banco && (
                       <div className="px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">BANCO / ENTIDAD</p>
+                        <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/55">BANCO / ENTIDAD</p>
                         <p className="text-sm font-bold text-foreground mt-0.5">{configBanco.banco}</p>
                       </div>
                     )}
                     {configBanco.titular && (
                       <div className="px-4 py-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">TITULAR</p>
+                        <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/55">TITULAR</p>
                         <p className="text-sm font-bold text-foreground mt-0.5">{configBanco.titular}</p>
                       </div>
                     )}
@@ -586,7 +586,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                 {configBanco.cuit && (
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">CUIT</p>
+                      <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/55">CUIT</p>
                       <p className="text-sm font-mono font-bold text-foreground tracking-wider mt-0.5">{configBanco.cuit}</p>
                     </div>
                     <CopyBtn text={configBanco.cuit} label="Copiar CUIT" />
@@ -596,7 +596,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                 {configBanco.cbu && (
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">CBU</p>
+                      <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/55">CBU</p>
                       <p className="text-sm font-mono font-bold text-foreground tracking-wider mt-0.5">{configBanco.cbu}</p>
                     </div>
                     <CopyBtn text={configBanco.cbu} label="Copiar CBU" />
@@ -606,7 +606,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                 {configBanco.alias && (
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/55">ALIAS</p>
+                      <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/55">ALIAS</p>
                       <p className="text-base font-mono font-black text-lime-700 dark:text-lime-400 mt-0.5">{configBanco.alias}</p>
                     </div>
                     <CopyBtn text={configBanco.alias} label="Copiar Alias" />
@@ -623,7 +623,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
             )}
 
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55 mb-2">
+              <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55 mb-2">
                 CARGAR COMPROBANTE DE PAGO
               </p>
               <input
@@ -660,14 +660,14 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
                         Arrastrá tu comprobante aquí o{" "}
                         <span className="text-lime-700 dark:text-lime-400 underline underline-offset-2">haz clic para subir</span>
                       </span>
-                      <span className="text-[10px] text-foreground/40">PDF, JPG, PNG hasta 10MB</span>
+                      <span className="text-[0.625rem] text-foreground/40">PDF, JPG, PNG hasta 10MB</span>
                     </>
                   )}
                 </button>
               )}
             </div>
 
-            <p className="flex items-center gap-1.5 text-[11px] text-foreground/55">
+            <p className="flex items-center gap-1.5 text-[0.6875rem] text-foreground/55">
               <span className="h-3 w-3 rounded-full border border-foreground/40 inline-flex items-center justify-center shrink-0">
                 <span className="h-1 w-1 rounded-full bg-foreground/40" />
               </span>
@@ -677,7 +677,7 @@ function ModalPago({ plan, open, onClose, onRenovado, configBanco, variante }) {
             <button
               onClick={comprobante ? onClose : () => fileRef.current?.click()}
               disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 bg-lime-400 text-black font-black uppercase tracking-widest text-[11px] py-4 rounded-xl hover:bg-lime-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-lime-400 text-black font-black uppercase tracking-widest text-[0.6875rem] py-4 rounded-xl hover:bg-lime-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {comprobante ? (
                 <><CheckCircle2 className="h-4 w-4" /> LISTO — ESPERÁ LA CONFIRMACIÓN</>
@@ -731,7 +731,7 @@ const FOCO_PLAN = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 function EtiquetaPopular({ className = "" }) {
   return (
-    <span className={`rounded-full bg-lime-400 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-black ${className}`}>
+    <span className={`rounded-full bg-lime-400 px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-black ${className}`}>
       Más popular
     </span>
   )
@@ -780,14 +780,14 @@ function PlanesEnLista({ planes, plan, popular, elegir }) {
           }`}>
             {popular?.idPlan === p.idPlan && <EtiquetaPopular className="absolute -top-2.5 right-4" />}
             <button type="button" role="radio" aria-checked={activo} aria-expanded={abierto} onClick={() => tocar(p.idPlan)}
-              className={`flex min-h-[72px] w-full items-center gap-3 rounded-2xl px-4 py-3 text-left ${FOCO_PLAN} ${activo ? "" : "active:bg-foreground/5"}`}>
+              className={`flex min-h-[4.5rem] w-full items-center gap-3 rounded-2xl px-4 py-3 text-left ${FOCO_PLAN} ${activo ? "" : "active:bg-foreground/5"}`}>
               <MarcaElegido activo={activo} />
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-black uppercase leading-tight text-foreground">{p.nombre}</span>
+                <span className="block text-[0.9375rem] font-black uppercase leading-tight text-foreground">{p.nombre}</span>
               </span>
               <span className="shrink-0 text-right">
                 <span className="block text-lg font-black leading-none tabular-nums text-foreground">{precioTxt(p)}</span>
-                <span className="text-[10px] font-bold text-foreground/50">ARS</span>
+                <span className="text-[0.625rem] font-bold text-foreground/50">ARS</span>
               </span>
             </button>
             {/* Lo que incluye: se abre solo en el plan elegido */}
@@ -830,11 +830,11 @@ function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana }) {
         <button
           type="button"
           onClick={() => onElegir(plan)}
-          className={`flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black transition-colors hover:bg-lime-300 active:scale-[0.99] ${FOCO_PLAN}`}
+          className={`flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black transition-colors hover:bg-lime-300 active:scale-[0.99] ${FOCO_PLAN}`}
         >
           Continuar · {precioTxt(plan)}
         </button>
-        <p className="mt-2 text-center text-[11px] text-foreground/55">Pagás con Mercado Pago o transferencia bancaria</p>
+        <p className="mt-2 text-center text-[0.6875rem] text-foreground/55">Pagás con Mercado Pago o transferencia bancaria</p>
       </div>
     </div>
   )
@@ -933,7 +933,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
     <div className="hidden space-y-10 sm:block">
       {/* ── Encabezado ── */}
       <div className="text-center space-y-2">
-        <p className="text-[11px] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
+        <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
           MEMBRESÍAS & CRÉDITOS DISPONIBLES
         </p>
         <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-foreground leading-tight">
@@ -968,7 +968,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
               {/* Badge MÁS POPULAR — flota encima del borde de la card */}
               {esRec && (
                 <div className="absolute top-0 inset-x-0 flex justify-center z-10">
-                  <span className="inline-flex items-center gap-1.5 bg-lime-400 text-black text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                  <span className="inline-flex items-center gap-1.5 bg-lime-400 text-black text-[0.625rem] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                     ★ + MÁS POPULAR
                   </span>
                 </div>
@@ -977,17 +977,17 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
               {/* Card */}
               <div className={`flex-1 flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden ${
                 esRec
-                  ? "border-lime-400/60 bg-[#0d150d] shadow-[0_0_40px_rgba(163,230,53,0.18)] hover:shadow-[0_0_60px_rgba(163,230,53,0.35)] hover:border-lime-400"
-                  : "border-border bg-card shadow-sm hover:border-lime-500 dark:hover:border-lime-400 hover:bg-lime-400/5 hover:shadow-[0_0_40px_rgba(163,230,53,0.22)]"
+                  ? "border-lime-400/60 bg-[#0d150d] shadow-[0_0_2.5rem_rgba(163,230,53,0.18)] hover:shadow-[0_0_3.75rem_rgba(163,230,53,0.35)] hover:border-lime-400"
+                  : "border-border bg-card shadow-sm hover:border-lime-500 dark:hover:border-lime-400 hover:bg-lime-400/5 hover:shadow-[0_0_2.5rem_rgba(163,230,53,0.22)]"
               }`}>
-                <div className="flex-1 flex flex-col p-6 gap-5 min-h-[500px]">
+                <div className="flex-1 flex flex-col p-6 gap-5 min-h-[31.25rem]">
 
                   {/* Tier label */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${esRec ? "text-white/40" : "text-foreground/40"}`}>
+                    <span className={`text-[0.625rem] font-black uppercase tracking-widest ${esRec ? "text-white/40" : "text-foreground/40"}`}>
                       {meta.label}
                     </span>
-                    <span className={`text-[10px] font-bold ${meta.subColor}`}>
+                    <span className={`text-[0.625rem] font-bold ${meta.subColor}`}>
                       {meta.sub}
                     </span>
                   </div>
@@ -1059,7 +1059,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
       {planesOrdenados.length > 1 && (
         <div>
           <div className="mb-4">
-            <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55">
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">
               COMPARÁ LAS MEMBRESÍAS
             </p>
             <p className="text-xs text-foreground/50 mt-0.5">
@@ -1070,11 +1070,11 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left py-3 pr-4 text-[10px] font-black uppercase tracking-widest text-foreground/55 w-[28%]">
+                  <th className="text-left py-3 pr-4 text-[0.625rem] font-black uppercase tracking-widest text-foreground/55 w-[28%]">
                     DETALLE
                   </th>
                   {planesOrdenados.map((p) => (
-                    <th key={p.idPlan} className="py-3 px-2 text-center text-[10px] font-black uppercase tracking-widest text-foreground/60">
+                    <th key={p.idPlan} className="py-3 px-2 text-center text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">
                       {p.nombre}
                     </th>
                   ))}
@@ -1101,7 +1101,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* FAQ */}
         <div className="lg:col-span-3 space-y-2">
-          <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55 mb-3">
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55 mb-3">
             ? PREGUNTAS FRECUENTES
           </p>
           {FAQS.map((faq, i) => (
@@ -1125,7 +1125,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
         {/* Medios de pago + soporte */}
         <div className="lg:col-span-2 space-y-4">
           <div className="border border-border rounded-xl p-4 space-y-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">
               MEDIOS DE PAGO OFICIALES
             </p>
             <div className="flex items-center gap-3 py-2 border-b border-border">
@@ -1134,9 +1134,9 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground">Mercado Pago</p>
-                <p className="text-[11px] text-foreground/55">Tarjeta, Débito, Dinero en cuenta</p>
+                <p className="text-[0.6875rem] text-foreground/55">Tarjeta, Débito, Dinero en cuenta</p>
               </div>
-              <span className="shrink-0 text-[10px] bg-lime-400/15 text-lime-700 dark:text-lime-400 font-bold px-2 py-0.5 border border-lime-500/30 dark:border-lime-400/30 rounded-full">
+              <span className="shrink-0 text-[0.625rem] bg-lime-400/15 text-lime-700 dark:text-lime-400 font-bold px-2 py-0.5 border border-lime-500/30 dark:border-lime-400/30 rounded-full">
                 Inmediato
               </span>
             </div>
@@ -1147,19 +1147,19 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground">Transferencia Bancaria</p>
                 {configBanco.alias || configBanco.cbu ? (
-                  <p className="text-[11px] text-foreground/55 truncate">
+                  <p className="text-[0.6875rem] text-foreground/55 truncate">
                     {configBanco.alias ? `Alias: ${configBanco.alias}` : configBanco.cbu}
                   </p>
                 ) : (
-                  <p className="text-[11px] text-foreground/40">Configurar en Admin</p>
+                  <p className="text-[0.6875rem] text-foreground/40">Configurar en Admin</p>
                 )}
               </div>
-              <span className="shrink-0 text-[10px] text-foreground/50 font-medium">10-30 min</span>
+              <span className="shrink-0 text-[0.625rem] text-foreground/50 font-medium">10-30 min</span>
             </div>
           </div>
 
           <div className="border border-border rounded-xl p-4 space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-foreground/55">
+            <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">
               ATENCIÓN AL ALUMNO
             </p>
             <p className="text-xs text-foreground/60">
@@ -1170,13 +1170,13 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
                 href={`https://wa.me/${numeroWhatsapp(configBanco.whatsapp)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-300 transition-colors"
+                className="inline-flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 hover:text-lime-600 dark:hover:text-lime-300 transition-colors"
               >
                 <MessageCircle className="h-3.5 w-3.5" />
                 WHATSAPP SOPORTE BRAVOS
               </a>
             ) : (
-              <p className="text-[11px] text-foreground/50">Consultá en recepción.</p>
+              <p className="text-[0.6875rem] text-foreground/50">Consultá en recepción.</p>
             )}
           </div>
         </div>

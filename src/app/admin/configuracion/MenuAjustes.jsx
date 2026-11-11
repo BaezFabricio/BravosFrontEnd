@@ -43,7 +43,7 @@ function Fila({ icono: Icono, texto, detalle, a, onClick, peligro, derecha }) {
       {derecha === undefined ? <ChevronRight className="h-5 w-5 shrink-0 text-foreground/35" aria-hidden="true" /> : derecha}
     </>
   )
-  const cls = 'flex min-h-[84px] w-full items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500'
+  const cls = 'flex min-h-[5.25rem] w-full items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500'
   return a
     // desdeMenu: la sección sabe que puede volver al menú con 'atrás' sin apilar otra página
     ? <Link to={a} state={{ desdeMenu: true }} className={cls}>{contenido}</Link>

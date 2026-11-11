@@ -98,7 +98,7 @@ export default function RankingPublicoPage() {
 
       <main className="mx-auto max-w-4xl space-y-5 px-4 py-8 sm:px-8 sm:py-12">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-widest text-lime-400">Los mejores del box</p>
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-400">Los mejores del box</p>
           <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">RANKING <span className="text-lime-400">DE RM</span></h1>
           <p className="mt-2 text-sm text-white/60">Las mejores marcas de nuestros alumnos por ejercicio. {sesion ? "Cargá tu RM desde tu panel para aparecer." : "Para aparecer, ingresá y cargá tu RM."}</p>
         </div>
@@ -115,7 +115,7 @@ export default function RankingPublicoPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_16.25rem]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" aria-hidden="true" />
                 <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un alumno" aria-label="Buscar alumno"

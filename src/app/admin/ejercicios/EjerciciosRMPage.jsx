@@ -93,13 +93,13 @@ export default function EjerciciosRMPage() {
 
       {puedeEditar && (
         <Card className="gap-3 rounded-2xl border-border bg-card p-4">
-          <form onSubmit={agregar} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px_auto] sm:items-end">
+          <form onSubmit={agregar} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12.5rem_auto] sm:items-end">
             <div>
-              <label htmlFor="ej-nombre" className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Nuevo ejercicio</label>
+              <label htmlFor="ej-nombre" className="mb-1.5 block text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Nuevo ejercicio</label>
               <input id="ej-nombre" value={nombre} maxLength={100} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Sentadilla trasera" className={inputCls} />
             </div>
             <div>
-              <label htmlFor="ej-tipo" className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">Se mide en</label>
+              <label htmlFor="ej-tipo" className="mb-1.5 block text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Se mide en</label>
               <select id="ej-tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} className={inputCls}>
                 {Object.entries(TIPOS).map(([k, t]) => <option key={k} value={k}>{t.nombre}</option>)}
               </select>
@@ -113,7 +113,7 @@ export default function EjerciciosRMPage() {
         </Card>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_260px]">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_16.25rem]">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" aria-hidden="true" />
           <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un ejercicio" aria-label="Buscar ejercicio" className={`${inputCls} h-12 pl-10`} />

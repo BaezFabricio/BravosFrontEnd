@@ -18,7 +18,7 @@ import { TIPOS_NOVEDAD, colorDe } from "@/lib/novedades"
 const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_IMAGEN = 5 * 1024 * 1024
 const inputCls = "w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 sm:text-sm"
-const etiqueta = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+const etiqueta = "mb-1.5 block text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground"
 const VACIO = { idNovedad: null, titulo: "", tipo: "aviso", texto: "", activa: true, hasta: "", imagen: null, archivo: null, quitarImagen: false, enlace: "", enlaceTexto: "", colorFondo: "" }
 
 export default function NovedadesPage() {
@@ -139,7 +139,7 @@ export default function NovedadesPage() {
           <TituloPagina descripcion={"Comunicados, eventos y promos que se ven en la portada de los alumnos con sesión iniciada."}>Novedades</TituloPagina>
           {puedeEditar && (
             <button type="button" onClick={() => setEditando({ ...VACIO })}
-              className="ml-auto flex min-h-[44px] items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black hover:bg-lime-300 md:rounded-xl">
+              className="ml-auto flex min-h-[2.75rem] items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black hover:bg-lime-300 md:rounded-xl">
               <Plus className="h-4 w-4" aria-hidden="true" /> Nueva novedad
             </button>
           )}
@@ -157,7 +157,7 @@ export default function NovedadesPage() {
                 <div key={n.idNovedad} className="relative">
                   <TarjetaNovedad novedad={n} onAbrir={puedeEditar ? () => abrirEdicion(n) : undefined} className="h-full" />
                   <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${estado.clase}`}>{estado.texto}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-[0.12em] ${estado.clase}`}>{estado.texto}</span>
                     {puedeEditar && (
                       <button type="button" onClick={() => borrarDesdeTarjeta(n)} aria-label={`Eliminar ${n.titulo}`}
                         className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white hover:bg-red-600">
@@ -180,7 +180,7 @@ export default function NovedadesPage() {
           </DialogHeader>
 
           {editando && (
-            <form onSubmit={guardar} className="grid gap-6 md:grid-cols-[1fr_280px]">
+            <form onSubmit={guardar} className="grid gap-6 md:grid-cols-[1fr_17.5rem]">
               <div className="space-y-5">
                 <div>
                   <span className={etiqueta}>Tipo</span>
@@ -198,7 +198,7 @@ export default function NovedadesPage() {
                 <div>
                   <span className={etiqueta}>Color</span>
                   <div className="flex flex-wrap items-center gap-3">
-                    <label className="relative h-14 w-14 shrink-0 cursor-pointer rounded-full p-[4px] focus-within:ring-2 focus-within:ring-foreground focus-within:ring-offset-2 focus-within:ring-offset-background"
+                    <label className="relative h-14 w-14 shrink-0 cursor-pointer rounded-full p-[0.25rem] focus-within:ring-2 focus-within:ring-foreground focus-within:ring-offset-2 focus-within:ring-offset-background"
                       style={{ background: "conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)" }}>
                       <span className="block h-full w-full rounded-full ring-2 ring-black/20" style={{ backgroundColor: colorDe(editando).hex }} />
                       <input type="color" aria-label="Elegir el color de la novedad" value={colorDe(editando).hex}
@@ -207,7 +207,7 @@ export default function NovedadesPage() {
                     </label>
                     <div className="min-w-0">
                       <p className="font-mono text-sm font-bold uppercase text-foreground">{colorDe(editando).hex}</p>
-                      <p className="text-[11px] text-muted-foreground">Tocá la rueda para elegir cualquier color.</p>
+                      <p className="text-[0.6875rem] text-muted-foreground">Tocá la rueda para elegir cualquier color.</p>
                       {editando.colorFondo && (
                         <button type="button" onClick={() => setEditando({ ...editando, colorFondo: "" })}
                           className="mt-1 text-xs font-bold text-foreground underline underline-offset-4">Usar el color del tipo</button>
@@ -225,17 +225,17 @@ export default function NovedadesPage() {
                 <div>
                   <label htmlFor="nov-texto" className={etiqueta}>Mensaje</label>
                   <textarea id="nov-texto" value={editando.texto} maxLength={2000} rows={4} onChange={(e) => setEditando({ ...editando, texto: e.target.value })}
-                    placeholder="Contá lo que tienen que saber los alumnos" className={`${inputCls} min-h-[110px] py-3 leading-relaxed`} />
+                    placeholder="Contá lo que tienen que saber los alumnos" className={`${inputCls} min-h-[6.875rem] py-3 leading-relaxed`} />
                   <p className="mt-1 text-right text-xs tabular-nums text-muted-foreground">{editando.texto.length}/2000</p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
+                <div className="grid gap-4 sm:grid-cols-[1fr_11.25rem]">
                   <div>
                     <label htmlFor="nov-enlace" className={etiqueta}>Enlace (opcional)</label>
                     <input id="nov-enlace" type="text" inputMode="url" value={editando.enlace} maxLength={500}
                       onChange={(e) => setEditando({ ...editando, enlace: e.target.value })}
                       placeholder="https://..." className={`${inputCls} h-12`} />
-                    <p className="mt-1 text-[11px] text-muted-foreground">Aparece como botón en la ventana de la novedad. Los links escritos en el mensaje también se abren al tocarlos.</p>
+                    <p className="mt-1 text-[0.6875rem] text-muted-foreground">Aparece como botón en la ventana de la novedad. Los links escritos en el mensaje también se abren al tocarlos.</p>
                   </div>
                   <div>
                     <label htmlFor="nov-enlace-texto" className={etiqueta}>Texto del botón</label>
@@ -258,14 +258,14 @@ export default function NovedadesPage() {
                       </button>
                     )}
                   </div>
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">JPG, PNG, WEBP o GIF de hasta 5 MB. Si no ponés foto, se usa el color del tipo.</p>
+                  <p className="mt-1.5 text-[0.6875rem] text-muted-foreground">JPG, PNG, WEBP o GIF de hasta 5 MB. Si no ponés foto, se usa el color del tipo.</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="nov-hasta" className={etiqueta}>Mostrar hasta (opcional)</label>
                     <input id="nov-hasta" type="date" value={editando.hasta} onChange={(e) => setEditando({ ...editando, hasta: e.target.value })} className={`${inputCls} h-12`} />
-                    <p className="mt-1 text-[11px] text-muted-foreground">Sin fecha, se ve hasta que la ocultes.</p>
+                    <p className="mt-1 text-[0.6875rem] text-muted-foreground">Sin fecha, se ve hasta que la ocultes.</p>
                   </div>
                   <label className="flex items-center gap-3 self-end pb-2 text-sm font-bold text-foreground">
                     <input type="checkbox" checked={editando.activa} onChange={(e) => setEditando({ ...editando, activa: e.target.checked })} className="h-5 w-5 accent-lime-400" />

@@ -107,7 +107,7 @@ function Titular({ a, b, abajo }) {
 export function Cinta({ className = "", style = {}, chica = false }) {
   return (
     <div className={`flex items-center whitespace-nowrap ${className}`}
-      style={{ ...BIG, gap: chica ? 14 : P(14), background: COLOR.lima, color: COLOR.base, fontSize: chica ? 15 : P(20), letterSpacing: ".14em", boxShadow: chica ? "0 6px 20px rgba(0,0,0,.4)" : `0 ${P(6)} ${P(20)} rgba(0,0,0,.4)`, ...style }}>
+      style={{ ...BIG, gap: chica ? 14 : P(14), background: COLOR.lima, color: COLOR.base, fontSize: chica ? 15 : P(20), letterSpacing: ".14em", boxShadow: chica ? "0 0.375rem 1.25rem rgba(0,0,0,.4)" : `0 ${P(6)} ${P(20)} rgba(0,0,0,.4)`, ...style }}>
       <span aria-hidden="true">✦</span>
       <span className="uppercase">Empieza aunque no sepas lo que viene</span>
       <span aria-hidden="true">✦</span>
@@ -183,15 +183,15 @@ export function PantallaAcceso({ panel, volver, movil, children }) {
         {/* Encabezado — celular */}
         <div className="-mx-6 mb-5 flex items-center justify-between border-b px-4 py-2.5 min-[900px]:hidden" style={{ borderColor: COLOR.linea }}>
           <button type="button" onClick={volver}
-            className="flex min-h-[40px] items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9be600]"
+            className="flex min-h-[2.5rem] items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9be600]"
             style={{ borderColor: COLOR.linea, color: COLOR.tinta }}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver
           </button>
           <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9be600]">
             <img src="/acceso/brvs.png" alt="" className="h-7 w-7 rounded-md" />
-            <span className="text-[15px] uppercase tracking-[0.3em]" style={{ ...BIG, color: COLOR.lima }}>Bravos Box</span>
+            <span className="text-[0.9375rem] uppercase tracking-[0.3em]" style={{ ...BIG, color: COLOR.lima }}>Bravos Box</span>
           </Link>
-          <span className="w-[88px]" aria-hidden="true" />
+          <span className="w-[5.5rem]" aria-hidden="true" />
         </div>
         <div className="min-[900px]:hidden">{movil}</div>
 

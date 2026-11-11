@@ -47,17 +47,17 @@ export default function DetalleRutinaPage() {
       <div className="border border-border bg-card">
         <div className="border-b border-border px-5 py-3 flex flex-wrap gap-2 items-center">
           {rutina.categoria && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20 rounded-md">
+            <span className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-lime-400/10 text-lime-700 dark:text-lime-400 border border-lime-400/20 rounded-md">
               {rutina.categoria}
             </span>
           )}
           {rutina.nivel && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md">
+            <span className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md">
               {rutina.nivel}
             </span>
           )}
           {rutina.duracion && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md flex items-center gap-1">
+            <span className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md flex items-center gap-1">
               <Clock className="h-3 w-3" /> {rutina.duracion}
             </span>
           )}
@@ -78,7 +78,7 @@ export default function DetalleRutinaPage() {
               <>
                 {descHtml && (
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
+                    <p className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">Descripción</p>
                     <div
                       className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
                       dangerouslySetInnerHTML={{ __html: sanitizarHtml(descHtml) }}
@@ -87,7 +87,7 @@ export default function DetalleRutinaPage() {
                 )}
                 {rutinaHtml && (
                   <div className="space-y-1 border-t border-border pt-5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Rutina</p>
+                    <p className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">Rutina</p>
                     <div
                       className="text-sm text-foreground/70 prose prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground [&_em]:italic"
                       dangerouslySetInnerHTML={{ __html: sanitizarHtml(rutinaHtml) }}
@@ -102,7 +102,7 @@ export default function DetalleRutinaPage() {
             <div className="space-y-3 border-t border-border pt-5">
               <div className="flex items-center gap-2">
                 <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ejercicios</p>
+                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Ejercicios</p>
               </div>
               <div className="space-y-2">
                 {rutina.ejercicios.map((ej, idx) => (
@@ -122,11 +122,11 @@ export default function DetalleRutinaPage() {
             <div className="space-y-3 border-t border-border pt-5">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumnos asignados</p>
+                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Alumnos asignados</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {rutina.alumnos.map((alumno) => (
-                  <span key={alumno.idAlumno} className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
+                  <span key={alumno.idAlumno} className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border">
                     {alumno.nombrecompleto}
                   </span>
                 ))}

@@ -29,7 +29,7 @@ export default function NovedadesAlumnoPage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <header className="space-y-3">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">Lo último del box y de la comunidad</p>
+        <p className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">Lo último del box y de la comunidad</p>
         <h1 className="text-5xl font-black uppercase leading-none tracking-tight text-foreground md:text-7xl">Novedades</h1>
       </header>
 
@@ -39,7 +39,7 @@ export default function NovedadesAlumnoPage() {
 
       {destacada && (
         <section className="space-y-4" aria-labelledby="nuevas-titulo">
-          <h2 id="nuevas-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
+          <h2 id="nuevas-titulo" className="flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">
             <span className="h-2 w-2 rounded-full bg-[#9be600]" aria-hidden="true" /> Nuevas
           </h2>
           <button type="button" onClick={() => setAbierta(destacada)}
@@ -48,8 +48,8 @@ export default function NovedadesAlumnoPage() {
               <FotoNovedad novedad={destacada} className="transition-transform duration-500 group-hover:scale-105" />
             </div>
             <div className="flex flex-col gap-3 p-6 md:p-7">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
-                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>
+              <div className="flex flex-wrap items-center gap-2 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-white/50">
+                <span className="rounded-full bg-white px-2 py-0.5 text-[0.625rem] font-black text-black">Nuevo</span>
                 <span>{destacada.fecha} · {tipoDe(destacada.tipo).nombre}</span>
               </div>
               <h3 className="text-[2.4rem] leading-none" style={estiloTitulo()}>{destacada.titulo}</h3>
@@ -70,7 +70,7 @@ export default function NovedadesAlumnoPage() {
 
       {anteriores.length > 0 && (
         <section className="space-y-4" aria-labelledby="anteriores-titulo">
-          <h2 id="anteriores-titulo" className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Anteriores</h2>
+          <h2 id="anteriores-titulo" className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-muted-foreground">Anteriores</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {anteriores.map((n) => (
               <TarjetaNovedad key={n.idNovedad} novedad={n} onAbrir={() => setAbierta(n)} />

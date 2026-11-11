@@ -4,11 +4,11 @@ export default function HamburgerButton({ isOpen, onClick, className = "" }) {
       data-guia="menu"
       onClick={onClick}
       aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
-      className={`flex flex-col justify-center items-center w-9 h-9 gap-[5px] focus:outline-none ${className}`}
+      className={`flex flex-col justify-center items-center w-9 h-9 gap-[0.3125rem] focus:outline-none ${className}`}
     >
       <span
         className={`block h-0.5 w-6 bg-current rounded-full origin-center transition-all duration-300 ease-in-out ${
-          isOpen ? "translate-y-[7px] rotate-45" : ""
+          isOpen ? "translate-y-[0.4375rem] rotate-45" : ""
         }`}
       />
       <span
@@ -18,7 +18,7 @@ export default function HamburgerButton({ isOpen, onClick, className = "" }) {
       />
       <span
         className={`block h-0.5 w-6 bg-current rounded-full origin-center transition-all duration-300 ease-in-out ${
-          isOpen ? "-translate-y-[7px] -rotate-45" : ""
+          isOpen ? "-translate-y-[0.4375rem] -rotate-45" : ""
         }`}
       />
     </button>

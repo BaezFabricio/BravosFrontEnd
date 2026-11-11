@@ -33,7 +33,7 @@ const emptyForm = {
 const inputCls = (error) =>
   `h-12 w-full rounded-xl border ${error ? "border-red-600/50 dark:border-red-500/50" : "border-border"} bg-background/60 pl-10 pr-3.5 text-base font-semibold text-foreground placeholder:font-normal placeholder:text-foreground/35 outline-none transition-colors focus:border-lime-500 focus:ring-2 focus:ring-lime-400/25 sm:text-sm`
 
-const etiqueta = "text-[11px] font-black uppercase tracking-widest text-foreground/55"
+const etiqueta = "text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55"
 
 const Field = ({ id, label, icon: Icon, error, children }) => (
   <div className="space-y-1.5">
@@ -60,7 +60,7 @@ const Bloque = ({ icon: Icon, titulo, nota, children }) => (
         </span>
         {titulo}
       </h2>
-      {nota && <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{nota}</span>}
+      {nota && <span className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/40">{nota}</span>}
     </div>
     <div className="space-y-4 p-4">{children}</div>
   </section>
@@ -223,7 +223,7 @@ export default function EditarUsuarioPage() {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="truncate text-lg font-black leading-tight text-foreground">{formData.nombre || "Sin nombre"}</p>
-                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${activo
+                  <span className={`rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${activo
                     ? "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                     : "border-border bg-foreground/5 text-foreground/55"}`}>
                     {activo ? "Activo" : "Inactivo"}
@@ -236,10 +236,10 @@ export default function EditarUsuarioPage() {
 
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
+              <p className="flex items-center gap-1.5 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Resumen
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Vista previa</p>
+              <p className="text-[0.625rem] font-bold uppercase tracking-widest text-foreground/40">Vista previa</p>
             </div>
             <dl className="grid grid-cols-3 gap-2">
               {[
@@ -248,7 +248,7 @@ export default function EditarUsuarioPage() {
                 { label: "Perfil", value: perfilSeleccionado?.nombrePerfil, icon: ShieldCheck },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-border bg-background/50 px-2.5 py-2">
-                  <dt className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-foreground/45">
+                  <dt className="flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-widest text-foreground/45">
                     <Icon className="h-3 w-3" aria-hidden="true" /> {label}
                   </dt>
                   <dd className="mt-0.5 truncate text-sm font-bold text-foreground">{value || "—"}</dd>
@@ -303,7 +303,7 @@ export default function EditarUsuarioPage() {
                         return (
                           <button key={p.idPerfil} type="button" role="radio" aria-checked={elegido}
                             onClick={() => cambiar("idPerfil", String(p.idPerfil))}
-                            className={`flex min-h-[48px] items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                            className={`flex min-h-[3rem] items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                               elegido
                                 ? "border-lime-500 bg-lime-400/15 text-foreground"
                                 : "border-border bg-background/50 text-foreground/65 hover:border-foreground/30 hover:text-foreground"
@@ -329,7 +329,7 @@ export default function EditarUsuarioPage() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <p className={etiqueta} id="etiqueta-estado">Estado de la cuenta</p>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${activo ? "text-lime-700 dark:text-lime-400" : "text-foreground/50"}`}>
+                    <span className={`text-[0.625rem] font-black uppercase tracking-widest ${activo ? "text-lime-700 dark:text-lime-400" : "text-foreground/50"}`}>
                       {activo ? "Puede entrar" : "No puede entrar"}
                     </span>
                   </div>
@@ -341,7 +341,7 @@ export default function EditarUsuarioPage() {
                       const elegido = formData.estado === valor
                       return (
                         <button key={valor} type="button" role="radio" aria-checked={elegido} onClick={() => cambiar("estado", valor)}
-                          className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg text-sm font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                          className={`flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-lg text-sm font-black uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                             elegido
                               ? valor === "activo" ? "bg-lime-400 text-black" : "bg-foreground/80 text-background"
                               : "text-foreground/55 hover:text-foreground"
@@ -375,14 +375,14 @@ export default function EditarUsuarioPage() {
           </Bloque>
 
           {/* Botones: en el celular quedan fijos arriba de la barra de navegación, con lugar a la derecha para la mascota del chat */}
-          <div className="fixed inset-x-0 bottom-[64px] z-20 border-t border-border bg-background/95 py-3 pl-4 pr-[76px] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+          <div className="fixed inset-x-0 bottom-[4rem] z-20 border-t border-border bg-background/95 py-3 pl-4 pr-[4.75rem] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
             <div className="flex gap-2 lg:justify-end">
               <button type="button" onClick={volver} disabled={isSaving}
-                className="min-h-[48px] rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50">
+                className="min-h-[3rem] rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50">
                 Cancelar
               </button>
               <button type="submit" disabled={isSaving}
-                className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:opacity-50 lg:flex-none">
+                className="flex min-h-[3rem] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:opacity-50 lg:flex-none">
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
                 {isSaving ? "Guardando…" : <>Guardar<span className="hidden sm:inline">&nbsp;cambios</span></>}
               </button>

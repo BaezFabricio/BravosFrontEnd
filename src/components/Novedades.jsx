@@ -23,7 +23,7 @@ export function FotoNovedad({ novedad, className = "", pequena = false }) {
 export function EtiquetaNovedad({ novedad, className = "" }) {
   const color = colorDe(novedad)
   return (
-    <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${className}`}
+    <span className={`inline-block rounded-full px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-[0.14em] ${className}`}
       style={{ backgroundColor: color.hex, color: color.texto }}>
       {tipoDe(novedad.tipo).nombre}
     </span>
@@ -45,9 +45,9 @@ export function FilaNovedad({ novedad, onAbrir, compacta = false }) {
         <FotoNovedad novedad={novedad} pequena className="transition-transform duration-500 group-hover:scale-105" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className={`flex flex-wrap items-center gap-2 font-bold uppercase tracking-[0.1em] text-white/50 ${compacta ? "text-[10px]" : "text-[11px]"}`}>
+        <div className={`flex flex-wrap items-center gap-2 font-bold uppercase tracking-[0.1em] text-white/50 ${compacta ? "text-[0.625rem]" : "text-[0.6875rem]"}`}>
           {esReciente(novedad.fecha) && (
-            <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-black">Nuevo</span>
+            <span className="rounded-full bg-white px-2 py-0.5 text-[0.625rem] font-black text-black">Nuevo</span>
           )}
           <span>{novedad.fecha} · {tipoDe(novedad.tipo).nombre}</span>
         </div>
@@ -71,7 +71,7 @@ export function TarjetaNovedad({ novedad, onAbrir, className = "" }) {
         <EtiquetaNovedad novedad={novedad} className="absolute left-3 top-3" />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        {novedad.fecha && <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">{novedad.fecha}</p>}
+        {novedad.fecha && <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-white/50">{novedad.fecha}</p>}
         <h3 className="text-[2rem]" style={estiloTitulo()}>{novedad.titulo}</h3>
         <p className="line-clamp-2 text-sm leading-relaxed text-white/70">{novedad.texto}</p>
         <span className="mt-auto pt-2 text-xs font-black uppercase tracking-[0.14em]" style={{ color: color.hex }}>Ver más →</span>
@@ -103,7 +103,7 @@ export function DialogoNovedad({ novedad, abierta, onCerrar, textoBoton = "Cerra
             <div className="flex items-start gap-4 bg-zinc-900 px-5 py-4" style={{ boxShadow: `inset 0 -2px 0 ${color.hex}` }}>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="text-2xl leading-tight" style={estiloTitulo()}>{novedad.titulo}</DialogTitle>
-                <p className="mt-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">
+                <p className="mt-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-white/50">
                   {novedad.fecha} · {tipoDe(novedad.tipo).nombre}
                 </p>
               </div>

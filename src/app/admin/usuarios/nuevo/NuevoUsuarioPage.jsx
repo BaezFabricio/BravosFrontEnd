@@ -174,7 +174,7 @@ export default function NuevoUsuarioPage() {
     }
   }
 
-  const etiqueta = "text-[13px] font-semibold text-foreground/85"
+  const etiqueta = "text-[0.8125rem] font-semibold text-foreground/85"
   const error = (m) => m && <p className="text-xs text-red-700 dark:text-red-400">{m}</p>
 
   return (
@@ -187,8 +187,8 @@ export default function NuevoUsuarioPage() {
           {/* Datos personales */}
           <section className="rounded-2xl border border-border bg-card" aria-labelledby="titulo-datos">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h2 id="titulo-datos" className="text-[11px] font-black uppercase tracking-widest text-foreground/60">Datos personales</h2>
-              <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[10px] font-bold text-lime-700 dark:text-lime-400">Requeridos</span>
+              <h2 id="titulo-datos" className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">Datos personales</h2>
+              <span className="rounded-full bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-bold text-lime-700 dark:text-lime-400">Requeridos</span>
             </div>
             <div className="space-y-4 p-4">
               <div className="space-y-1.5">
@@ -237,7 +237,7 @@ export default function NuevoUsuarioPage() {
           {/* Perfil y contraseña */}
           <section className="rounded-2xl border border-border bg-card" aria-labelledby="titulo-seguridad">
             <div className="border-b border-border px-4 py-3">
-              <h2 id="titulo-seguridad" className="text-[11px] font-black uppercase tracking-widest text-foreground/60">Perfil y seguridad</h2>
+              <h2 id="titulo-seguridad" className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">Perfil y seguridad</h2>
             </div>
             <div className="space-y-4 p-4">
               <div className="space-y-1.5">
@@ -254,7 +254,7 @@ export default function NuevoUsuarioPage() {
                       return (
                         <button key={p.idPerfil} type="button" role="radio" aria-checked={activo}
                           onClick={() => setFormData({ ...formData, perfil: String(p.idPerfil) })}
-                          className={`flex min-h-[40px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                          className={`flex min-h-[2.5rem] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                             activo ? "bg-lime-400 text-black" : "text-foreground/65 hover:bg-foreground/5 hover:text-foreground"
                           }`}>
                           {activo && <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />}
@@ -295,7 +295,7 @@ export default function NuevoUsuarioPage() {
             </div>
             <div className="flex justify-end border-t border-border px-4 py-3">
               <button type="submit" form="form-nuevo-usuario" disabled={isLoading}
-                className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
+                className="flex min-h-[2.75rem] shrink-0 items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" strokeWidth={3} />}
                 {isLoading ? "Creando..." : "Crear"}
               </button>

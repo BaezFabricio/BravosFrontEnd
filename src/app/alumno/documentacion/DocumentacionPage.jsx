@@ -35,7 +35,7 @@ const TIPOS = [
 
 // Estado del documento: sin subir, subido y esperando revisión, o aprobado por el administrador
 function EstadoBadge({ ultimo }) {
-  const base = "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-wide"
+  const base = "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.6875rem] font-black uppercase tracking-wide"
   if (!ultimo) {
     return <span className={`${base} border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400`}><Clock className="h-3.5 w-3.5" aria-hidden="true" /> Pendiente</span>
   }
@@ -101,7 +101,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Ver ${ultimo.nombreArchivo}`}
-              className={`flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-black uppercase tracking-wide text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
+              className={`flex min-h-[2.5rem] shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-black uppercase tracking-wide text-foreground/80 active:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
             >
               <Eye className="h-4 w-4" aria-hidden="true" /> Ver
             </a>
@@ -114,7 +114,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
                 onClick={() => setHistorialAbierto(v => !v)}
                 aria-expanded={historialAbierto}
                 aria-controls={idHistorial}
-                className={`mt-2 flex min-h-[36px] items-center gap-1.5 rounded-md text-xs font-bold text-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
+                className={`mt-2 flex min-h-[2.25rem] items-center gap-1.5 rounded-md text-xs font-bold text-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}
               >
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${historialAbierto ? "rotate-180" : ""}`} aria-hidden="true" />
                 {historialAbierto ? "Ocultar historial" : `Ver historial (${anteriores.length})`}
@@ -125,7 +125,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
                     <li key={doc.idDocumento || i} className="flex items-center gap-2.5 px-3 py-2">
                       <FileText className="h-3.5 w-3.5 shrink-0 text-foreground/40" aria-hidden="true" />
                       <span className="min-w-0 flex-1 truncate text-xs text-foreground/70">{doc.nombreArchivo}</span>
-                      <span className="shrink-0 text-[11px] text-foreground/50">{fechaCorta(doc.creadoEn)}</span>
+                      <span className="shrink-0 text-[0.6875rem] text-foreground/50">{fechaCorta(doc.creadoEn)}</span>
                       <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${doc.nombreArchivo}`}
                         className={`shrink-0 rounded p-1.5 text-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card`}>
                         <Eye className="h-3.5 w-3.5" aria-hidden="true" />
@@ -163,7 +163,7 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
           data-guia="doc-subir"
           disabled={subiendo || bloqueado}
           title={bloqueado ? "Primero marcá la autorización" : undefined}
-          className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-black uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+          className={`flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl border text-sm font-black uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
             ultimo
               ? "border-border text-foreground/80 active:bg-foreground/5"
               : "border-lime-500/50 bg-lime-400/10 text-lime-700 active:bg-lime-400/20 dark:text-lime-400"

@@ -121,10 +121,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: calc(var(--radius) - 0.125rem);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 0.25rem);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -208,7 +208,7 @@
 
   /* Estilo base para el calendario */
   .rdp {
-    --rdp-cell-size: 40px;
+    --rdp-cell-size: 2.5rem;
     --rdp-accent-color: var(--primary);
     --rdp-background-color: var(--accent);
     margin: 0;
@@ -295,3 +295,12 @@
 @keyframes aparece-tarde { from { opacity: 0; } to { opacity: 1; } }
 .aparece-tarde { opacity: 0; animation: aparece-tarde 150ms ease-out 200ms forwards; }
 @media (prefers-reduced-motion: reduce) { .aparece-tarde { animation-duration: 1ms; } }
+
+/*
+ * Escritorio: la app se ve por defecto como con el zoom del navegador al 90%. En las notebooks con Windows al 125% de escala
+ * quedaba apretada. Todo está en rem (Tailwind y las medidas fijas que antes eran px), así que se achica junto.
+ * Los puntos de corte de pantalla (lg: = 1024 px) no cambian: las media queries usan el tamaño de letra del navegador, no este.
+ */
+@media (min-width: 1024px) {
+  html { font-size: 90%; }
+}

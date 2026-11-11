@@ -67,8 +67,8 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
 
   return (
     <div className="bx flex min-h-screen bg-bx-bg text-bx-ink">
-      <aside aria-label="Menú del alumno" className="sticky top-0 z-20 flex h-screen w-[272px] shrink-0 flex-col bg-bx-lateral text-[#ecefe4]">
-        <div className="flex h-[76px] items-center gap-3 border-b border-[#26281f] px-5">
+      <aside aria-label="Menú del alumno" className="sticky top-0 z-20 flex h-screen w-[17rem] shrink-0 flex-col bg-bx-lateral text-[#ecefe4]">
+        <div className="flex h-[4.75rem] items-center gap-3 border-b border-[#26281f] px-5">
           <img src="/logo.jpg" alt="" className="h-10 w-10 rounded-lg object-cover" />
           <span className="flex-1 text-lg font-extrabold tracking-[0.12em]">BRAVOS</span>
         </div>
@@ -78,11 +78,11 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
             const activo = esActivo(n, pathname)
             return (
               <div key={n.href} className="contents">
-                {n.grupo && <div className="px-3 pb-1.5 pt-[18px] text-[11px] font-bold tracking-[0.12em] text-[#8b8e80]">{n.grupo}</div>}
+                {n.grupo && <div className="px-3 pb-1.5 pt-[1.125rem] text-[0.6875rem] font-bold tracking-[0.12em] text-[#8b8e80]">{n.grupo}</div>}
                 <Link
                   to={n.href}
                   aria-current={activo ? "page" : undefined}
-                  className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-semibold transition-colors ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
+                  className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-[0.9375rem] font-semibold transition-colors ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
                 >
                   <Ico d={n.icono} />
                   <span>{n.name}</span>
@@ -103,16 +103,16 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-[72px] items-center gap-3 border-b border-bx-line bg-bx-bg px-6">
+        <header className="sticky top-0 z-10 flex h-[4.5rem] items-center gap-3 border-b border-bx-line bg-bx-bg px-6">
           <div className="min-w-0 flex-1">
             <h1 data-guia="titulo" className="m-0 truncate text-xl font-bold">{titulo}</h1>
-            {subtitulo && <div className="truncate text-[13px] text-bx-muted">{subtitulo}</div>}
+            {subtitulo && <div className="truncate text-[0.8125rem] text-bx-muted">{subtitulo}</div>}
           </div>
           <button
             type="button"
             onClick={() => setTheme(oscuro ? "light" : "dark")}
             aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-card text-bx-ink hover:bg-bx-surf"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink hover:bg-bx-surf"
           >
             <Ico d={oscuro ? IC.sun : IC.moon} />
           </button>
@@ -126,7 +126,7 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
           />
         </header>
 
-        <main className="mx-auto flex w-full max-w-[1600px] flex-col px-6 pb-[120px] pt-6">
+        <main className="mx-auto flex w-full max-w-[100rem] flex-col px-6 pb-[7.5rem] pt-6">
           <LayoutBxContext.Provider value={true}>{children}</LayoutBxContext.Provider>
         </main>
       </div>

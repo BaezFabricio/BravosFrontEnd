@@ -319,7 +319,7 @@ export default function AlumnoLayout({ children }) {
                   to={item.href}
                   className={`flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
                     isActive
-                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   }`}
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
@@ -369,7 +369,7 @@ export default function AlumnoLayout({ children }) {
             {(() => {
               const actual = pathname !== "/alumno" ? navigation.find((item) => item.href === pathname) : null
               return actual
-                ? <h1 data-guia="titulo" className="min-w-0 line-clamp-2 text-[26px] font-black uppercase leading-[1.02] tracking-tight text-foreground lg:hidden">{actual.name === "Documentos y Comprobantes" ? "Documentos" : actual.name}</h1>
+                ? <h1 data-guia="titulo" className="min-w-0 line-clamp-2 text-[1.625rem] font-black uppercase leading-[1.02] tracking-tight text-foreground lg:hidden">{actual.name === "Documentos y Comprobantes" ? "Documentos" : actual.name}</h1>
                 : <BotonPaginaPrincipal />
             })()}
             {/* Escritorio: título de la pantalla (lo escribe cada página con <TituloPagina>); en el celular va el de arriba */}

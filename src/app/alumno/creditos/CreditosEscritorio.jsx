@@ -61,7 +61,7 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
     return (
       <Pantalla>
         <div aria-busy="true" aria-label="Cargando créditos" className="flex flex-col gap-6">
-          <Esqueleto alto={200} className="rounded-[20px]" />
+          <Esqueleto alto={200} className="rounded-[1.25rem]" />
           <Esqueleto alto={260} className="rounded-2xl" />
         </div>
       </Pantalla>
@@ -109,29 +109,29 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
             <div>
               <h2 id="t-disp" className="m-0 text-xs font-semibold tracking-[0.1em] text-[#a3a698]">CRÉDITOS DISPONIBLES</h2>
               <div className="mt-2 text-lg font-bold">Sin membresía vigente</div>
-              <div className="text-[15px] text-[#b9bcae]">Renová tu plan para volver a reservar clases.</div>
+              <div className="text-[0.9375rem] text-[#b9bcae]">Renová tu plan para volver a reservar clases.</div>
             </div>
             <Boton to="/alumno/plan" tamano="lg" className="gap-2"><Ico d={IC.wallet} size={18} sw={2} />Ver planes</Boton>
           </div>
         </HeroCard>
       ) : (
         <HeroCard aria-labelledby="t-disp" logo={false}>
-          <img src="/bravos-logo.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-[45%] top-1/2 h-[245px] w-[760px] max-w-none -translate-y-1/2 -rotate-6 opacity-[0.05] [filter:grayscale(1)_brightness(1.4)]" />
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-end gap-x-12 gap-y-6">
+          <img src="/bravos-logo.png" alt="" aria-hidden="true" className="pointer-events-none absolute left-[45%] top-1/2 h-[15.3125rem] w-[47.5rem] max-w-none -translate-y-1/2 -rotate-6 opacity-[0.05] [filter:grayscale(1)_brightness(1.4)]" />
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,23.75rem),1fr))] items-end gap-x-12 gap-y-6">
             <div className="flex min-w-0 flex-col gap-2">
               <h2 id="t-disp" className="m-0 text-xs font-semibold tracking-[0.1em] text-[#a3a698]">CRÉDITOS DISPONIBLES</h2>
               <div className="flex items-baseline gap-2.5">
-                <span className="bx-num text-[clamp(80px,9vw,120px)] leading-[0.85] text-bx-lima">{disponibles}</span>
-                <span className="text-[22px] font-bold text-[#a3a698]">de {total}</span>
+                <span className="bx-num text-[clamp(5rem,9vw,7.5rem)] leading-[0.85] text-bx-lima">{disponibles}</span>
+                <span className="text-[1.375rem] font-bold text-[#a3a698]">de {total}</span>
               </div>
-              <div className="text-[15px] text-[#b9bcae]">
+              <div className="text-[0.9375rem] text-[#b9bcae]">
                 {abono.nombrePlan}{abono.fechaVencimiento ? ` · Vencen el ${vencimientoLargo(abono.fechaVencimiento)}` : ""}
               </div>
             </div>
             <div className="flex min-w-0 flex-col gap-3.5">
               <div>
                 <Progreso valor={disponibles} max={total || 1} etiqueta="Créditos disponibles" alto={12} color="bg-bx-lima" className="!bg-[#2a2a2a]" />
-                <div className="mt-2 flex justify-between gap-3 text-[13px] font-medium text-[#a3a698]">
+                <div className="mt-2 flex justify-between gap-3 text-[0.8125rem] font-medium text-[#a3a698]">
                   <span className="whitespace-nowrap">{usados} {usados === 1 ? "usado" : "usados"}</span>
                   <span className="whitespace-nowrap">{disponibles} {disponibles === 1 ? "disponible" : "disponibles"}</span>
                 </div>
@@ -145,24 +145,24 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
       )}
 
       <div className="flex flex-wrap items-start gap-6">
-        <section aria-labelledby="t-mov" className="min-w-0 flex-[2_1_520px] overflow-hidden rounded-2xl border border-bx-line bg-bx-card">
+        <section aria-labelledby="t-mov" className="min-w-0 flex-[2_1_32.5rem] overflow-hidden rounded-2xl border border-bx-line bg-bx-card">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 pb-4 pt-5">
             <div>
               <h2 id="t-mov" className="m-0 text-lg font-bold">Movimientos</h2>
-              <div aria-live="polite" className="mt-0.5 text-[13px] font-medium text-bx-muted">{lista.length === 1 ? "1 registro" : `${lista.length} registros`}</div>
+              <div aria-live="polite" className="mt-0.5 text-[0.8125rem] font-medium text-bx-muted">{lista.length === 1 ? "1 registro" : `${lista.length} registros`}</div>
             </div>
             <FiltroChips
               etiqueta="Filtrar movimientos"
               valor={filtro}
               onChange={setFiltro}
               opciones={filtros}
-              className="[&>button]:h-10 [&>button]:px-3.5 [&>button]:text-[13px]"
+              className="[&>button]:h-10 [&>button]:px-3.5 [&>button]:text-[0.8125rem]"
             />
           </div>
           {movs.length === 0 ? (
-            <div className="border-t border-bx-line2 px-5 py-6 text-[15px] font-medium text-bx-muted">Todavía no tenés movimientos registrados.</div>
+            <div className="border-t border-bx-line2 px-5 py-6 text-[0.9375rem] font-medium text-bx-muted">Todavía no tenés movimientos registrados.</div>
           ) : lista.length === 0 ? (
-            <div className="border-t border-bx-line2 px-5 py-6 text-[15px] font-medium text-bx-muted">No hay movimientos de este tipo.</div>
+            <div className="border-t border-bx-line2 px-5 py-6 text-[0.9375rem] font-medium text-bx-muted">No hay movimientos de este tipo.</div>
           ) : (
             <ul className="m-0 list-none p-0">
               {lista.map((m, i) => {
@@ -173,12 +173,12 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
                   <li key={i} className="flex items-center gap-3.5 border-t border-bx-line2 px-5 py-3.5">
                     <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${est.icono}`}><Ico d={INFO_ICONOS[m.k]} size={18} sw={2} /></span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[15px] font-bold">{m.descripcion}</div>
-                      <div className="mt-0.5 text-[13px] text-bx-muted">{fechaCorta(m.fecha)} · {m.tipo}</div>
+                      <div className="text-[0.9375rem] font-bold">{m.descripcion}</div>
+                      <div className="mt-0.5 text-[0.8125rem] text-bx-muted">{fechaCorta(m.fecha)} · {m.tipo}</div>
                     </div>
                     <span
                       aria-label={m.n === 0 ? "sin cambios" : `${m.n > 0 ? "suma" : "resta"} ${Math.abs(m.n)} ${Math.abs(m.n) === 1 ? "crédito" : "créditos"}`}
-                      className={`bx-num min-w-12 text-right text-[26px] leading-none ${color}`}
+                      className={`bx-num min-w-12 text-right text-[1.625rem] leading-none ${color}`}
                     >
                       {monto}
                     </span>
@@ -189,12 +189,12 @@ export default function CreditosEscritorio({ datos, cargando, error, onReintenta
           )}
         </section>
 
-        <aside aria-labelledby="t-how" className="flex min-w-0 flex-[1_1_300px] flex-col gap-3.5 rounded-2xl border border-bx-line bg-bx-card p-5">
+        <aside aria-labelledby="t-how" className="flex min-w-0 flex-[1_1_18.75rem] flex-col gap-3.5 rounded-2xl border border-bx-line bg-bx-card p-5">
           <h2 id="t-how" className="m-0 text-lg font-bold">Cómo funcionan</h2>
           <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
             {reglas.map((t, i) => (
-              <li key={i} className="flex gap-3 text-[15px] leading-normal">
-                <span className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-bx-tile text-[13px] font-extrabold text-bx-ok-fg">{i + 1}</span>
+              <li key={i} className="flex gap-3 text-[0.9375rem] leading-normal">
+                <span className="grid h-[1.625rem] w-[1.625rem] shrink-0 place-items-center rounded-full bg-bx-tile text-[0.8125rem] font-extrabold text-bx-ok-fg">{i + 1}</span>
                 <span>{t}</span>
               </li>
             ))}

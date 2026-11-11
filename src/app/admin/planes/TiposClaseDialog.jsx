@@ -109,7 +109,7 @@ export default function TiposClaseDialog({ open, onClose, tipos, onCambio, puede
                         {puedeEditar && (
                           <>
                             <button type="button" onClick={() => guardar(t, { activo: !t.activo })} disabled={ocupado}
-                              className="min-h-[36px] shrink-0 rounded-lg border border-border px-2.5 text-[11px] font-black uppercase tracking-wider text-foreground/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-40">
+                              className="min-h-[2.25rem] shrink-0 rounded-lg border border-border px-2.5 text-[0.6875rem] font-black uppercase tracking-wider text-foreground/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-40">
                               {t.activo ? "Desactivar" : "Activar"}
                             </button>
                             <button type="button" onClick={() => setEditando({ id: t.idTipoClase, nombre: t.nombre })} aria-label={`Cambiar el nombre de ${t.nombre}`} className={iconBtn}><Pencil className="h-4 w-4" /></button>
@@ -129,7 +129,7 @@ export default function TiposClaseDialog({ open, onClose, tipos, onCambio, puede
 
           {puedeCrear && (
             <div>
-              <label htmlFor="tc-nuevo" className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Nuevo tipo de clase</label>
+              <label htmlFor="tc-nuevo" className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Nuevo tipo de clase</label>
               <div className="flex gap-2">
                 <input id="tc-nuevo" value={nuevo} maxLength={50} onChange={(e) => { setNuevo(e.target.value); setError("") }}
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); crear() } }}
@@ -151,8 +151,8 @@ export default function TiposClaseDialog({ open, onClose, tipos, onCambio, puede
             <DialogPrimitive.Title className="text-base font-black uppercase tracking-wide text-foreground">Eliminar tipo de clase</DialogPrimitive.Title>
             <p className="text-sm text-foreground/70">¿Eliminar <strong>{aBorrar?.nombre}</strong>? No tiene planes, clases ni horarios, así que no se pierde nada.</p>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setABorrar(null)} className="min-h-[40px] rounded-lg border border-border px-4 text-xs font-black uppercase tracking-widest text-foreground/70 hover:text-foreground">Cancelar</button>
-              <button type="button" onClick={borrar} className="min-h-[40px] rounded-lg border border-red-500/30 bg-red-500/10 px-4 text-xs font-black uppercase tracking-widest text-red-700 hover:bg-red-500/20 dark:text-red-400">Eliminar</button>
+              <button type="button" onClick={() => setABorrar(null)} className="min-h-[2.5rem] rounded-lg border border-border px-4 text-xs font-black uppercase tracking-widest text-foreground/70 hover:text-foreground">Cancelar</button>
+              <button type="button" onClick={borrar} className="min-h-[2.5rem] rounded-lg border border-red-500/30 bg-red-500/10 px-4 text-xs font-black uppercase tracking-widest text-red-700 hover:bg-red-500/20 dark:text-red-400">Eliminar</button>
             </div>
           </DialogContent>
         </Dialog>

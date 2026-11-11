@@ -20,7 +20,7 @@ function AnilloCreditos({ disponibles, total }) {
   const c = 2 * Math.PI * r
   const prop = total > 0 ? Math.min(disponibles / total, 1) : 0
   return (
-    <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center" role="img" aria-label={`${disponibles} de ${total} créditos disponibles`}>
+    <div className="relative flex h-[4.75rem] w-[4.75rem] shrink-0 items-center justify-center" role="img" aria-label={`${disponibles} de ${total} créditos disponibles`}>
       <svg viewBox="0 0 72 72" className="absolute inset-0 -rotate-90" aria-hidden="true">
         <circle cx="36" cy="36" r={r} fill="none" strokeWidth="6" className="stroke-foreground/10" />
         <circle cx="36" cy="36" r={r} fill="none" strokeWidth="6" strokeLinecap="round"
@@ -29,7 +29,7 @@ function AnilloCreditos({ disponibles, total }) {
       </svg>
       <div className="text-center leading-none" aria-hidden="true">
         <p className="text-xl font-black tabular-nums text-foreground">{disponibles}</p>
-        <p className="mt-0.5 text-[10px] font-bold text-foreground/50">/ {total}</p>
+        <p className="mt-0.5 text-[0.625rem] font-bold text-foreground/50">/ {total}</p>
       </div>
     </div>
   )
@@ -40,12 +40,12 @@ function TarjetaPlan({ p }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="rounded-md bg-lime-400 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black">Plan activo</span>
-        <span className="text-[11px] font-semibold text-foreground/50">N.º {p.idCredito}</span>
+        <span className="rounded-md bg-lime-400 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-black">Plan activo</span>
+        <span className="text-[0.6875rem] font-semibold text-foreground/50">N.º {p.idCredito}</span>
       </div>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tipo de plan</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tipo de plan</p>
           <p className="mt-0.5 text-xl font-black uppercase leading-tight tracking-tight text-foreground">{p.nombrePlan}</p>
           <p className={`mt-2 inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-bold ${
             vencePronto
@@ -59,7 +59,7 @@ function TarjetaPlan({ p }) {
         </div>
         <div className="flex flex-col items-center">
           <AnilloCreditos disponibles={p.disponibles} total={p.totalCreditos} />
-          <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+          <p className="mt-1 text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
         </div>
       </div>
     </div>
@@ -68,7 +68,7 @@ function TarjetaPlan({ p }) {
 
 function Opcion({ to, icon: Icon, titulo, sub }) {
   return (
-    <Link to={to} className={`flex min-h-[60px] items-center gap-3 px-4 py-3 active:bg-foreground/5 ${FOCO}`}>
+    <Link to={to} className={`flex min-h-[3.75rem] items-center gap-3 px-4 py-3 active:bg-foreground/5 ${FOCO}`}>
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-lime-400/15 text-lime-700 dark:text-lime-400">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
@@ -127,7 +127,7 @@ export default function MiPlanMovil() {
             role="tab"
             aria-selected={pestana === t.id}
             onClick={() => setPestana(t.id)}
-            className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-colors ${FOCO} ${
+            className={`flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-colors ${FOCO} ${
               pestana === t.id ? "bg-foreground/10 text-foreground" : "text-foreground/60"
             }`}
           >
@@ -169,7 +169,7 @@ export default function MiPlanMovil() {
                 <button
                   type="button"
                   onClick={() => setPagando(true)}
-                  className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black active:bg-lime-300 ${FOCO}`}
+                  className={`flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black active:bg-lime-300 ${FOCO}`}
                 >
                   <CreditCard className="h-5 w-5" aria-hidden="true" />
                   Renovar membresía{planARenovar?.precio ? ` · ${fmtPrecio(planARenovar.precio)}` : ""}
@@ -180,7 +180,7 @@ export default function MiPlanMovil() {
                 onClick={() => setVerPlanes(true)}
                 aria-haspopup="dialog"
                 // Si es la única acción va en verde lleno; si también está "Renovar", con borde verde
-                className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl text-sm font-black uppercase tracking-wide ${FOCO} ${
+                className={`flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl text-sm font-black uppercase tracking-wide ${FOCO} ${
                   puedeRenovar
                     ? "border-2 border-lime-500 bg-lime-400/10 text-lime-700 active:bg-lime-400/20 dark:border-lime-400 dark:text-lime-400"
                     : "bg-lime-400 text-black shadow-lg shadow-lime-500/20 active:bg-lime-300"

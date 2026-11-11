@@ -27,7 +27,7 @@ const inputCls = (error) =>
 function Campo({ id, label, hint, error, children }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-[11px] font-black uppercase tracking-widest text-foreground/55">{label}</label>
+      <label htmlFor={id} className="block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">{label}</label>
       {children}
       {error
         ? <p className="flex items-center gap-1 text-xs text-red-700 dark:text-red-400"><AlertCircle className="h-3 w-3" /> {error}</p>
@@ -94,7 +94,7 @@ export default function DatosBancarios({ puedeModificar }) {
         <AlertCircle className="h-7 w-7 text-red-600 dark:text-red-400" aria-hidden="true" />
         <p className="text-sm text-foreground/75">No se pudieron cargar los datos bancarios. Para no borrarlos por error, no se pueden editar hasta que carguen.</p>
         <button type="button" onClick={() => { setCargando(true); setIntento((n) => n + 1) }}
-          className="min-h-[44px] rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground/75 hover:border-foreground/30 hover:text-foreground">
+          className="min-h-[2.75rem] rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground/75 hover:border-foreground/30 hover:text-foreground">
           Reintentar
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function DatosBancarios({ puedeModificar }) {
       {puedeModificar && (
         <div className="flex justify-end">
           <button type="submit" disabled={guardando}
-            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-50 sm:w-auto">
+            className="flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-50 sm:w-auto">
             {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {guardando ? 'Guardando…' : 'Guardar datos bancarios'}
           </button>

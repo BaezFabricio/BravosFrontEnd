@@ -72,7 +72,7 @@ export default function RutinasPage() {
             role="tab"
             aria-selected={pestana === clave}
             onClick={() => setPestana(clave)}
-            className={`min-h-[44px] rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${pestana === clave ? 'bg-lime-400/15 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`min-h-[2.75rem] rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${pestana === clave ? 'bg-lime-400/15 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             {texto}
           </button>
@@ -139,21 +139,21 @@ export default function RutinasPage() {
                       <p className="font-semibold text-sm text-foreground truncate">{rutina.nombre}</p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {rutina.nivel && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 uppercase tracking-widest rounded-md ${NIVEL_COLOR[rutina.nivel?.toLowerCase()] || 'bg-foreground/5 text-foreground/50 border border-border'}`}>
+                          <span className={`text-[0.625rem] font-black px-2 py-0.5 uppercase tracking-widest rounded-md ${NIVEL_COLOR[rutina.nivel?.toLowerCase()] || 'bg-foreground/5 text-foreground/50 border border-border'}`}>
                             {rutina.nivel}
                           </span>
                         )}
                         {rutina.categoria && (
-                          <span className="text-[10px] font-black px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md uppercase tracking-widest">
+                          <span className="text-[0.625rem] font-black px-2 py-0.5 bg-foreground/5 text-foreground/50 border border-border rounded-md uppercase tracking-widest">
                             {rutina.categoria}
                           </span>
                         )}
-                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className="flex items-center gap-1 text-[0.625rem] text-muted-foreground">
                           <Users className="h-3 w-3" />
                           {rutina.cantidadAlumnos} alumno{rutina.cantidadAlumnos !== 1 ? 's' : ''}
                         </span>
                         {rutina.duracion && (
-                          <span className="text-[10px] text-muted-foreground">· {rutina.duracion}</span>
+                          <span className="text-[0.625rem] text-muted-foreground">· {rutina.duracion}</span>
                         )}
                       </div>
                     </div>

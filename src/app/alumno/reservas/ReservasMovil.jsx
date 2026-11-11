@@ -42,22 +42,22 @@ function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
       <div className="flex gap-3 p-4">
         {/* Fecha */}
         <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-foreground/[0.03] py-2" aria-hidden="true">
-          <span className="text-[11px] font-black uppercase text-lime-700 dark:text-lime-400">{dia}</span>
+          <span className="text-[0.6875rem] font-black uppercase text-lime-700 dark:text-lime-400">{dia}</span>
           <span className="text-2xl font-black leading-none tabular-nums text-foreground">{f.getDate()}</span>
-          <span className="text-[10px] font-bold uppercase text-foreground/55">{mes}</span>
+          <span className="text-[0.625rem] font-bold uppercase text-foreground/55">{mes}</span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {r.tipo && <span className="rounded border border-lime-500/40 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{r.tipo}</span>}
+            {r.tipo && <span className="rounded border border-lime-500/40 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{r.tipo}</span>}
             <span className="flex items-center gap-1 text-xs font-bold text-foreground/70"><Clock className="h-3.5 w-3.5" aria-hidden="true" />{r.hora} h</span>
-            <span data-guia="reserva-estado" className={`ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${e.cls}`}>
+            <span data-guia="reserva-estado" className={`ml-auto inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase ${e.cls}`}>
               <e.Icon className="h-3 w-3" aria-hidden="true" /> {e.label}
             </span>
           </div>
           <p className="mt-1.5 text-base font-black leading-snug text-foreground">{r.clase}</p>
           <p className="sr-only">{f.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400/15 text-[10px] font-black text-lime-700 dark:text-lime-400" aria-hidden="true">{iniciales(r.coach)}</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400/15 text-[0.625rem] font-black text-lime-700 dark:text-lime-400" aria-hidden="true">{iniciales(r.coach)}</span>
             <p className="min-w-0 truncate text-xs"><span className="text-foreground/55">Coach </span><span className="font-bold text-foreground">{r.coach}</span></p>
           </div>
         </div>
@@ -68,7 +68,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
           type="button"
           data-guia={esProxima ? "rutina" : undefined}
           onClick={() => onVerRutina(r)}
-          className={`flex min-h-[48px] w-full items-center gap-2 rounded-xl px-4 text-sm font-black uppercase tracking-wide ${
+          className={`flex min-h-[3rem] w-full items-center gap-2 rounded-xl px-4 text-sm font-black uppercase tracking-wide ${
             esProxima ? "bg-lime-400 text-black active:bg-lime-300" : "border border-border text-foreground/80 active:bg-foreground/5"
           } ${FOCO}`}
         >
@@ -79,7 +79,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
             <button
               type="button"
               onClick={() => onCancelar(r)}
-              className={`flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 text-sm font-black text-red-700 active:bg-red-500/20 dark:text-red-400 ${FOCO}`}
+              className={`flex min-h-[2.75rem] shrink-0 items-center justify-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 text-sm font-black text-red-700 active:bg-red-500/20 dark:text-red-400 ${FOCO}`}
             >
               <XCircle className="h-4 w-4" aria-hidden="true" /> Cancelar
             </button>
@@ -113,12 +113,12 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
             role="tab"
             aria-selected={pestana === t.id}
             onClick={() => setPestana(t.id)}
-            className={`flex min-h-[44px] items-center justify-center gap-2 rounded-lg text-sm font-bold transition-colors ${FOCO} ${
+            className={`flex min-h-[2.75rem] items-center justify-center gap-2 rounded-lg text-sm font-bold transition-colors ${FOCO} ${
               pestana === t.id ? "bg-foreground/10 text-foreground" : "text-foreground/60"
             }`}
           >
             {t.label}
-            <span className={`rounded-full px-1.5 text-[11px] font-black ${pestana === t.id ? "bg-lime-400 text-black" : "bg-foreground/10"}`}>{t.n}</span>
+            <span className={`rounded-full px-1.5 text-[0.6875rem] font-black ${pestana === t.id ? "bg-lime-400 text-black" : "bg-foreground/10"}`}>{t.n}</span>
           </button>
         ))}
       </div>
@@ -147,7 +147,7 @@ export default function ReservasMovil({ proximas, historial, cargando, onCancela
               </p>
               <Link
                 to="/alumno/reservar"
-                className={`mt-4 flex min-h-[44px] items-center gap-2 rounded-xl border border-lime-500/50 px-5 text-sm font-black text-lime-700 dark:text-lime-400 ${FOCO}`}
+                className={`mt-4 flex min-h-[2.75rem] items-center gap-2 rounded-xl border border-lime-500/50 px-5 text-sm font-black text-lime-700 dark:text-lime-400 ${FOCO}`}
               >
                 <Search className="h-4 w-4" aria-hidden="true" /> Explorar clases disponibles
               </Link>

@@ -64,7 +64,7 @@ export default function InvitacionAvisos() {
     {/* Fondo atenuado: el aviso es lo primero que se ve y no se confunde con la pantalla de atrás */}
     <div className="fixed inset-0 z-[89] bg-black/60" aria-hidden="true" />
     <div className="fixed inset-x-0 bottom-0 z-[90] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] hoja-movil" role="dialog" aria-labelledby="invitacion-avisos-titulo">
-      <div className="mx-auto max-w-md rounded-2xl border border-border border-t-[5px] border-t-lime-400 bg-card p-4 text-foreground shadow-[0_-14px_44px_-6px_rgba(0,0,0,0.7)]">
+      <div className="mx-auto max-w-md rounded-2xl border border-border border-t-[0.3125rem] border-t-lime-400 bg-card p-4 text-foreground shadow-[0_-0.875rem_2.75rem_-0.375rem_rgba(0,0,0,0.7)]">
         <div className="flex items-start gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-lime-400 text-black">
             <BellRing className="h-5 w-5" aria-hidden="true" />
@@ -78,16 +78,16 @@ export default function InvitacionAvisos() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button type="button" onClick={cerrar} disabled={trabajando}
-            className="min-h-[48px] rounded-xl border border-border text-xs font-black uppercase tracking-wide text-foreground/75 disabled:opacity-50">
+            className="min-h-[3rem] rounded-xl border border-border text-xs font-black uppercase tracking-wide text-foreground/75 disabled:opacity-50">
             Ahora no
           </button>
           <button type="button" onClick={activar} disabled={trabajando}
-            className="flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl bg-lime-400 text-xs font-black uppercase tracking-wide text-black hover:bg-lime-300 disabled:opacity-50">
+            className="flex min-h-[3rem] items-center justify-center gap-1.5 rounded-xl bg-lime-400 text-xs font-black uppercase tracking-wide text-black hover:bg-lime-300 disabled:opacity-50">
             {trabajando && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
             Activar avisos
           </button>
         </div>
-        <p className="mt-2 text-center text-[10px] text-foreground/45">Podés cambiarlo cuando quieras en Mi configuración.</p>
+        <p className="mt-2 text-center text-[0.625rem] text-foreground/45">Podés cambiarlo cuando quieras en Mi configuración.</p>
       </div>
     </div>
     </>

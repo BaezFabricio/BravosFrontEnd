@@ -41,7 +41,7 @@ export default function CreditosPage() {
 
   if (escritorio) return <CreditosEscritorio datos={datos} cargando={loading} error={error} onReintentar={() => cargar()} />
 
-  if (loading) return <div className="flex items-center justify-center min-h-[400px]"><GymLoader text="Cargando créditos..." /></div>
+  if (loading) return <div className="flex items-center justify-center min-h-[25rem]"><GymLoader text="Cargando créditos..." /></div>
   if (error)   return <div className="border border-red-500/20 bg-red-500/5 p-6 text-center text-sm text-red-700 dark:text-red-400">{error}</div>
   if (!datos)  return null
 

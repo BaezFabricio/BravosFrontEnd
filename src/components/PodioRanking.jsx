@@ -20,7 +20,7 @@ export default function PodioRanking({ filas = [], tipo = "peso", soloPodio = fa
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card" role="table" aria-label="Ranking de RM">
-      <div role="row" className="grid grid-cols-[64px_minmax(0,1fr)_110px] items-center gap-3 border-b border-border bg-foreground/[0.04] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+      <div role="row" className="grid grid-cols-[4rem_minmax(0,1fr)_6.875rem] items-center gap-3 border-b border-border bg-foreground/[0.04] px-4 py-2.5 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">
         <span role="columnheader">Puesto</span>
         <span role="columnheader">Alumno</span>
         <span role="columnheader" className="text-right">RM</span>
@@ -30,7 +30,7 @@ export default function PodioRanking({ filas = [], tipo = "peso", soloPodio = fa
           const m = MEDALLAS[f.posicion]
           return (
             <div key={`${f.posicion}-${f.nombre}-${i}`} role="row"
-              className={`grid grid-cols-[64px_minmax(0,1fr)_110px] items-center gap-3 border-b border-border/60 px-4 py-3 last:border-b-0 ${f.esMio ? "bg-lime-400/10" : ""}`}>
+              className={`grid grid-cols-[4rem_minmax(0,1fr)_6.875rem] items-center gap-3 border-b border-border/60 px-4 py-3 last:border-b-0 ${f.esMio ? "bg-lime-400/10" : ""}`}>
               <span role="cell" className="flex items-center gap-1.5">
                 {m ? (
                   <>
@@ -44,7 +44,7 @@ export default function PodioRanking({ filas = [], tipo = "peso", soloPodio = fa
               </span>
               <span role="cell" className={`min-w-0 truncate text-sm ${m || f.esMio ? "font-black" : "font-semibold"} text-foreground`}>
                 {f.nombre}
-                {f.esMio && <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.08em] text-lime-700 dark:text-lime-400">Vos</span>}
+                {f.esMio && <span className="ml-2 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-lime-700 dark:text-lime-400">Vos</span>}
               </span>
               <span role="cell" className="text-right text-sm font-black tabular-nums text-foreground">{formatearValor(tipo, f.valor)}</span>
             </div>

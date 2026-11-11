@@ -38,7 +38,7 @@ const ETIQUETA = { peso: "Peso (kg)", repeticiones: "Repeticiones", tiempo: "Tie
 const PLACEHOLDER = { peso: "100", repeticiones: "20", tiempo: "4:32" }
 const VISIBLES = 3
 
-const etiquetaCls = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
+const etiquetaCls = "mb-1.5 block text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground"
 const campoCls = "h-12 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base font-bold text-foreground outline-none transition-colors placeholder:font-normal placeholder:text-foreground/30 focus:border-lime-500"
 
 // Celular: el diseño de siempre (en escritorio se usa MarcasEscritorio)
@@ -182,7 +182,7 @@ function MarcasMovil() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_16.25rem]">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" aria-hidden="true" />
               <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un ejercicio" aria-label="Buscar ejercicio"
@@ -201,11 +201,11 @@ function MarcasMovil() {
               const g = grupos.find((x) => x.idCatalogo === e.idCatalogo)
               return (
                 <button key={e.idCatalogo} type="button" data-guia={e === ejercicios[0] ? "marcas-nueva" : undefined} onClick={() => abrirEjercicio(e)}
-                  className={`flex min-h-[118px] flex-col justify-between rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${g ? "border-lime-500/40 bg-lime-400/[0.06] hover:border-lime-500" : "border-border bg-card hover:border-lime-500/60"}`}>
+                  className={`flex min-h-[7.375rem] flex-col justify-between rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${g ? "border-lime-500/40 bg-lime-400/[0.06] hover:border-lime-500" : "border-border bg-card hover:border-lime-500/60"}`}>
                   <span className="text-sm font-black uppercase leading-tight tracking-tight text-foreground">{e.nombre}</span>
                   {g ? (
                     <span>
-                      <span className="block text-[10px] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Tu RM</span>
+                      <span className="block text-[0.625rem] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Tu RM</span>
                       <span className="block text-2xl font-black leading-none tabular-nums text-lime-700 dark:text-lime-400">{formatearValor(g.tipo, g.mejor.valorMejor)}</span>
                     </span>
                   ) : (
@@ -248,7 +248,7 @@ function MarcasMovil() {
                       {visibles.map((m) => (
                         <li key={m.idMarca} className="flex items-center gap-3 border-b border-border/60 px-3.5 py-2 last:border-b-0">
                           <span className="min-w-0 flex-1 text-sm text-muted-foreground">{fmtFecha(m.fecha)}</span>
-                          {m.esPR ? <span className="rounded border border-lime-400/30 bg-lime-400/10 px-1.5 py-px text-[9px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">RM</span> : null}
+                          {m.esPR ? <span className="rounded border border-lime-400/30 bg-lime-400/10 px-1.5 py-px text-[0.5625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">RM</span> : null}
                           <span className="text-sm font-black tabular-nums text-foreground">{formatearValor(g.tipo, m.valorMejor)}</span>
                           <button type="button" onClick={() => setAEliminar({ ...m, tipoMarca: g.tipo })} aria-label={`Eliminar el RM del ${fmtFecha(m.fecha)}`}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground/50 hover:bg-red-500/10 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
@@ -257,7 +257,7 @@ function MarcasMovil() {
                     </ul>
                     {g.marcas.length > VISIBLES && (
                       <button type="button" onClick={() => setVerTodas((p) => ({ ...p, [ejercicio.idCatalogo]: !p[ejercicio.idCatalogo] }))}
-                        className="mt-2 w-full text-center text-[11px] font-bold uppercase tracking-wider text-foreground/50 hover:text-foreground">
+                        className="mt-2 w-full text-center text-[0.6875rem] font-bold uppercase tracking-wider text-foreground/50 hover:text-foreground">
                         {todas ? "Ver menos" : `Ver todo el historial (${g.marcas.length})`}
                       </button>
                     )}

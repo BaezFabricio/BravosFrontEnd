@@ -41,7 +41,7 @@ export default function LogroCelebracion({ logros, onCerrar }) {
       `}</style>
 
       <div
-        className="logro-anim relative w-full max-w-sm bg-card border border-lime-400/40 rounded-2xl p-8 text-center shadow-[0_0_60px_rgba(163,230,53,0.25)]"
+        className="logro-anim relative w-full max-w-sm bg-card border border-lime-400/40 rounded-2xl p-8 text-center shadow-[0_0_3.75rem_rgba(163,230,53,0.25)]"
         style={{ animation: "logroCard 0.5s cubic-bezier(.2,.9,.3,1.2) both" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -63,7 +63,7 @@ export default function LogroCelebracion({ logros, onCerrar }) {
           </div>
         </div>
 
-        <p className="mt-6 text-[11px] font-black uppercase tracking-[0.25em] text-lime-700 dark:text-lime-400"
+        <p className="mt-6 text-[0.6875rem] font-black uppercase tracking-[0.25em] text-lime-700 dark:text-lime-400"
           style={{ animation: "logroText 0.5s ease-out 0.7s both" }}>
           ¡Logro desbloqueado!
         </p>

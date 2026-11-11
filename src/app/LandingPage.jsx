@@ -374,15 +374,15 @@ function LandingPage() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
 
-              <Link to="/" className="flex items-center h-[52px]">
+              <Link to="/" className="flex items-center h-[3.25rem]">
                 {showLogoSkeleton && (
-                  <div className="h-[40px] w-[150px] bg-white/5 animate-pulse rounded" />
+                  <div className="h-[2.5rem] w-[9.375rem] bg-white/5 animate-pulse rounded" />
                 )}
                 {logoUrl && (
                   <img
                     src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
                     alt="Box Bravos"
-                    className={`block h-auto w-auto max-h-[34px] max-w-[120px] object-contain sm:max-h-[48px] sm:max-w-[150px] lg:max-h-[60px] lg:max-w-[180px] ${logoImgLoaded ? '' : 'hidden'}`}
+                    className={`block h-auto w-auto max-h-[2.125rem] max-w-[7.5rem] object-contain sm:max-h-[3rem] sm:max-w-[9.375rem] lg:max-h-[3.75rem] lg:max-w-[11.25rem] ${logoImgLoaded ? '' : 'hidden'}`}
                     onLoad={() => setLogoImgLoaded(true)}
                     onError={() => setLogoFailed(true)}
                     ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
@@ -481,7 +481,7 @@ function LandingPage() {
                   </Link>
                 ) : puedeAccederPanel && (
                   <Link to={rutaMiPanel} aria-label="Ir a mi panel" className="flex h-9 items-center gap-2 rounded-full border border-white/25 pl-1 pr-3 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-[10px] text-black">
+                    <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-[0.625rem] text-black">
                       {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(userData.nombrecompleto)}
                     </span>
                     MI PANEL
@@ -498,8 +498,8 @@ function LandingPage() {
         {mobileMenuOpen && (
           // Menú del celular: se despliega hacia abajo (no ocupa toda la pantalla) y se cierra tocando afuera
           <>
-            <div className="fixed inset-x-0 top-[66px] bottom-0 z-30 bg-black/60 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
-            <div className="fixed inset-x-0 top-[66px] z-40 max-h-[calc(100svh-66px)] overflow-y-auto overscroll-contain border-b-2 border-lime-400/60 bg-black shadow-2xl lg:hidden">
+            <div className="fixed inset-x-0 top-[4.125rem] bottom-0 z-30 bg-black/60 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+            <div className="fixed inset-x-0 top-[4.125rem] z-40 max-h-[calc(100svh-4.125rem)] overflow-y-auto overscroll-contain border-b-2 border-lime-400/60 bg-black shadow-2xl lg:hidden">
               <nav aria-label="Secciones del sitio" className="px-4 py-2">
                 <ul>
                   {menuItems().map((item) => (
@@ -510,7 +510,7 @@ function LandingPage() {
                             type="button"
                             onClick={() => setClasesAbiertas((v) => !v)}
                             aria-expanded={clasesAbiertas}
-                            className="flex min-h-[44px] w-full items-center justify-between rounded-lg px-2 text-left text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none"
+                            className="flex min-h-[2.75rem] w-full items-center justify-between rounded-lg px-2 text-left text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none"
                           >
                             {item.name}
                             <ChevronDown className={`h-4 w-4 text-white/40 transition-transform ${clasesAbiertas ? 'rotate-180 text-bravos-green' : ''}`} aria-hidden="true" />
@@ -519,7 +519,7 @@ function LandingPage() {
                             <ul className="pb-1 pl-3">
                               {subItemsClases.map((subItem) => (
                                 <li key={subItem.href}>
-                                  <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[38px] items-center px-2 text-[13px] font-medium text-white/60 transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
+                                  <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[2.375rem] items-center px-2 text-[0.8125rem] font-medium text-white/60 transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
                                     {subItem.name}
                                   </a>
                                 </li>
@@ -528,7 +528,7 @@ function LandingPage() {
                           )}
                         </>
                       ) : (
-                        <a href={item.href} onClick={(e) => { abrirAccion(e, item); setMobileMenuOpen(false) }} className="flex min-h-[44px] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
+                        <a href={item.href} onClick={(e) => { abrirAccion(e, item); setMobileMenuOpen(false) }} className="flex min-h-[2.75rem] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
                           {item.name}
                         </a>
                       )}
@@ -623,7 +623,7 @@ function LandingPage() {
             {/* Logo */}
             <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[2px]">
               {showLogoSkeleton && (
-                <div className="h-full w-[220px] bg-white/5 animate-pulse rounded" />
+                <div className="h-full w-[13.75rem] bg-white/5 animate-pulse rounded" />
               )}
               {logoUrl && (
                 <img
@@ -726,7 +726,7 @@ function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-5 flex items-end justify-between gap-3">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-accent">Entrenamiento guiado</p>
+              <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Entrenamiento guiado</p>
               <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
             </div>
             {filtroClase === 'todas' && claseCards.length > 1 && (
@@ -740,7 +740,7 @@ function LandingPage() {
           <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0" role="group" aria-label="Filtrar clases">
             {[{ id: 'todas', texto: 'Todas' }, ...claseCards.map((c, i) => ({ id: i, texto: c.titulo }))].map(({ id, texto }) => (
               <button key={id} type="button" onClick={() => setFiltroClase(id)} aria-pressed={filtroClase === id}
-                className={`min-h-[38px] shrink-0 rounded-md border px-4 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                className={`min-h-[2.375rem] shrink-0 rounded-md border px-4 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   filtroClase === id ? 'border-accent bg-accent text-black' : 'border-white/15 bg-white/5 text-white/75 hover:border-white/30'
                 }`}>
                 {texto}
@@ -759,8 +759,8 @@ function LandingPage() {
                   <div className="relative aspect-square overflow-hidden">
                     <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover" containerClassName="h-full w-full absolute inset-0" />
                     <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-                      {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
-                      {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
+                      {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
+                      {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col p-4">
@@ -782,7 +782,7 @@ function LandingPage() {
           <div className="absolute inset-0 bg-black/90" />
         </div>
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[11px] font-black uppercase tracking-widest text-accent">Calendario activo</p>
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Calendario activo</p>
           <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
           <p className="mb-5 mt-2 max-w-2xl text-sm text-white/60">Tocá un día para ver los turnos.</p>
 
@@ -797,7 +797,7 @@ function LandingPage() {
                   onClick={() => setDiaSeleccionado(day.value)}
                   aria-pressed={elegido}
                   aria-label={day.label}
-                  className={`min-h-[44px] rounded-md border text-xs font-black tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5 ${
+                  className={`min-h-[2.75rem] rounded-md border text-xs font-black tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5 ${
                     elegido
                       ? 'border-accent bg-accent text-black'
                       : 'border-border bg-white/5 text-white/75 hover:border-white/30 hover:text-white'
@@ -844,7 +844,7 @@ function LandingPage() {
                         <div key={t.clave} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
                           <div className="min-w-0">
                             <p className="text-sm font-black uppercase leading-tight text-white">Turno {t.turno}</p>
-                            {t.etiqueta && <p className="text-[11px] leading-tight text-white/55">{t.etiqueta}</p>}
+                            {t.etiqueta && <p className="text-[0.6875rem] leading-tight text-white/55">{t.etiqueta}</p>}
                           </div>
                           <div className="flex flex-wrap justify-end gap-1.5">
                             {t.horas.map((h) => {
@@ -874,7 +874,7 @@ function LandingPage() {
       {/* SECCIÓN CONTACTO */}
       <section id="contacto" className="bg-zinc-950 py-12 text-white md:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[11px] font-black uppercase tracking-widest text-accent">Contacto directo</p>
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Contacto directo</p>
           <h2 className="mb-6 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl">Encontranos</h2>
 
           <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
@@ -886,7 +886,7 @@ function LandingPage() {
                   {whatsappDigitos && (
                     <a href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${instagram ? '' : 'col-span-2'}`}>
+                      className={`flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${instagram ? '' : 'col-span-2'}`}>
                       <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#25D366] text-white">
                         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.78a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88a9.82 9.82 0 0 1 6.99 2.9 9.82 9.82 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.89 9.88M20.52 3.45A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z" /></svg>
                       </span>
@@ -899,7 +899,7 @@ function LandingPage() {
                   {instagram && (
                     <a href={`https://instagram.com/${instagram.replace(/^@/, '')}`}
                       target="_blank" rel="noopener noreferrer"
-                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${whatsappDigitos ? '' : 'col-span-2'}`}>
+                      className={`flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${whatsappDigitos ? '' : 'col-span-2'}`}>
                       <span className="flex h-9 w-9 items-center justify-center rounded-md text-white" style={{ background: 'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}>
                         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
                       </span>
@@ -919,7 +919,7 @@ function LandingPage() {
                     <div className="flex items-start gap-3 p-4">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><MapPin className="h-4 w-4" aria-hidden="true" /></span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Dirección</p>
+                        <p className="text-[0.625rem] font-black uppercase tracking-widest text-white/50">Dirección</p>
                         <p className="font-bold text-white">{calle.trim()}</p>
                         <p className="text-sm text-white/55">{resto.join(',').trim() || 'Formosa, Argentina'}</p>
                       </div>
@@ -935,9 +935,9 @@ function LandingPage() {
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Clock className="h-4 w-4" aria-hidden="true" /></span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Horarios del box</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-white/50">Horarios del box</p>
                           {abierto !== null && (
-                            <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${
+                            <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide ${
                               abierto ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/15 bg-white/5 text-white/60'
                             }`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${abierto ? 'bg-accent' : 'bg-white/40'}`} aria-hidden="true" />
@@ -962,7 +962,7 @@ function LandingPage() {
                   <a href={`mailto:${emailContacto}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Mail className="h-4 w-4" aria-hidden="true" /></span>
                     <span className="min-w-0">
-                      <span className="block text-[10px] font-black uppercase tracking-widest text-white/50">Email</span>
+                      <span className="block text-[0.625rem] font-black uppercase tracking-widest text-white/50">Email</span>
                       <span className="block truncate text-sm font-bold text-white">{emailContacto}</span>
                     </span>
                   </a>
@@ -971,7 +971,7 @@ function LandingPage() {
             </div>
 
             {/* Columna de Mapa (en el celular va debajo de los datos) */}
-            <div className="h-[280px] w-full overflow-hidden rounded-md border border-border shadow-lg md:h-[360px]">
+            <div className="h-[17.5rem] w-full overflow-hidden rounded-md border border-border shadow-lg md:h-[22.5rem]">
               {!mapaVisible ? (
                 <button
                   type="button"
@@ -1012,7 +1012,7 @@ function LandingPage() {
                   src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
                   alt="Bravos Box"
                   loading="lazy"
-                  className="block h-auto max-h-[64px] w-auto max-w-[200px] object-contain"
+                  className="block h-auto max-h-[4rem] w-auto max-w-[12.5rem] object-contain"
                 />
               ) : (
                 <span className="text-xl font-black uppercase tracking-tight text-white">Bravos Box</span>
@@ -1027,7 +1027,7 @@ function LandingPage() {
             </nav>
             <Link
               to="/arrepentimiento"
-              className="flex min-h-[44px] items-center rounded-md border border-white/25 bg-white/5 px-5 text-xs font-black uppercase tracking-wider text-white transition-colors hover:border-accent hover:text-accent"
+              className="flex min-h-[2.75rem] items-center rounded-md border border-white/25 bg-white/5 px-5 text-xs font-black uppercase tracking-wider text-white transition-colors hover:border-accent hover:text-accent"
             >
               Botón de arrepentimiento
             </Link>

@@ -52,9 +52,9 @@ function Avatar({ texto, activo }) {
 function Burbuja({ children, hora, discontinua = false }) {
   return (
     <div className={`relative ml-auto w-fit max-w-[88%] rounded-xl rounded-tr-sm px-3 pb-1.5 pt-2 text-[#111b21] shadow-sm dark:text-[#e9edef] ${discontinua ? "border border-dashed border-border bg-transparent text-muted-foreground shadow-none dark:text-muted-foreground" : "bg-[#d9fdd3] dark:bg-[#005c4b]"}`}>
-      <div className="whitespace-pre-wrap break-words text-[14.2px] leading-[19px]">{children}</div>
+      <div className="whitespace-pre-wrap break-words text-[0.8875rem] leading-[1.1875rem]">{children}</div>
       {hora && (
-        <p className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-[#667781] dark:text-[#ffffff99]">
+        <p className="mt-0.5 flex items-center justify-end gap-1 text-[0.6875rem] text-[#667781] dark:text-[#ffffff99]">
           {hora}
         </p>
       )}
@@ -63,7 +63,7 @@ function Burbuja({ children, hora, discontinua = false }) {
 }
 
 function Separador({ texto }) {
-  return <p className="mx-auto w-fit rounded-md bg-foreground/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{texto}</p>
+  return <p className="mx-auto w-fit rounded-md bg-foreground/5 px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{texto}</p>
 }
 
 export default function AvisosPage() {
@@ -142,8 +142,8 @@ export default function AvisosPage() {
     }
   }
 
-  const itemCls = (activo) => `flex w-full items-center gap-3 px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:bg-lime-400/10 ${activo ? "border-l-[3px] border-lime-400 bg-lime-400/10" : "border-l-[3px] border-transparent hover:bg-foreground/5"}`
-  const rotulo = "px-4 pb-1.5 pt-4 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground"
+  const itemCls = (activo) => `flex w-full items-center gap-3 px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:bg-lime-400/10 ${activo ? "border-l-[0.1875rem] border-lime-400 bg-lime-400/10" : "border-l-[0.1875rem] border-transparent hover:bg-foreground/5"}`
+  const rotulo = "px-4 pb-1.5 pt-4 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground"
 
   return (
     <>
@@ -153,7 +153,7 @@ export default function AvisosPage() {
         <span className="inline-flex items-center gap-2"><IconoWhatsApp className="h-5 w-5 shrink-0 text-foreground" />Avisos por WhatsApp</span>
       </TituloPagina>
 
-      <div className="grid h-[calc(100dvh-12rem)] min-h-[520px] overflow-hidden rounded-2xl border border-border bg-card min-[720px]:grid-cols-[minmax(260px,340px)_minmax(0,1fr)] min-[720px]:min-h-[600px]">
+      <div className="grid h-[calc(100dvh-12rem)] min-h-[32.5rem] overflow-hidden rounded-2xl border border-border bg-card min-[720px]:grid-cols-[minmax(16.25rem,21.25rem)_minmax(0,1fr)] min-[720px]:min-h-[37.5rem]">
         {/* Destinatarios */}
         <aside className={`min-h-0 flex-col border-border min-[720px]:flex min-[720px]:border-r ${vista === "chat" ? "hidden" : "flex"}`} aria-label="Destinatarios">
           <div className="p-3">
@@ -184,7 +184,7 @@ export default function AvisosPage() {
                 <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">{u.nombre}</span><span className="block truncate text-xs tabular-nums text-muted-foreground">{u.telefono}</span></span>
               </button>
             ))}
-            <p className="px-4 py-4 text-[11px] text-foreground/50">Solo aparecen alumnos activos con un teléfono que se pueda usar en WhatsApp.</p>
+            <p className="px-4 py-4 text-[0.6875rem] text-foreground/50">Solo aparecen alumnos activos con un teléfono que se pueda usar en WhatsApp.</p>
           </div>
         </aside>
 
@@ -198,18 +198,18 @@ export default function AvisosPage() {
                 <p className="truncate text-xs text-muted-foreground">{aQuien === "grupo" ? "Grupo o lista de difusión" : elegido?.telefono}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setVista("lista")} className="flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted min-[720px]:hidden"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver</button>
-            <span className="hidden shrink-0 rounded-full border border-lime-500/50 px-3 py-1 min-[720px]:inline text-[10px] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Vista previa</span>
+            <button type="button" onClick={() => setVista("lista")} className="flex min-h-[2.5rem] shrink-0 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold text-foreground/85 transition-colors hover:border-foreground/30 hover:bg-muted min-[720px]:hidden"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Volver</button>
+            <span className="hidden shrink-0 rounded-full border border-lime-500/50 px-3 py-1 min-[720px]:inline text-[0.625rem] font-bold uppercase tracking-[0.1em] text-lime-700 dark:text-lime-400">Vista previa</span>
           </header>
 
-          <div className="flex min-h-[120px] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-[#efeae2] px-4 py-4 dark:bg-[#0b141a]" aria-label="Vista previa del mensaje en WhatsApp">
+          <div className="flex min-h-[7.5rem] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-[#efeae2] px-4 py-4 dark:bg-[#0b141a]" aria-label="Vista previa del mensaje en WhatsApp">
             {ultimo && (
               <>
                 <Separador texto={fechaLarga(ultimo.fecha)} />
                 <Burbuja>
                   {ultimo.titulo && <p className="font-bold">{ultimo.titulo}</p>}
                   <ConFormato texto={ultimo.cuerpo} />
-                  <span className="mt-1 flex items-center justify-end gap-1 text-[11px] text-[#667781] dark:text-[#ffffff99]">Último aviso enviado <CheckCheck className="h-3.5 w-3.5 text-[#53bdeb]" aria-hidden="true" /></span>
+                  <span className="mt-1 flex items-center justify-end gap-1 text-[0.6875rem] text-[#667781] dark:text-[#ffffff99]">Último aviso enviado <CheckCheck className="h-3.5 w-3.5 text-[#53bdeb]" aria-hidden="true" /></span>
                 </Burbuja>
               </>
             )}
@@ -224,10 +224,10 @@ export default function AvisosPage() {
           {/* Escribir */}
           <div className="space-y-3 border-t border-border p-4">
             <div className="flex items-center gap-2 overflow-x-auto min-[720px]:flex-wrap">
-              <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Modelos</span>
+              <span className="shrink-0 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-muted-foreground">Modelos</span>
               {MODELOS.map((m) => (
                 <button key={m.nombre} type="button" onClick={() => usarModelo(m)}
-                  aria-pressed={modeloActivo === m.nombre} className={`min-h-[34px] shrink-0 rounded-full border px-3.5 text-xs font-bold transition-colors hover:border-lime-500 ${modeloActivo === m.nombre ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/80 hover:text-foreground"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500`}>
+                  aria-pressed={modeloActivo === m.nombre} className={`min-h-[2.125rem] shrink-0 rounded-full border px-3.5 text-xs font-bold transition-colors hover:border-lime-500 ${modeloActivo === m.nombre ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/80 hover:text-foreground"} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500`}>
                   {m.nombre}
                 </button>
               ))}
@@ -240,7 +240,7 @@ export default function AvisosPage() {
               )}
               <textarea ref={areaRef} value={cuerpo} maxLength={MAX} onChange={(e) => setCuerpo(e.target.value)} aria-label="Mensaje"
                 placeholder={aQuien === "grupo" ? "Escribí el aviso para todos…" : `Escribí el aviso para ${elegido ? String(elegido.nombre).split(" ")[0] : "el alumno"}…`}
-                className="block min-h-[96px] w-full resize-y bg-transparent px-3.5 py-3 text-base leading-relaxed text-foreground outline-none placeholder:text-foreground/35" />
+                className="block min-h-[6rem] w-full resize-y bg-transparent px-3.5 py-3 text-base leading-relaxed text-foreground outline-none placeholder:text-foreground/35" />
               <div className="flex items-center justify-between gap-2 border-t border-border px-2.5 py-2">
                 <div className="flex items-center gap-1.5">
                   <button type="button" onClick={() => { if (conTitulo) { setTitulo(""); setModeloActivo(null) } setConTitulo((v) => !v) }} aria-pressed={conTitulo}
@@ -260,11 +260,11 @@ export default function AvisosPage() {
               </p>
               <div className="flex shrink-0 gap-2 max-[719px]:w-full">
                 <button type="button" onClick={copiar} disabled={vacio}
-                  className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40">
+                  className="flex min-h-[3rem] items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40">
                   <Copy className="h-4 w-4" aria-hidden="true" /> Copiar
                 </button>
                 <button type="button" onClick={abrir} disabled={vacio || !enlace}
-                  className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">
+                  className="flex min-h-[3rem] flex-1 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 text-sm font-black text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none">
                   {aQuien === "grupo" ? "Abrir en WhatsApp" : `Enviar a ${String(elegido?.nombre || "").split(" ")[0]}`} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>

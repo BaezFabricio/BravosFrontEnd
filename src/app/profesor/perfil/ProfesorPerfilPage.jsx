@@ -15,7 +15,7 @@ const getIniciales = (name) => {
 }
 
 const inputCls = "h-12 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 disabled:opacity-70 sm:text-sm"
-const etiqueta = "flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground"
+const etiqueta = "flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-muted-foreground"
 
 export default function ProfesorPerfilPage() {
   const [formData, setFormData] = useState({ nombre: '', email: '', telefono: '' })
@@ -64,11 +64,11 @@ export default function ProfesorPerfilPage() {
           className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 transition-colors hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
         >
           <span className="text-sm font-semibold text-foreground">También sos alumno: ver mi membresía</span>
-          <span className="text-[11px] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">Ver</span>
+          <span className="text-[0.6875rem] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">Ver</span>
         </Link>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[18.75rem_1fr]">
         {/* TARJETA DE PERFIL */}
         <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="h-20 bg-lime-400/15" aria-hidden="true" />
@@ -82,7 +82,7 @@ export default function ProfesorPerfilPage() {
             </FotoAmpliable>
             <p className="mt-4 text-2xl font-black uppercase leading-none tracking-tight text-foreground">{formData.nombre || "—"}</p>
             <p className="mt-2 break-all text-sm text-foreground/55">{formData.email || "—"}</p>
-            <span className="mt-4 rounded-full border border-lime-400/40 bg-lime-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">
+            <span className="mt-4 rounded-full border border-lime-400/40 bg-lime-400/10 px-3 py-1 text-[0.625rem] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">
               Profesor
             </span>
           </div>
@@ -91,7 +91,7 @@ export default function ProfesorPerfilPage() {
         {/* DATOS */}
         <section className="rounded-2xl border border-border bg-card">
           <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Datos personales</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-muted-foreground">Datos personales</p>
             {isEditing ? (
               <div className="flex gap-2">
                 <button

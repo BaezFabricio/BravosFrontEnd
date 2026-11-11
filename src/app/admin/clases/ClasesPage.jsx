@@ -180,7 +180,7 @@ export default function ClasesPage() {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="truncate text-sm font-black uppercase tracking-wide text-foreground">{clase.nombreClase}</h3>
-          <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${
+          <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest ${
             clase.estado === "Activo"
               ? "border-lime-400/20 bg-lime-400/10 text-lime-700 dark:text-lime-400"
               : "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400"
@@ -205,15 +205,15 @@ export default function ClasesPage() {
         <div className="mt-1.5 flex flex-wrap items-center gap-1">
           {clase.fechaEspecifica ? (
             <>
-              <span className="rounded border border-lime-400/25 bg-lime-400/5 px-1.5 py-px text-[10px] font-bold uppercase text-lime-700 dark:text-lime-400">{fechaCorta(clase.fechaEspecifica)}</span>
-              <span className="rounded border border-border px-1.5 py-px text-[10px] font-bold uppercase text-foreground/50">Única</span>
+              <span className="rounded border border-lime-400/25 bg-lime-400/5 px-1.5 py-px text-[0.625rem] font-bold uppercase text-lime-700 dark:text-lime-400">{fechaCorta(clase.fechaEspecifica)}</span>
+              <span className="rounded border border-border px-1.5 py-px text-[0.625rem] font-bold uppercase text-foreground/50">Única</span>
             </>
           ) : clase.diasSemana && (
             <>
               {clase.diasSemana.split(",").map((dia) => (
-                <span key={dia} className="rounded border border-border px-1.5 py-px text-[10px] font-bold uppercase text-foreground/60">{dia.trim().substring(0, 3)}</span>
+                <span key={dia} className="rounded border border-border px-1.5 py-px text-[0.625rem] font-bold uppercase text-foreground/60">{dia.trim().substring(0, 3)}</span>
               ))}
-              {(() => { const p = proximaFecha(clase.diasSemana, clase.horaInicio); return p ? <span className="text-[10px] text-foreground/45">· próxima {p.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span> : null })()}
+              {(() => { const p = proximaFecha(clase.diasSemana, clase.horaInicio); return p ? <span className="text-[0.625rem] text-foreground/45">· próxima {p.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span> : null })()}
             </>
           )}
         </div>
@@ -255,7 +255,7 @@ export default function ClasesPage() {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate text-sm font-black uppercase text-foreground">{clase.nombreClase}</p>
-          <span className="shrink-0 rounded-md bg-lime-400/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Realizada</span>
+          <span className="shrink-0 rounded-md bg-lime-400/15 px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Realizada</span>
         </div>
         <p className="mt-0.5 truncate text-xs text-foreground/60">
           {fechaCorta(clase.fechaEspecifica)}
@@ -284,18 +284,18 @@ export default function ClasesPage() {
       {/* Pestañas */}
       <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Secciones de clases">
         <button type="button" role="tab" aria-selected={pestana === "clases"} onClick={() => setPestana("clases")}
-          className={`flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors ${pestana === "clases" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
+          className={`flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider transition-colors ${pestana === "clases" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
           <CalendarDays className="h-4 w-4" aria-hidden="true" /> Clases
         </button>
         <Link to="/admin/clases/turnos" role="tab" aria-selected={false}
-          className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider text-foreground/60 transition-colors hover:text-foreground">
+          className="flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider text-foreground/60 transition-colors hover:text-foreground">
           <Clock className="h-4 w-4" aria-hidden="true" /> Turnos
         </Link>
         <button type="button" role="tab" aria-selected={pestana === "historial"} onClick={() => setPestana("historial")}
-          className={`flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors ${pestana === "historial" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
+          className={`flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider transition-colors ${pestana === "historial" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
           <History className="h-4 w-4" aria-hidden="true" /> Historial
           {historialClasesUnicas.length > 0 && (
-            <span className="rounded-full bg-foreground/10 px-1.5 text-[10px] text-foreground/70">{historialClasesUnicas.length}</span>
+            <span className="rounded-full bg-foreground/10 px-1.5 text-[0.625rem] text-foreground/70">{historialClasesUnicas.length}</span>
           )}
         </button>
       </div>
@@ -329,11 +329,11 @@ export default function ClasesPage() {
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar por tipo de clase">
               {[{ key: "all", nombre: "Todos", cantidad: clasesFiltradas.length }, ...clasesAgrupadas.map((g) => ({ key: g.key, nombre: g.plan.nombre, cantidad: g.clases.length }))].map((op) => (
                 <button key={op.key} type="button" onClick={() => setPlanFiltro(op.key)} aria-pressed={planFiltro === op.key}
-                  className={`flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
+                  className={`flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
                     planFiltro === op.key ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"
                   }`}>
                   {op.nombre}
-                  <span className={`rounded-full px-1.5 text-[10px] ${planFiltro === op.key ? "bg-black/15" : "bg-foreground/10"}`}>{op.cantidad}</span>
+                  <span className={`rounded-full px-1.5 text-[0.625rem] ${planFiltro === op.key ? "bg-black/15" : "bg-foreground/10"}`}>{op.cantidad}</span>
                 </button>
               ))}
             </div>
@@ -352,15 +352,15 @@ export default function ClasesPage() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       {etiquetaTipo(plan.tipo) && (
-                        <span className="rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">{etiquetaTipo(plan.tipo)}</span>
+                        <span className="rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">{etiquetaTipo(plan.tipo)}</span>
                       )}
-                      <span className="text-[11px] font-semibold text-lime-700 dark:text-lime-400">{activas} {activas === 1 ? "clase activa" : "clases activas"}</span>
+                      <span className="text-[0.6875rem] font-semibold text-lime-700 dark:text-lime-400">{activas} {activas === 1 ? "clase activa" : "clases activas"}</span>
                     </div>
                     <h2 className="mt-1.5 text-base font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
                   </div>
                   {permisos.includes("clases:alta") && plan.idPlan && (
                     <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`}
-                      className="inline-flex min-h-[40px] shrink-0 items-center gap-1 rounded-lg border border-border bg-background/60 px-3 text-[11px] font-black uppercase tracking-wider text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
+                      className="inline-flex min-h-[2.5rem] shrink-0 items-center gap-1 rounded-lg border border-border bg-background/60 px-3 text-[0.6875rem] font-black uppercase tracking-wider text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
                       <Plus className="h-3.5 w-3.5" /> Crear clase
                     </Link>
                   )}
@@ -378,7 +378,7 @@ export default function ClasesPage() {
                   </div>
                 )}
                 {dias && (
-                  <p className="border-t border-border px-4 py-2 text-[11px] font-semibold text-foreground/50">Días: {dias}</p>
+                  <p className="border-t border-border px-4 py-2 text-[0.6875rem] font-semibold text-foreground/50">Días: {dias}</p>
                 )}
               </section>
             )

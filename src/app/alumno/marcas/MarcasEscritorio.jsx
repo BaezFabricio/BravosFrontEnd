@@ -202,7 +202,7 @@ export default function MarcasEscritorio() {
         {vista === "ranking" && <RankingEscritorio idCatalogo={rankEj} onElegir={setRankEj} onEditar={editarDesdeRanking} />}
 
         {vista === "mis" && cargando && (
-          <div aria-busy="true" aria-label="Cargando" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3.5">
+          <div aria-busy="true" aria-label="Cargando" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17.5rem),1fr))] gap-3.5">
             <Esqueleto alto={170} className="rounded-2xl" />
             <Esqueleto alto={170} className="rounded-2xl" />
           </div>
@@ -213,7 +213,7 @@ export default function MarcasEscritorio() {
             <span className="grid h-16 w-16 place-items-center rounded-2xl bg-bx-tile text-bx-ok-fg"><Ico d={IC.trophy} size={28} /></span>
             <div>
               <h2 className="m-0 text-xl font-bold">Todavía no hay ejercicios cargados</h2>
-              <p className="mb-0 mt-1.5 text-[15px] text-bx-muted">El box los va a agregar pronto y vas a poder cargar tu RM de cada uno.</p>
+              <p className="mb-0 mt-1.5 text-[0.9375rem] text-bx-muted">El box los va a agregar pronto y vas a poder cargar tu RM de cada uno.</p>
             </div>
           </div>
         )}
@@ -221,7 +221,7 @@ export default function MarcasEscritorio() {
         {vista === "mis" && !cargando && ejercicios.length > 0 && (
           <>
             <div className="flex flex-wrap items-center gap-3">
-              <label className="relative min-w-[240px] max-w-[520px] flex-1">
+              <label className="relative min-w-[15rem] max-w-[32.5rem] flex-1">
                 <span className="sr-only">Buscar ejercicio</span>
                 <span className="pointer-events-none absolute left-3.5 top-1/2 flex -translate-y-1/2 text-bx-muted"><Ico d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3" size={18} /></span>
                 <input
@@ -229,7 +229,7 @@ export default function MarcasEscritorio() {
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   placeholder="Buscar ejercicio"
-                  className="h-12 w-full rounded-[10px] border border-bx-btn-line bg-bx-surf pl-[42px] pr-3.5 text-[15px] font-medium text-bx-ink placeholder:text-bx-muted"
+                  className="h-12 w-full rounded-[0.625rem] border border-bx-btn-line bg-bx-surf pl-[2.625rem] pr-3.5 text-[0.9375rem] font-medium text-bx-ink placeholder:text-bx-muted"
                 />
               </label>
               <FiltroChips
@@ -243,12 +243,12 @@ export default function MarcasEscritorio() {
             </div>
 
             {lista.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[15px] font-medium text-bx-muted">
+              <div className="rounded-2xl border border-dashed border-bx-btn-line p-6 text-[0.9375rem] font-medium text-bx-muted">
                 {busqueda.trim() ? `No hay ejercicios que coincidan con “${busqueda.trim()}”.` : "No hay ejercicios para mostrar con este filtro."}
               </div>
             )}
 
-            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-3.5 p-0">
+            <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,18.75rem),1fr))] gap-3.5 p-0">
               {lista.map((e) => {
                 const gr = grupos.find((x) => x.idCatalogo === e.idCatalogo)
                 const puesto = puestos[e.idCatalogo]
@@ -257,7 +257,7 @@ export default function MarcasEscritorio() {
                 return (
                   <li key={e.idCatalogo} className="flex flex-col gap-4 rounded-2xl border border-bx-line bg-bx-card p-5">
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="m-0 text-[17px] font-bold">{e.nombre}</h2>
+                      <h2 className="m-0 text-[1.0625rem] font-bold">{e.nombre}</h2>
                       {gr && puesto && (
                         <button
                           type="button"
@@ -273,11 +273,11 @@ export default function MarcasEscritorio() {
                       <div className="text-xs font-semibold tracking-[0.1em] text-bx-muted">TU RM</div>
                       {gr ? (
                         <div className="mt-1 flex items-baseline gap-1.5">
-                          <span className="bx-num text-[56px] leading-none">{numero}</span>
+                          <span className="bx-num text-[3.5rem] leading-none">{numero}</span>
                           {unidad.length > 0 && <span className="text-lg font-bold text-bx-muted">{unidad.join(" ")}</span>}
                         </div>
                       ) : (
-                        <div className="mt-2 text-[15px] font-medium text-bx-muted">Todavía no cargaste tu RM de este ejercicio.</div>
+                        <div className="mt-2 text-[0.9375rem] font-medium text-bx-muted">Todavía no cargaste tu RM de este ejercicio.</div>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -287,7 +287,7 @@ export default function MarcasEscritorio() {
                             type="button"
                             onClick={() => abrirEjercicio(e)}
                             aria-label={`Actualizar RM de ${e.nombre}`}
-                            className="inline-flex h-11 min-w-[130px] flex-1 items-center justify-center gap-2 rounded-lg border border-bx-btn-line bg-bx-surf text-sm font-bold text-bx-ink hover:border-bx-lima"
+                            className="inline-flex h-11 min-w-[8.125rem] flex-1 items-center justify-center gap-2 rounded-lg border border-bx-btn-line bg-bx-surf text-sm font-bold text-bx-ink hover:border-bx-lima"
                           >
                             <Ico d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" size={16} />Actualizar RM
                           </button>
@@ -296,14 +296,14 @@ export default function MarcasEscritorio() {
                               to={`/alumno/calculadora-rm?rm=${encodeURIComponent(gr.mejor.valorMejor)}`}
                               variante="secundario"
                               aria-label={`Calcular porcentajes de ${e.nombre}`}
-                              className="min-w-[130px] flex-1 border-bx-btn-line text-bx-ink"
+                              className="min-w-[8.125rem] flex-1 border-bx-btn-line text-bx-ink"
                             >
                               <Ico d={IC.calc} size={16} />Calcular %
                             </Boton>
                           )}
                         </>
                       ) : (
-                        <Boton onClick={() => abrirEjercicio(e)} aria-label={`Cargar RM de ${e.nombre}`} className="min-w-[130px] flex-1">Cargar RM</Boton>
+                        <Boton onClick={() => abrirEjercicio(e)} aria-label={`Cargar RM de ${e.nombre}`} className="min-w-[8.125rem] flex-1">Cargar RM</Boton>
                       )}
                     </div>
                   </li>
@@ -341,7 +341,7 @@ export default function MarcasEscritorio() {
                 onChange={(e) => setValor(e.target.value)}
                 onBlur={() => { if (valor) setTocado(true) }}
                 inputMode={tipo === "tiempo" ? "text" : "decimal"}
-                inputClassName="h-[52px] text-[22px] font-extrabold"
+                inputClassName="h-[3.25rem] text-[1.375rem] font-extrabold"
                 autoComplete="off"
               />
             </form>
@@ -354,14 +354,14 @@ export default function MarcasEscritorio() {
                     <li key={m.idMarca} className="border-b border-bx-line2 last:border-b-0">
                       {aEliminar?.idMarca === m.idMarca ? (
                         <div role="alert" className="flex flex-wrap items-center gap-2 px-3.5 py-2.5">
-                          <span className="min-w-[140px] flex-1 text-sm font-medium">¿Eliminar este RM?</span>
-                          <button type="button" onClick={() => setAEliminar(null)} className="h-10 rounded-lg border border-bx-btn-line px-3 text-[13px] font-bold">No</button>
-                          <button type="button" onClick={eliminar} className="h-10 rounded-lg bg-bx-err-fg px-3 text-[13px] font-bold text-bx-card">Sí, eliminar</button>
+                          <span className="min-w-[8.75rem] flex-1 text-sm font-medium">¿Eliminar este RM?</span>
+                          <button type="button" onClick={() => setAEliminar(null)} className="h-10 rounded-lg border border-bx-btn-line px-3 text-[0.8125rem] font-bold">No</button>
+                          <button type="button" onClick={eliminar} className="h-10 rounded-lg bg-bx-err-fg px-3 text-[0.8125rem] font-bold text-bx-card">Sí, eliminar</button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-3 px-3.5 py-1.5">
                           <span className="min-w-0 flex-1 text-sm text-bx-muted">{fechaCorta(m.fecha)}</span>
-                          {m.esPR ? <span className="rounded-md border border-bx-ok-line bg-bx-ok-bg px-1.5 py-px text-[10px] font-extrabold tracking-wider text-bx-ok-fg">RM</span> : null}
+                          {m.esPR ? <span className="rounded-md border border-bx-ok-line bg-bx-ok-bg px-1.5 py-px text-[0.625rem] font-extrabold tracking-wider text-bx-ok-fg">RM</span> : null}
                           <span className="text-sm font-extrabold tabular-nums">{formatearValor(g.tipo, m.valorMejor)}</span>
                           <button
                             type="button"
@@ -377,7 +377,7 @@ export default function MarcasEscritorio() {
                   ))}
                 </ul>
                 {g.marcas.length > VISIBLES && (
-                  <button type="button" onClick={() => setVerTodas((v) => !v)} className="mt-1 min-h-11 w-full text-center text-[13px] font-bold text-bx-muted hover:text-bx-ink">
+                  <button type="button" onClick={() => setVerTodas((v) => !v)} className="mt-1 min-h-11 w-full text-center text-[0.8125rem] font-bold text-bx-muted hover:text-bx-ink">
                     {verTodas ? "Ver menos" : `Ver todo el historial (${g.marcas.length})`}
                   </button>
                 )}

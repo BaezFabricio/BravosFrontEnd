@@ -26,8 +26,8 @@ const aNumero = (txt) => parseFloat(String(txt).replace(",", "."))
 const fmt = (n) => (Math.round(n * 2) / 2).toLocaleString("es-AR", { maximumFractionDigits: 1 })
 const aTexto = (n) => String(Math.max(0, Math.round(n * 2) / 2)).replace(".", ",")
 
-const claseInput = (mala) => `h-16 w-full rounded-[10px] border bg-bx-surf pl-4 pr-14 text-bx-ink ${mala ? "border-2 border-bx-err-fg" : "border-bx-btn-line"}`
-const claseStep = "h-[52px] w-[52px] shrink-0 rounded-[10px] border border-bx-btn-line bg-bx-surf text-base font-bold text-bx-ink hover:border-bx-lima"
+const claseInput = (mala) => `h-16 w-full rounded-[0.625rem] border bg-bx-surf pl-4 pr-14 text-bx-ink ${mala ? "border-2 border-bx-err-fg" : "border-bx-btn-line"}`
+const claseStep = "h-[3.25rem] w-[3.25rem] shrink-0 rounded-[0.625rem] border border-bx-btn-line bg-bx-surf text-base font-bold text-bx-ink hover:border-bx-lima"
 
 export default function CalculadoraEscritorio() {
   const [params] = useSearchParams()
@@ -97,7 +97,7 @@ export default function CalculadoraEscritorio() {
   const limpiar = () => { setPeso(""); setReps("") }
 
   return (
-    <Pantalla className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] items-start gap-6">
+    <Pantalla className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,27.5rem),1fr))] items-start gap-6">
       <LogroCelebracion logros={abierto ? [] : logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
 
       <div className="flex min-w-0 flex-col gap-5">
@@ -121,7 +121,7 @@ export default function CalculadoraEscritorio() {
               </div>
               <button type="button" onClick={() => setPeso(aTexto((Number.isNaN(p) ? 0 : p) + 2.5))} aria-label="Sumar 2,5 kg" className={claseStep}>+2,5</button>
             </div>
-            <span id="in-peso-ayuda" className={`text-[13px] font-medium ${errPeso ? "text-bx-err-fg" : "text-bx-muted"}`}>{errPeso || "Podés usar coma para decimales, por ejemplo 82,5."}</span>
+            <span id="in-peso-ayuda" className={`text-[0.8125rem] font-medium ${errPeso ? "text-bx-err-fg" : "text-bx-muted"}`}>{errPeso || "Podés usar coma para decimales, por ejemplo 82,5."}</span>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -138,7 +138,7 @@ export default function CalculadoraEscritorio() {
               </div>
               <button type="button" onClick={() => setReps(String(Math.min(MAX_REPS, (Number.isNaN(r) ? 0 : r) + 1)))} aria-label="Sumar 1 repetición" className={claseStep}>+1</button>
             </div>
-            <span id="in-reps-ayuda" className={`text-[13px] font-medium ${errReps ? "text-bx-err-fg" : "text-bx-muted"}`}>{errReps || "Las estimaciones son más precisas entre 1 y 10 repeticiones."}</span>
+            <span id="in-reps-ayuda" className={`text-[0.8125rem] font-medium ${errReps ? "text-bx-err-fg" : "text-bx-muted"}`}>{errReps || "Las estimaciones son más precisas entre 1 y 10 repeticiones."}</span>
           </div>
 
           <div role="group" aria-label="Repeticiones rápidas" className="flex flex-wrap gap-2">
@@ -165,30 +165,30 @@ export default function CalculadoraEscritorio() {
           {valido ? (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="bx-num text-[clamp(64px,8vw,96px)] leading-[0.9] text-bx-lima">{fmt(rm)}</span>
-                <span className="text-[22px] font-bold text-[#a3a698]">kg</span>
+                <span className="bx-num text-[clamp(4rem,8vw,6rem)] leading-[0.9] text-bx-lima">{fmt(rm)}</span>
+                <span className="text-[1.375rem] font-bold text-[#a3a698]">kg</span>
               </div>
-              <div className="text-[15px] text-[#b9bcae]">Según {fmt(p)} kg × {r} {r === 1 ? "repetición" : "repeticiones"} · fórmula Epley</div>
+              <div className="text-[0.9375rem] text-[#b9bcae]">Según {fmt(p)} kg × {r} {r === 1 ? "repetición" : "repeticiones"} · fórmula Epley</div>
               {r > 10 && <div className="text-sm font-medium text-[#e6c200]">Con más de 10 repeticiones la estimación es menos precisa.</div>}
               <div className="mt-1 flex flex-wrap gap-2.5">
                 <Boton tamano="lg" onClick={() => setAbierto(true)} className="h-12 gap-2 px-5">
                   <Ico d="M5 3h11l3 3v15H5zM8 3v5h7M8 14h8v7H8z" size={18} sw={2} />Guardar como mi RM
                 </Boton>
-                <button type="button" onClick={limpiar} className="h-12 rounded-lg border border-[#4a4d42] bg-transparent px-[18px] text-[15px] font-bold text-[#ecefe4] transition-colors hover:border-bx-lima hover:text-bx-lima">Limpiar</button>
+                <button type="button" onClick={limpiar} className="h-12 rounded-lg border border-[#4a4d42] bg-transparent px-[1.125rem] text-[0.9375rem] font-bold text-[#ecefe4] transition-colors hover:border-bx-lima hover:text-bx-lima">Limpiar</button>
               </div>
             </>
           ) : (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="bx-num text-[72px] leading-[0.9] text-[#3a3c33]">—</span>
-                <span className="text-[22px] font-bold text-[#5d6152]">kg</span>
+                <span className="bx-num text-[4.5rem] leading-[0.9] text-[#3a3c33]">—</span>
+                <span className="text-[1.375rem] font-bold text-[#5d6152]">kg</span>
               </div>
-              <div className="text-[15px] text-[#b9bcae]">Ingresá el peso y las repeticiones para ver tu estimación.</div>
+              <div className="text-[0.9375rem] text-[#b9bcae]">Ingresá el peso y las repeticiones para ver tu estimación.</div>
             </>
           )}
         </section>
 
-        <p className="m-0 text-[13px] leading-normal text-bx-muted">Es una estimación: no reemplaza probar tu máximo real y puede variar según el ejercicio y tu técnica.</p>
+        <p className="m-0 text-[0.8125rem] leading-normal text-bx-muted">Es una estimación: no reemplaza probar tu máximo real y puede variar según el ejercicio y tu técnica.</p>
       </div>
 
       <section aria-labelledby="t-pct" className="min-w-0 overflow-hidden rounded-2xl border border-bx-line bg-bx-card">
@@ -196,7 +196,7 @@ export default function CalculadoraEscritorio() {
           <h2 id="t-pct" className="m-0 text-lg font-bold">Pesos de trabajo</h2>
           <p className="mb-0 mt-1 text-sm text-bx-muted">Porcentajes de tu 1RM, redondeados a 0,5 kg.</p>
         </div>
-        <table className="w-full border-collapse text-[15px] font-medium">
+        <table className="w-full border-collapse text-[0.9375rem] font-medium">
           <thead>
             <tr className="border-b border-bx-line">
               <th scope="col" className="px-6 py-2.5 text-left text-xs font-semibold tracking-[0.1em] text-bx-muted">%</th>
@@ -207,10 +207,10 @@ export default function CalculadoraEscritorio() {
           <tbody>
             {TABLA.map(([pc, aprox]) => (
               <tr key={pc} className={`border-b border-bx-line2 ${pc === 100 ? "bg-bx-ok-bg" : ""}`}>
-                <th scope="row" className={`h-[52px] px-6 text-left text-base font-extrabold ${pc === 100 ? "text-bx-ok-fg" : "text-bx-ink"}`}>
+                <th scope="row" className={`h-[3.25rem] px-6 text-left text-base font-extrabold ${pc === 100 ? "text-bx-ok-fg" : "text-bx-ink"}`}>
                   <div className="flex items-center gap-3.5">
                     <span className="min-w-12">{pc}%</span>
-                    <span aria-hidden="true" className="max-w-[140px] flex-1"><Progreso valor={pc} max={100} etiqueta={`${pc}%`} alto={6} /></span>
+                    <span aria-hidden="true" className="max-w-[8.75rem] flex-1"><Progreso valor={pc} max={100} etiqueta={`${pc}%`} alto={6} /></span>
                   </div>
                 </th>
                 <td className="bx-num px-3 text-right text-2xl">{valido ? fmt((rm * pc) / 100) : "—"}<span className="ml-1 text-xs font-bold text-bx-muted" style={{ fontFamily: "Archivo, sans-serif" }}>kg</span></td>
@@ -245,15 +245,15 @@ export default function CalculadoraEscritorio() {
                   id="in-ejercicio"
                   value={idEj}
                   onChange={(e) => setIdEj(e.target.value)}
-                  className="h-12 cursor-pointer rounded-[10px] border border-bx-btn-line bg-bx-surf px-3.5 text-[15px] font-medium text-bx-ink"
+                  className="h-12 cursor-pointer rounded-[0.625rem] border border-bx-btn-line bg-bx-surf px-3.5 text-[0.9375rem] font-medium text-bx-ink"
                 >
                   {ejercicios.map((e) => (
                     <option key={e.idCatalogo} value={e.idCatalogo}>{e.nombre} · {e.actual != null ? `RM actual ${fmt(e.actual)} kg` : "sin RM"}</option>
                   ))}
                 </select>
               </label>
-              <div className="rounded-xl border border-bx-line2 bg-bx-surf px-4 py-3.5 text-[15px] font-medium">
-                Nuevo RM: <strong className="bx-num text-[26px]">{fmt(rm)} kg</strong>
+              <div className="rounded-xl border border-bx-line2 bg-bx-surf px-4 py-3.5 text-[0.9375rem] font-medium">
+                Nuevo RM: <strong className="bx-num text-[1.625rem]">{fmt(rm)} kg</strong>
               </div>
               <p className="m-0 text-sm text-bx-muted">
                 {menorAlActual

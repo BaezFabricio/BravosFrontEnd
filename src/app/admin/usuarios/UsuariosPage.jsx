@@ -222,7 +222,7 @@ function UltimasReservas({ idUsuario }) {
               <p className="text-xs tabular-nums text-foreground/60">{String(r.horaInicio || "").slice(0, 5)} h</p>
             </div>
             <p className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{r.nombreClase}</p>
-            <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${est.clase}`}>{est.label}</span>
+            <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider ${est.clase}`}>{est.label}</span>
           </li>
         )
       })}
@@ -262,7 +262,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
 
   const dato = (titulo, valor, ancho = "") => (
     <div className={`min-w-0 rounded-xl bg-foreground/5 px-4 py-3 ${ancho}`}>
-      <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">{titulo}</p>
+      <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">{titulo}</p>
       <div className="mt-0.5 text-sm font-bold text-foreground">{valor}</div>
     </div>
   )
@@ -282,7 +282,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
                 <Pencil className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 text-lime-700 dark:text-lime-400" aria-hidden="true" />
               </div>
               {mensaje(errores.nombre)}
-              <div className="mt-1.5 max-w-[240px]">
+              <div className="mt-1.5 max-w-[15rem]">
                 {lista(
                   "Perfil de acceso",
                   form.idPerfil,
@@ -299,10 +299,10 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="truncate text-base font-black leading-tight text-foreground">{user.nombre}</h2>
-                <span className="rounded-md border border-lime-500/40 bg-lime-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
+                <span className="rounded-md border border-lime-500/40 bg-lime-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
                   {user.nombrePerfil || user.perfil || "Sin perfil"}
                 </span>
-                {user.sinAcceso && <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
+                {user.sinAcceso && <span className="rounded-md border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
               </div>
               <p className="mt-1 text-sm text-foreground/70">{textoCuenta(user)}</p>
             </>
@@ -320,15 +320,15 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
 
       <div className="mt-6 grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Membresía</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Membresía</p>
           <span className={`mt-1.5 inline-block rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
         </div>
         <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
           <p className="mt-0.5 text-3xl font-black leading-none tabular-nums text-lime-700 dark:text-lime-400">{Number(user.creditos) || 0}</p>
         </div>
         <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/60">Estado general</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Estado general</p>
           {editando && !ed.propia ? (
             <div className="mt-1.5">
               {lista(
@@ -349,7 +349,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
       </div>
       {editando && ed.propia && <p className="mt-2 text-xs text-foreground/60">Es tu cuenta: podés pasarte a un perfil igual o con menos permisos que el tuyo, nunca a uno con más. El estado lo cambia otro administrador.</p>}
 
-      <h3 className="mt-6 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Ficha del usuario</h3>
+      <h3 className="mt-6 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Ficha del usuario</h3>
       <div className="mt-2 grid grid-cols-2 gap-3">
         {dato("DNI", editando
           ? <>{conLapiz(<input aria-label="DNI" inputMode="numeric" maxLength={10} value={form.dni} onChange={(e) => ed.cambiar("dni", e.target.value.replace(/\D/g, ""))} className={campo(errores.dni)} />)}{mensaje(errores.dni)}</>
@@ -376,12 +376,12 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
           )}
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={ed.guardar} disabled={ed.guardando || ed.perfiles === null}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50">
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-50">
               {ed.guardando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {ed.confirmando ? "Sí, guardar" : "Guardar cambios"}
             </button>
             <button type="button" onClick={ed.cancelar} disabled={ed.guardando}
-              className="inline-flex min-h-[44px] items-center rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-50">
+              className="inline-flex min-h-[2.75rem] items-center rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-50">
               Cancelar
             </button>
           </div>
@@ -389,18 +389,18 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
       ) : (
         <div className="mt-6 flex flex-wrap gap-2">
           <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
+            className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
             <CreditCard className="h-4 w-4" aria-hidden="true" /> Ver abonos
           </button>
           {puedeVerDetalle && (
             <button type="button" onClick={() => navigate(`/admin/usuarios/${id}`)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
               <Eye className="h-4 w-4" aria-hidden="true" /> Ficha completa
             </button>
           )}
           {permisos.includes("usuarios:modificacion") && (
             <button type="button" onClick={ed.abrir}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
               <Pencil className="h-4 w-4" aria-hidden="true" /> Editar
             </button>
           )}
@@ -409,7 +409,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
 
       {puedeVerReservas && (
         <>
-          <h3 className="mt-6 text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Últimas reservas</h3>
+          <h3 className="mt-6 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Últimas reservas</h3>
           <div className="mt-2">
             <UltimasReservas key={id} idUsuario={id} />
           </div>
@@ -423,7 +423,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
 function GrupoFiltros({ titulo, children }) {
   return (
     <div className="space-y-3 border-border [&:not(:first-child)]:border-t [&:not(:first-child)]:pt-3 md:[&:not(:first-child)]:border-l md:[&:not(:first-child)]:border-t-0 md:[&:not(:first-child)]:pl-4 md:[&:not(:first-child)]:pt-0">
-      <p className="text-[11px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{titulo}</p>
+      <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{titulo}</p>
       {children}
     </div>
   )
@@ -433,11 +433,11 @@ function GrupoFiltros({ titulo, children }) {
 function ChipsFiltro({ titulo, opciones, valor, onChange }) {
   return (
     <div>
-      <p className="pb-1.5 text-[10px] font-black uppercase tracking-widest text-foreground/55">{titulo}</p>
+      <p className="pb-1.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">{titulo}</p>
       <div className="flex flex-wrap gap-2" role="group" aria-label={titulo}>
         {opciones.map((o) => (
           <button key={o.id} type="button" onClick={() => onChange(o.id)} aria-pressed={valor === o.id}
-            className={`min-h-[36px] rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${valor === o.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background text-foreground/70 hover:border-foreground/30"}`}>
+            className={`min-h-[2.25rem] rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${valor === o.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background text-foreground/70 hover:border-foreground/30"}`}>
             {o.label}
           </button>
         ))}
@@ -677,7 +677,7 @@ export default function UsuariosPage() {
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
-              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-full"
+              className="inline-flex min-h-[2.75rem] justify-center shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 md:min-h-0 md:rounded-full"
             >
               <Plus className="h-4 w-4" />
               <span className="md:hidden">Nuevo</span>
@@ -689,7 +689,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex min-h-[44px] justify-center shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-full"
+              className="inline-flex min-h-[2.75rem] justify-center shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 md:min-h-0 md:rounded-full"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               <span className="md:hidden">Sin cuenta</span>
@@ -731,7 +731,7 @@ export default function UsuariosPage() {
           <div className="space-y-3 rounded-2xl border border-border bg-card p-3">
             {panelFiltros}
             {filtrosActivos > 0 && (
-              <button type="button" onClick={limpiarFiltros} className="min-h-[36px] text-xs font-bold text-lime-700 underline-offset-2 hover:underline dark:text-lime-400">
+              <button type="button" onClick={limpiarFiltros} className="min-h-[2.25rem] text-xs font-bold text-lime-700 underline-offset-2 hover:underline dark:text-lime-400">
                 Quitar los filtros
               </button>
             )}
@@ -745,17 +745,17 @@ export default function UsuariosPage() {
             const activo = statusFilter === e.id
             return (
               <button key={e.id} type="button" onClick={() => setStatusFilter(e.id)} aria-pressed={activo}
-                className={`flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
+                className={`flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
                   activo ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"
                 }`}>
                 {e.label}
-                <span className={`rounded-full px-1.5 text-[10px] ${activo ? "bg-black/15" : "bg-foreground/10"}`}>{cantidad}</span>
+                <span className={`rounded-full px-1.5 text-[0.625rem] ${activo ? "bg-black/15" : "bg-foreground/10"}`}>{cantidad}</span>
               </button>
             )
           })}
         </div>
 
-        <p className="text-[11px] font-black uppercase tracking-widest text-foreground/55">Lista de usuarios ({filteredUsers.length})</p>
+        <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Lista de usuarios ({filteredUsers.length})</p>
 
         {isLoading ? (
           <Cargando filas={3} className="py-4" />
@@ -776,9 +776,9 @@ export default function UsuariosPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-base font-black text-foreground">{user.nombre}</p>
                       <p className="truncate text-xs text-foreground/60">{user.email || "Sin correo"}</p>
-                      {user.sinAcceso && <span className="mt-1 inline-block rounded border border-border px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
+                      {user.sinAcceso && <span className="mt-1 inline-block rounded border border-border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
                     </div>
-                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${claseEstado(user.estado)}`}>
+                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${claseEstado(user.estado)}`}>
                       {(statusConfig[user.estado] || statusConfig.activo).label}
                     </span>
                   </div>
@@ -801,7 +801,7 @@ export default function UsuariosPage() {
                     <div className="min-w-0">
                       <dt className="text-foreground/50">Membresía</dt>
                       <dd className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                        <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
+                        <span className={`rounded-md border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
                         <span className="font-semibold tabular-nums text-foreground/70">{Number(user.creditos) || 0} créd.</span>
                       </dd>
                     </div>
@@ -840,7 +840,7 @@ export default function UsuariosPage() {
       {/* ── COMPUTADORA Y TABLET ── */}
       <div className="hidden border border-border bg-card p-4 md:block">
         <div className="flex items-center gap-3">
-          <div className="relative min-w-[220px] flex-1">
+          <div className="relative min-w-[13.75rem] flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, DNI o email..."
@@ -859,7 +859,7 @@ export default function UsuariosPage() {
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filtros y orden
-            {filtrosActivos > 0 && <span className="rounded-full bg-lime-400 px-1.5 text-[10px] text-black">{filtrosActivos}</span>}
+            {filtrosActivos > 0 && <span className="rounded-full bg-lime-400 px-1.5 text-[0.625rem] text-black">{filtrosActivos}</span>}
           </button>
 
           {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
@@ -907,7 +907,7 @@ export default function UsuariosPage() {
 
       <div className="hidden border border-border bg-card md:block lg:hidden">
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-2.5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuarios ({filteredUsers.length})</p>
+          <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Usuarios ({filteredUsers.length})</p>
         </div>
         <div>
           {isLoading ? (
@@ -917,14 +917,14 @@ export default function UsuariosPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">DNI</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Teléfono</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Perfil</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Membresía</th>
-                    <th className="text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Créditos</th>
-                    <th className="text-right px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">DNI</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Teléfono</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Perfil</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Membresía</th>
+                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Créditos</th>
+                    <th className="text-right px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -939,18 +939,18 @@ export default function UsuariosPage() {
                             }
                           </div>
                           <div>
-                            <p className="max-w-[170px] truncate font-semibold text-sm text-foreground sm:max-w-none">
+                            <p className="max-w-[10.625rem] truncate font-semibold text-sm text-foreground sm:max-w-none">
                               {user.nombre}
-                              {user.sinAcceso && <span className="ml-2 rounded border border-border px-1.5 py-0.5 align-middle text-[10px] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
+                              {user.sinAcceso && <span className="ml-2 rounded border border-border px-1.5 py-0.5 align-middle text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
                             </p>
-                            <p className="max-w-[170px] truncate text-xs text-foreground/40 sm:max-w-none">{user.email}</p>
+                            <p className="max-w-[10.625rem] truncate text-xs text-foreground/40 sm:max-w-none">{user.email}</p>
                             {/* En celular y tablet no hay "pasar el mouse": el acceso a los abonos se ve siempre */}
-                            <span className="mt-1.5 inline-block whitespace-nowrap border border-lime-400/30 bg-lime-400/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 xl:hidden">
+                            <span className="mt-1.5 inline-block whitespace-nowrap border border-lime-400/30 bg-lime-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 xl:hidden">
                               Ver Abonos →
                             </span>
                           </div>
                           <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 xl:block">
-                            <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
+                            <span className="whitespace-nowrap text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/8 px-2 py-0.5">
                               Ver Abonos →
                             </span>
                           </span>
@@ -973,7 +973,7 @@ export default function UsuariosPage() {
                           const isActivo = user.estado === "activo"
                           const isSuspendido = user.estado === "suspendido"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isActivo ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
+                            <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isActivo ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isSuspendido ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-foreground/5 text-foreground/50 border-border"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -985,7 +985,7 @@ export default function UsuariosPage() {
                           const isVigente = user.membresia === "vigente" || user.membresia === "activa"
                           const isPorVencer = user.membresia === "por_vencer"
                           return (
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isVigente ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"}`}>
+                            <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 border rounded-md ${isVigente ? "bg-lime-400/10 text-lime-700 dark:text-lime-400 border-lime-400/20" : isPorVencer ? "bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border-yellow-400/20" : "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20"}`}>
                               {cfg.label}
                             </span>
                           )
@@ -1017,10 +1017,10 @@ export default function UsuariosPage() {
       </div>
 
       {/* ── COMPUTADORA: lista a la izquierda y ficha del usuario elegido a la derecha ── */}
-      <div className="hidden lg:grid lg:grid-cols-[minmax(320px,400px)_minmax(0,1fr)] lg:items-start lg:gap-5">
+      <div className="hidden lg:grid lg:grid-cols-[minmax(20rem,25rem)_minmax(0,1fr)] lg:items-start lg:gap-5">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-[11px] font-black uppercase tracking-widest text-foreground/60">Usuarios ({filteredUsers.length})</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">Usuarios ({filteredUsers.length})</p>
           </div>
           {isLoading ? (
             <Cargando filas={4} className="p-4" />
@@ -1044,16 +1044,16 @@ export default function UsuariosPage() {
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center justify-between gap-2">
                           <span className="truncate text-sm font-black text-foreground">{user.nombre}</span>
-                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${claseEstado(user.estado)}`}>
+                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest ${claseEstado(user.estado)}`}>
                             {(statusConfig[user.estado] || statusConfig.activo).label}
                           </span>
                         </span>
                         <span className="block truncate text-xs text-foreground/60">{user.email || "Sin correo"}</span>
                         <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-md bg-foreground/10 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-foreground/75">{user.nombrePerfil || user.perfil || "Sin perfil"}</span>
-                          <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
-                          <span className="text-[11px] font-semibold tabular-nums text-foreground/70">{Number(user.creditos) || 0} créd.</span>
-                          {user.sinAcceso && <span className="rounded-md border border-border px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-foreground/60">Sin cuenta</span>}
+                          <span className="rounded-md bg-foreground/10 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-foreground/75">{user.nombrePerfil || user.perfil || "Sin perfil"}</span>
+                          <span className={`rounded-md border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
+                          <span className="text-[0.6875rem] font-semibold tabular-nums text-foreground/70">{Number(user.creditos) || 0} créd.</span>
+                          {user.sinAcceso && <span className="rounded-md border border-border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-foreground/60">Sin cuenta</span>}
                         </span>
                       </span>
                     </button>

@@ -554,7 +554,7 @@ export default function GestionAbonosPage() {
         )}
 
         <div className="border border-border bg-card md:overflow-x-auto">
-          <table className="w-full text-sm block md:table md:min-w-[1050px]">
+          <table className="w-full text-sm block md:table md:min-w-[65.625rem]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-border bg-background/50">
                 {["","Alumno","Plan","Créd.","Horario","Inicio","Vencimiento","Método Pago","Monto",""].map((h, i) => (
@@ -572,7 +572,7 @@ export default function GestionAbonosPage() {
                     {f.estado === "error"    && <AlertCircle  className="h-4 w-4 text-red-700 dark:text-red-400 mx-auto" title={f.mensajeError} />}
                   </td>
 
-                  <td data-label="Alumno" className="px-3 py-2 md:min-w-[180px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
+                  <td data-label="Alumno" className="px-3 py-2 md:min-w-[11.25rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
                     <input
                       className={inp}
                       placeholder="Buscar alumno..."
@@ -588,7 +588,7 @@ export default function GestionAbonosPage() {
                     />
                   </td>
 
-                  <td data-label="Plan" className="px-3 py-2 md:min-w-[150px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
+                  <td data-label="Plan" className="px-3 py-2 md:min-w-[9.375rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
                     <select className={inp} value={f.idPlan} disabled={f.estado === "ok"}
                       onChange={e => seleccionarPlan(f._id, e.target.value)}>
                       <option value="">Seleccionar...</option>
@@ -600,12 +600,12 @@ export default function GestionAbonosPage() {
                     <input className={inp + " text-center bg-muted/40 cursor-default"} value={f.creditos} readOnly />
                   </td>
 
-                  <td data-label="Horario" className="px-3 py-2 md:min-w-[110px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
+                  <td data-label="Horario" className="px-3 py-2 md:min-w-[6.875rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input className={inp} placeholder="Lun/Mié 18hs" value={f.horario} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "horario", e.target.value)} />
                   </td>
 
-                  <td data-label="Inicio" className="px-3 py-2 md:min-w-[130px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
+                  <td data-label="Inicio" className="px-3 py-2 md:min-w-[8.125rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="date" className={inp} value={f.fechaInicio} disabled={f.estado === "ok"}
                       onChange={e => {
                         const val = e.target.value
@@ -617,19 +617,19 @@ export default function GestionAbonosPage() {
                       }} />
                   </td>
 
-                  <td data-label="Vencimiento" className="px-3 py-2 md:min-w-[130px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
+                  <td data-label="Vencimiento" className="px-3 py-2 md:min-w-[8.125rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="date" className={inp} value={f.fechaVencimiento} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "fechaVencimiento", e.target.value)} />
                   </td>
 
-                  <td data-label="Método de pago" className="px-3 py-2 md:min-w-[140px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
+                  <td data-label="Método de pago" className="px-3 py-2 md:min-w-[8.75rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <select className={inp} value={f.metodoPago} disabled={f.estado === "ok"}
                       onChange={e => cambiarMetodo(f._id, e.target.value)}>
                       {METODOS.map(m => <option key={m}>{m}</option>)}
                     </select>
                   </td>
 
-                  <td data-label="Monto" className="px-3 py-2 md:min-w-[90px] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
+                  <td data-label="Monto" className="px-3 py-2 md:min-w-[5.625rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
                     <input type="number" className={inp} value={f.monto} disabled={f.estado === "ok"}
                       onChange={e => upd(f._id, "monto", e.target.value)} />
                   </td>
@@ -739,7 +739,7 @@ export default function GestionAbonosPage() {
               <div className="overflow-hidden min-h-0 flex flex-col items-start gap-1 pt-1">
               {[...docsAbono].sort((a, b) => new Date(b.creadoEn || 0) - new Date(a.creadoEn || 0)).map((doc, i) => (
                 <div key={doc.idDocumento} className="flex items-center gap-1.5 whitespace-nowrap"
-                  style={{ transform: compAbiertos[ab.id] ? "translateY(0)" : "translateY(-6px)", transition: `transform 300ms ease-out ${i * 60}ms` }}>
+                  style={{ transform: compAbiertos[ab.id] ? "translateY(0)" : "translateY(-0.375rem)", transition: `transform 300ms ease-out ${i * 60}ms` }}>
                   <a href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
                     className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider px-2 py-0.5 border transition-colors ${
                       doc.estado === "aprobado"
@@ -797,16 +797,16 @@ export default function GestionAbonosPage() {
                   onClick={() => { setAnioPicker(mesFiltro.year); setPickerMes(true) }}
                   aria-haspopup="dialog"
                   aria-label={`Elegir el mes. Ahora: ${labelMes(mesFiltro)}`}
-                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 md:h-8 md:min-w-[150px] md:flex-none"
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-muted/40 px-3 transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 md:h-8 md:min-w-[9.375rem] md:flex-none"
                 >
                   <span className="whitespace-nowrap text-sm font-semibold text-foreground">{labelMes(mesFiltro)}</span>
                   {esMesActual && (
-                    <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
+                    <span className="shrink-0 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400 border border-lime-400/30 bg-lime-400/10 px-1.5 py-px">
                       Actual
                     </span>
                   )}
                   {mesesConDatos.has(`${mesFiltro.year}-${mesFiltro.month}`) && !esMesActual && (
-                    <span className="text-[11px] font-black uppercase tracking-widest text-foreground/50 border border-border px-1.5 py-px">
+                    <span className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/50 border border-border px-1.5 py-px">
                       Archivado
                     </span>
                   )}
@@ -854,7 +854,7 @@ export default function GestionAbonosPage() {
                     return (
                       <button key={nombre} type="button" disabled={futuro} aria-pressed={elegido}
                         onClick={() => { setMesFiltro({ year: anioPicker, month: m }); setPickerMes(false) }}
-                        className={`relative flex min-h-[48px] items-center justify-center rounded-xl border text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-30 ${
+                        className={`relative flex min-h-[3rem] items-center justify-center rounded-xl border text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-30 ${
                           elegido ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/80 hover:border-lime-500/60"
                         }`}>
                         {nombre.slice(0, 3)}
@@ -864,7 +864,7 @@ export default function GestionAbonosPage() {
                   })}
                 </div>
                 <button type="button" onClick={() => { setMesFiltro({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() }); setPickerMes(false) }}
-                  className="min-h-[40px] rounded-xl border border-border text-xs font-black uppercase tracking-widest text-foreground/70 hover:border-lime-500/60 hover:text-foreground">
+                  className="min-h-[2.5rem] rounded-xl border border-border text-xs font-black uppercase tracking-widest text-foreground/70 hover:border-lime-500/60 hover:text-foreground">
                   Ir al mes actual
                 </button>
               </DialogContent>
@@ -895,10 +895,10 @@ export default function GestionAbonosPage() {
                     <li key={ab.id} className="rounded-2xl border border-border bg-background/40 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="font-mono text-[11px] font-bold text-foreground/50">N.º {ab.id}</p>
+                          <p className="font-mono text-[0.6875rem] font-bold text-foreground/50">N.º {ab.id}</p>
                           <div className="mt-1 flex flex-wrap items-center gap-2">
                             <p className="text-lg font-black uppercase leading-tight text-foreground">{nombreMostrar}</p>
-                            <span className={`rounded-md border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest ${claseEstado(ab)}`}>{estadoVisible(ab)}</span>
+                            <span className={`rounded-md border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${claseEstado(ab)}`}>{estadoVisible(ab)}</span>
                           </div>
                         </div>
                         <div className="flex shrink-0 gap-1.5">
@@ -913,42 +913,42 @@ export default function GestionAbonosPage() {
                         </div>
                       </div>
 
-                      <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-foreground/50">Plan</p>
+                      <p className="mt-4 text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Plan</p>
                       <p className="text-sm font-black uppercase text-foreground">{ab.abono || "-"}</p>
 
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Inicio</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Inicio</p>
                           <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{fmt(ab.inicio)}</p>
                         </div>
                         <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Vencimiento</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Vencimiento</p>
                           <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{fmt(ab.vencimiento)}</p>
                         </div>
                       </div>
 
                       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                         <div className="rounded-xl bg-foreground/5 px-2 py-2.5">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
                           <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{ab.turnos}</p>
                         </div>
                         <div className="rounded-xl bg-foreground/5 px-2 py-2.5">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Usados</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Usados</p>
                           <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{ab.usados || 0}</p>
                         </div>
                         <div className="rounded-xl border border-lime-500/40 bg-lime-400/10 px-2 py-2.5">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Disponibles</p>
+                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Disponibles</p>
                           <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{ab.disponibles}</p>
                         </div>
                       </div>
 
                       <div className="mt-4 space-y-2.5 border-t border-border pt-3 text-sm">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/50">Método de pago</span>
+                          <span className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Método de pago</span>
                           <span className="font-semibold text-foreground">{ab.metodoPago || "-"}</span>
                         </div>
                         <div className="flex items-start justify-between gap-3">
-                          <span className="pt-0.5 text-[10px] font-black uppercase tracking-widest text-foreground/50">Comprobantes</span>
+                          <span className="pt-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Comprobantes</span>
                           <div className="flex min-w-0 justify-end">
                             {docsAbono.length > 0 ? comprobantesDe(ab, docsAbono) : <span className="text-xs italic text-foreground/50">Sin comprobante</span>}
                           </div>
@@ -1066,7 +1066,7 @@ export default function GestionAbonosPage() {
               <div>
                 <p className="text-xs font-black uppercase tracking-widest text-foreground/60">
                   Historial de Canceladas
-                  <span className="ml-2 text-[11px] bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/20 px-1.5 py-0.5">{cancelados.length}</span>
+                  <span className="ml-2 text-[0.6875rem] bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/20 px-1.5 py-0.5">{cancelados.length}</span>
                 </p>
                 <p className="text-sm text-foreground/45 mt-0.5">Membresías revocadas · se pueden recuperar.</p>
               </div>
@@ -1150,7 +1150,7 @@ export default function GestionAbonosPage() {
           <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-border px-5 pb-4 pt-4">
             {/* Alumno */}
             <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Alumno</label>
+              <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Alumno</label>
               {formM.idUsuario ? (() => {
                 const elegido = usuarios.find(u => String(u.idUsuario || u.id) === String(formM.idUsuario))
                 const partes = String(formM.nombreAlumno || "").trim().split(/\s+/)
@@ -1165,7 +1165,7 @@ export default function GestionAbonosPage() {
                       </p>
                     </div>
                     <button type="button"
-                      className="shrink-0 rounded-lg border border-lime-500/50 bg-lime-400/10 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-lime-700 transition-colors hover:bg-lime-400/20 dark:text-lime-400"
+                      className="shrink-0 rounded-lg border border-lime-500/50 bg-lime-400/10 px-3 py-2 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 transition-colors hover:bg-lime-400/20 dark:text-lime-400"
                       onClick={() => setFormM(p => ({ ...p, idUsuario: "", nombreAlumno: "", busqueda: "" }))}>
                       Cambiar
                     </button>
@@ -1194,27 +1194,27 @@ export default function GestionAbonosPage() {
             {/* Plan y créditos en la misma fila */}
             <div className="grid grid-cols-[1fr_5rem] gap-3">
               <div>
-                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-plan">Plan</label>
+                <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-plan">Plan</label>
                 <select id="m-plan" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500" value={formM.idPlan} onChange={e => elegirPlanM(e.target.value)}>
                   <option value="">Seleccionar plan...</option>
                   {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-cred">Créd.</label>
+                <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-cred">Créd.</label>
                 <input id="m-cred" className="w-full cursor-default rounded-xl border border-border bg-foreground/5 px-1 py-3 text-center text-base font-bold text-foreground outline-none" value={formM.creditos} readOnly placeholder="-" />
               </div>
             </div>
 
             {/* Método de pago */}
             <div>
-              <p className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55">Método de pago</p>
+              <p className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">Método de pago</p>
               <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Método de pago">
                 {METODOS.map(m => {
                   const activo = formM.metodoPago === m
                   return (
                     <button key={m} type="button" role="radio" aria-checked={activo} onClick={() => elegirMetodoM(m)}
-                      className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-2 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                      className={`flex min-h-[3rem] items-center justify-center gap-2 rounded-xl border px-2 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                         activo
                           ? "border-lime-500 bg-lime-400/15 text-lime-700 dark:text-lime-400"
                           : "border-border bg-background/60 text-foreground/60 hover:bg-foreground/5"
@@ -1237,7 +1237,7 @@ export default function GestionAbonosPage() {
 
             {/* Monto */}
             <div>
-              <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-monto">Monto ($)</label>
+              <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-monto">Monto ($)</label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-foreground/45" aria-hidden="true">$</span>
                 <input id="m-monto" type="number" inputMode="decimal" placeholder="0.00" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 pl-7" value={formM.monto}
@@ -1248,12 +1248,12 @@ export default function GestionAbonosPage() {
             {/* Fechas */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-inicio">Inicio</label>
+                <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-inicio">Inicio</label>
                 <input id="m-inicio" type="date" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 px-2.5" value={formM.fechaInicio}
                   onChange={e => { const v = e.target.value; setFormM(p => ({ ...p, fechaInicio: v, fechaVencimiento: v ? diezDelMesSiguiente(v) : p.fechaVencimiento })) }} />
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-vence">Vencimiento</label>
+                <label className="mb-1.5 block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55" htmlFor="m-vence">Vencimiento</label>
                 <input id="m-vence" type="date" className="w-full rounded-xl border border-border bg-background/60 px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-foreground/45 focus:border-lime-500 px-2.5" value={formM.fechaVencimiento}
                   onChange={e => setFormM(p => ({ ...p, fechaVencimiento: e.target.value }))} />
               </div>
