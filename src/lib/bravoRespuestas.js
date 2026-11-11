@@ -83,7 +83,7 @@ const TEMAS_COMUNES = [
     id: "saludo",
     titulo: "Saludar",
     claves: ["hola*", "buenas*", "buen dia", "buenos dias", "buenas tardes", "buenas noches", "que tal", "hey", "como estas", "como andas", "como va", "como te va"],
-    respuesta: ({ nombre, mascota, pregunta }) => {
+    respuesta: ({ nombre, pregunta }) => {
       const primero = nombre ? nombre.split(" ")[0] : ""
       // Si además preguntó "¿cómo estás?", se le contesta antes de ofrecer ayuda
       const preguntoComoEsta = /(como estas|como andas|como va|como te va|que tal)/.test(pregunta || "")
@@ -91,7 +91,7 @@ const TEMAS_COMUNES = [
         texto:
           `¡Hola${primero ? `, ${primero}` : ""}! 🐾 ` +
           (preguntoComoEsta ? `Todo bien por acá, con ganas de entrenar 💪. ¿Y vos, cómo andás?\n\n` : ``) +
-          `Soy ${mascota}. ¿En qué te puedo ayudar hoy? Contame con tus palabras o tocá alguno de los temas de abajo.`,
+          `¿En qué te puedo ayudar hoy? Contame con tus palabras o tocá alguno de los temas de abajo.`, // sin presentarse: eso ya lo dice "¿Quién sos?"
       }
     },
   },
