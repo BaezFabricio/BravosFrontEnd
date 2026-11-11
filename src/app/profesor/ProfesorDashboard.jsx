@@ -103,7 +103,7 @@ export default function ProfesorDashboard() {
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* FECHA */}
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <CalendarIcon className="h-3.5 w-3.5" /> Fecha
               </label>
@@ -117,12 +117,12 @@ export default function ProfesorDashboard() {
                   setCheckedIn(false)
                   setAlumnos([])
                 }}
-                className="w-full rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                className="block w-full min-w-0 max-w-full appearance-none rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               />
             </div>
 
             {/* ACTIVIDAD */}
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <Dumbbell className="h-3.5 w-3.5" /> Actividad
               </label>
@@ -142,7 +142,7 @@ export default function ProfesorDashboard() {
             </div>
 
             {/* HORARIO */}
-            <div className="space-y-1.5">
+            <div className="min-w-0 space-y-1.5">
               <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" /> Horario
               </label>
