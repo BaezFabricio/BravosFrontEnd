@@ -25,6 +25,12 @@ export default function ProfesorDashboard() {
   const [loading, setLoading] = useState(false)
 
   const actividadObj = actividades.find(a => String(a.idClase) === actividad)
+
+  // Solo las clases que se dan el día de la semana de la fecha elegida (MARTES, MIERCOLES, etc.)
+  const NOMBRES_DIA = ["DOMINGO", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"]
+  const sinAcentos = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase()
+  const diaElegido = NOMBRES_DIA[fecha.getDay()]
+  const actividadesDelDia = actividades.filter(a => sinAcentos(a.dias).split(",").map(d => d.trim()).includes(diaElegido))
   const presentes = alumnos.filter(a => a.asistencia === "presente").length
   const ausentes = alumnos.filter(a => a.asistencia === "ausente").length
   const pendientes = alumnos.filter(a => a.asistencia !== "presente" && a.asistencia !== "ausente").length
@@ -131,7 +137,7 @@ export default function ProfesorDashboard() {
                   <SelectValue placeholder="Seleccionar clase..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  {actividades.map(a => (
+                  {actividadesDelDia.map(a => (
                     <SelectItem key={a.idClase} value={String(a.idClase)}>
                       {a.categoria || a.nombreClase}
                       {a.dias ? ` · ${a.dias}` : ""}
