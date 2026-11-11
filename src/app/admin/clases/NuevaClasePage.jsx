@@ -345,7 +345,11 @@ export default function NuevaClasePage() {
       if (formData.diasSemana.length === 0) e.diasSemana = "Seleccioná al menos un día"
     }
     setErrors(e)
-    return Object.keys(e).length === 0
+    // Antes, si faltaba algo, el botón no hacía nada y el campo en rojo podía quedar fuera de la pantalla: ahora se avisa qué falta
+    const CAMPOS = { nombre: "Nombre", idProfesor: "Coach", tipoPlan: "Tipo de clase", horario: "Horario", capacidadMaxima: "Cupo", diasSemana: esClaseUnica ? "Fecha" : "Días" }
+    const faltan = Object.keys(e).map((k) => CAMPOS[k] || k)
+    if (faltan.length > 0) toast.error("No se pudo guardar la clase", { description: `Revisá: ${faltan.join(", ")}.` })
+    return faltan.length === 0
   }
 
   const handleSubmit = async (e) => {
@@ -443,7 +447,7 @@ export default function NuevaClasePage() {
   const continuar = () => { if (validarPaso(paso)) { setPaso(p => Math.min(p + 1, 3)); window.scrollTo({ top: 0, behavior: "smooth" }) } }
   const atras = () => { setErrors({}); setPaso(p => Math.max(p - 1, 0)); window.scrollTo({ top: 0, behavior: "smooth" }) }
   const irAPaso = (n) => { setErrors({}); setPaso(n); window.scrollTo({ top: 0, behavior: "smooth" }) }
-  const crearDesdePasos = async () => { if (validate()) await crearClase(); else toast.error("Revisá los datos de la clase") }
+  const crearDesdePasos = async () => { if (validate()) await crearClase() }
 
   // Bloques que se agregan a la rutina con un toque
   const BLOQUES = [
