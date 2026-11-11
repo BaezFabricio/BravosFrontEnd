@@ -63,11 +63,6 @@ export default function RutinasPage() {
         <TituloPagina descripcion={"Rutinas asignadas a tus clases por el administrador"}>Mis Rutinas</TituloPagina>
       </div>
 
-      {/* Cantidad, en una línea simple a la izquierda */}
-      {rutinas.length > 0 && (
-        <p className="text-sm text-muted-foreground">{rutinas.length} {rutinas.length === 1 ? 'rutina' : 'rutinas'}</p>
-      )}
-
       {/* PESTAÑAS: próximas o historial */}
       <div className="grid grid-cols-2 gap-1 rounded-xl border border-border p-1" role="tablist">
         {[['proximas', 'Próximas'], ['historial', 'Historial']].map(([clave, texto]) => (
@@ -83,6 +78,11 @@ export default function RutinasPage() {
           </button>
         ))}
       </div>
+
+      {/* Cantidad de la pestaña que se ve (no del total) */}
+      {!error && visibles.length > 0 && (
+        <p className="text-sm text-muted-foreground">{visibles.length} {visibles.length === 1 ? 'rutina' : 'rutinas'}</p>
+      )}
 
       {/* ERROR */}
       {error && (
