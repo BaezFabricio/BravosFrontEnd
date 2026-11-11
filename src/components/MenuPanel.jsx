@@ -177,6 +177,17 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
           </button>
         </div>
 
+        {/* Primero: volver al sitio público del box (sin cerrar la sesión) */}
+        <div className="mb-6">
+          <div className="divide-y divide-border border-y border-border">
+            <Link to="/inicio" onClick={onCerrar} tabIndex={tab} className="flex min-h-[60px] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-sidebar-accent/50">
+              <Globe className="h-6 w-6 shrink-0 text-foreground/75" strokeWidth={1.75} aria-hidden="true" />
+              <span className="flex-1 text-base font-medium text-foreground">Página principal</span>
+              <ChevronRight className="h-5 w-5 shrink-0 text-lime-600 dark:text-lime-400" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+
         {gruposConOtros.map((g) => {
           const lista = delGrupoDe(g)
           if (lista.length === 0) return null

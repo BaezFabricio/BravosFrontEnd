@@ -491,7 +491,7 @@ function LandingPage() {
           // Menú del celular: se despliega hacia abajo (no ocupa toda la pantalla) y se cierra tocando afuera
           <>
             <div className="fixed inset-x-0 top-[66px] bottom-0 z-30 bg-black/60 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
-            <div className="fixed inset-x-0 top-[66px] z-40 max-h-[calc(100svh-66px)] overflow-y-auto overscroll-contain border-b border-white/10 bg-black shadow-2xl lg:hidden">
+            <div className="fixed inset-x-0 top-[66px] z-40 max-h-[calc(100svh-66px)] overflow-y-auto overscroll-contain border-b-2 border-lime-400/60 bg-black shadow-2xl lg:hidden">
               <nav aria-label="Secciones del sitio" className="px-4 py-2">
                 <ul>
                   {menuItems().map((item) => (
@@ -529,7 +529,7 @@ function LandingPage() {
                 </ul>
               </nav>
 
-              <div className="border-t border-white/10 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+              <div className="border-t border-white/20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
                 <Link to="/ranking" onClick={() => setMobileMenuOpen(false)} className="mb-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-lime-400/70 bg-lime-400/10 text-xs font-black tracking-wider text-lime-400">
                   RANKING DE RM
                 </Link>
