@@ -1,11 +1,6 @@
-import { TituloPagina } from "@/components/TituloPagina"
 import { useSemanaCreditos } from "@/lib/semanaCreditos"
-import { Cargando } from '@/components/Cargando'
-import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { useEffect, useMemo, useState } from "react"
-import { Clock, User, ChevronLeft, ChevronRight, Loader2, AlertCircle, ChevronDown, Lock, CheckCircle2, XCircle } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog, DialogContent, DialogDescription,
@@ -14,9 +9,10 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from '@/lib/notificar'
 import apiClient from "@/api"
+import { useAnchoPanel } from "@/lib/useEscritorio"
 import ReservarMovil from "./ReservarMovil"
+import ReservarEscritorio from "./ReservarEscritorio"
 
-const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 const mapaDiasBD = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIERCOLES", 4: "JUEVES", 5: "VIERNES", 6: "SABADO" }
 
 const TURNOS = [
@@ -94,7 +90,9 @@ export default function ReservarClasePage() {
   const [creditosReales, setCreditosReales]   = useState(0)
   const semana = useSemanaCreditos() // plan con créditos por semana (o null)
   const [loadingCreditos, setLoadingCreditos] = useState(true)
-  const [rutinaExpandida, setRutinaExpandida] = useState({})
+  const escritorio = useAnchoPanel() // desde 1024 px: diseño de escritorio; por debajo, el del celular
+  const [errorCarga, setErrorCarga]           = useState(false)
+  const [intento, setIntento]                 = useState(0) // sube al tocar "Reintentar"
   const [turnoFiltro, setTurnoFiltro]         = useState(null)
   const [idPlanAlumno]       = useState(null)
   const [vencimientoAbono, setVencimientoAbono] = useState(null)
@@ -149,6 +147,7 @@ export default function ReservarClasePage() {
       try {
         setPageLoading(true)
         setLoadingCreditos(true)
+        setErrorCarga(false)
 
         // Solo las clases de los planes que el alumno tiene vigentes. El nombre del plan viene con cada clase:
         // la lista general de planes (/planes) requiere un permiso que el alumno no tiene y cortaba toda la carga.
@@ -162,6 +161,7 @@ export default function ReservarClasePage() {
           setPlanes([...vistos.values()])
         } catch (error) {
           console.error("No se pudo cargar la lista de clases:", error)
+          setErrorCarga(true)
           toast.error("No se pudieron cargar las clases", { description: "Probá de nuevo en unos segundos." })
         }
 
@@ -190,7 +190,7 @@ export default function ReservarClasePage() {
       }
     }
     fetchDatosIniciales()
-  }, [])
+  }, [intento])
 
   const clasesFiltradas = useMemo(() => {
     const diaIndex = selectedDate.getDay()
@@ -222,6 +222,7 @@ export default function ReservarClasePage() {
           id: clase.idHorario,
           idClase: clase.idClase,
           idPlan: clase.idPlan ?? null,
+          tipo: clase.nombrePlan || null,
           nombre: clase.nombreClase,
           hora: horaInicio,
           horaFin: clase.horaFin ? clase.horaFin.substring(0, 5) : null,
@@ -237,6 +238,11 @@ export default function ReservarClasePage() {
         }
       })
   }, [selectedDate, clasesOriginales, turnoFiltro, idPlanAlumno, reservasMap])
+
+  const horasDelDia = useMemo(() => clasesOriginales
+    .filter((c) => claseEsDelDia(c, selectedDate, idPlanAlumno))
+    .map((c) => (c.horaInicio ? c.horaInicio.substring(0, 5) : "00:00")),
+  [clasesOriginales, selectedDate, idPlanAlumno])
 
   const clasesAgrupadas = useMemo(() => {
     const grupos = {}
@@ -270,7 +276,8 @@ export default function ReservarClasePage() {
       })
       if (response.data?.success) {
         const idReservaNueva = response.data?.data?.idReserva
-        toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}`, guardar: false })
+        if (escritorio) toast.success(`Listo, reservaste ${selectedClass.nombre} a las ${selectedClass.hora}.`, { guardar: false, enlace: { to: "/alumno/reservas", texto: "Ver mis reservas" } })
+        else toast.success("¡Reserva confirmada!", { description: `${selectedClass.nombre} a las ${selectedClass.hora}`, guardar: false })
         setCreditosReales(prev => prev - 1)
         window.dispatchEvent(new CustomEvent("bravos:reservas-cambiaron")) // el contador de la semana se vuelve a pedir
         // Actualización optimista inmediata
@@ -314,8 +321,6 @@ export default function ReservarClasePage() {
     }
   }
 
-  const toggleRutina = (id) => setRutinaExpandida(prev => ({ ...prev, [id]: !prev[id] }))
-
   // Para la fila de días del celular: ¿ese día tiene clases del plan del alumno?
   const hayClasesEn = (d) => clasesOriginales.some(c => claseEsDelDia(c, d, idPlanAlumno))
 
@@ -335,10 +340,48 @@ export default function ReservarClasePage() {
 
   const nombrePlan = (idPlan) => planes.find(p => p.idPlan === idPlan)?.nombre || null
 
+  if (escritorio) {
+    return (
+      <ReservarEscritorio
+        creditos={creditosReales}
+        cargandoCreditos={loadingCreditos}
+        semana={semana}
+        errorCarga={errorCarga}
+        onReintentar={() => setIntento((n) => n + 1)}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        weekDates={weekDates}
+        hayClasesEn={hayClasesEn}
+        turnos={TURNOS}
+        turnoFiltro={turnoFiltro}
+        setTurnoFiltro={setTurnoFiltro}
+        horasDelDia={horasDelDia}
+        grupos={clasesAgrupadas}
+        cargando={pageLoading}
+        puedeReservar={puedeReservar}
+        esDeHoy={esDeHoy}
+        puedeCancelar={puedeCancelar}
+        rutinaPublicada={rutinaPublicada}
+        fechaPublicacion={formatearFechaPublicacion}
+        onReservar={(clase) => { setSelectedClass(clase); setConfirmDialog(true) }}
+        onCancelar={(clase) => setCancelDialog({ open: true, clase })}
+        irAProximoDiaConClases={irAProximoDiaConClases}
+        confirmDialog={confirmDialog}
+        setConfirmDialog={setConfirmDialog}
+        selectedClass={selectedClass}
+        handleReservar={handleReservar}
+        cancelDialog={cancelDialog}
+        setCancelDialog={setCancelDialog}
+        handleCancelar={handleCancelar}
+        isLoading={isLoading}
+      />
+    )
+  }
+
   return (
     <>
       {/* CELULAR: diseño propio (ReservarMovil.jsx) */}
-      <div className="lg:hidden">
+      <div>
         <ReservarMovil
           creditos={creditosReales}
           semana={semana}
@@ -363,258 +406,6 @@ export default function ReservarClasePage() {
           irAProximoDiaConClases={irAProximoDiaConClases}
         />
       </div>
-
-      {/* ESCRITORIO */}
-    <div className="hidden lg:block space-y-6">
-      <TituloPagina descripcion={"Seleccioná una clase para reservar"}>Reservar Clase</TituloPagina>
-
-      {/* CRÉDITOS */}
-      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-lime-500 dark:border-lime-400">
-          <span className="text-lg font-black tabular-nums text-lime-700 dark:text-lime-400">
-            {loadingCreditos ? "..." : creditosReales}
-          </span>
-        </div>
-        <div>
-          <p className="text-sm font-bold text-foreground">Créditos disponibles</p>
-          <p className="text-xs text-foreground/60">{semana ? `Podés reservar hasta ${semana.porSemana} clases por semana (esta semana usaste ${semana.usadas}). Lo que no uses se pierde al terminar la semana y cancelar no devuelve el crédito.` : "Cada reserva consume 1 crédito. Si cancelás con 2 horas o más de anticipación, te lo devolvemos."}</p>
-        </div>
-      </div>
-
-      {/* CALENDARIO SEMANAL */}
-      <Card className="rounded-2xl border-border bg-card">
-        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Elegí el día</p>
-            <CardTitle className="mt-0.5 text-xl font-black capitalize leading-tight">
-              {formatDate(selectedDate)}
-            </CardTitle>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl" onClick={() => {
-              const d = new Date(selectedDate); d.setDate(d.getDate() - 7); setSelectedDate(d)
-            }}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl" onClick={() => {
-              const d = new Date(selectedDate); d.setDate(d.getDate() + 7); setSelectedDate(d)
-            }}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-2">
-            {weekDates.map((date, index) => {
-              const isSelected = date.toDateString() === selectedDate.toDateString()
-              const isToday = date.toDateString() === new Date().toDateString()
-              return (
-                <button
-                  key={index}
-                  onClick={() => setSelectedDate(date)}
-                  className={`flex min-h-[84px] flex-col items-center justify-center rounded-2xl border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
-                    isSelected ? "scale-[1.04] border-lime-400 bg-lime-400 text-black shadow-lg shadow-lime-500/30"
-                    : hayClasesEn(date) ? "border-lime-500/50 bg-lime-400/10 text-foreground hover:border-lime-400"
-                    : "border-border bg-transparent text-foreground/45 hover:border-foreground/30"
-                  }`}
-                >
-                  <span className={`text-[11px] font-black uppercase tracking-wide ${isSelected ? "text-black/75" : isToday ? "text-lime-700 dark:text-lime-400" : ""}`}>{isToday ? "Hoy" : diasSemana[index]}</span>
-                  <span className="mt-0.5 text-2xl font-black leading-none tabular-nums">{date.getDate()}</span>
-                  <span aria-hidden="true" className={`mt-1.5 h-1.5 w-1.5 rounded-full ${hayClasesEn(date) ? (isSelected ? "bg-black" : "bg-lime-500") : "bg-transparent"}`} />
-                </button>
-              )
-            })}
-          </div>
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-foreground/60">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-lime-500" /> Días con clases
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* FILTRO DE TURNOS */}
-      <div className="flex gap-2">
-        {TURNOS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTurnoFiltro(turnoFiltro === t.id ? null : t.id)}
-            className={`min-h-[44px] flex-1 rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
-              turnoFiltro === t.id
-                ? "border-lime-400 bg-lime-400 text-black"
-                : "border-border text-foreground/80 hover:border-lime-500/60"
-            }`}
-          >
-            {t.label}
-            <span className="block text-[9px] font-normal opacity-60 mt-0.5 normal-case">
-              {t.desde.slice(0, 5)} – {t.hasta === "23:59" ? "22:00" : t.hasta.slice(0, 5)}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* CLASES POR PLAN */}
-      <div className="space-y-6">
-        {pageLoading ? (
-          <Cargando filas={3} className="py-4" />
-        ) : clasesAgrupadas.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border py-8 text-center text-sm text-foreground/60">
-            No hay clases{turnoFiltro ? ` de ${TURNOS.find(t => t.id === turnoFiltro)?.label.toLowerCase()}` : ""} para los {mapaDiasBD[selectedDate.getDay()].toLowerCase()}.
-          </p>
-        ) : (
-          clasesAgrupadas.map(({ key, plan, clases: clasesDelPlan }) => (
-            <div key={key} className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="px-2 text-xs font-black uppercase tracking-widest text-foreground/60">
-                  {plan.nombre}
-                </span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {clasesDelPlan.map((clase) => {
-                  const publicada = rutinaPublicada(clase.publicarEn)
-                  const tieneContenido = clase.descripcion || clase.rutina
-                  const expandida = rutinaExpandida[clase.id]
-                  const sinCupos = clase.cuposDisponibles === 0
-                  const sinCreditos = creditosReales === 0
-                  const puedeRes = puedeReservar(selectedDate, clase.hora)
-                  const puedeCan = puedeCancelar(selectedDate, clase.hora)
-
-                  return (
-                    <Card
-                      key={clase.id}
-                      className={`rounded-2xl bg-card border-border transition-all ${
-                        clase.reservado
-                          ? "border-lime-500/50 bg-lime-400/5"
-                          : sinCupos || sinCreditos || !puedeRes
-                          ? "opacity-60"
-                          : "hover:border-lime-500/60"
-                      }`}
-                    >
-                      <CardContent className="p-4 space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-black text-foreground">{clase.nombre}</h3>
-                              {clase.reservado && (
-                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/25 rounded-md">
-                                  <CheckCircle2 className="h-3 w-3" /> Reservado
-                                </span>
-                              )}
-                            </div>
-                            <div className="space-y-1 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                <span>{clase.hora} · {clase.duracion}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                <span>{clase.coach}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={`rounded-full ${sinCupos
-                              ? "bg-red-500/10 text-red-700 dark:text-red-500 border-red-500/20"
-                              : "bg-lime-400/15 text-lime-700 dark:text-lime-400 border-lime-500/30"
-                            }`}
-                          >
-                            {clase.cuposDisponibles}/{clase.cuposTotales} cupos
-                          </Badge>
-                        </div>
-
-                        {tieneContenido && (
-                          <div className="border-t border-border pt-3">
-                            {publicada ? (
-                              <div>
-                                {clase.descripcion && (
-                                  <div
-                                    className="text-xs text-muted-foreground mb-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground"
-                                    dangerouslySetInnerHTML={{ __html: sanitizarHtml(clase.descripcion) }}
-                                  />
-                                )}
-                                {clase.rutina && (
-                                  <>
-                                    <button
-                                      onClick={() => toggleRutina(clase.id)}
-                                      className="flex items-center gap-1 text-xs font-semibold text-lime-700 dark:text-lime-400 hover:underline"
-                                    >
-                                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expandida ? "rotate-180" : ""}`} />
-                                      {expandida ? "Ocultar rutina" : "Ver rutina"}
-                                    </button>
-                                    {expandida && (
-                                      <div
-                                        className="mt-2 text-xs text-foreground/70 bg-foreground/5 rounded-lg p-3 border border-border [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:text-foreground"
-                                        dangerouslySetInnerHTML={{ __html: sanitizarHtml(typeof clase.rutina === "string" ? clase.rutina : JSON.stringify(clase.rutina)) }}
-                                      />
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Lock className="h-3.5 w-3.5 shrink-0" />
-                                <span>
-                                  Rutina disponible el{" "}
-                                  <span className="font-semibold text-foreground">
-                                    {formatearFechaPublicacion(clase.publicarEn)}
-                                  </span>
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* ACCIONES */}
-                        <div className="space-y-2">
-                          {clase.reservado ? (
-                            // Ya reservó esta clase
-                            puedeCan ? (
-                              <Button
-                                variant="outline"
-                                className="min-h-[44px] w-full rounded-xl border-red-500/40 text-red-700 dark:text-red-400 hover:bg-red-500/10"
-                                onClick={() => setCancelDialog({ open: true, clase })}
-                              >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Cancelar reserva
-                              </Button>
-                            ) : (
-                              <Button variant="outline" className="w-full opacity-50 cursor-not-allowed border-green-500/20 text-green-700 dark:text-green-400" disabled>
-                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                Reservado · Ya no podés cancelar
-                              </Button>
-                            )
-                          ) : sinCupos ? (
-                            <Button variant="outline" className="w-full" disabled>Sin cupos disponibles</Button>
-                          ) : sinCreditos ? (
-                            <Button variant="destructive" className="w-full opacity-70 cursor-not-allowed" disabled>
-                              Sin créditos disponibles
-                            </Button>
-                          ) : !puedeRes ? (
-                            <Button variant="outline" className="w-full opacity-60 cursor-not-allowed" disabled>
-                              <Clock className="mr-2 h-4 w-4" />
-                              {esDeHoy(selectedDate) ? "Solo se puede reservar con 2h de anticipación" : "Solo se reservan las clases del día"}
-                            </Button>
-                          ) : (
-                            <Button
-                              className="min-h-[44px] w-full rounded-xl bg-lime-400 font-black text-black hover:bg-lime-300"
-                              onClick={() => { setSelectedClass(clase); setConfirmDialog(true) }}
-                            >
-                              Reservar Clase
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
 
       {/* DIÁLOGO CONFIRMAR RESERVA (lo usan las dos versiones) */}
       <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>

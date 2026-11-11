@@ -7,21 +7,22 @@
  *   toast.success('Mensaje copiado', { guardar: false })   // se ve, pero no queda en la campanita
  *   toast.error('Pago rechazado', { guardar: true })       // un error importante que sí queda
  * Si el sistema ya crea su propia notificación (reservas, por ejemplo), conviene { guardar: false } para no repetirla.
+ * Un aviso de éxito puede llevar un enlace de acción: toast.success('Listo', { enlace: { to: '/alumno/reservas', texto: 'Ver mis reservas' } })
  */
 // Cuándo se mostró el último aviso de error o advertencia (lo usa api.js para no repetir el aviso de "sin permiso")
 export let ultimoAvisoDeError = 0
 
-function dispatch(tipo, titulo, mensaje, guardar) {
+function dispatch(tipo, titulo, mensaje, guardar, enlace) {
   if (tipo === 'error' || tipo === 'advertencia') ultimoAvisoDeError = Date.now()
   window.dispatchEvent(new CustomEvent('bravos:notif', {
-    detail: { tipo, titulo, mensaje, guardar, id: Date.now() }
+    detail: { tipo, titulo, mensaje, guardar, enlace, id: Date.now() }
   }))
 }
 
 const decidir = (tipo, opts) => (typeof opts?.guardar === 'boolean' ? opts.guardar : tipo === 'exito')
 
 export const toast = {
-  success: (msg, opts) => dispatch('exito',       opts?.description ? msg : 'Éxito',     opts?.description || msg, decidir('exito', opts)),
+  success: (msg, opts) => dispatch('exito',       opts?.description ? msg : 'Éxito',     opts?.description || msg, decidir('exito', opts), opts?.enlace),
   error:   (msg, opts) => dispatch('error',       opts?.description ? msg : 'Error',     opts?.description || msg, decidir('error', opts)),
   warning: (msg, opts) => dispatch('advertencia', opts?.description ? msg : 'Atención',  opts?.description || msg, decidir('advertencia', opts)),
   info:    (msg, opts) => dispatch('info',        opts?.description ? msg : 'Info',      opts?.description || msg, decidir('info', opts)),

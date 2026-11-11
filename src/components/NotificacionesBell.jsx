@@ -72,10 +72,10 @@ export default function NotificacionesBell({ variante } = {}) {
 
   // Todo aviso sale arriba en el medio: máximo 3 a la vez, uno igual al que ya está no se repite, y se van solos.
   // Los de notificaciones reales traen un link (al tocarlos abren esa pantalla).
-  const showToast = ({ tipo, titulo, mensaje, link = null, idNotificacion = null }) => {
+  const showToast = ({ tipo, titulo, mensaje, link = null, idNotificacion = null, accion = null }) => {
     const pid = Date.now() + Math.random()
     const dur = bx || tipo === 'error' || tipo === 'advertencia' ? 5000 : link ? 5000 : 2800
-    setToasts(prev => [...prev.filter(t => !(t.tipo === tipo && t.mensaje === mensaje && t.titulo === titulo)), { tipo, titulo, mensaje, link, idNotificacion, pid }].slice(-3))
+    setToasts(prev => [...prev.filter(t => !(t.tipo === tipo && t.mensaje === mensaje && t.titulo === titulo)), { tipo, titulo, mensaje, link, idNotificacion, accion, pid }].slice(-3))
     setTimeout(() => setToasts(prev => prev.filter(t => t.pid !== pid)), dur)
   }
 
@@ -87,8 +87,8 @@ export default function NotificacionesBell({ variante } = {}) {
 
     // Escuchar eventos locales del sistema (toast.success, toast.error, etc.)
     const onNotif = (e) => {
-      const { tipo, titulo, mensaje, guardar } = e.detail
-      showToast({ tipo, titulo, mensaje })
+      const { tipo, titulo, mensaje, guardar, enlace } = e.detail
+      showToast({ tipo, titulo, mensaje, link: enlace?.to || null, accion: enlace?.texto || null })
       // Lo importante queda registrado en el historial de la campanita (en el servidor, como no leído: suma al contador, sin repetir el aviso)
       if (guardar) apiClient.post('/notificaciones/registro', { tipo, titulo, mensaje }).then(() => cargar()).catch(() => {})
     }

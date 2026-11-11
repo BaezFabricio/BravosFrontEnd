@@ -31,6 +31,8 @@ const VARIANTES_BOTON = {
   secundario: "border border-bx-btn-line bg-transparent text-bx-ink hover:border-bx-lima hover:text-bx-ok-fg",
   // Acción destructiva: solo texto
   peligro: "bg-transparent text-bx-err-fg hover:bg-bx-err-bg",
+  // Confirmar una acción destructiva dentro de un diálogo
+  peligroSolido: "bg-bx-err-fg text-bx-card hover:opacity-90",
 }
 const TAMANOS_BOTON = { md: "h-11 px-[18px]", lg: "h-[50px] px-[22px] text-[15px]" }
 
@@ -272,7 +274,7 @@ export function Esqueleto({ alto = 84, etiqueta = "Cargando", className }) {
 
 // Diálogo (role="dialog" aria-modal; foco al abrir y Escape cierra; fondo rgba(0,0,0,.6)).
 // `alerta` lo vuelve alertdialog (para confirmar acciones destructivas). Nunca abrir un diálogo encima de otro.
-export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false, ancho = 480, pie, children }) {
+export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false, ancho = 480, pie, idEnfocar, children }) {
   return (
     <DialogPrimitive.Root open={abierto} onOpenChange={(v) => { if (!v) onCerrar() }}>
       <DialogPrimitive.Portal>
@@ -280,11 +282,16 @@ export function Dialogo({ abierto, onCerrar, titulo, descripcion, alerta = false
         <DialogPrimitive.Content
           role={alerta ? "alertdialog" : "dialog"}
           style={{ maxWidth: ancho }}
+          onOpenAutoFocus={(e) => {
+            // Foco al abrir: en el botón que se indique (por defecto Radix enfoca el primero)
+            const el = idEnfocar ? document.getElementById(idEnfocar) : null
+            if (el) { e.preventDefault(); el.focus() }
+          }}
           className="bx fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100vh-32px)] w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card text-bx-ink shadow-[0_16px_40px_rgba(0,0,0,.35)]"
         >
           <div className="flex items-start justify-between gap-3 px-6 pb-2 pt-5">
             <div className="min-w-0">
-              <DialogPrimitive.Title className="text-lg font-bold text-bx-ink">{titulo}</DialogPrimitive.Title>
+              <DialogPrimitive.Title className="text-xl font-bold text-bx-ink">{titulo}</DialogPrimitive.Title>
               {descripcion
                 ? <DialogPrimitive.Description className="mt-1 text-sm text-bx-muted">{descripcion}</DialogPrimitive.Description>
                 : <DialogPrimitive.Description className="sr-only">{titulo}</DialogPrimitive.Description>}

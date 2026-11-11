@@ -206,14 +206,16 @@ function PiePush() {
 }
 
 // Avisos abajo en el medio (5 s): role="status" aria-live="polite"
+const AVISO_OK = { caja: "border-[#3d5a10] bg-bx-lateral text-[#ecefe4]", icono: "text-bx-lima" }
 const TONOS_AVISO = {
-  exito: "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg",
-  reserva: "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg",
-  asistencia: "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg",
-  error: "border-bx-err-line bg-bx-err-bg text-bx-err-fg",
-  advertencia: "border-bx-warn-line bg-bx-warn-bg text-bx-warn-fg",
-  credito: "border-bx-warn-line bg-bx-warn-bg text-bx-warn-fg",
+  exito: AVISO_OK,
+  reserva: AVISO_OK,
+  asistencia: AVISO_OK,
+  error: { caja: "border-bx-err-line bg-bx-err-bg text-bx-err-fg", icono: "" },
+  advertencia: { caja: "border-bx-warn-line bg-bx-warn-bg text-bx-warn-fg", icono: "" },
+  credito: { caja: "border-bx-warn-line bg-bx-warn-bg text-bx-warn-fg", icono: "" },
 }
+const AVISO_NEUTRO = { caja: "border-bx-line bg-bx-card text-bx-ink", icono: "" }
 
 export function AvisosAbajo({ toasts, onClick }) {
   if (toasts.length === 0) return null
@@ -222,14 +224,16 @@ export function AvisosAbajo({ toasts, onClick }) {
       {toasts.map((t) => {
         const Icono = ICONOS_TIPO[t.tipo] || Info
         const generico = ["Éxito", "Error", "Atención", "Info"].includes(t.titulo)
+        const tono = TONOS_AVISO[t.tipo] || AVISO_NEUTRO
         return (
           <div
             key={t.pid}
             onClick={() => onClick(t)}
-            className={`pointer-events-auto flex max-w-md items-start gap-3 rounded-xl border px-4 py-3 text-[15px] font-semibold shadow-[0_16px_40px_rgba(0,0,0,.35)] ${TONOS_AVISO[t.tipo] || "border-bx-line bg-bx-card text-bx-ink"} ${t.link ? "cursor-pointer" : ""}`}
+            className={`pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold shadow-[0_8px_24px_rgba(0,0,0,.3)] ${tono.caja} ${t.link ? "cursor-pointer" : ""}`}
           >
-            <Icono className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <Icono className={`h-[18px] w-[18px] shrink-0 ${tono.icono}`} aria-hidden="true" />
             <p className="leading-snug">{!generico && <span className="font-bold">{t.titulo}. </span>}{t.mensaje}</p>
+            {t.accion && <span className="whitespace-nowrap font-bold text-bx-lima">{t.accion}</span>}
           </div>
         )
       })}

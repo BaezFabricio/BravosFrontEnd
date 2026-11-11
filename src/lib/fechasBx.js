@@ -56,3 +56,43 @@ export function etiquetaClase(f, hora) {
   if (txt === aTexto(manana)) return `Mañana, ${dia} · ${h}`
   return `${dia.charAt(0).toUpperCase() + dia.slice(1)} ${d.getDate()} ${MESES_CORTOS[d.getMonth()]} · ${h}`
 }
+
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+const DIAS_CORTOS = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"]
+
+// "Hoy, miércoles 11 nov", "Mañana, jueves 12 nov" o "Viernes 13 nov" (sin la hora)
+export function etiquetaFecha(f) {
+  const d = fechaDeTexto(f)
+  if (Number.isNaN(d.getTime())) return ""
+  const txt = soloFecha(f)
+  const manana = new Date(); manana.setDate(manana.getDate() + 1)
+  const dia = DIAS[d.getDay()]
+  const resto = `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}`
+  if (txt === hoyTexto()) return `Hoy, ${dia} ${resto}`
+  if (txt === aTexto(manana)) return `Mañana, ${dia} ${resto}`
+  return `${dia.charAt(0).toUpperCase() + dia.slice(1)} ${resto}`
+}
+
+// "NOVIEMBRE 2026" para agrupar el historial
+export function mesYAnio(f) {
+  const d = fechaDeTexto(f)
+  return Number.isNaN(d.getTime()) ? "" : `${MESES[d.getMonth()].toUpperCase()} ${d.getFullYear()}`
+}
+
+// "MIÉ" para el cuadradito de fecha
+export function diaSemanaCorto(f) {
+  const d = fechaDeTexto(f)
+  return Number.isNaN(d.getTime()) ? "" : DIAS_CORTOS[d.getDay()]
+}
+
+// Hasta qué hora se puede cancelar recuperando el crédito (2 horas antes) y si ya pasó
+export function limiteCancelacion(f, hora) {
+  const [h, m] = String(hora || "00:00").split(":").map(Number)
+  const inicio = fechaDeTexto(f)
+  inicio.setHours(h, m || 0, 0, 0)
+  const limite = new Date(inicio.getTime() - 2 * 3600000)
+  return {
+    hora: `${String(limite.getHours()).padStart(2, "0")}:${String(limite.getMinutes()).padStart(2, "0")}`,
+    pasado: Date.now() > limite.getTime(),
+  }
+}
