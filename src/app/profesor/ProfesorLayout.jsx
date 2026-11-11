@@ -212,11 +212,8 @@ export default function ProfesorLayout({ children }) {
 
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
-          {/* Celular: "Volver" en Mis Rutinas (el Perfil ya trae el suyo); no en Asistencia, que es el inicio */}
+          {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
-          {!rutaPadre(location.pathname) && location.pathname === "/profesor/rutinas" && (
-            <BotonVolver a="/profesor" texto="Volver" className="mb-4 lg:hidden" />
-          )}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
         </main>
 

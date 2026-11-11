@@ -331,12 +331,8 @@ export default function AdminLayout({ children }) {
 
         <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
-          {/* Celular: "Volver" en las secciones del menú (Usuarios, Clases, Planes…); no en el Resumen */}
-          {/* Dentro de una sección de Configuración, la propia pantalla muestra "← Configuración" */}
+          {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
-          {!rutaPadre(location.pathname) && location.pathname !== "/admin" && location.pathname !== "/admin/reportes" && navigation.some((n) => n.href === location.pathname) && !location.search.includes("seccion=") && (
-            <BotonVolver a="/admin" texto="Volver" className="mb-4 lg:hidden" />
-          )}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
         </main>
 
