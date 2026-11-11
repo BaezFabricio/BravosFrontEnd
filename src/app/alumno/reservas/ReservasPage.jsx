@@ -38,6 +38,15 @@ const estadoConfig = {
   inasistencia: { label: "No asistió", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
 }
 
+// Mismo criterio que el servidor: se puede marcar la asistencia desde 1 hora antes de que empiece la clase hasta que termina
+const aMinutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+const puedeMarcarAsistencia = (reserva, ahora) => {
+  if (reserva.fecha !== hoyISO()) return false
+  const minutos = ahora.getHours() * 60 + ahora.getMinutes()
+  const fin = reserva.horaFin ? aMinutos(reserva.horaFin) : 24 * 60
+  return minutos >= aMinutos(reserva.hora) - 60 && minutos <= fin
+}
+
 const formatFechaFront = (fechaStr) => {
   if (!fechaStr) return ""
   const [anio, mes, dia] = fechaStr.split('-')
@@ -57,6 +66,12 @@ export default function ReservasPage() {
     : true
   // El alumno marca su asistencia desde la app, el día de la clase (el servidor valida el horario)
   const [marcando, setMarcando] = useState(null)
+  // La hora se renueva cada medio minuto para que el botón aparezca solo cuando se abre la ventana
+  const [ahora, setAhora] = useState(() => new Date())
+  useEffect(() => {
+    const t = setInterval(() => setAhora(new Date()), 30000)
+    return () => clearInterval(t)
+  }, [])
   const marcarMiAsistencia = async (reserva) => {
     setMarcando(reserva.idReserva)
     try {
@@ -196,7 +211,7 @@ export default function ReservasPage() {
                   <ChevronRight className="h-4 w-4 text-lime-700 dark:text-lime-400 ml-auto" />
                 </div>
               </div>
-              {showCancelButton && reserva.fecha === hoyISO() && (
+              {showCancelButton && puedeMarcarAsistencia(reserva, ahora) && (
                 <Button
                   variant="outline"
                   disabled={marcando === reserva.idReserva}
