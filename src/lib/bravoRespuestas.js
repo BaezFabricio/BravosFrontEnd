@@ -1,5 +1,7 @@
 /**
- * Cerebro del chat de ayuda (Bravo / Milo) — NIVEL 1: preguntas frecuentes sin IA.
+ * Cerebro del chat de ayuda (Bravo / Milo). Para alumno y administrador consulta primero al asistente con IA del
+ * backend (POST /bravo/preguntar); este archivo queda como RESPALDO: preguntas frecuentes sin IA.
+ * Profesor sigue solo con este motor.
  *
  * `responder(pregunta, contexto)` es el ÚNICO punto que usa el chat para obtener una respuesta.
  * Devuelve una promesa con { texto, enlaces?, sugerencias? }. Por eso, cuando se active la IA de
@@ -195,7 +197,7 @@ const TEMAS_ALUMNO = [
         ]) +
         `\n\nTené en cuenta:\n` +
         lista([
-          `Cada reserva consume 1 crédito.`,
+          `Si tu plan es sin cupo semanal, se descuenta 1 crédito por día de apertura aunque no reserves; si tiene créditos por semana, cada reserva consume uno de esa semana.`,
           `Necesitás una membresía vigente con créditos disponibles.`,
           `Si la clase está completa no vas a poder reservarla: probá con otro horario.`,
           `Podés ver o cancelar tus reservas en "Mis Reservas".`,
@@ -257,7 +259,7 @@ const TEMAS_ALUMNO = [
         texto:
           `Tenés ${mp.totalDisponibles} ${mp.totalDisponibles === 1 ? "crédito disponible" : "créditos disponibles"} (de ${mp.totalCreditos} en total).\n\n` +
           lista(detalle) +
-          `\n\nRecordá que cada reserva consume 1 crédito y que los créditos de cada membresía vencen junto con ella: no pasan al mes siguiente.`,
+          `\n\nRecordá que en los planes sin cupo semanal se descuenta 1 crédito por cada día de apertura (reserves o no) y que los créditos de cada membresía vencen junto con ella: no pasan al mes siguiente.`,
         enlaces: [LINK.creditos, LINK.reservar],
         sugerencias: ["¿Cuándo vence mi membresía?", "¿Cómo reservo una clase?"],
       }
@@ -784,6 +786,41 @@ const TEMAS_POR_ROL = {
   admin: TEMAS_ADMIN,
 }
 
+// ── Asistente con IA (backend) ─────────────────────────────────────────────
+
+/** Mensaje cuando la pregunta no tiene que ver con el box: lo arma el frontend, no gasta consulta a la IA. */
+function mensajeFueraDeTema(mascota, rol) {
+  const ambito = rol === "admin"
+    ? "abonos, comprobantes, clases, planes, perfiles y permisos"
+    : "tus clases, tus créditos, tus pagos y cómo usar cada pantalla"
+  const variantes = [
+    `¡Uy, ahí me agarraste! 🐾 Eso se escapa de lo mío: soy ${mascota}, la mascota y asistente de Bravos Box, y lo que sé es del box y de este sistema: ${ambito}. Para lo demás prefiero no tirarte una respuesta a medias.\n\nPero con esto sí te ayudo al toque. Elegí uno de estos temas o escribime con otras palabras:`,
+    `Jeje, esa no me la sé 😅. Yo me dedico a lo que pasa en Bravos Box: ${ambito}. Fuera de eso no quiero inventarte nada.\n\n¿Probamos con alguna de estas?`,
+    `Mmm, eso queda fuera de mi cancha 💪. Mi especialidad es ayudarte con Bravos Box: ${ambito}. Preguntame lo que necesites de eso y te lo explico bien, con ejemplos.\n\nPor ejemplo:`,
+  ]
+  return { texto: variantes[Math.floor(Math.random() * variantes.length)], sugerencias: TITULOS_AYUDA[rol] }
+}
+
+/**
+ * Consulta al asistente del backend (solo lee: no modifica nada). Devuelve null si la IA no está disponible
+ * (sin clave, tope diario o error): en ese caso sigue el motor de respuestas fijas de abajo.
+ */
+async function preguntarALaIA(pregunta, { rol, mascota }) {
+  try {
+    const r = await apiClient.post("/bravo/preguntar", { pregunta, rol, mascota })
+    const d = r.data?.data
+    if (!d?.ia) return null
+    if (d.fueraDeTema) return mensajeFueraDeTema(mascota, rol)
+    if (d.texto) return { texto: d.texto, enlaces: d.enlaces?.length ? d.enlaces : undefined }
+    return null
+  } catch (error) {
+    if (error.response?.status === 429) {
+      return { texto: error.response.data?.message || "Estás preguntando muy rápido. Esperá unos minutos y volvé a intentar." }
+    }
+    return null
+  }
+}
+
 /** Temas que se ofrecen cuando no se entiende la pregunta. */
 const TITULOS_AYUDA = {
   alumno: ["¿Cuántos créditos me quedan?", "¿Cuándo vence mi membresía?", "¿Qué clases hay hoy?", "¿Cómo cancelo una reserva?", "¿Cómo pago mi cuota?"],
@@ -800,8 +837,17 @@ export async function responder(pregunta, contexto) {
   const rol = contexto.rol in TEMAS_POR_ROL ? contexto.rol : "alumno"
   const q = normalizar(pregunta)
 
+  // Saludos, agradecimientos y "¿qué podés hacer?" se contestan acá mismo: no gastan consulta a la IA
+  const simple = buscarTema(q, TEMAS_COMUNES.filter((t) => ["saludo", "gracias", "quien"].includes(t.id)))
+
+  // Alumno y administrador: asistente con IA. Si no está disponible, sigue el motor de respuestas fijas
+  if (!simple && (rol === "alumno" || rol === "admin")) {
+    const deIA = await preguntarALaIA(pregunta, { rol, mascota: contexto.mascota })
+    if (deIA) return deIA
+  }
+
   // Los temas del rol van primero: si empatan con uno común, gana el del rol
-  const tema = buscarTema(q, [...TEMAS_POR_ROL[rol], ...TEMAS_COMUNES])
+  const tema = simple || buscarTema(q, [...TEMAS_POR_ROL[rol], ...TEMAS_COMUNES])
 
   if (!tema) {
     return {
