@@ -17,11 +17,9 @@ import {
   X,
   ChevronDown,
   FileText,
-  Home,
   ClipboardCheck,
   Menu,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
@@ -151,17 +149,6 @@ export default function ProfesorLayout({ children }) {
               
               <div className="hidden lg:block"><ModeToggle /></div>
               
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="hidden sm:flex items-center justify-center gap-2 px-3 py-0 h-9 hover:bg-muted transition-all" 
-                onClick={() => window.location.href = '/'}
-              >
-                <div className="flex items-center gap-2">
-                  <Home className="h-4 w-4" /> 
-                  <span className="text-sm font-medium translate-y-[1px]"></span>
-                </div>
-              </Button>
 
               <NotificacionesBell />
               
