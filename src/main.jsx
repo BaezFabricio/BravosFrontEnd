@@ -49,6 +49,47 @@ if ('serviceWorker' in navigator) {
   setInterval(recargarSiSePuede, 60 * 1000)
 }
 
+/*
+ * Chequeo directo contra el servidor (no depende del service worker): si la página abierta es de una versión
+ * anterior a la publicada, se limpia la caché y se recarga sola. No recarga si la persona está escribiendo
+ * o hay un diálogo abierto.
+ */
+const hayEdicionAbiertaAhora = () => {
+  const activo = document.activeElement
+  return Boolean(document.querySelector('[role="dialog"]')) ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo?.tagName) || Boolean(activo?.isContentEditable)
+}
+async function recargarSiHayVersionNueva() {
+  if (hayEdicionAbiertaAhora()) return
+  const actual = document.querySelector('script[type="module"][src*="/assets/index-"]')?.getAttribute('src')
+  if (!actual) return
+  try {
+    const respuesta = await fetch(`/?verificar-version=${Date.now()}`, { cache: 'no-store' })
+    if (!respuesta.ok) return
+    const html = await respuesta.text()
+    const publicada = html.match(/src="([^"]*\/assets\/index-[^"]+\.js)"/)?.[1]
+    if (!publicada || publicada === actual) return
+    // Evita un bucle si la recarga todavía trae la versión vieja
+    if (sessionStorage.getItem('bravos-version-recargada') === publicada) return
+    sessionStorage.setItem('bravos-version-recargada', publicada)
+    if ('serviceWorker' in navigator) {
+      const registros = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registros.map((r) => r.unregister()))
+    }
+    if ('caches' in window) {
+      for (const clave of await caches.keys()) await caches.delete(clave)
+    }
+    window.location.reload()
+  } catch {
+    // Sin conexión: se vuelve a intentar en el próximo chequeo
+  }
+}
+recargarSiHayVersionNueva()
+setInterval(recargarSiHayVersionNueva, 5 * 60 * 1000)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') recargarSiHayVersionNueva()
+})
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
