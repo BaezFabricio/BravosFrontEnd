@@ -17,13 +17,9 @@ window.fetch = (entrada, opciones = {}) => {
 }
 
 // Pide al servidor que borre la cookie de sesión (el navegador no puede borrarla por su cuenta).
-// Antes, este dispositivo deja de recibir las notificaciones push de la cuenta (se hace con la
-// sesión todavía abierta, porque el servidor solo borra dispositivos del usuario del token).
+// Cerrar sesión NO desactiva las notificaciones push del dispositivo: los avisos siguen llegando aunque la sesión esté
+// cerrada. Si otra cuenta inicia sesión en este mismo celular, el dispositivo pasa a ser de ella (sincronizarPush).
 export async function cerrarSesionEnServidor() {
-  try {
-    const { desactivarPushAlCerrarSesion } = await import("./push")
-    await desactivarPushAlCerrarSesion()
-  } catch { /* nunca impide cerrar la sesión */ }
   return fetch("/api/vv1/auth/logout", { method: "POST" }).catch(() => {})
 }
 

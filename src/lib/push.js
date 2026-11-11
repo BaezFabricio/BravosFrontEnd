@@ -91,11 +91,3 @@ export async function desactivarPush() {
   }
 }
 
-/**
- * Al cerrar sesión: el dispositivo deja de recibir las notificaciones de esa cuenta (si otra
- * persona usa el celular, no le llegan avisos ajenos). Nunca demora el cierre más de 3 segundos.
- */
-export async function desactivarPushAlCerrarSesion() {
-  if (!soportaPush()) return
-  await Promise.race([desactivarPush().catch(() => {}), new Promise((r) => setTimeout(r, 3000))])
-}
