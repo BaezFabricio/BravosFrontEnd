@@ -155,6 +155,18 @@ export default function AlumnoLayout({ children }) {
     }
   }, [])
 
+  // Si el alumno cambia su nombre en Mi perfil, el menú y el encabezado lo muestran al instante
+  useEffect(() => {
+    const refrescar = () => {
+      try {
+        const u = JSON.parse(localStorage.getItem("usuario") || "{}")
+        setUserData((prev) => ({ ...prev, nombrecompleto: u.nombrecompleto || u.nombre || prev.nombrecompleto }))
+      } catch { /* sin cambios */ }
+    }
+    window.addEventListener("usuario-actualizado", refrescar)
+    return () => window.removeEventListener("usuario-actualizado", refrescar)
+  }, [])
+
   // Reservas próximas del alumno: contador en la barra de abajo (se actualiza al reservar o cancelar) y, justo
   // después de reservar, una pista que marca dónde ver la reserva.
   const [reservasProximas, setReservasProximas] = useState(0)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
 import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home, Eye, EyeOff, Lock, LogOut } from "lucide-react"
 import { cerrarSesionEnServidor } from "@/lib/sesion"
@@ -27,6 +27,9 @@ import { Label } from "@/components/ui/label"
 import apiClient from "@/api"
 import { TituloPagina } from "@/components/TituloPagina"
 import FotoAmpliable from "@/components/FotoAmpliable"
+import { useAnchoPanel } from "@/lib/useEscritorio"
+import { LayoutBxContext } from "@/lib/layoutBx"
+import PerfilEscritorio from "./PerfilEscritorio"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
 
@@ -57,7 +60,8 @@ const membershipConfig = {
   sin_membresia: { label: "Sin membresía", className: "bg-gray-500/10 text-gray-500 border-gray-500/20" },
 }
 
-export default function PerfilPage() {
+// Diseño de siempre: celular y otros paneles (admin, profesor) que comparten esta pantalla
+function PerfilClasico() {
   const navigate = useNavigate()
   const storedUser = JSON.parse(localStorage.getItem("usuario") || "{}")
   const [avatarUrl, setAvatarUrl] = useState(() => {
@@ -674,4 +678,11 @@ export default function PerfilPage() {
       </Dialog>
     </div>
   )
+}
+
+// En escritorio, dentro del marco del alumno: diseño nuevo (PerfilEscritorio). En el resto, el de siempre.
+export default function PerfilPage() {
+  const escritorio = useAnchoPanel()
+  const enMarcoAlumno = useContext(LayoutBxContext)
+  return escritorio && enMarcoAlumno ? <PerfilEscritorio /> : <PerfilClasico />
 }

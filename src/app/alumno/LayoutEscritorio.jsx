@@ -4,6 +4,7 @@ import NotificacionesBell from "@/components/NotificacionesBell"
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
 import { AvatarBx, MenuCuenta } from "@/components/bx/MenuCuenta"
+import { LayoutBxContext } from "@/lib/layoutBx"
 
 /*
  * Marco del módulo Alumno en escritorio (desde 1024 px): menú lateral oscuro, barra de arriba con título y subtítulo de
@@ -34,6 +35,7 @@ const PAGINAS = [
   ["/alumno/creditos", "Mis créditos", "Estado de tu cuenta y movimientos."],
   ["/alumno/documentacion", "Documentos y comprobantes", "Cargá los documentos que pide el gimnasio."],
   ["/alumno/perfil", "Mi perfil", "Tus datos personales y la seguridad de tu cuenta."],
+  ["/perfil", "Mi perfil", "Tus datos personales y la seguridad de tu cuenta."],
   ["/alumno/novedades", "Novedades", null],
   ["/alumno/configuracion", "Mi configuración", null],
   ["/alumno/pago", "Pago de la membresía", null],
@@ -124,7 +126,9 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
           />
         </header>
 
-        <main className="mx-auto flex w-full max-w-[1600px] flex-col px-6 pb-[120px] pt-6">{children}</main>
+        <main className="mx-auto flex w-full max-w-[1600px] flex-col px-6 pb-[120px] pt-6">
+          <LayoutBxContext.Provider value={true}>{children}</LayoutBxContext.Provider>
+        </main>
       </div>
     </div>
   )

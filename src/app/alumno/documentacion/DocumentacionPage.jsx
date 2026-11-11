@@ -4,6 +4,8 @@ import { toast } from "@/lib/notificar"
 import apiClient from "@/api"
 import { Cargando } from '@/components/Cargando'
 import { TituloPagina } from "@/components/TituloPagina"
+import { useAnchoPanel } from "@/lib/useEscritorio"
+import DocumentosEscritorio from "./DocumentosEscritorio"
 
 const TIPOS = [
   {
@@ -181,7 +183,8 @@ function DocCard({ tipo, documentos, onUpload, uploading }) {
   )
 }
 
-export default function DocumentacionPage() {
+// Celular: el diseño de siempre (en escritorio se usa DocumentosEscritorio)
+function DocumentacionMovil() {
   const [documentos, setDocumentos] = useState([])
   const [uploading, setUploading] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -246,4 +249,10 @@ export default function DocumentacionPage() {
       )}
     </div>
   )
+}
+
+// Desde 1024 px: diseño de escritorio; por debajo, el del celular
+export default function DocumentacionPage() {
+  const escritorio = useAnchoPanel()
+  return escritorio ? <DocumentosEscritorio /> : <DocumentacionMovil />
 }
