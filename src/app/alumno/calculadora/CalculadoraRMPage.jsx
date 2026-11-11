@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { TituloPagina } from "@/components/TituloPagina"
+import { useAnchoPanel } from "@/lib/useEscritorio"
+import CalculadoraEscritorio from "./CalculadoraEscritorio"
 
 /*
  * Calculadora de RM. Diseño: "calculadora-referencia.html" (números grandes en stencil, tabla con barras),
@@ -33,7 +35,8 @@ const etiqueta = "block text-[11px] font-bold uppercase tracking-[0.08em] text-m
 const cabecera = "flex items-center justify-between gap-3 border-b border-dashed border-border px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em]"
 const paso = "h-11 rounded-xl border border-border bg-foreground/[0.03] text-[15px] font-bold text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
 
-export default function CalculadoraRMPage() {
+// Celular: el diseño de siempre (en escritorio se usa CalculadoraEscritorio)
+function CalculadoraMovil() {
   const [peso, setPeso] = useState("")
   const [reps, setReps] = useState("")
 
@@ -148,4 +151,10 @@ export default function CalculadoraRMPage() {
       </p>
     </div>
   )
+}
+
+// Desde 1024 px: diseño de escritorio; por debajo, el del celular
+export default function CalculadoraRMPage() {
+  const escritorio = useAnchoPanel()
+  return escritorio ? <CalculadoraEscritorio /> : <CalculadoraMovil />
 }

@@ -12,6 +12,8 @@ import LogroCelebracion from "@/components/LogroCelebracion"
 import { Cargando } from "@/components/Cargando"
 import { TituloPagina } from "@/components/TituloPagina"
 import RankingBox from "../ranking/RankingBox"
+import { useAnchoPanel } from "@/lib/useEscritorio"
+import MarcasEscritorio from "./MarcasEscritorio"
 
 /*
  * Mis RM: elegís el ejercicio, ponés el peso y guardás. En la otra pestaña está el ranking del box.
@@ -39,7 +41,8 @@ const VISIBLES = 3
 const etiquetaCls = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground"
 const campoCls = "h-12 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base font-bold text-foreground outline-none transition-colors placeholder:font-normal placeholder:text-foreground/30 focus:border-lime-500"
 
-export default function MarcasPage() {
+// Celular: el diseño de siempre (en escritorio se usa MarcasEscritorio)
+function MarcasMovil() {
   const [params, setParams] = useSearchParams()
   const vista = params.get("vista") === "ranking" ? "ranking" : "mis"
   const [marcas, setMarcas] = useState([])
@@ -282,4 +285,10 @@ export default function MarcasPage() {
       </Dialog>
     </div>
   )
+}
+
+// Desde 1024 px: diseño de escritorio; por debajo, el del celular
+export default function MarcasPage() {
+  const escritorio = useAnchoPanel()
+  return escritorio ? <MarcasEscritorio /> : <MarcasMovil />
 }

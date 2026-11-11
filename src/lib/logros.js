@@ -29,3 +29,18 @@ export async function sincronizarLogros(codigos) {
     return []
   }
 }
+
+/**
+ * Tras guardar una marca: revisa si desbloqueó algún logro de marcas (los de clases se sincronizan en el resumen).
+ * Devuelve las definiciones de los recién desbloqueados.
+ */
+export async function logrosNuevosPorMarcas() {
+  try {
+    const r = await apiClient.get("/marcas/resumen")
+    const stats = { totalClases: 0, racha: 0, ...(r.data?.data || r.data) }
+    const cumplidos = logrosConEstado(stats).filter((l) => l.completado).map((l) => l.codigo)
+    return await sincronizarLogros(cumplidos)
+  } catch {
+    return []
+  }
+}
