@@ -16,6 +16,16 @@ import { Cargando } from "@/components/Cargando"
 
 const MINIMO = 12
 
+// El resumen por tipo solo aporta si algún tipo tiene 2 o más clases hoy; con una clase por tipo repetiría la lista de abajo
+const hayTipoConVariasClases = (clases = []) => {
+  const cuenta = {}
+  for (const c of clases) {
+    cuenta[c.tipo] = (cuenta[c.tipo] || 0) + 1
+    if (cuenta[c.tipo] > 1) return true
+  }
+  return false
+}
+
 export default function CheckinAdminPage() {
   const [pedirConfirmacion, dialogoConfirmar] = useConfirmar()
   const puedeEditar = getPermisos().includes("configuracion:modificacion")
@@ -96,23 +106,25 @@ export default function CheckinAdminPage() {
           </Card>
 
           <Card className="gap-5 rounded-2xl border-border bg-card p-5">
-            <div>
-              <p className="font-bold text-foreground">Hoy por tipo de clase</p>
-              {(estado.porTipo?.length ?? 0) === 0 ? (
-                <p className="mt-1 text-sm text-muted-foreground">Hoy no hay clases.</p>
-              ) : (
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {estado.porTipo.map((t) => (
-                    <div key={t.tipo} className="rounded-xl border border-border p-3">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
-                      <p className="mt-1 text-sm text-foreground">
-                        <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {hayTipoConVariasClases(estado.clasesHoy) && (
+              <div>
+                <p className="font-bold text-foreground">Hoy por tipo de clase</p>
+                {(estado.porTipo?.length ?? 0) === 0 ? (
+                  <p className="mt-1 text-sm text-muted-foreground">Hoy no hay clases.</p>
+                ) : (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {estado.porTipo.map((t) => (
+                      <div key={t.tipo} className="rounded-xl border border-border p-3">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
+                        <p className="mt-1 text-sm text-foreground">
+                          <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <p className="font-bold text-foreground">Clases de hoy</p>
