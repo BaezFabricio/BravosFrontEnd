@@ -26,6 +26,10 @@ export default function ProfesorDashboard() {
 
   const actividadObj = actividades.find(a => String(a.idClase) === actividad)
 
+  // Solo las clases que tienen horario en la fecha elegida (cada clase tiene su fecha puntual)
+  const fechaElegidaTxt = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`
+  const actividadesDelDia = actividades.filter(a => String(a.fechas || "").split(",").includes(fechaElegidaTxt))
+
   const presentes = alumnos.filter(a => a.asistencia === "presente").length
   const ausentes = alumnos.filter(a => a.asistencia === "ausente").length
   const pendientes = alumnos.filter(a => a.asistencia !== "presente" && a.asistencia !== "ausente").length
@@ -132,7 +136,7 @@ export default function ProfesorDashboard() {
                   <SelectValue placeholder="Seleccionar clase..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  {actividades.map(a => (
+                  {actividadesDelDia.map(a => (
                     <SelectItem key={a.idClase} value={String(a.idClase)}>
                       {a.categoria || a.nombreClase}
                       {a.dias ? ` · ${a.dias}` : ""}

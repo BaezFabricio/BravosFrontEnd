@@ -15,6 +15,7 @@ export default function RutinasPage() {
   const [rutinas, setRutinas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [pestana, setPestana] = useState('proximas')
 
   const cargar = () => {
     apiClient.get('/rutinas')
@@ -32,9 +33,17 @@ export default function RutinasPage() {
 
   if (loading) return <GymLoader />
 
+  // Próximas o historial según la fecha de la clase (cada clase tiene su fecha puntual)
+  const hoyTxt = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`
+  const esHistorial = (r) => {
+    const fechas = String(r.fechasClase || '').split(',').filter(Boolean)
+    return fechas.length > 0 && fechas.every(f => f < hoyTxt)
+  }
+  const visibles = rutinas.filter(r => (pestana === 'historial' ? esHistorial(r) : !esHistorial(r)))
+
   // Agrupar por clase
   const grupos = {}
-  for (const r of rutinas) {
+  for (const r of visibles) {
     const clave = r.nombreClase || '__sin_clase__'
     if (!grupos[clave]) grupos[clave] = []
     grupos[clave].push(r)
@@ -62,6 +71,22 @@ export default function RutinasPage() {
         )}
       </div>
 
+      {/* PESTAÑAS: próximas o historial */}
+      <div className="grid grid-cols-2 gap-1 rounded-xl border border-border p-1" role="tablist">
+        {[['proximas', 'Próximas'], ['historial', 'Historial']].map(([clave, texto]) => (
+          <button
+            key={clave}
+            type="button"
+            role="tab"
+            aria-selected={pestana === clave}
+            onClick={() => setPestana(clave)}
+            className={`min-h-[44px] rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${pestana === clave ? 'bg-lime-400/15 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            {texto}
+          </button>
+        ))}
+      </div>
+
       {/* ERROR */}
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 flex items-center gap-3 text-red-700 dark:text-red-400">
@@ -71,7 +96,7 @@ export default function RutinasPage() {
       )}
 
       {/* VACÍO */}
-      {!error && rutinas.length === 0 && (
+      {!error && visibles.length === 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card/50 p-16 flex flex-col items-center justify-center text-center gap-3">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Dumbbell className="h-8 w-8 text-primary/50" />
