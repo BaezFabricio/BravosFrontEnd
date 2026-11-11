@@ -137,22 +137,31 @@ function TimeSelect({ value, onChange, hasError }) {
   )
 }
 
-// Selector de fecha: Día / Mes / Año
+// Selector de fecha: Día / Mes / Año. Solo ofrece fechas desde hoy (sin meses ni años anteriores) y si no se elige año usa el actual.
+// Si la clase o el aviso ya tenían una fecha anterior a hoy (al editar), el mínimo es esa fecha para no perderla.
 function DateSelect({ value, onChange }) {
-  const today = new Date()
-  const anios = Array.from({ length: 8 }, (_, i) => today.getFullYear() - 1 + i)
-  const dias  = Array.from({ length: 31 }, (_, i) => i + 1)
-
+  const hoy = new Date()
   const parsear = (v) => {
     if (!v) return { dia: "", mes: "", anio: "" }
     const d = new Date(v + "T00:00:00")
     return { dia: d.getDate(), mes: d.getMonth(), anio: d.getFullYear() }
   }
-
   const init = parsear(value)
   const [dia,  setDia]  = useState(init.dia)
   const [mes,  setMes]  = useState(init.mes)
   const [anio, setAnio] = useState(init.anio)
+
+  const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+  const cargada = value ? new Date(value + "T00:00:00") : null
+  const base = cargada && cargada < inicioHoy ? cargada : inicioHoy
+  const minY = base.getFullYear(), minM = base.getMonth(), minD = base.getDate()
+
+  const anioEf = anio === "" ? minY : Number(anio)
+  const anios = Array.from({ length: 3 }, (_, k) => minY + k)
+  const meses = MESES.map((nombre, k) => ({ nombre, k })).filter(({ k }) => anioEf > minY || k >= minM)
+  const diasEnMes = mes === "" ? 31 : new Date(anioEf, Number(mes) + 1, 0).getDate()
+  const desdeDia = mes !== "" && anioEf === minY && Number(mes) === minM ? minD : 1
+  const dias = Array.from({ length: diasEnMes - desdeDia + 1 }, (_, k) => desdeDia + k)
 
   const emit = (d, m, y) => {
     if (d !== "" && m !== "" && y !== "") {
@@ -164,21 +173,36 @@ function DateSelect({ value, onChange }) {
     }
   }
 
+  // Al cambiar cualquier lista: sin año se usa el actual, y si el día o el mes quedaron fuera de lo permitido se vacían
+  const cambiar = (d, m, y) => {
+    const yy = y === "" && (d !== "" || m !== "") ? String(minY) : y
+    let mm = m
+    if (yy !== "" && mm !== "" && Number(yy) === minY && Number(mm) < minM) mm = ""
+    let dd = d
+    if (dd !== "" && mm !== "" && yy !== "") {
+      const max = new Date(Number(yy), Number(mm) + 1, 0).getDate()
+      const min = Number(yy) === minY && Number(mm) === minM ? minD : 1
+      if (Number(dd) > max || Number(dd) < min) dd = ""
+    }
+    setDia(dd); setMes(mm); setAnio(yy)
+    emit(dd, mm, yy)
+  }
+
   const selectClass = "bg-card border-0 text-sm text-foreground px-2 py-2 outline-none appearance-none cursor-pointer flex-1 text-center"
 
   return (
     <div className="flex items-center border border-border bg-card" style={{ colorScheme: "dark" }}>
-      <select value={dia} onChange={e => { const v = e.target.value; setDia(v); emit(v, mes, anio) }} className={selectClass}>
+      <select value={dia} onChange={e => cambiar(e.target.value, mes, anio)} className={selectClass}>
         <option value="">Día</option>
         {dias.map(d => <option key={d} value={d}>{d}</option>)}
       </select>
       <span className="text-foreground/20 font-black">/</span>
-      <select value={mes} onChange={e => { const v = e.target.value; setMes(v); emit(dia, v, anio) }} className={selectClass}>
+      <select value={mes} onChange={e => cambiar(dia, e.target.value, anio)} className={selectClass}>
         <option value="">Mes</option>
-        {MESES.map((m, i) => <option key={i} value={i}>{m}</option>)}
+        {meses.map(({ nombre, k }) => <option key={k} value={k}>{nombre}</option>)}
       </select>
       <span className="text-foreground/20 font-black">/</span>
-      <select value={anio} onChange={e => { const v = e.target.value; setAnio(v); emit(dia, mes, v) }} className={selectClass}>
+      <select value={anio} onChange={e => cambiar(dia, mes, e.target.value)} className={selectClass}>
         <option value="">Año</option>
         {anios.map(a => <option key={a} value={a}>{a}</option>)}
       </select>
