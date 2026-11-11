@@ -121,3 +121,86 @@ export function MenuMovil({ abierto, onCerrar, grupos, items, esActivo, onLogout
 export function FondoMenuMovil({ abierto, onCerrar }) {
   return abierto ? <div className="lg:hidden fixed inset-0 z-10" onClick={onCerrar} aria-hidden="true" /> : null
 }
+
+/*
+ * "Más" de la barra de abajo (celular): una hoja que sube desde abajo con todas las opciones en tarjetas,
+ * agrupadas (como las apps de pagos). Toca el fondo oscuro o la barrita de arriba para cerrarla.
+ */
+export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, conTema = false }) {
+  const { theme, setTheme } = useTheme()
+  const oscuro = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+  const tab = abierto ? 0 : -1
+  return (
+    <>
+      <div
+        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden ${abierto ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={onCerrar}
+        aria-hidden="true"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Más opciones"
+        aria-hidden={!abierto}
+        className={`fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-sidebar-border bg-sidebar px-4 pb-10 pt-3 shadow-2xl transition-transform duration-300 lg:hidden ${abierto ? "translate-y-0" : "pointer-events-none translate-y-full"}`}
+      >
+        <button type="button" onClick={onCerrar} tabIndex={tab} aria-label="Cerrar" className="mx-auto mb-4 block h-1.5 w-12 rounded-full bg-sidebar-foreground/25" />
+
+        {grupos.map((g) => {
+          const delGrupo = items.filter((item) => item.grupo === g.key)
+          if (delGrupo.length === 0) return null
+          return (
+            <div key={g.key} className="mb-5">
+              {g.titulo && <p className="mb-2 px-1 text-[10px] font-black uppercase tracking-[0.2em] text-sidebar-foreground/40">{g.titulo}</p>}
+              <div className="grid grid-cols-3 gap-2">
+                {delGrupo.map((item) => {
+                  const activo = esActivo(item)
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={onCerrar}
+                      tabIndex={tab}
+                      aria-current={activo ? "page" : undefined}
+                      className={`flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 text-center transition-colors ${
+                        activo
+                          ? "border-lime-400/50 bg-lime-400/15 text-lime-700 dark:text-lime-400"
+                          : "border-sidebar-border bg-sidebar-accent/40 text-sidebar-foreground/80 hover:bg-sidebar-accent"
+                      }`}
+                    >
+                      <item.icon className="h-6 w-6" aria-hidden="true" />
+                      <span className="text-[11px] font-black uppercase leading-tight tracking-wide">{item.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+
+        <div className="grid grid-cols-2 gap-2">
+          {conTema && (
+            <button
+              type="button"
+              onClick={() => setTheme(oscuro ? "light" : "dark")}
+              tabIndex={tab}
+              className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-sidebar-border bg-sidebar-accent/40 text-xs font-black uppercase tracking-wide text-sidebar-foreground/80"
+            >
+              {oscuro ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+              {oscuro ? "Modo claro" : "Modo oscuro"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => { onCerrar(); onLogout() }}
+            tabIndex={tab}
+            className="flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/5 text-xs font-black uppercase tracking-wide text-red-600 dark:text-red-400"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}

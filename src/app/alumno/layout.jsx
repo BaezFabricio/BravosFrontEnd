@@ -32,7 +32,7 @@ import RenovarMembresia from "@/components/RenovarMembresia"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import GuiasAlumno from "@/components/GuiasAlumno"
-import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { TituloGrupo, HojaMas, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 import { BarraInferior } from '@/components/BarraInferior'
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
@@ -51,7 +51,7 @@ const navigation = [
   { name: "Mi Membresía", mobileLabel: "Membresía", href: "/alumno/plan", icon: Wallet, principal: true, grupo: "cuenta" },
   { name: "Mis Créditos", mobileLabel: "Créditos", href: "/alumno/creditos", icon: CreditCard, grupo: "cuenta" },
   { name: "Documentos y Comprobantes", mobileLabel: "Docs", href: "/alumno/documentacion", icon: FolderOpen, grupo: "cuenta" },
-  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, principal: true, grupo: "cuenta" },
+  { name: "Mi Perfil", mobileLabel: "Perfil", href: "/alumno/perfil", icon: User, grupo: "cuenta" },
 ]
 
 // "/alumno" (Resumen) solo se marca en su propia página, no en todas las de adentro
@@ -332,19 +332,18 @@ export default function AlumnoLayout({ children }) {
             </div>
           </div>
 
-          {/* Menú desplegable del celular: se abre hacia abajo desde el botón de arriba a la derecha */}
-          <MenuMovil
-            abierto={menuMovilAbierto}
-            onCerrar={() => setMenuMovilAbierto(false)}
-            grupos={GRUPOS}
-            items={navigation}
-            esActivo={(item) => esActivo(item, pathname)}
-            onLogout={handleLogout}
-            conTema
-          />
         </header>
 
-        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
+        {/* "Más" (barra de abajo, celular): hoja que sube desde abajo con todas las opciones */}
+        <HojaMas
+          abierto={menuMovilAbierto}
+          onCerrar={() => setMenuMovilAbierto(false)}
+          grupos={GRUPOS}
+          items={navigation}
+          esActivo={(item) => esActivo(item, pathname)}
+          onLogout={handleLogout}
+          conTema
+        />
 
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
