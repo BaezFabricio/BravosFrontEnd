@@ -30,6 +30,7 @@ import {
   Medal,
   Bell,
   UserCheck,
+  Menu,
 } from "lucide-react"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
@@ -37,7 +38,7 @@ import IconoWhatsApp from "@/components/IconoWhatsApp"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
-import { TituloGrupo, MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { TituloGrupo, HojaMas, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 import { BarraInferior } from '@/components/BarraInferior'
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
@@ -308,28 +309,21 @@ export default function AdminLayout({ children }) {
                   puedeAccederPanel={true}
                 />
               </div>
-
-              <HamburgerButton
-                isOpen={menuMovilAbierto}
-                onClick={() => setMenuMovilAbierto((v) => !v)}
-                className="lg:hidden text-foreground"
-              />
             </div>
           </div>
 
-          {/* Menú desplegable del celular: igual que en los paneles de alumno y profesor */}
-          <MenuMovil
-            abierto={menuMovilAbierto}
-            onCerrar={() => setMenuMovilAbierto(false)}
-            grupos={GRUPOS}
-            items={visibles}
-            esActivo={esActivo}
-            onLogout={handleLogout}
-            conTema
-          />
         </header>
 
-        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
+        {/* "Más" (barra de abajo, celular): hoja que sube desde abajo con todas las opciones */}
+        <HojaMas
+          abierto={menuMovilAbierto}
+          onCerrar={() => setMenuMovilAbierto(false)}
+          grupos={GRUPOS}
+          items={visibles}
+          esActivo={esActivo}
+          onLogout={handleLogout}
+          conTema
+        />
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
@@ -338,7 +332,7 @@ export default function AdminLayout({ children }) {
 
         {/* Mobile Bottom Navigation */}
         {/* Con 5 accesos, el del medio (Clases) va destacado */}
-        <BarraInferior items={visibles.slice(0, 5).map((item, i, arr) => ({ ...item, activo: esActivo(item), centro: arr.length === 5 && i === 2 }))} />
+        <BarraInferior items={[...visibles.slice(0, 4), { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto }].map((item, i, arr) => ({ ...item, activo: item.alTocar ? menuMovilAbierto : esActivo(item), centro: arr.length === 5 && i === 2 }))} />
       </div>
 
       <BravoChat rol="admin" />

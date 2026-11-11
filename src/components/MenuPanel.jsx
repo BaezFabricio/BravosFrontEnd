@@ -146,8 +146,9 @@ export function HojaMas({ abierto, onCerrar, grupos, items, esActivo, onLogout, 
       >
         <button type="button" onClick={onCerrar} tabIndex={tab} aria-label="Cerrar" className="mx-auto mb-4 block h-1.5 w-12 rounded-full bg-sidebar-foreground/25" />
 
-        {grupos.map((g) => {
-          const delGrupo = items.filter((item) => item.grupo === g.key)
+        {/* Ítems sin grupo conocido (por ejemplo, el panel del profesor) van al final, sin título */}
+        {[...grupos, ...(items.some((item) => !grupos.some((g) => g.key === item.grupo)) ? [{ key: "__otros", titulo: null }] : [])].map((g) => {
+          const delGrupo = items.filter((item) => (g.key === "__otros" ? !grupos.some((x) => x.key === item.grupo) : item.grupo === g.key))
           if (delGrupo.length === 0) return null
           return (
             <div key={g.key} className="mb-5">

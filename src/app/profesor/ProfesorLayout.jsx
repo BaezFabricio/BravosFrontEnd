@@ -19,6 +19,7 @@ import {
   FileText,
   Home,
   ClipboardCheck,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -26,7 +27,7 @@ import HamburgerButton from "@/components/HamburgerButton"
 import NotificacionesBell from "@/components/NotificacionesBell"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
-import { MenuMovil, FondoMenuMovil, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
+import { HojaMas, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 import { BarraInferior } from '@/components/BarraInferior'
 
 // Pocas opciones: un solo grupo, sin título
@@ -190,27 +191,20 @@ export default function ProfesorLayout({ children }) {
                 />
               </div>
 
-              <HamburgerButton
-                isOpen={menuMovilAbierto}
-                onClick={() => setMenuMovilAbierto((v) => !v)}
-                className="lg:hidden text-foreground"
-              />
             </div>
           </div>
-
-          {/* Menú desplegable del celular: igual que en los paneles de alumno y administrador */}
-          <MenuMovil
-            abierto={menuMovilAbierto}
-            onCerrar={() => setMenuMovilAbierto(false)}
-            grupos={GRUPOS}
-            items={navigation}
-            esActivo={(item) => esActivo(item, pathname)}
-            onLogout={handleLogout}
-            conTema
-          />
         </header>
 
-        <FondoMenuMovil abierto={menuMovilAbierto} onCerrar={() => setMenuMovilAbierto(false)} />
+        {/* "Más" (barra de abajo, celular): hoja que sube desde abajo con todas las opciones */}
+        <HojaMas
+          abierto={menuMovilAbierto}
+          onCerrar={() => setMenuMovilAbierto(false)}
+          grupos={GRUPOS}
+          items={navigation}
+          esActivo={(item) => esActivo(item, pathname)}
+          onLogout={handleLogout}
+          conTema
+        />
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
@@ -218,7 +212,14 @@ export default function ProfesorLayout({ children }) {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <BarraInferior items={navigation.map(item => ({ ...item, activo: esActivo(item, pathname) }))} onNavegar={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }} />
+        {/* Perfil no va en la barra: está dentro de "Más" */}
+        <BarraInferior
+          items={[
+            ...navigation.filter((item) => item.href !== "/profesor/perfil").map((item) => ({ ...item, activo: esActivo(item, pathname) })),
+            { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto },
+          ]}
+          onNavegar={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+        />
       </div>
 
       <BravoChat rol="profesor" />
