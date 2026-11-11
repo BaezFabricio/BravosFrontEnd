@@ -5,7 +5,8 @@
  * (Archivo y Barlow) y los campos llevan 16 px para que el celular no haga zoom al escribir.
  */
 @media (max-width: 899px) {
-  .ea { overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch }
+  /* El contenedor ocupa solo la parte visible de la pantalla (sin la barra del navegador de abajo), así el final se puede subir */
+  .ea { overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; bottom: auto; height: 100vh; height: 100dvh }
   .ea .screen { position: relative; inset: auto; width: 100%; max-width: 480px; height: auto; min-height: 100dvh; margin: 0 auto; overflow: visible; padding-bottom: calc(32px + env(safe-area-inset-bottom)) }
 
   /* foto: banda de 250 px, sin corte diagonal */
