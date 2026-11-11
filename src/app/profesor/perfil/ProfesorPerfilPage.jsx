@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BotonVolver } from "@/components/BotonVolver"
-import { Mail, Phone, Save, Loader2, AlertCircle } from 'lucide-react'
+import { Mail, Phone, Save, Loader2, AlertCircle, Pencil } from 'lucide-react'
 import { toast } from '@/lib/notificar'
 import { TituloPagina } from "@/components/TituloPagina"
 import FotoAmpliable from "@/components/FotoAmpliable"
@@ -13,7 +12,8 @@ const getIniciales = (name) => {
     : name.substring(0, 2).toUpperCase()
 }
 
-const inputCls = `w-full border border-border bg-foreground/5 px-3 py-2.5 text-sm text-foreground placeholder:text-foreground/30 focus:border-lime-600/50 dark:focus:border-lime-400/50 focus:outline-none focus:ring-1 focus:ring-lime-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
+const inputCls = "h-12 w-full rounded-xl border border-border bg-background/60 px-3.5 text-base text-foreground outline-none transition-colors placeholder:text-foreground/35 focus:border-lime-500 disabled:opacity-70 sm:text-sm"
+const etiqueta = "flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground"
 
 export default function ProfesorPerfilPage() {
   const [formData, setFormData] = useState({ nombre: '', email: '', telefono: '' })
@@ -52,74 +52,67 @@ export default function ProfesorPerfilPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      <TituloPagina descripcion={"Tus datos de contacto"}>Mi perfil</TituloPagina>
 
-      {/* HEADER */}
-      <BotonVolver a="/profesor" texto="Volver" />
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-border bg-card px-4 sm:px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <TituloPagina descripcion={"Información personal y datos de contacto"}>Mi Perfil</TituloPagina>
-          </div>
-        </div>
-        <div className="flex gap-2 pl-11 sm:pl-0">
-          {isEditing ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                disabled={isSaving}
-                className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                {isSaving ? "Guardando..." : "Guardar"}
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        {/* TARJETA DE PERFIL */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="h-20 bg-lime-400/15" aria-hidden="true" />
+          <div className="-mt-12 flex flex-col items-center px-6 pb-7 text-center">
+            <FotoAmpliable
+              src={avatarUrl}
+              alt={formData.nombre}
+              className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-2xl font-black text-black ring-4 ring-card"
             >
-              Editar
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* AVATAR CARD */}
-        <div className="border border-border bg-card p-6 flex flex-col items-center text-center gap-4">
-          <FotoAmpliable src={avatarUrl} alt={formData.nombre} className="h-20 w-20 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-2xl overflow-hidden">
-            {getIniciales(formData.nombre)}
-          </FotoAmpliable>
-          <div>
-            <p className="font-bold text-foreground text-base leading-tight">{formData.nombre || "—"}</p>
-            <p className="text-xs text-foreground/40 mt-1">{formData.email || "—"}</p>
+              {getIniciales(formData.nombre)}
+            </FotoAmpliable>
+            <p className="mt-4 text-2xl font-black uppercase leading-none tracking-tight text-foreground">{formData.nombre || "—"}</p>
+            <p className="mt-2 break-all text-sm text-foreground/55">{formData.email || "—"}</p>
+            <span className="mt-4 rounded-full border border-lime-400/40 bg-lime-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-lime-700 dark:text-lime-400">
+              Profesor
+            </span>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-400/10 text-blue-700 dark:text-blue-400 border border-blue-400/20 rounded-md">
-            Profesor
-          </span>
-        </div>
+        </section>
 
-        {/* FORMULARIO */}
-        <div className="lg:col-span-2 border border-border bg-card overflow-hidden">
-          <div className="border-b border-border px-5 py-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Datos Personales</p>
+        {/* DATOS */}
+        <section className="rounded-2xl border border-border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Datos personales</p>
+            {isEditing ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  disabled={isSaving}
+                  className="h-10 rounded-full border border-border px-4 text-xs font-bold uppercase tracking-widest text-foreground/70 transition-colors hover:text-foreground disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex h-10 items-center gap-2 rounded-full bg-lime-400 px-4 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSaving ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="flex h-10 items-center gap-2 rounded-full border border-border px-4 text-xs font-bold uppercase tracking-widest text-foreground/70 transition-colors hover:border-lime-500 hover:text-foreground"
+              >
+                <Pencil className="h-4 w-4" /> Editar
+              </button>
+            )}
           </div>
-          <div className="p-5 space-y-4">
 
+          <div className="space-y-5 p-5">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Nombre Completo</label>
+              <label className={etiqueta}>Nombre completo</label>
               <input
                 type="text"
                 value={formData.nombre}
@@ -131,8 +124,8 @@ export default function ProfesorPerfilPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                <Mail className="h-3.5 w-3.5" /> Correo Electrónico
+              <label className={etiqueta}>
+                <Mail className="h-3.5 w-3.5" /> Correo electrónico
               </label>
               <input
                 type="email"
@@ -145,7 +138,7 @@ export default function ProfesorPerfilPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <label className={etiqueta}>
                 <Phone className="h-3.5 w-3.5" /> Teléfono
               </label>
               <input
@@ -159,15 +152,13 @@ export default function ProfesorPerfilPage() {
             </div>
 
             {isEditing && (
-              <div className="flex items-start gap-3 border border-lime-400/20 bg-lime-400/5 px-4 py-3 mt-2">
-                <AlertCircle className="h-4 w-4 text-lime-700 dark:text-lime-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-foreground/40">
-                  Los cambios se aplican de inmediato al guardar.
-                </p>
+              <div className="flex items-start gap-3 rounded-xl border border-lime-400/25 bg-lime-400/5 px-4 py-3">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" />
+                <p className="text-xs text-foreground/60">Los cambios se aplican de inmediato al guardar.</p>
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )
