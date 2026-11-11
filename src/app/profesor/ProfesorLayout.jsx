@@ -219,6 +219,7 @@ export default function ProfesorLayout({ children }) {
             { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto },
           ]}
           onNavegar={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+          compactaForzada={menuMovilAbierto}
         />
       </div>
 

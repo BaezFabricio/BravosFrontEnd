@@ -332,7 +332,7 @@ export default function AdminLayout({ children }) {
 
         {/* Mobile Bottom Navigation */}
         {/* Con 5 accesos, el del medio (Clases) va destacado */}
-        <BarraInferior items={[...visibles.slice(0, 4), { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto }].map((item, i, arr) => ({ ...item, activo: item.alTocar ? menuMovilAbierto : esActivo(item), centro: arr.length === 5 && i === 2 }))} />
+        <BarraInferior items={[...visibles.slice(0, 4), { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto }].map((item, i, arr) => ({ ...item, activo: item.alTocar ? menuMovilAbierto : esActivo(item), centro: arr.length === 5 && i === 2 }))} compactaForzada={menuMovilAbierto} />
       </div>
 
       <BravoChat rol="admin" />

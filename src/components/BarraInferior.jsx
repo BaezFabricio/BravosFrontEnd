@@ -17,7 +17,7 @@ import { Link, useNavigate } from "react-router-dom"
  *
  * items: [{ name, href, icon, mobileLabel, activo: boolean, centro?: boolean }]
  */
-export function BarraInferior({ items, onNavegar }) {
+export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
   const navigate = useNavigate()
   const barra = useRef(null)
   const enlaces = useRef([])
@@ -28,7 +28,9 @@ export function BarraInferior({ items, onNavegar }) {
   const ultimaOnda = useRef({ x: -999, t: 0 })
   const [dedo, setDedo] = useState(null) // { x, y } mientras el dedo está sobre la barra
   const [ondas, setOndas] = useState([]) // [{ id, x, y }]
-  const [compacta, setCompacta] = useState(false)
+  const [compactaScroll, setCompacta] = useState(false)
+  // Se achica también mientras el menú "Más" está abierto (compactaForzada)
+  const compacta = compactaScroll || compactaForzada
   const reposo = useRef(0) // hasta cuándo se mantiene grande después de tocarla
 
   useEffect(() => {

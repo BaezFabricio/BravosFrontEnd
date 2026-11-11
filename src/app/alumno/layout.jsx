@@ -405,6 +405,7 @@ export default function AlumnoLayout({ children }) {
               pista: item.href === "/alumno/reservas" && pistaReserva && pathname !== "/alumno/reservas" ? "Tu reserva está acá" : null,
             }))
           })()}
+          compactaForzada={menuMovilAbierto}
         />
       </div>
 
