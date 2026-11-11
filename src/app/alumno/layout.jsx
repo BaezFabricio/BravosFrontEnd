@@ -397,7 +397,8 @@ export default function AlumnoLayout({ children }) {
             const masItem = { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto }
             return [...items.slice(0, mitad), centro, ...items.slice(mitad), masItem].filter(Boolean).map((item) => ({
               ...item,
-              activo: esActivo(item, pathname),
+              // "Más" se marca cuando su menú está abierto (no tiene ruta propia)
+              activo: item.alTocar ? menuMovilAbierto : esActivo(item, pathname),
               // En "Reservas": cuántas reservas próximas hay y, tras reservar, una pista para ir a verla
               guia: item.href === "/alumno/reservas" ? "reservas" : undefined,
               insignia: item.href === "/alumno/reservas" ? reservasProximas : 0,
