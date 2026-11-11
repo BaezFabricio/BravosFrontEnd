@@ -126,8 +126,7 @@ export default function ReservarMovil({
               </>
             ) : (
               <>
-                <strong className="text-foreground">Cada día de apertura se descuenta 1 crédito, reserves o no.</strong>{" "}
-                Si reservás, ese día cuenta una sola vez: reservar o cancelar no cambia tu saldo.
+                <strong className="text-foreground">Se descuenta 1 crédito por día de apertura, reserves o no.</strong>
               </>
             )}
           </span>

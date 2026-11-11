@@ -9,8 +9,7 @@ import { fmtFechaPlan } from "@/lib/miPlan"
  */
 
 const REGLAS_COMUNES = [
-  <>Cada día de apertura se descuenta <strong>1 crédito</strong>, reserves o no.</>,
-  <>Si reservás, ese día cuenta <strong>una sola vez</strong>: reservar o cancelar no cambia tu saldo.</>,
+  <>Se descuenta <strong>1 crédito</strong> por día de apertura, reserves o no.</>,
   <>Si contratás otra membresía, sus créditos <strong>se suman a los que ya tenés</strong>.</>,
   <>Los créditos de cada plan vencen junto con su membresía.</>,
 ]

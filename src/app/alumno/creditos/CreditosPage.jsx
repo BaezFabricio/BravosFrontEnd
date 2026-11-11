@@ -185,8 +185,7 @@ export default function CreditosPage() {
           "Si contratás otra membresía, sus créditos se suman a los que ya tenés.",
           "Los créditos de cada plan vencen junto con su membresía.",
         ] : [
-          "Cada día de apertura se descuenta 1 crédito, reserves o no.",
-          "Si reservás, ese día cuenta una sola vez: reservar o cancelar no cambia tu saldo.",
+          "Se descuenta 1 crédito por día de apertura, reserves o no.",
           "Si contratás otra membresía, sus créditos se suman a los que ya tenés.",
           "Los créditos de cada plan vencen junto con su membresía.",
         ]).map((t, i) => (
