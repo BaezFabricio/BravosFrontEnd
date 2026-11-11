@@ -401,7 +401,7 @@ export default function NuevaClasePage() {
       })
       const result = await response.json()
       if (!result.success) throw new Error(result.message || (esEdicion ? "Error al guardar la clase" : "Error al crear la clase"))
-      toast.success(esEdicion ? "Cambios guardados" : "Clase creada exitosamente", { guardar: esEdicion })
+      toast.success(esEdicion ? "Cambios guardados" : "Clase creada exitosamente", { guardar: false })
       navigate("/admin/clases")
     } catch (error) {
       toast.error(esEdicion ? "No se guardaron los cambios" : "Error al crear la clase", { description: error.message })

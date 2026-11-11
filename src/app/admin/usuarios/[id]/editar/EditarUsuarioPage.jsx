@@ -179,8 +179,8 @@ export default function EditarUsuarioPage() {
         return
       }
       toast.success("Cambios guardados", resultado.data?.sesionesCerradas
-        ? { description: "Se cerró la sesión del usuario para que el cambio valga en el momento." }
-        : undefined)
+        ? { description: "Se cerró la sesión del usuario para que el cambio valga en el momento.", guardar: false }
+        : { guardar: false })
       volver()
     } catch (err) {
       toast.error("No se guardaron los cambios", { description: err.message })

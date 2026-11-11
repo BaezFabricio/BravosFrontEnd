@@ -118,8 +118,8 @@ export function useEdicionFicha(user, onGuardado) {
         return
       }
       toast.success("Cambios guardados", resultado.data?.sesionesCerradas
-        ? { description: "Se cerró la sesión del usuario para que el cambio valga en el momento." }
-        : undefined)
+        ? { description: "Se cerró la sesión del usuario para que el cambio valga en el momento.", guardar: false }
+        : { guardar: false })
       onGuardado({
         nombre: form.nombre.trim(),
         dni: form.dni.trim(),
