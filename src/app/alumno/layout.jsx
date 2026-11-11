@@ -237,7 +237,7 @@ export default function AlumnoLayout({ children }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                  className={`flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
                     isActive
                       ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                       : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"

@@ -10,11 +10,11 @@ import { useTheme } from "@/components/theme-provider"
 // Título de cada grupo (mismo estilo en el menú lateral y en el desplegable del celular)
 export const TituloGrupo = ({ titulo }) =>
   titulo ? (
-    <p className="px-3 pb-1 pt-4 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
+    <p className="px-3 pb-1 pt-3 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
   ) : null
 
 const claseItem = (activo, extra = "") =>
-  `flex items-center gap-3 py-2.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${extra} ${
+  `flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${extra} ${
     activo
       ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[10px] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
       : "px-3 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
@@ -36,7 +36,7 @@ export function BotonPaginaPrincipal() {
 // Opción "Página principal": vuelve al sitio público del box sin cerrar la sesión
 export function EnlacePaginaPrincipal({ onClick, tabIndex }) {
   return (
-    <Link to="/inicio" onClick={onClick} tabIndex={tabIndex} className={claseItem(false, "min-h-[42px]")}>
+    <Link to="/inicio" onClick={onClick} tabIndex={tabIndex} className={claseItem(false)}>
       <Globe className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       Página principal
     </Link>
