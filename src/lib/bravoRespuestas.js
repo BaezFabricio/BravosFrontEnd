@@ -82,9 +82,25 @@ const TEMAS_COMUNES = [
   {
     id: "saludo",
     titulo: "Saludar",
-    claves: ["hola*", "buenas*", "buen dia", "buenos dias", "buenas tardes", "buenas noches", "que tal", "hey"],
-    respuesta: ({ nombre, mascota }) => ({
-      texto: `¡Hola${nombre ? `, ${nombre.split(" ")[0]}` : ""}! 🐾 Soy ${mascota}. Contame qué necesitás y te ayudo. También podés tocar alguno de los temas de abajo.`,
+    claves: ["hola*", "buenas*", "buen dia", "buenos dias", "buenas tardes", "buenas noches", "que tal", "hey", "como estas", "como andas", "como va", "como te va"],
+    respuesta: ({ nombre, mascota, pregunta }) => {
+      const primero = nombre ? nombre.split(" ")[0] : ""
+      // Si además preguntó "¿cómo estás?", se le contesta antes de ofrecer ayuda
+      const preguntoComoEsta = /(como estas|como andas|como va|como te va|que tal)/.test(pregunta || "")
+      return {
+        texto:
+          `¡Hola${primero ? `, ${primero}` : ""}! 🐾 ` +
+          (preguntoComoEsta ? `Todo bien por acá, con ganas de entrenar 💪. ¿Y vos, cómo andás?\n\n` : ``) +
+          `Soy ${mascota}. ¿En qué te puedo ayudar hoy? Contame con tus palabras o tocá alguno de los temas de abajo.`,
+      }
+    },
+  },
+  {
+    id: "charla",
+    titulo: "Charla",
+    claves: ["bien", "todo bien", "joya", "y vos", "tranqui", "mas o menos", "podria estar mejor"],
+    respuesta: () => ({
+      texto: `¡Qué bueno! 😄 Por acá andamos con ganas de entrenar 💪. Si necesitás ayuda con algo de Bravos Box (clases, créditos, pagos, reservas...), contame y te doy una mano.`,
     }),
   },
   {
@@ -828,6 +844,14 @@ const TITULOS_AYUDA = {
   admin: ["¿Cómo cargo un abono?", "¿Cómo apruebo un comprobante?", "¿Cómo creo una clase?", "¿Cómo doy permisos a un perfil?"],
 }
 
+// Palabras que, si son TODAS las del mensaje, lo vuelven pura charla (saludo, "cómo estás", gracias, "quién sos")
+const PALABRAS_DE_CHARLA = new Set([
+  "hola", "holaa", "holi", "buenas", "buen", "buenos", "dia", "dias", "tardes", "noches", "hey", "che", "bravo", "milo",
+  "que", "tal", "como", "estas", "andas", "va", "te", "todo", "bien", "joya", "tranqui", "y", "vos", "mas", "o", "menos",
+  "podria", "estar", "mejor", "gracias", "muchas", "genial", "perfecto", "excelente", "buenisimo", "dale",
+  "quien", "sos", "eres", "podes", "hacer", "haces", "para", "servis", "ayuda", "ayudame", "sabes", "llamas", "tu", "nombre", "es",
+])
+
 /**
  * @param {string} pregunta  texto que escribió la persona
  * @param {{rol: "alumno"|"profesor"|"admin", nombre?: string, mascota: string}} contexto
@@ -837,8 +861,12 @@ export async function responder(pregunta, contexto) {
   const rol = contexto.rol in TEMAS_POR_ROL ? contexto.rol : "alumno"
   const q = normalizar(pregunta)
 
-  // Saludos, agradecimientos y "¿qué podés hacer?" se contestan acá mismo: no gastan consulta a la IA
-  const simple = buscarTema(q, TEMAS_COMUNES.filter((t) => ["saludo", "gracias", "quien"].includes(t.id)))
+  // Charla pura (saludos, "¿cómo estás?", gracias, "¿qué podés hacer?") se contesta acá mismo, sin gastar IA.
+  // Si el mensaje mezcla charla con una pregunta real ("hola, ¿cuántos créditos me quedan?"), pasa a la IA.
+  const esSoloCharla = q.split(" ").every((p) => PALABRAS_DE_CHARLA.has(p))
+  const simple = esSoloCharla
+    ? buscarTema(q, TEMAS_COMUNES.filter((t) => ["saludo", "charla", "gracias", "quien"].includes(t.id)))
+    : null
 
   // Alumno y administrador: asistente con IA. Si no está disponible, sigue el motor de respuestas fijas
   if (!simple && (rol === "alumno" || rol === "admin")) {
@@ -859,7 +887,7 @@ export async function responder(pregunta, contexto) {
   }
 
   try {
-    return await tema.respuesta({ ...contexto, rol })
+    return await tema.respuesta({ ...contexto, rol, pregunta: q })
   } catch {
     return {
       texto:
