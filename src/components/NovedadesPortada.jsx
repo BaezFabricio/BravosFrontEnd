@@ -5,6 +5,9 @@ import { haySesion } from "@/lib/sesion"
 import { DialogoNovedad, FilaNovedad, FotoNovedad, TextoConEnlaces } from "@/components/Novedades"
 import { colorDe, esReciente, estiloTitulo, tipoDe } from "@/lib/novedades"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
+import { EnlaceVer, Insignia, Vacio } from "@/components/bx"
+import { Ico } from "@/components/bx/iconos"
+import { IC } from "@/components/bx/trazos"
 
 /*
  * Novedades del box (solo para quien tiene sesión).
@@ -48,7 +51,8 @@ function ArticuloAviso({ novedad, nueva }) {
   )
 }
 
-export default function NovedadesPortada({ conAviso = false, compacta = false, limite = null, soloAviso = false }) {
+// variante "bx": diseño del módulo Alumno en escritorio (handoff, pantalla 01). Misma lógica, otra presentación.
+export default function NovedadesPortada({ conAviso = false, compacta = false, limite = null, soloAviso = false, variante }) {
   const [historial, setHistorial] = useState([]) // todas las publicadas (vigentes y vencidas), la más nueva primero
   const [cargado, setCargado] = useState(false) // ya llegó la respuesta (aunque sea vacía)
   const [abierta, setAbierta] = useState(null) // detalle de una novedad (pop-up de las listas)
@@ -102,7 +106,37 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
 
   return (
     <>
-      {soloAviso ? null : compacta ? (
+      {soloAviso ? null : compacta && variante === "bx" ? (
+        <section aria-labelledby="novedades-titulo">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 id="novedades-titulo" className="text-lg font-bold text-bx-ink">Novedades</h2>
+            {limite && <EnlaceVer to="/alumno/novedades">Ver todas</EnlaceVer>}
+          </div>
+          {lista.length === 0 && <Vacio titulo="No hay noticias disponibles por ahora" />}
+          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-3 p-0">
+            {visibles.map((n) => (
+              <li key={n.idNovedad}>
+                <button
+                  type="button"
+                  onClick={() => setAbierta(n)}
+                  className="flex h-full w-full items-center gap-3.5 rounded-xl border border-bx-line bg-bx-card p-3.5 text-left text-bx-ink transition-colors hover:border-bx-lima hover:bg-bx-surf"
+                >
+                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-[10px] ${n.tipo === "noticia" ? "bg-bx-chip text-bx-lima" : "bg-bx-tile text-bx-ok-fg"}`}>
+                    <Ico d={n.tipo === "noticia" ? IC.news : IC.mega} size={22} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      {esReciente(n.fecha) && <Insignia>NUEVO</Insignia>}
+                      <span className="text-xs font-medium text-bx-muted">{n.fecha} · {tipoDe(n.tipo).nombre}</span>
+                    </span>
+                    <span className="mt-1 block truncate text-[15px] font-bold">{n.titulo}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : compacta ? (
         <section aria-labelledby="novedades-titulo" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h2 id="novedades-titulo" className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">

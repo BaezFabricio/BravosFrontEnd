@@ -34,6 +34,8 @@ import InvitacionAvisos from "@/components/InvitacionAvisos"
 import GuiasAlumno from "@/components/GuiasAlumno"
 import { TituloGrupo, HojaMas, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
 import { BarraInferior } from '@/components/BarraInferior'
+import { useAnchoPanel } from '@/lib/useEscritorio'
+import LayoutEscritorio from './LayoutEscritorio'
 
 // Grupos del menú, en el orden en que se dibujan. El primero va sin título.
 const GRUPOS = [
@@ -59,6 +61,8 @@ const esActivo = (item, pathname) =>
   item.href === "/alumno" ? pathname === "/alumno" : pathname === item.href || pathname.startsWith(item.href + "/")
 
 export default function AlumnoLayout({ children }) {
+  // Desde 1024 px: diseño de escritorio (LayoutEscritorio). Por debajo: el marco del celular, que no cambia.
+  const escritorio = useAnchoPanel()
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
@@ -204,6 +208,70 @@ export default function AlumnoLayout({ children }) {
     navigate("/login", { replace: true })
   }
 
+  // Contenido de la pantalla (el mismo en celular y escritorio)
+  const cuerpo = (
+    <>
+          {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
+          <NovedadesPortada conAviso soloAviso />
+          {validandoAcceso ? (
+            <div className="max-w-5xl mx-auto space-y-4 animate-pulse" role="status" aria-label="Cargando">
+              <div className="h-7 w-48 rounded bg-foreground/10" />
+              <div className="h-24 rounded-md bg-foreground/10" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="h-28 rounded-md bg-foreground/10" />
+                <div className="h-28 rounded-md bg-foreground/10" />
+              </div>
+              <div className="h-40 rounded-md bg-foreground/10" />
+            </div>
+          ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
+            /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
+            <div className="max-w-5xl mx-auto mt-4 space-y-4">
+              <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
+                <ShieldAlert className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-red-700 dark:text-red-400">Sin membresía vigente</p>
+                  <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para acceder al sistema.</p>
+                </div>
+                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-700 dark:hover:text-red-400 text-xs gap-1">
+                  <LogOut className="h-3.5 w-3.5" /> Salir
+                </Button>
+              </div>
+              <RenovarMembresia onRenovado={() => window.location.reload()} />
+            </div>
+          ) : (
+            /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
+            <>
+              {/* "Volver" en las subpáginas (celular y escritorio). En el inicio del módulo no hay botón */}
+              {/* Solo en submódulos (pantallas dentro de un módulo): en las pantallas principales no hay "Volver" */}
+              {pathname.split("/").filter(Boolean).length >= 3 && (
+                <BotonVolver a={"/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/")} texto="Volver" className="mb-4" />
+              )}
+              <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
+            </>
+          )}
+            </>
+  )
+
+  // Piezas que van en los dos marcos
+  const globales = (
+    <>
+      <BravoChat rol="alumno" />
+      {/* Guía de bienvenida: la primera vez, cuando ya se sabe si el alumno tiene membresía */}
+      <GuiasAlumno lista={!validandoAcceso && tieneAbonoActivo} />
+      {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
+      <InvitacionAvisos />
+    </>
+  )
+
+  if (escritorio) {
+    return (
+      <>
+        <LayoutEscritorio userData={userData} avatarUrl={avatarUrl} onLogout={handleLogout}>{cuerpo}</LayoutEscritorio>
+        {globales}
+      </>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {sidebarOpen && (
@@ -343,44 +411,7 @@ export default function AlumnoLayout({ children }) {
         />
 
         <main className="p-4 lg:p-6 pb-36 lg:pb-6">
-          {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
-          <NovedadesPortada conAviso soloAviso />
-          {validandoAcceso ? (
-            <div className="max-w-5xl mx-auto space-y-4 animate-pulse" role="status" aria-label="Cargando">
-              <div className="h-7 w-48 rounded bg-foreground/10" />
-              <div className="h-24 rounded-md bg-foreground/10" />
-              <div className="grid grid-cols-2 gap-3">
-                <div className="h-28 rounded-md bg-foreground/10" />
-                <div className="h-28 rounded-md bg-foreground/10" />
-              </div>
-              <div className="h-40 rounded-md bg-foreground/10" />
-            </div>
-          ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
-            /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
-            <div className="max-w-5xl mx-auto mt-4 space-y-4">
-              <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-                <ShieldAlert className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-red-700 dark:text-red-400">Sin membresía vigente</p>
-                  <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para acceder al sistema.</p>
-                </div>
-                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-700 dark:hover:text-red-400 text-xs gap-1">
-                  <LogOut className="h-3.5 w-3.5" /> Salir
-                </Button>
-              </div>
-              <RenovarMembresia onRenovado={() => window.location.reload()} />
-            </div>
-          ) : (
-            /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
-            <>
-              {/* "Volver" en las subpáginas (celular y escritorio). En el inicio del módulo no hay botón */}
-              {/* Solo en submódulos (pantallas dentro de un módulo): en las pantallas principales no hay "Volver" */}
-              {pathname.split("/").filter(Boolean).length >= 3 && (
-                <BotonVolver a={"/" + pathname.split("/").filter(Boolean).slice(0, -1).join("/")} texto="Volver" className="mb-4" />
-              )}
-              <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
-            </>
-          )}
+          {cuerpo}
         </main>
 
         {/* Barra de abajo (celular): solo los accesos principales; el resto está en el menú de arriba a la derecha */}
@@ -406,11 +437,7 @@ export default function AlumnoLayout({ children }) {
         />
       </div>
 
-      <BravoChat rol="alumno" />
-      {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
-      {/* Guía de bienvenida: la primera vez, cuando ya se sabe si el alumno tiene membresía */}
-      <GuiasAlumno lista={!validandoAcceso && tieneAbonoActivo} />
-      <InvitacionAvisos />
+      {globales}
     </div>
   )
 }

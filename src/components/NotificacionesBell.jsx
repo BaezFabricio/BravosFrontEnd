@@ -4,6 +4,10 @@ import { Bell, CheckCheck, Trash2, Info } from 'lucide-react'
 import apiClient from '@/api'
 import ActivarNotificaciones from '@/components/ActivarNotificaciones'
 import { ICONOS_TIPO, TOAST_COLORES, campanita } from '@/lib/avisosEstilos'
+import { parsearFecha, etiquetaDia, formatearFechaNotif } from '@/lib/fechasNotificaciones'
+import { Ico } from '@/components/bx/iconos'
+import { IC } from '@/components/bx/trazos'
+import { PanelNotificaciones, AvisosAbajo } from '@/components/bx/PanelNotificaciones'
 
 const COLORES_TIPO = {
   reserva:     'text-lime-700 dark:text-lime-400',
@@ -19,14 +23,6 @@ const COLORES_TIPO = {
 // Avisos de acciones del propio usuario: se muestran en el momento y además quedan en la bandeja
 const TIPOS_DE_ACCION = ['exito', 'error', 'advertencia', 'info']
 
-function parsearFecha(raw) {
-  if (!raw) return new Date()
-  // MySQL manda "2026-08-25T03:00:00.000Z" o "2026-08-25 03:00:00" sin Z
-  // Si no tiene Z ni offset lo tratamos como UTC agregando Z
-  const s = String(raw).replace(' ', 'T')
-  return new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z')
-}
-
 function tiempoRelativo(raw) {
   const fecha = parsearFecha(raw)
   const diff = Date.now() - fecha.getTime()
@@ -38,28 +34,12 @@ function tiempoRelativo(raw) {
   return `hace ${Math.floor(hs / 24)}d`
 }
 
-// Encabezado del grupo: "Hoy", "Ayer" o el día ("martes 6 de octubre"). Se usa el día en hora local.
-function etiquetaDia(raw) {
-  const fecha = parsearFecha(raw)
-  const hoy = new Date()
-  const ayer = new Date(); ayer.setDate(ayer.getDate() - 1)
-  if (fecha.toDateString() === hoy.toDateString()) return 'Hoy'
-  if (fecha.toDateString() === ayer.toDateString()) return 'Ayer'
-  const texto = fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', ...(fecha.getFullYear() !== hoy.getFullYear() ? { year: 'numeric' } : {}) })
-  return texto.charAt(0).toUpperCase() + texto.slice(1)
-}
-
-function formatearFechaNotif(raw) {
-  const fecha = parsearFecha(raw)
-  const hoy = new Date()
-  const ayer = new Date(); ayer.setDate(ayer.getDate() - 1)
-  const hora = fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
-  if (fecha.toDateString() === hoy.toDateString()) return `Hoy ${hora}`
-  if (fecha.toDateString() === ayer.toDateString()) return `Ayer ${hora}`
-  return fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + hora
-}
-
-export default function NotificacionesBell() {
+/*
+ * variante "bx": diseño del módulo Alumno en escritorio (handoff, pantalla 10). Misma lógica y mismos datos;
+ * cambian la campanita, el panel y los avisos (abajo en el medio, 5 s).
+ */
+export default function NotificacionesBell({ variante } = {}) {
+  const bx = variante === 'bx'
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [noLeidas, setNoLeidas] = useState(0)
@@ -94,7 +74,7 @@ export default function NotificacionesBell() {
   // Los de notificaciones reales traen un link (al tocarlos abren esa pantalla).
   const showToast = ({ tipo, titulo, mensaje, link = null, idNotificacion = null }) => {
     const pid = Date.now() + Math.random()
-    const dur = tipo === 'error' || tipo === 'advertencia' ? 5000 : link ? 5000 : 2800
+    const dur = bx || tipo === 'error' || tipo === 'advertencia' ? 5000 : link ? 5000 : 2800
     setToasts(prev => [...prev.filter(t => !(t.tipo === tipo && t.mensaje === mensaje && t.titulo === titulo)), { tipo, titulo, mensaje, link, idNotificacion, pid }].slice(-3))
     setTimeout(() => setToasts(prev => prev.filter(t => t.pid !== pid)), dur)
   }
@@ -177,6 +157,42 @@ export default function NotificacionesBell() {
     dismissToast(t.pid)
     if (t.idNotificacion) marcarLeida(t.idNotificacion, false)
     if (t.link) navigate(t.link)
+  }
+
+  if (bx) {
+    return (
+      <>
+        <div className="relative" ref={ref}>
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-label={`Notificaciones${noLeidas > 0 ? `, ${noLeidas > 9 ? '9 o más' : noLeidas} sin leer` : ''}`}
+            aria-expanded={open}
+            aria-controls="panel-notif"
+            className="relative grid h-11 w-11 place-items-center rounded-[10px] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf"
+          >
+            <Ico d={IC.bell} />
+            {noLeidas > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 h-[22px] min-w-[22px] rounded-[11px] bg-bx-lima px-[5px] text-center text-[11px] font-extrabold leading-[22px] text-bx-negro">
+                {noLeidas > 9 ? '9+' : noLeidas}
+              </span>
+            )}
+          </button>
+          {open && (
+            <PanelNotificaciones
+              notifs={notifs}
+              noLeidas={noLeidas}
+              limpiando={limpiando}
+              onCerrar={() => setOpen(false)}
+              onClickNotif={handleClickNotif}
+              onMarcarTodas={marcarTodas}
+              onBorrarTodas={limpiar}
+            />
+          )}
+        </div>
+        <AvisosAbajo toasts={toasts} onClick={handleClickToast} />
+      </>
+    )
   }
 
   return (

@@ -1,0 +1,132 @@
+/*
+ * Diseño del módulo Alumno (escritorio). Todo vive dentro de un contenedor `.bx`, así los demás paneles
+ * (admin, profesor) y la versión del celular no cambian. Referencia: handoff_alumno/README.md, sección 1.
+ * Modo claro por defecto; el oscuro sigue la clase `.dark` que ya pone el toggle de tema de la app.
+ */
+
+.bx {
+  --bx-bg: #ecece6;
+  --bx-card: #f6f6f1;
+  --bx-surf: #ffffff;
+  --bx-line: #dcdcd3;
+  --bx-line2: #e2e2da;
+  --bx-btn-line: #d6d6cc;
+  --bx-ink: #141510;
+  --bx-muted: #5f6156;
+  --bx-ok-bg: #eef7dc;
+  --bx-ok-line: #c9e39a;
+  --bx-ok-fg: #3f6400;
+  --bx-tile: #e3f2c4;
+  --bx-warn-bg: #fdf6dc;
+  --bx-warn-line: #e3c766;
+  --bx-warn-fg: #7a5d00;
+  --bx-err-bg: #fdeceb;
+  --bx-err-line: #e9b3ae;
+  --bx-err-fg: #b3261e;
+  --bx-track: #e0e0d7;
+  --bx-skeleton: #e4e4dc;
+  /* Fondo de las insignias con contador y chips "VOS"/"NUEVO" */
+  --bx-chip: #141510;
+  /* Fila sin leer en notificaciones */
+  --bx-unread: #f1f7e4;
+  /* Borde de los bloques "hero": siempre oscuros */
+  --bx-hero-line: #0e0e0e;
+
+  font-family: 'Archivo', system-ui, sans-serif;
+  color: var(--bx-ink);
+}
+
+.dark .bx {
+  --bx-bg: #0b0b0b;
+  --bx-card: #161616;
+  --bx-surf: #1d1d1d;
+  --bx-line: #262626;
+  --bx-line2: #2a2a2a;
+  --bx-btn-line: #333333;
+  --bx-ink: #ecefe4;
+  --bx-muted: #a3a698;
+  --bx-ok-bg: #16220a;
+  --bx-ok-line: #3d5a10;
+  --bx-ok-fg: #9be600;
+  --bx-tile: #1f2a0e;
+  --bx-warn-bg: #2a230a;
+  --bx-warn-line: #5a4a12;
+  --bx-warn-fg: #e6c200;
+  --bx-err-bg: #2a1210;
+  --bx-err-line: #6b2a24;
+  --bx-err-fg: #ffb4aa;
+  --bx-track: #2a2a2a;
+  --bx-skeleton: #1f1f1f;
+  --bx-chip: #1f2a0e;
+  --bx-unread: #141a0b;
+  --bx-hero-line: #262626;
+}
+
+/* Nombres de color para usar como clases de Tailwind: bg-bx-card, text-bx-ink, border-bx-line… */
+@theme inline {
+  --color-bx-bg: var(--bx-bg);
+  --color-bx-card: var(--bx-card);
+  --color-bx-surf: var(--bx-surf);
+  --color-bx-line: var(--bx-line);
+  --color-bx-line2: var(--bx-line2);
+  --color-bx-btn-line: var(--bx-btn-line);
+  --color-bx-ink: var(--bx-ink);
+  --color-bx-muted: var(--bx-muted);
+  --color-bx-ok-bg: var(--bx-ok-bg);
+  --color-bx-ok-line: var(--bx-ok-line);
+  --color-bx-ok-fg: var(--bx-ok-fg);
+  --color-bx-tile: var(--bx-tile);
+  --color-bx-warn-bg: var(--bx-warn-bg);
+  --color-bx-warn-line: var(--bx-warn-line);
+  --color-bx-warn-fg: var(--bx-warn-fg);
+  --color-bx-err-bg: var(--bx-err-bg);
+  --color-bx-err-line: var(--bx-err-line);
+  --color-bx-err-fg: var(--bx-err-fg);
+  --color-bx-track: var(--bx-track);
+  --color-bx-skeleton: var(--bx-skeleton);
+  --color-bx-chip: var(--bx-chip);
+  --color-bx-unread: var(--bx-unread);
+  --color-bx-hero-line: var(--bx-hero-line);
+  /* Marca (iguales en los dos modos) */
+  --color-bx-lima: #9be600;
+  --color-bx-lima-hover: #c4ff3d;
+  --color-bx-barra: #7fbf00;
+  --color-bx-negro: #0b0b0b;
+  --color-bx-lateral: #141510;
+  --color-bx-hero: #0e0e0e;
+  --font-bx: 'Archivo', system-ui, sans-serif;
+  --font-bxnum: 'Big Shoulders Stencil Display', 'Archivo', sans-serif;
+}
+
+@layer base {
+  /* La app fuerza Barlow Condensed en h1–h3; dentro de .bx todo es Archivo */
+  .bx h1, .bx h2, .bx h3, .bx h4 {
+    font-family: inherit !important;
+    font-weight: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+  /* Big Shoulders Stencil Display, SOLO para números grandes y el saludo del hero */
+  .bx .bx-num {
+    font-family: 'Big Shoulders Stencil Display', 'Archivo', sans-serif !important;
+    font-weight: 900;
+  }
+  .bx :focus-visible {
+    outline: 3px solid #9be600;
+    outline-offset: 2px;
+  }
+  .bx a { text-decoration: none; }
+}
+
+@keyframes bx-sk {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.bx-sk { animation: bx-sk 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bx *, .bx *::before, .bx *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
