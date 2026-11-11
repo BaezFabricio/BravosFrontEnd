@@ -178,7 +178,7 @@ export default function MiPlanEscritorio() {
                   const corta = partesDescripcion(p.descripcion).corta
                   const creditos = Number(p.cantidadCreditos) || 0
                   return (
-                    <li key={p.idPlan} className={`bx-lift relative flex flex-col gap-4 rounded-2xl p-6 ${pop ? "border-2 border-bx-lima bg-bx-hero text-[#ecefe4]" : "border border-bx-line bg-bx-card text-bx-ink"}`}>
+                    <li key={p.idPlan} className={`bx-plan ${pop ? "bx-plan-pop " : ""}relative flex flex-col gap-4 rounded-2xl p-6 ${pop ? "border-2 border-bx-lima bg-bx-hero text-[#ecefe4]" : "border border-bx-line bg-bx-card text-bx-ink"}`}>
                       <div className="flex min-h-[1.625rem] items-center justify-between gap-2.5">
                         <span className={`text-xs font-semibold tracking-[0.1em] ${pop ? "text-[#a3a698]" : "text-bx-muted"}`}>{creditos > 0 ? `${creditos} CRÉDITOS` : "MEMBRESÍA"}</span>
                         {pop && <span className="rounded-full bg-bx-lima px-2.5 py-1 text-[0.6875rem] font-bold tracking-[0.06em] text-bx-negro">MÁS ELEGIDO</span>}

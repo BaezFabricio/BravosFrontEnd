@@ -167,12 +167,19 @@
 .bx-barra-v { transform-origin: center; animation: bx-barra-v 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 /* Tarjetas que se elevan al pasar el mouse */
 .bx-lift { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
-.bx-lift:hover { transform: translateY(-0.1875rem); box-shadow: 0 0.75rem 1.75rem -0.5rem rgba(0, 0, 0, 0.28); }
+.bx-lift:hover { transform: translateY(-0.1875rem); box-shadow: 0 0.75rem 1.75rem -0.5rem rgba(155, 230, 0, 0.22); }
+
+/* Planes: al pasar el mouse suben, el borde se pone lima, se tiñen de verde y brillan */
+.bx-plan { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease; }
+.bx-plan:hover { transform: translateY(-0.5rem); border-color: #9be600; box-shadow: 0 0 2.5rem rgba(155, 230, 0, 0.22); }
+.bx-plan:not(.bx-plan-pop):hover { background-color: rgba(155, 230, 0, 0.07); }
+.bx-plan-pop { box-shadow: 0 0 2.5rem rgba(155, 230, 0, 0.14); }
+.bx-plan-pop:hover { box-shadow: 0 0 3.75rem rgba(155, 230, 0, 0.35); }
 
 @media (prefers-reduced-motion: reduce) {
   .bx, .bx *, .bx *::before, .bx *::after, .bx-overlay, .bx-modal, .bx-aviso, .bx-pop, .bx-aparece {
     animation: none !important;
     transition: none !important;
   }
-  .bx-lift:hover { transform: none; }
+  .bx-lift:hover, .bx-plan:hover { transform: none; }
 }
