@@ -9,9 +9,8 @@ import { fmtFechaPlan } from "@/lib/miPlan"
  */
 
 const REGLAS_COMUNES = [
-  <>Cada reserva consume <strong>1 crédito</strong>.</>,
-  <>Si no asistís a la clase, el crédito <strong>se descuenta igual</strong>.</>,
-  <>Cancelar con <strong>2 horas o más de anticipación</strong> te devuelve el crédito.</>,
+  <>Cada día de apertura se descuenta <strong>1 crédito</strong>, reserves o no.</>,
+  <>Si reservás, ese día cuenta <strong>una sola vez</strong>: reservar o cancelar no cambia tu saldo.</>,
   <>Si contratás otra membresía, sus créditos <strong>se suman a los que ya tenés</strong>.</>,
   <>Los créditos de cada plan vencen junto con su membresía.</>,
 ]
