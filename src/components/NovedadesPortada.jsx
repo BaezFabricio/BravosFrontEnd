@@ -66,16 +66,25 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
   useEffect(() => {
     if (!haySesion()) return
     let vigente = true
+    let espera = null
+    // Si la guía de Bravo está pendiente o abierta (panel del alumno), el aviso espera a que termine: dos ventanas
+    // a la vez se pisan (la ventana de novedades bloquea los toques de la guía y no se podía avanzar ni saltarla).
+    const abrirCuandoLibre = () => {
+      if (!vigente) return
+      const guia = window.__bravosGuia
+      if (guia === "pendiente" || guia === "activa") { espera = setTimeout(abrirCuandoLibre, 400); return }
+      setResumen(true)
+    }
     apiClient.get("/novedades/historial")
       .then((r) => {
         if (!vigente) return
         const todas = r.data?.data || r.data || []
         setHistorial(todas)
         setCargado(true)
-        if (conAviso && todas.some((n) => !yaVista(n.idNovedad))) setResumen(true)
+        if (conAviso && todas.some((n) => !yaVista(n.idNovedad))) abrirCuandoLibre()
       })
       .catch(() => setCargado(true))
-    return () => { vigente = false }
+    return () => { vigente = false; if (espera) clearTimeout(espera) }
   }, [conAviso])
 
   // Sin novedades no se muestra nada, salvo en el módulo del alumno (compacta), que dice que no hay ninguna

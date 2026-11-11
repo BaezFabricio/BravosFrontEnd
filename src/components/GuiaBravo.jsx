@@ -212,7 +212,8 @@ export default function GuiaBravo({ guia, pasos, navegar = false, onFin }) {
     : { top: vh / 2, left: vw / 2, width: 0, height: 0, borde: "transparent" }
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-labelledby="guia-titulo" className="fixed inset-0 z-[9990]">
+    // pointer-events: auto — si hay una ventana de Radix abierta (novedades, etc.) el body queda con "none" y la guía no recibiría toques
+    <div role="dialog" aria-modal="true" aria-labelledby="guia-titulo" className="fixed inset-0 z-[9990]" style={{ pointerEvents: "auto" }}>
       <style>{`
         @keyframes guia-bravo-entra { 0% { opacity: 0; transform: translateY(16px) scale(.92); } 60% { opacity: 1; transform: translateY(-3px) scale(1.02); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes guia-texto-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }

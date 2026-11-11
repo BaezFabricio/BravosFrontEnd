@@ -84,7 +84,8 @@ export default function GuiasAlumno({ lista }) {
   const actual = lista && esCelular ? (manual || automatica) : null
 
   // La invitación a los avisos espera mientras no se sabe si hay guía (máx. 6 s para no trabarla) o mientras hay una abierta
-  const estado = !esCelular || !lista ? "libre" : actual ? "activa" : vistas === null ? "pendiente" : "libre"
+  // Mientras todavía no se validó el acceso (lista) también es "pendiente": así el aviso de novedades no se abre antes que la guía
+  const estado = !esCelular ? "libre" : !lista ? "pendiente" : actual ? "activa" : vistas === null ? "pendiente" : "libre"
   useEffect(() => {
     window.__bravosGuia = estado
     if (estado !== "pendiente") return undefined
