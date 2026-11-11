@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, LogOut, Check, Settings, Globe, ChevronDown } from 'lucide-react';
+import { User, LogOut, Check, Settings, ChevronDown } from 'lucide-react';
 import { PANELES, panelesPermitidos } from '@/lib/paneles';
 
 function Iniciales({ nombre }) {
@@ -60,15 +60,6 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
           </div>
         </div>
 
-        {/* Dentro de un panel, primero: volver al sitio público del box */}
-        {panelActual && (
-          <div className="border-b border-border p-1.5">
-            <Link to="/inicio" onClick={() => setUserMenuOpen(false)} className={`${fila} text-foreground/80 hover:bg-foreground/5 hover:text-foreground`}>
-              <span className={`${icono} bg-foreground/5`}><Globe className="h-4 w-4" /></span>
-              Página principal
-            </Link>
-          </div>
-        )}
 
         {/* Paneles */}
         {mostrarPaneles && (

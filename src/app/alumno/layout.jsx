@@ -20,6 +20,7 @@ import {
   Trophy,
   Calculator,
   Wallet,
+  Menu,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/ModeToggle"
@@ -328,12 +329,6 @@ export default function AlumnoLayout({ children }) {
                   puedeAccederPanel={true}
                 />
               </div>
-
-              <HamburgerButton
-                isOpen={menuMovilAbierto}
-                onClick={() => setMenuMovilAbierto((v) => !v)}
-                className="lg:hidden text-foreground"
-              />
             </div>
           </div>
 
@@ -399,7 +394,9 @@ export default function AlumnoLayout({ children }) {
             const items = navigation.filter((item) => item.principal && !item.centro)
             const centro = navigation.find((item) => item.centro)
             const mitad = Math.ceil(items.length / 2)
-            return [...items.slice(0, mitad), centro, ...items.slice(mitad)].filter(Boolean).map((item) => ({
+            // "Más" al final: abre el menú completo (antes era el botón de tres líneas de arriba)
+            const masItem = { name: "Más", mobileLabel: "Más", href: "#", icon: Menu, alTocar: () => setMenuMovilAbierto((v) => !v), activo: menuMovilAbierto }
+            return [...items.slice(0, mitad), centro, ...items.slice(mitad), masItem].filter(Boolean).map((item) => ({
               ...item,
               activo: esActivo(item, pathname),
               // En "Reservas": cuántas reservas próximas hay y, tras reservar, una pista para ir a verla

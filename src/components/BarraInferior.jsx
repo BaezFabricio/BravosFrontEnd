@@ -103,7 +103,9 @@ export function BarraInferior({ items, onNavegar }) {
     if (arrastro.current && sobre !== null && items[sobre]) {
       ignorarClic.current = true // el navegador igual dispara un clic al soltar: se descarta
       setTimeout(() => { ignorarClic.current = false }, 350)
-      navigate(items[sobre].href)
+      // Un ítem con "alTocar" hace una acción en vez de navegar (por ejemplo "Más" abre el menú)
+      if (items[sobre].alTocar) items[sobre].alTocar()
+      else navigate(items[sobre].href)
       onNavegar?.()
     }
     arrastro.current = false
@@ -156,7 +158,7 @@ export function BarraInferior({ items, onNavegar }) {
           const resaltada = sobre !== null ? sobre === idx : item.activo
           if (item.centro) {
             return (
-              <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} onClick={onNavegar} aria-current={item.activo ? "page" : undefined}
+              <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} onClick={(e) => { if (item.alTocar) { e.preventDefault(); item.alTocar() } onNavegar?.() }} aria-current={item.activo ? "page" : undefined}
                 className={`relative z-10 flex min-w-0 flex-[1.1] flex-col items-center justify-end focus-visible:outline-none ${compacta ? "gap-0 pb-0" : "gap-1 pb-1.5"}`}>
                 <span className={`latido-centro flex items-center justify-center rounded-full border-4 border-background bg-lime-400 text-black shadow-lg shadow-lime-400/30 motion-safe:transition-all motion-safe:duration-300 active:scale-90 ${compacta ? "-mt-3 h-11 w-11" : "-mt-8 h-[3.75rem] w-[3.75rem]"} ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                   <Icono className="h-6 w-6" strokeWidth={2.75} />
@@ -171,7 +173,7 @@ export function BarraInferior({ items, onNavegar }) {
               ? "bg-lime-400/20 text-lime-700 shadow-inner shadow-lime-400/10 dark:text-lime-400"
               : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
           return (
-            <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} data-guia={item.guia} onClick={onNavegar} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>
+            <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} data-guia={item.guia} onClick={(e) => { if (item.alTocar) { e.preventDefault(); item.alTocar() } onNavegar?.() }} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>
               <span className={`relative transition-transform duration-300 ease-out ${resaltada ? "-translate-y-0.5 scale-110" : ""}`}>
                 <Icono className="h-5 w-5 shrink-0" strokeWidth={resaltada || item.centro ? 2.5 : 2} />
                 {item.insignia > 0 && (
