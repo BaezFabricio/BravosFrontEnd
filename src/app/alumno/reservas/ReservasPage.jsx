@@ -23,10 +23,6 @@ import {
 
 import apiClient from "@/api"
 
-const hoyISO = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
-}
 import { toast } from "@/lib/notificar"
 import VideoPlayer from "@/components/VideoPlayer"
 import ReservasMovil from "./ReservasMovil"
@@ -36,15 +32,6 @@ const estadoConfig = {
   completada: { label: "Completada", className: "bg-green-500/10 text-green-500 border-green-500/20", icon: CheckCircle2 },
   cancelada: { label: "Cancelada", className: "bg-gray-500/10 text-gray-500 border-gray-500/20", icon: X },
   inasistencia: { label: "No asistió", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
-}
-
-// Mismo criterio que el servidor: se puede marcar la asistencia desde 1 hora antes de que empiece la clase hasta que termina
-const aMinutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
-const puedeMarcarAsistencia = (reserva, ahora) => {
-  if (reserva.fecha !== hoyISO()) return false
-  const minutos = ahora.getHours() * 60 + ahora.getMinutes()
-  const fin = reserva.horaFin ? aMinutos(reserva.horaFin) : 24 * 60
-  return minutos >= aMinutos(reserva.hora) - 60 && minutos <= fin
 }
 
 const formatFechaFront = (fechaStr) => {
@@ -64,28 +51,6 @@ export default function ReservasPage() {
   const devuelveCredito = semana ? false : cancelDialog.fecha
     ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
     : true
-  // El alumno marca su asistencia desde la app, el día de la clase (el servidor valida el horario)
-  const [marcando, setMarcando] = useState(null)
-  // La hora se renueva cada medio minuto para que el botón aparezca solo cuando se abre la ventana
-  const [ahora, setAhora] = useState(() => new Date())
-  useEffect(() => {
-    const t = setInterval(() => setAhora(new Date()), 30000)
-    return () => clearInterval(t)
-  }, [])
-  const marcarMiAsistencia = async (reserva) => {
-    setMarcando(reserva.idReserva)
-    try {
-      const res = await apiClient.post(`/reservas/${reserva.idReserva}/marcar-asistencia`)
-      const estado = res.data?.data?.estado
-      toast.success(estado === "presente" ? "Asistencia registrada" : "Tu profesor ya registró tu asistencia", { guardar: false })
-      await cargarReservas()
-    } catch (err) {
-      toast.error(err.response?.data?.message || "No se pudo registrar la asistencia", { guardar: false })
-    } finally {
-      setMarcando(null)
-    }
-  }
-
   const abrirCancelar = (reserva) => setCancelDialog({
     open: true,
     idReserva: reserva.idReserva,
@@ -129,6 +94,7 @@ export default function ReservasPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarReservas()
   }, [])
 
@@ -211,20 +177,6 @@ export default function ReservasPage() {
                   <ChevronRight className="h-4 w-4 text-lime-700 dark:text-lime-400 ml-auto" />
                 </div>
               </div>
-              {showCancelButton && puedeMarcarAsistencia(reserva, ahora) && (
-                <Button
-                  variant="outline"
-                  disabled={marcando === reserva.idReserva}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    marcarMiAsistencia(reserva)
-                  }}
-                  className="min-h-[44px] shrink-0 self-start rounded-xl border-lime-500/50 px-4 text-sm font-bold text-lime-700 hover:bg-lime-400/10 dark:text-lime-400"
-                >
-                  <CheckCircle2 className="mr-1.5 h-4 w-4" />
-                  {marcando === reserva.idReserva ? "Registrando…" : "Marcar mi asistencia"}
-                </Button>
-              )}
               {showCancelButton && (
                 <Button
                   variant="outline"
