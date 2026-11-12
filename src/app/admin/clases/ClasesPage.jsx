@@ -11,6 +11,7 @@ import {
   User,
   History,
   CalendarDays,
+  Eye,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 import { TituloPagina } from "@/components/TituloPagina"
+import DetalleClaseDialog from "./DetalleClaseDialog"
 
 export default function ClasesPage() {
   const [search, setSearch] = useState("")
@@ -34,6 +36,7 @@ export default function ClasesPage() {
   const [planFiltro, setPlanFiltro] = useState("all")
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, clase: null })
+  const [claseDetalle, setClaseDetalle] = useState(null) // clase realizada de la que se ve el detalle
 
   const obtenerDatos = async () => {
     try {
@@ -248,7 +251,9 @@ export default function ClasesPage() {
 
   // Una clase única ya realizada (historial)
   const FilaRealizada = ({ clase }) => (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center gap-1 pr-2 transition-colors hover:bg-foreground/[0.03]">
+      <button type="button" onClick={() => setClaseDetalle(clase)} aria-label={`Ver el detalle de ${clase.nombreClase}`}
+        className="flex min-h-[3.5rem] min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-xs font-black text-foreground/70" aria-hidden="true">
         {iniciales(clase.nombreProfesor || clase.nombreClase)}
       </span>
@@ -263,6 +268,8 @@ export default function ClasesPage() {
           {clase.nombreProfesor && ` · Coach ${clase.nombreProfesor}`}
         </p>
       </div>
+      <span className="hidden shrink-0 items-center gap-1 text-xs font-bold text-lime-700 dark:text-lime-400 sm:inline-flex"><Eye className="h-4 w-4" aria-hidden="true" /> Ver detalle</span>
+      </button>
       {permisos.includes("clases:baja") && (
         <button type="button" onClick={() => setDeleteDialog({ open: true, clase })} aria-label={`Eliminar ${clase.nombreClase} del historial`}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-foreground/40 transition-colors hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-400">
@@ -399,6 +406,9 @@ export default function ClasesPage() {
           </div>
         )
       )}
+
+      {/* Detalle de una clase realizada: datos, rutina y quiénes reservaron */}
+      <DetalleClaseDialog key={claseDetalle?.idClase ?? "ninguna"} clase={claseDetalle} onCerrar={() => setClaseDetalle(null)} />
 
       {/* Modal de eliminar */}
       {deleteDialog.open && (
