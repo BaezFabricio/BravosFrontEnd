@@ -748,7 +748,7 @@ function LandingPage() {
           </div>
 
           {/* Celular: tarjetas que se deslizan de costado. Computadora: las tres juntas */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0">
             {claseCards.map((clase, idx) => {
               if (filtroClase !== 'todas' && filtroClase !== idx) return null
               const nivel = NIVELES[clase.level] || clase.level
