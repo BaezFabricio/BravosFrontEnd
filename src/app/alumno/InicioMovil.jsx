@@ -226,6 +226,10 @@ export default function InicioMovil({
               const hora = horaCorta(c.horaInicio)
               const libres = c.cupoDisponible ?? c.cupos
               const reservada = reservadasHoy.has(c.idHorario)
+              // Si la clase ya empezó no se puede reservar: no se muestra el botón
+              const [hh, mm] = String(c.horaInicio || "00:00").slice(0, 5).split(":").map(Number)
+              const ahora = new Date()
+              const yaEmpezo = (ahora.getHours() * 60 + ahora.getMinutes()) >= (hh * 60 + mm)
               return (
                 <li key={c.idHorario || c.id} className={`flex items-center gap-3.5 rounded-[0.875rem] border p-3.5 ${reservada ? "border-bx-ok-line bg-bx-ok-bg" : "border-bx-line bg-bx-card"}`}>
                   <div className="bx-num min-w-[4.125rem] text-[2rem] leading-none">{hora}</div>
@@ -233,7 +237,9 @@ export default function InicioMovil({
                     <div className="truncate text-[0.9375rem] font-bold">{c.nombreClase || c.nombre}</div>
                     <div className="truncate text-[0.8125rem] text-bx-muted">{c.nombreProfesor || "Staff Bravos"}{libres != null ? ` · ${plural(libres, "lugar", "lugares")}` : ""}</div>
                   </div>
-                  {reservada ? (
+                  {yaEmpezo && !reservada ? (
+                    <span className="shrink-0 rounded-full border border-bx-line px-2.5 py-1.5 text-xs font-bold text-bx-muted">Terminada</span>
+                  ) : reservada ? (
                     <span className="shrink-0 rounded-full border border-bx-ok-line bg-bx-card px-2.5 py-1.5 text-xs font-bold text-bx-ok-fg">Reservada</span>
                   ) : (
                     <Link to="/alumno/reservar" aria-label={`Reservar la clase de las ${hora}, usa 1 crédito`} className="grid h-11 shrink-0 place-items-center rounded-lg bg-bx-lima px-4 text-sm font-bold text-bx-negro transition-transform duration-200 active:scale-95">Reservar</Link>
