@@ -326,13 +326,20 @@ function LandingPage() {
         </section>
 
         {/* NOSOTROS: el lema es lo único con la tipografía stencil del logo */}
-        <section id="nosotros" aria-labelledby="t-nos" className="scroll-mt-20 border-b border-[#1f1f1f]">
-          <div className="mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-24 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+        <section id="nosotros" aria-labelledby="t-nos" className="relative scroll-mt-20 overflow-hidden">
+          {/* Foto del box con degradé arriba y abajo: así Nosotros se separa de lo de arriba y de lo de abajo */}
+          <div aria-hidden="true" className="absolute inset-0">
+            <ImgConSkeleton src={cfg.imagenNosotros || '/gym-interior.jpg'} alt="" className="h-full w-full object-cover" containerClassName="h-full w-full" />
+            <div className="absolute inset-0 bg-black/80" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
+          </div>
+          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-24 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
             <p className="m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
             <div className="flex flex-col gap-3.5">
-              <img src="/malvinas.png" alt="" aria-hidden="true" className="h-auto w-[12.5rem] max-w-[60%]" />
+              <img src="/malvinas.png" alt="" aria-hidden="true" className="mx-auto block h-auto w-[12.5rem] max-w-[60%]" />
               <h2 id="t-nos" className="m-0 font-[Archivo]! text-2xl leading-[1.25] font-extrabold text-[#ecefe4]">Honor y gloria a los Bravos de Malvinas</h2>
               <p className="m-0 text-base leading-relaxed text-[#c9ccbf]">{cfg.descripcionNosotros || TEXTO_NOSOTROS}</p>
               <p className="m-0 text-base leading-relaxed text-[#a3a698]">{cfg.mision || TEXTO_MISION}</p>
@@ -345,7 +352,7 @@ function LandingPage() {
           <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5">
+            <div className="mx-auto grid max-w-[1100px] grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5">
               {clases.map((k, i) => (
                 <article key={i} id={`clase-${i + 1}`} className="group flex scroll-mt-20 flex-col overflow-hidden rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   <div className="relative aspect-[16/10] overflow-hidden">
