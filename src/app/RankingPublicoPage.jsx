@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Medal, Search } from "lucide-react"
-import PodioRanking from "@/components/PodioRanking"
 import UserMenu from "@/components/UserMenu"
 import { haySesion, cerrarSesionEnServidor } from "@/lib/sesion"
+import { formatearValor } from "@/lib/ranking"
 
 // Datos de la sesión (los mismos que usa la portada); el servidor igual valida todo
 function leerSesion() {
@@ -22,11 +22,16 @@ function leerSesion() {
   }
 }
 
-const iniciales = (nombre) => String(nombre || "?").trim().split(/s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "?"
+const iniciales = (nombre) => String(nombre || "?").trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("") || "?"
+
+// Podio: 1.º al centro (más alto), 2.º a la izquierda y 3.º a la derecha
+const COLOR_PUESTO = { 1: "#e6c200", 2: "#c9ccbf", 3: "#c98a4b" }
+const ALTURA_PUESTO = { 1: "7.5rem", 2: "5.625rem", 3: "4.25rem" }
+const ORDEN_PODIO = [2, 1, 3]
 
 /*
- * Página pública del ranking de RM del box: se abre desde el botón "Ranking" de la portada.
- * Muestra los 20 primeros de cada ejercicio (nombre y marca). Para cargar el propio RM hay que ingresar.
+ * Página pública del ranking de RM del box (diseño "Bravos Ranking"). Muestra los primeros 20 de cada ejercicio.
+ * Para aparecer hay que cargar la propia marca desde el panel del alumno.
  */
 export default function RankingPublicoPage() {
   const [datos, setDatos] = useState(null)
@@ -50,33 +55,37 @@ export default function RankingPublicoPage() {
   const cerrarSesion = () => {
     cerrarSesionEnServidor()
     ;["usuario", "avatarUrl", "permisos"].forEach((k) => localStorage.removeItem(k))
-    window.location.href = "/inicio"
+    window.location.href = "/"
   }
 
   const ejercicios = datos?.ejercicios || []
   const actual = datos?.ejercicio
-  const filas = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
-    const todas = datos?.ranking || []
-    return q ? todas.filter((f) => String(f.nombre).toLowerCase().includes(q)) : todas
-  }, [datos, busqueda])
+  const todas = useMemo(() => datos?.ranking || [], [datos])
+  const q = busqueda.trim().toLowerCase()
+  const filas = useMemo(() => (q ? todas.filter((f) => String(f.nombre).toLowerCase().includes(q)) : todas.slice(3)), [todas, q])
+  const puesto = (n) => todas.find((f) => f.posicion === n)
+  const mia = todas.find((f) => f.esMio)
+  const tipo = actual?.tipoMarca || "peso"
+  const nombreEj = actual?.nombre || ""
+  const destinoMarcas = sesion ? "/alumno/marcas" : "/login"
 
   return (
-    <div className="dark min-h-screen bg-black text-foreground">
-      <header className="flex items-center justify-between gap-3 border-b border-lime-400/40 px-4 py-3 sm:px-8">
-        <Link to="/inicio" className="flex items-center gap-3" aria-label="Volver al inicio">
-          <img src="/acceso/brvs.png" alt="" className="h-10 w-10 rounded-lg" />
-          <span className="hidden text-lg font-black tracking-[0.3em] text-lime-400 sm:block">BRAVOS BOX</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <Link to="/inicio" className="flex h-10 items-center rounded-full bg-lime-400 px-4 text-xs font-black tracking-widest text-black transition-colors hover:bg-lime-300">VOLVER AL SITIO</Link>
+    <div className="min-h-screen bg-[#0b0b0b] text-[#ecefe4]" style={{ fontFamily: "Archivo, sans-serif" }}>
+      <header className="sticky top-0 z-10 border-b border-[#262626] bg-[rgba(11,11,11,.92)] backdrop-blur-[10px]">
+        <div className="mx-auto flex h-[68px] max-w-[1720px] items-center gap-3 px-5">
+          <Link to="/" aria-label="Bravos Box, inicio" className="flex">
+            <img src="/bravos-logo.png" alt="Bravos Box" className="h-[34px] w-auto" />
+          </Link>
+          <span className="flex-1" />
+          <Link to="/" className="hidden h-11 items-center gap-2 rounded-[10px] border border-[#333] px-4 text-sm font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] sm:flex">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
+            Volver al sitio
+          </Link>
           {sesion ? (
             <div className="relative">
               <button type="button" onClick={() => setMenuAbierto((v) => !v)} aria-label="Abrir el menú de tu cuenta" aria-expanded={menuAbierto}
-                className="flex items-center gap-1 focus:outline-none">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-xs font-black text-black">
-                  {sesion.avatarUrl ? <img src={sesion.avatarUrl} alt="" className="h-full w-full object-cover" /> : iniciales(sesion.userData.nombrecompleto)}
-                </span>
+                className="grid h-11 w-11 place-items-center overflow-hidden rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-sm font-extrabold text-[#9be600]">
+                {sesion.avatarUrl ? <img src={sesion.avatarUrl} alt="" className="h-full w-full object-cover" /> : iniciales(sesion.userData.nombrecompleto)}
               </button>
               <UserMenu
                 userData={sesion.userData}
@@ -91,47 +100,135 @@ export default function RankingPublicoPage() {
               />
             </div>
           ) : (
-            <Link to="/login" className="flex h-10 items-center rounded-full border border-white/25 px-4 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10">INGRESAR</Link>
+            <Link to="/login" className="flex h-11 items-center rounded-[10px] px-4 text-xs font-black tracking-widest text-[#ecefe4] no-underline hover:bg-[#161616]">INGRESAR</Link>
           )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl space-y-5 px-4 py-8 sm:px-8 sm:py-12">
-        <div>
-          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-400">Los mejores del box</p>
-          <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">RANKING <span className="text-lime-400">DE RM</span></h1>
-          <p className="mt-2 text-sm text-white/60">Las mejores marcas de nuestros alumnos por ejercicio. {sesion ? "Cargá tu RM desde tu panel para aparecer." : "Para aparecer, ingresá y cargá tu RM."}</p>
-        </div>
+      {/* Encabezado oscuro con el logo de fondo y el puesto propio */}
+      <section className="relative overflow-hidden border-b border-[#1f1f1f] bg-[#0e0e0e]">
+        <img src="/bravos-logo.png" alt="" aria-hidden="true" className="pointer-events-none absolute top-1/2 -right-20 w-[56.25rem] -translate-y-1/2 -rotate-6 opacity-5 [filter:grayscale(1)_brightness(1.4)]" />
+        <div className="relative mx-auto flex max-w-[1120px] flex-wrap items-end justify-between gap-7 px-5 py-14">
+          <div className="max-w-[35rem]">
+            <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">LOS MEJORES DEL BOX</p>
+            <h1 className="mt-2 mb-0 font-[Archivo]! text-[2.25rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[3rem]">Ranking de RM</h1>
+            <p className="mt-3 text-base leading-normal text-[#a3a698]">
+              Las mejores marcas de nuestros alumnos por ejercicio. {sesion ? "Cargá tu RM desde tu panel para aparecer." : "Para aparecer, ingresá y cargá tu RM."}
+            </p>
+          </div>
 
+          {actual && (
+            <div className="flex flex-wrap items-center gap-[1.125rem] rounded-2xl border border-[#3d5a10] bg-[#141414] px-5 py-[1.125rem]">
+              <div>
+                <p className="m-0 text-[0.6875rem] font-semibold tracking-[.1em] whitespace-nowrap text-[#a3a698] uppercase">Tu puesto en {nombreEj}</p>
+                <div className="mt-1 flex items-baseline gap-2.5">
+                  <span className="text-4xl leading-none font-extrabold text-[#9be600]">{mia ? `${mia.posicion}º` : "—"}</span>
+                  <span className="text-base font-bold">{mia ? formatearValor(tipo, mia.valor) : "Sin marca"}</span>
+                </div>
+              </div>
+              <Link to={destinoMarcas} className="flex h-11 items-center rounded-[10px] bg-[#9be600] px-4 text-[0.8125rem] font-extrabold tracking-[.03em] whitespace-nowrap text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d]">
+                ACTUALIZAR MI RM
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <main className="mx-auto flex max-w-[1120px] flex-col gap-7 px-5 pt-8 pb-24">
         {error ? (
-          <p className="rounded-2xl border border-white/15 p-8 text-center text-white/70">No se pudo cargar el ranking. Probá de nuevo en un momento.</p>
+          <p className="rounded-2xl border border-[#262626] p-8 text-center text-[#a3a698]">No se pudo cargar el ranking. Probá de nuevo en un momento.</p>
         ) : !datos ? (
-          <p className="text-white/50" role="status">Cargando…</p>
+          <p className="text-[#a3a698]" role="status">Cargando…</p>
         ) : !actual ? (
-          <div className="rounded-2xl border border-white/15 p-10 text-center">
-            <Medal className="mx-auto mb-3 h-10 w-10 text-white/40" aria-hidden="true" />
-            <p className="font-bold text-white">Todavía no hay marcas cargadas</p>
-            <p className="mt-1 text-sm text-white/60">Cuando los alumnos carguen su RM, vas a ver el ranking acá.</p>
+          <div className="rounded-2xl border border-[#262626] p-10 text-center">
+            <Medal className="mx-auto mb-3 h-10 w-10 text-[#6b6b6b]" aria-hidden="true" />
+            <p className="m-0 font-bold">Todavía no hay marcas cargadas</p>
+            <p className="mt-1 text-sm text-[#a3a698]">Cuando los alumnos carguen su RM, vas a ver el ranking acá.</p>
           </div>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_16.25rem]">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" aria-hidden="true" />
-                <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un alumno" aria-label="Buscar alumno"
-                  className="h-12 w-full rounded-xl border border-white/20 bg-white/5 pl-10 pr-3 text-base text-white outline-none placeholder:text-white/35 focus:border-lime-400" />
+            <div className="flex flex-wrap items-center gap-3">
+              <div role="group" aria-label="Ejercicio" className="flex min-w-[16rem] flex-1 flex-wrap gap-2">
+                {ejercicios.map((e) => {
+                  const on = e.idCatalogo === actual.idCatalogo
+                  return (
+                    <button key={e.idCatalogo} type="button" aria-pressed={on} onClick={() => { setIdCatalogo(e.idCatalogo); setBusqueda("") }}
+                      className={`h-11 rounded-full border px-4 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? "border-[#9be600] bg-[#9be600] text-[#0b0b0b]" : "border-[#333] text-[#ecefe4] hover:border-[#555]"}`}>
+                      {e.nombre}
+                    </button>
+                  )
+                })}
               </div>
-              <select value={actual.idCatalogo} onChange={(e) => { setIdCatalogo(Number(e.target.value)); setBusqueda("") }} aria-label="Filtrar por ejercicio"
-                className="h-12 w-full rounded-xl border border-white/20 bg-white/5 px-3 text-base font-bold text-white outline-none focus:border-lime-400">
-                {ejercicios.map((e) => <option key={e.idCatalogo} value={e.idCatalogo} className="bg-black text-white">{e.nombre}{e.participantes > 0 ? ` (${e.participantes})` : ""}</option>)}
-              </select>
+              <label className="relative block min-w-[15rem] flex-[0_1_340px]">
+                <span className="sr-only">Buscar un alumno</span>
+                <Search className="pointer-events-none absolute top-[0.8125rem] left-3.5 h-[18px] w-[18px] text-[#a3a698]" aria-hidden="true" />
+                <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un alumno"
+                  className="h-11 w-full rounded-[10px] border border-[#333] bg-[#141414] pr-3.5 pl-[2.625rem] text-[0.9375rem] font-medium text-[#ecefe4] outline-[#9be600] placeholder:text-[#6b6b6b]" />
+              </label>
             </div>
 
-            {filas.length === 0 ? (
-              <p className="rounded-2xl border border-white/15 p-8 text-center text-sm text-white/60">{(datos.ranking || []).length === 0 ? `Nadie cargó una marca de ${actual.nombre} todavía.` : "Nadie coincide con la búsqueda."}</p>
-            ) : (
-              <PodioRanking filas={filas} tipo={actual.tipoMarca} />
+            {/* Podio (se oculta al buscar) */}
+            {!q && (
+              <section aria-label="Podio" className="grid grid-cols-3 items-end gap-3.5">
+                {ORDEN_PODIO.map((n) => {
+                  const f = puesto(n)
+                  const c = COLOR_PUESTO[n]
+                  const av = n === 1 ? "4.75rem" : "3.875rem"
+                  return (
+                    <div key={n} className="flex flex-col items-center gap-2.5 text-center">
+                      {f ? (
+                        <div className="flex w-full flex-col items-center gap-2">
+                          <span className="grid place-items-center rounded-full border-[3px] bg-[#1f2a0e] text-lg font-extrabold text-[#9be600]" style={{ width: av, height: av, borderColor: c }}>{iniciales(f.nombre)}</span>
+                          <span className="flex max-w-full items-center justify-center gap-1.5 text-[0.9375rem] leading-tight font-bold whitespace-nowrap">
+                            <span className="overflow-hidden text-ellipsis">{f.nombre}</span>
+                            {f.esMio && <span className="rounded-md bg-[#9be600] px-1.5 py-0.5 text-[0.625rem] font-extrabold text-[#0b0b0b]">VOS</span>}
+                          </span>
+                          <span className="text-[1.375rem] leading-tight font-extrabold">{formatearValor(tipo, f.valor)}</span>
+                        </div>
+                      ) : (
+                        <div className="flex w-full flex-col items-center gap-1.5">
+                          <span className="grid place-items-center rounded-full border-2 border-dashed border-[#333] text-xl font-bold text-[#6b6b6b]" style={{ width: av, height: av }} aria-hidden="true">?</span>
+                          <span className="text-sm leading-tight font-semibold whitespace-nowrap text-[#a3a698]">Puesto libre</span>
+                          <Link to={destinoMarcas} className="flex min-h-8 items-center text-[0.8125rem] leading-tight font-bold whitespace-nowrap text-[#9be600] no-underline">Cargá tu RM</Link>
+                        </div>
+                      )}
+                      <div className="flex w-full items-start justify-center rounded-t-2xl border border-b-0 pt-3.5 text-[1.875rem] font-extrabold"
+                        style={{ height: ALTURA_PUESTO[n], background: f ? (n === 1 ? "#1a1d0f" : "#161616") : "transparent", borderColor: f ? (n === 1 ? "#5a5212" : "#262626") : "#262626", color: c }}>
+                        {n}º
+                      </div>
+                    </div>
+                  )
+                })}
+              </section>
             )}
+
+            {/* Tabla desde el 4.º puesto (al buscar, toda la lista) */}
+            <section aria-label={`Ranking de ${nombreEj}`} className="overflow-hidden rounded-2xl border border-[#262626] bg-[#141414]">
+              <div className="grid grid-cols-[72px_minmax(0,1fr)_120px] gap-3 border-b border-[#262626] px-5 py-3 text-[0.6875rem] font-semibold tracking-[.1em] text-[#a3a698]">
+                <span>PUESTO</span><span>ALUMNO</span><span className="text-right">RM</span>
+              </div>
+              {filas.length === 0 ? (
+                <div className="px-5 py-9 text-center">
+                  <p className="m-0 font-bold">{q ? `No encontramos a "${busqueda.trim()}"` : "Por ahora solo está el podio"}</p>
+                  <p className="mt-1 text-sm text-[#a3a698]">{q ? "Probá con otro nombre." : "Cuando más alumnos carguen su RM, aparecen acá desde el 4º puesto."}</p>
+                </div>
+              ) : (
+                <ol className="m-0 list-none p-0">
+                  {filas.map((f, i) => (
+                    <li key={`${f.posicion}-${f.nombre}-${i}`} className="grid min-h-[3.75rem] grid-cols-[72px_minmax(0,1fr)_120px] items-center gap-3 border-t px-5 py-2"
+                      style={{ borderColor: i ? "#1f1f1f" : "transparent", background: f.esMio ? "#121a0a" : "transparent" }}>
+                      <span className="text-base font-extrabold" style={{ color: COLOR_PUESTO[f.posicion] || "#a3a698" }}>{f.posicion}º</span>
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="grid h-[2.125rem] w-[2.125rem] shrink-0 place-items-center rounded-full bg-[#1f1f1f] text-xs font-extrabold text-[#c9ccbf]">{iniciales(f.nombre)}</span>
+                        <span className="truncate text-[0.9375rem] font-bold">{f.nombre}</span>
+                        {f.esMio && <span className="shrink-0 rounded-md bg-[#9be600] px-1.5 py-0.5 text-[0.625rem] font-extrabold text-[#0b0b0b]">VOS</span>}
+                      </span>
+                      <span className="text-right text-[1.0625rem] font-extrabold">{formatearValor(tipo, f.valor)}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
           </>
         )}
       </main>

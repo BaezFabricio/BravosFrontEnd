@@ -1,59 +1,48 @@
-import { haySesion, cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import {
-  ChevronDown,
-  ChevronRight,
-  MapPin,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Clock,
-  Mail
-} from 'lucide-react'
-
-import { MoveHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
+import { ChevronRight, LogOut, Mail, MapPin, Menu, Trophy, X } from 'lucide-react'
+import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import UserMenu from '@/components/UserMenu'
 import NotificacionesBell from '@/components/NotificacionesBell'
 import NovedadesPortada from '@/components/NovedadesPortada'
 
-const navigation = [
-  { name: 'INICIO', href: '#', hasDropdown: false },
-  { name: 'CLASES', href: '#clases', hasDropdown: true },
-  { name: 'HORARIOS', href: '#horarios', hasDropdown: false },
-  { name: 'NOVEDADES', href: '#novedades', hasDropdown: false, soloSesion: true, accion: 'novedades' },
-  { name: 'NOSOTROS', href: '#nosotros', hasDropdown: false },
-  { name: 'CONTACTO', href: '#contacto', hasDropdown: false },
+/*
+ * Portada pública (diseño "Bravos Landing"). Los datos de clases, contacto, horarios y mapa salen de Configuración
+ * y de los turnos publicados; el diseño y los textos fijos son los de la referencia.
+ */
+
+// "Novedades" del menú solo aparece con sesión iniciada (abre el aviso con todas las novedades)
+const MENU = [
+  { name: 'Clases', href: '#clases' },
+  { name: 'Horarios', href: '#horarios' },
+  { name: 'Novedades', href: '#novedades', soloSesion: true, accion: 'novedades' },
+  { name: 'Nosotros', href: '#nosotros' },
+  { name: 'Contacto', href: '#contacto' },
 ]
 
-// "Novedades" solo aparece con sesión iniciada: la sección de la portada también es solo para ellos
-const menuItems = () => navigation.filter((item) => !item.soloSesion || haySesion())
+const TEXTO_NOSOTROS = 'Nuestro centro de entrenamiento busca honrar la memoria de los héroes argentinos. Por los que volvieron y los que se quedaron velando por nuestras Islas.'
+const TEXTO_MISION = 'Somos una comunidad comprometida con el bienestar y el desarrollo integral de las personas. Trabajamos con atención, profesionalismo y compromiso, acompañando a cada alumno a superar sus propios límites a través del CrossFit.'
 
-// Un ítem con "accion" no hace scroll: hace algo en la página (NOVEDADES abre el aviso con todas las novedades)
+const DIAS = [
+  { label: 'LUNES', corto: 'LUN', value: 'LUNES' },
+  { label: 'MARTES', corto: 'MAR', value: 'MARTES' },
+  { label: 'MIÉRCOLES', corto: 'MIÉ', value: 'MIERCOLES' },
+  { label: 'JUEVES', corto: 'JUE', value: 'JUEVES' },
+  { label: 'VIERNES', corto: 'VIE', value: 'VIERNES' },
+  { label: 'SÁBADO', corto: 'SÁB', value: 'SABADO' },
+]
+
 const abrirAccion = (e, item) => {
   if (!item.accion) return
   e.preventDefault()
   if (item.accion === 'novedades') window.dispatchEvent(new Event('bravos:abrir-novedades'))
 }
 
-// En el celular la foto horizontal se recorta a los costados: para algunas fotos se elige qué parte
-// queda a la vista (posición horizontal). Se reconocen por el nombre del archivo en Cloudinary.
-const ENFOQUE_MOVIL = {
-  davcsvmbrdsoditcgyyb: '60% center', // soldado al que cargan sus compañeros
-}
-const enfoqueMovil = (url) => {
-  const clave = Object.keys(ENFOQUE_MOVIL).find((id) => url.includes(id))
-  return clave ? ENFOQUE_MOVIL[clave] : undefined
-}
-
 /*
- * Horarios de atención: se cargan en Configuración como texto libre ("Lun-Vie: 6:00 - 22:00",
- * "Domingo: Cerrado"). Se separan en etiqueta y valor, y si se puede leer el rango de horas se
- * calcula si el box está abierto ahora. Si el texto no se entiende, no se muestra nada de eso.
+ * Horarios de atención: se cargan en Configuración como texto libre ("Lun-Vie: 6:00 - 22:00", "Domingo: Cerrado").
+ * Si se puede leer el rango de horas se calcula si el box está abierto ahora.
  */
 function leerHorario(texto) {
   if (!texto) return null
@@ -79,90 +68,117 @@ function estaAbiertoAhora(semana, sabado, domingo) {
   return minutos >= hoy.rango.desde && minutos < hoy.rango.hasta
 }
 
-// Nivel de las tarjetas de clases, escrito completo
-const NIVELES = { TODOS: 'Todos los niveles', 'INT/AVZ': 'Intermedio y avanzado' }
+// Número de WhatsApp solo con dígitos (wa.me pide 549 + característica + número)
+function digitosWhatsapp(valor) {
+  let d = (valor || '').replace(/\D/g, '')
+  if (!d) return ''
+  if (d.startsWith('549')) return d
+  if (d.startsWith('54')) return '549' + d.slice(2)
+  return '549' + d.replace(/^0/, '')
+}
+
+const iniciales = (nombre) => {
+  if (!nombre || nombre === 'Usuario Bravos') return 'UB'
+  const partes = nombre.trim().split(' ')
+  return partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : nombre.substring(0, 2).toUpperCase()
+}
+
+// Sesión guardada en el navegador (el servidor igual valida todo)
+function leerSesion() {
+  if (!haySesion()) return null
+  const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(clave) || '') ?? defecto } catch { return defecto } }
+  const u = leer('usuario', {})
+  return {
+    userData: {
+      nombrecompleto: u?.nombrecompleto || u?.nombre || u?.username || 'Usuario Bravos',
+      correo: u?.correo || u?.email || 'sin-correo@bravos.com',
+      perfil: u?.perfil || u?.rol || u?.tipo || 'cliente',
+      estado: u?.estado || 'activo',
+    },
+    permisos: Array.isArray(leer('permisos', [])) ? leer('permisos', []) : [],
+    avatarUrl: localStorage.getItem('avatarUrl') || '',
+  }
+}
 
 function LandingPage() {
-  const navigate = useNavigate()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [clasesAbiertas, setClasesAbiertas] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState(null)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [heroImages, setHeroImages] = useState([]) // sin fotos de relleno: hasta que llegan las reales se ve el skeleton
-  const [titulo, setTitulo] = useState('Centro de Entrenamiento')
-  const [logoUrl, setLogoUrl] = useState(null)
-  const [logoFailed, setLogoFailed] = useState(false)
-  const [logoImgLoaded, setLogoImgLoaded] = useState(false)
-  const [configLoaded, setConfigLoaded] = useState(false)
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const [tituloSize, setTituloSize] = useState(null)
-  const [tituloFont, setTituloFont] = useState(null)
-  const [logoTs, setLogoTs] = useState(Date.now())
-
-  // Nosotros
-  const [tituloNosotros, setTituloNosotros] = useState('')
-  const [descripcionNosotros, setDescripcionNosotros] = useState('')
-  const [mision, setMision] = useState('')
-  const [imagenNosotros, setImagenNosotros] = useState('/gym-interior.jpg')
-
-  // Clases cards
-  // Dos tarjetas: CrossFit (claseCard1) y Planificación (claseCard3). La del medio ya no se muestra.
-  const [claseCards, setClaseCards] = useState([
-    { titulo: 'CrossFit', descripcion: 'Entrenamiento funcional de alta intensidad.', duration: '60 MIN', level: 'TODOS', image: '/hero-crossfit.jpg' },
-    { titulo: 'Planificación', descripcion: 'Programa personalizado para atletas.', duration: '90 MIN', level: 'TODOS', image: '/gym-interior.jpg' },
-  ])
-
-  // Contacto
-  const [direccion, setDireccion] = useState('Eva Perón 552')
-  const [telefono, setTelefono] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
-  const [emailContacto, setEmailContacto] = useState('')
-  const [instagram, setInstagram] = useState('')
-  const [horarioSemana, setHorarioSemana] = useState('Lun-Vie: 6:00 - 22:00')
-  const [horarioSabado, setHorarioSabado] = useState('Sábado: 17:00 - 19:00')
-  const [horarioDomingo, setHorarioDomingo] = useState('Domingo: Cerrado')
-  const [mapaVisible, setMapaVisible] = useState(false)
-  const [filtroClase, setFiltroClase] = useState('todas') // "todas" o el índice de la tarjeta
-  const [estadisticas, setEstadisticas] = useState(null) // cifras reales del box (solo cantidades)
-  const [mapaUrl, setMapaUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3540.0638546114256!2d-58.1764654246146!3d-26.18374827715694!2m3!1f0!2f0!3f0!3m2!1i1020!2i540!4f13.1!3m3!1m2!1s0x94576a911765c9b9%3A0x6b6d51c337b587!2sEva%20Per%C3%B3n%20552%2C%20Formosa!5e0!3m2!1ses-419!2sar!4v1716382000000')
-
-  // Submenú de CLASES: una entrada por tarjeta, con el mismo nombre, que lleva a esa tarjeta
-  const subItemsClases = claseCards.map((clase, idx) => ({ name: clase.titulo, href: `#clase-${idx + 1}` }))
-
-  const showLogoSkeleton = !logoUrl || logoFailed || !logoImgLoaded
-  const pageLoading = !configLoaded || (!!logoUrl && !logoImgLoaded && !logoFailed)
-
+  const [sesion, setSesion] = useState(leerSesion)
+  const [menuAbierto, setMenuAbierto] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('avatarUrl') || '')
-  
-  const [permisos, setPermisos] = useState([])
-  const [userData, setUserData] = useState({
-    nombrecompleto: 'Usuario Bravos',
-    correo: 'sin-correo@bravos.com',
-    perfil: 'cliente',
-    estado: 'activo'
-  });
-
-  // 🟢 ESTADOS DE HORARIOS SCONECTADOS
-  const [turnosBox, setTurnosBox] = useState([]) // horarios de los turnos del box, por tipo de clase
+  const [configLoaded, setConfigLoaded] = useState(false)
+  const [cfg, setCfg] = useState({})
+  const [turnosBox, setTurnosBox] = useState([])
   const [loadingHorarios, setLoadingHorarios] = useState(true)
-  // Arranca en el día de hoy (el domingo no hay clases: arranca en el lunes)
-  const [diaSeleccionado, setDiaSeleccionado] = useState(() => {
-    const hoy = ['LUNES', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'][new Date().getDay()]
-    return hoy
-  })
+  const [diaSeleccionado, setDiaSeleccionado] = useState(() => ['LUNES', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'][new Date().getDay()])
+  const [mapaVisible, setMapaVisible] = useState(false)
 
-  const diasSemanaMapeo = [
-    { label: 'LUNES', corto: 'LUN', value: 'LUNES' },
-    { label: 'MARTES', corto: 'MAR', value: 'MARTES' },
-    { label: 'MIÉRCOLES', corto: 'MIÉ', value: 'MIERCOLES' },
-    { label: 'JUEVES', corto: 'JUE', value: 'JUEVES' },
-    { label: 'VIERNES', corto: 'VIE', value: 'VIERNES' },
-    { label: 'SÁBADO', corto: 'SÁB', value: 'SABADO' }
+  const logueado = !!sesion
+
+  // Datos de la configuración (con reintentos si el servidor no responde; sin datos de relleno)
+  useEffect(() => {
+    let vivo = true
+    let reintento = null
+    const alAvatar = (e) => setSesion((s) => (s ? { ...s, avatarUrl: e.detail || '' } : s))
+    window.addEventListener('avatar-updated', alAvatar)
+
+    const cargarConfig = (intento = 0) => fetch(`/landing/config?t=${Date.now()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`La configuración respondió ${res.status}`)
+        return res.json()
+      })
+      .then((data) => {
+        if (!vivo) return
+        setCfg(data || {})
+        setConfigLoaded(true)
+      })
+      .catch((err) => {
+        console.error('No se pudo cargar la configuración, se reintenta:', err)
+        if (vivo) reintento = setTimeout(() => cargarConfig(intento + 1), Math.min(2000 * 2 ** intento, 15000))
+      })
+    cargarConfig()
+
+    fetch('/api/vv1/turnos/publicos')
+      .then((res) => res.json())
+      .then((result) => { if (vivo) setTurnosBox(Array.isArray(result.data) ? result.data : []) })
+      .catch((err) => console.error('Error al sincronizar horarios en la landing:', err))
+      .finally(() => { if (vivo) setLoadingHorarios(false) })
+
+    return () => {
+      vivo = false
+      if (reintento) clearTimeout(reintento)
+      window.removeEventListener('avatar-updated', alAvatar)
+    }
+  }, [])
+
+  // Un solo panel a la vez: el menú del celular y el de cuenta no quedan abiertos juntos
+  useEffect(() => {
+    const alTeclear = (e) => { if (e.key === 'Escape') { setMenuAbierto(false); setUserMenuOpen(false) } }
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [])
+
+  const handleLogout = () => {
+    cerrarSesionEnServidor()
+    ;['usuario', 'avatarUrl', 'permisos'].forEach((k) => localStorage.removeItem(k))
+    window.location.reload()
+  }
+
+  const permisos = sesion?.permisos || []
+  const tieneModulosAdmin = permisos.some((p) => ['usuarios:', 'dashboard:', 'perfiles:', 'membresias:', 'clases:', 'reservas:', 'creditos:', 'configuracion:'].some((pre) => p.startsWith(pre)))
+  const tieneModulosAlumno = permisos.some((p) => p.startsWith('alumno'))
+  const tieneModulosProfesor = permisos.some((p) => p.startsWith('profesor'))
+  const puedeAccederPanel = permisos.length > 0 && sesion?.userData.estado === 'activo'
+  const panelesDisponibles = [tieneModulosAlumno && '/alumno', tieneModulosProfesor && '/profesor', tieneModulosAdmin && '/admin'].filter(Boolean)
+  const rutaMiPanel = panelesDisponibles.length === 1 ? panelesDisponibles[0] : '/seleccionar-panel'
+
+  const menu = MENU.filter((item) => !item.soloSesion || logueado)
+
+  // Clases: dos tarjetas (CrossFit y Planificación), con lo que se cargó en Configuración
+  const clases = [
+    { t: cfg.claseCard1Titulo || 'CrossFit', d: cfg.claseCard1Descripcion || 'Entrenamiento funcional de alta intensidad.', min: '60 min', img: cfg.imagenClase1 || '/grupo.png', alt: 'Comunidad Bravos en el box' },
+    { t: cfg.claseCard3Titulo || 'Planificación', d: cfg.claseCard3Descripcion || 'Programa personalizado para atletas.', min: '90 min', img: cfg.imagenClase3 || '/atleta.png', alt: 'Atleta levantando la barra' },
   ]
 
-  // Sábado: el box solo abre para Planificación Atleta, turno Siesta. Los demás días se muestran todos los turnos.
+  // Horarios del día elegido (el sábado solo abre Planificación Atleta, turno siesta)
   const turnosDelDia = diaSeleccionado === 'SABADO'
     ? turnosBox
         .filter((t) => /atleta/i.test(t.nombre))
@@ -170,891 +186,374 @@ function LandingPage() {
         .filter((t) => t.horarios.length > 0)
     : turnosBox
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+  const whatsapp = digitosWhatsapp(cfg.whatsapp || cfg.telefono)
+  const direccion = cfg.direccion || 'Eva Perón 552'
+  const [calle, ...resto] = direccion.split(',')
+  const abiertoAhora = estaAbiertoAhora(cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo)
+  const filasHorario = [cfg.horario_semana || 'Lun-Vie: 6:00 - 22:00', cfg.horario_sabado || 'Sábado: 17:00 - 19:00', cfg.horario_domingo || 'Domingo: Cerrado'].map(leerHorario).filter(Boolean)
+  const destinoReserva = logueado ? '/alumno/reservar' : '/registro'
+  const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(`${direccion}, Formosa`)}`
 
-  useEffect(() => {
-    let isMounted = true
-    const storedUser = localStorage.getItem("usuario")
-    const storedAvatar = localStorage.getItem("avatarUrl")
-    const storedPermisos = localStorage.getItem("permisos")
+  if (!configLoaded) return <LandingPageSkeleton />
 
-    if (storedAvatar) setAvatarUrl(storedAvatar)
-
-    if (storedPermisos) {
-      try {
-        setPermisos(JSON.parse(storedPermisos))
-      } catch (error) {
-        console.error("Error al parsear permisos:", error)
-      }
-    }
-
-    if (haySesion()) {
-      setIsLoggedIn(true)
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser)
-          setUserData({
-            nombrecompleto: parsedUser?.nombrecompleto || parsedUser?.nombre || parsedUser?.username || 'Usuario Bravos',
-            correo: parsedUser?.correo || parsedUser?.email || 'sin-correo@bravos.com',
-            perfil: parsedUser?.perfil || parsedUser?.rol || parsedUser?.tipo || 'cliente',
-            estado: parsedUser?.estado || 'activo'
-          })
-        } catch (error) {
-          console.error("Error al parsear el usuario:", error)
-        }
-      }
-    } else {
-      setIsLoggedIn(false)
-    }
-
-    const handleAvatarUpdated = (event) => {
-      setAvatarUrl(event.detail || "")
-    }
-
-    window.addEventListener("avatar-updated", handleAvatarUpdated)
-
-    // Si la configuración no llega (servidor caído, conexión lenta o un error), NO se muestra la página con
-    // datos de relleno: sigue el skeleton y se vuelve a intentar solo (2 s, 4 s, 8 s… hasta 15 s entre intentos).
-    let reintento = null
-    const cargarConfig = (intento = 0) => fetch(`/landing/config?t=${new Date().getTime()}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`La configuración respondió ${res.status}`)
-        return res.json()
-      })
-      .then((data) => {
-        if (!isMounted) return
-        if (data?.tituloHero) setTitulo(data.tituloHero)
-        if (data?.logoUrl) {
-          const ts = Date.now()
-          setLogoUrl(data.logoUrl)
-          setLogoFailed(false)
-          setLogoImgLoaded(false)
-          setLogoTs(ts)
-          const preload = new Image()
-          preload.onload = () => { if (isMounted) setLogoImgLoaded(true) }
-          preload.onerror = () => { if (isMounted) setLogoFailed(true) }
-          preload.src = `${data.logoUrl}${data.logoUrl.includes('?') ? '&' : '?'}t=${ts}`
-        } else {
-          setLogoUrl(null)
-        }
-        if (data?.tituloHeroSize) setTituloSize(data.tituloHeroSize)
-        if (data?.tituloHeroFont) setTituloFont(data.tituloHeroFont)
-
-        if (data?.heroImages) {
-          const imagenesBackend = Object.values(data.heroImages).filter(Boolean)
-          if (imagenesBackend.length > 0) {
-            setHeroImages(imagenesBackend)
-          }
-        }
-
-        // Nosotros
-        if (data?.tituloNosotros) setTituloNosotros(data.tituloNosotros)
-        if (data?.descripcionNosotros) setDescripcionNosotros(data.descripcionNosotros)
-        if (data?.mision) setMision(data.mision)
-
-        // Nosotros imagen
-        if (data?.imagenNosotros) setImagenNosotros(data.imagenNosotros)
-
-        // Clases cards
-        setClaseCards([
-          { titulo: data?.claseCard1Titulo || 'CrossFit', descripcion: data?.claseCard1Descripcion || 'Entrenamiento funcional de alta intensidad.', duration: '60 MIN', level: 'TODOS', image: data?.imagenClase1 || '/hero-crossfit.jpg' },
-          { titulo: data?.claseCard3Titulo || 'Planificación', descripcion: data?.claseCard3Descripcion || 'Programa personalizado para atletas.', duration: '90 MIN', level: 'TODOS', image: data?.imagenClase3 || '/gym-interior.jpg' },
-        ])
-
-        // Contacto
-        if (data?.direccion) setDireccion(data.direccion)
-        if (data?.telefono) setTelefono(data.telefono)
-        if (data?.whatsapp) setWhatsapp(data.whatsapp)
-        if (data?.email) setEmailContacto(data.email)
-        if (data?.instagram) setInstagram(data.instagram)
-        if (data?.estadisticas) setEstadisticas(data.estadisticas)
-        if (data?.horario_semana) setHorarioSemana(data.horario_semana)
-        if (data?.horario_sabado) setHorarioSabado(data.horario_sabado)
-        if (data?.horario_domingo) setHorarioDomingo(data.horario_domingo)
-        if (data?.mapaUrl) setMapaUrl(data.mapaUrl)
-        setConfigLoaded(true) // recién ahora se muestra la página
-      })
-      .catch((err) => {
-        console.error('No se pudo cargar la configuración, se reintenta:', err)
-        if (isMounted) reintento = setTimeout(() => cargarConfig(intento + 1), Math.min(2000 * 2 ** intento, 15000))
-      })
-    cargarConfig()
-    fetch("/api/vv1/turnos/publicos")
-      .then((res) => res.json())
-      .then((result) => {
-        if (isMounted) setTurnosBox(Array.isArray(result.data) ? result.data : [])
-      })
-      .catch((err) => console.error('Error al sincronizar horarios en la landing:', err))
-      .finally(() => {
-        if (isMounted) setLoadingHorarios(false)
-      })
-
-    return () => {
-      isMounted = false
-      if (reintento) clearTimeout(reintento)
-      window.removeEventListener("avatar-updated", handleAvatarUpdated)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (heroImages.length <= 1) return
-    const interval = setInterval(() => {
-      setCurrentImageIndex((previousIndex) => (previousIndex + 1) % heroImages.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [heroImages])
-
-  const handleLogout = () => {
-    cerrarSesionEnServidor()
-    localStorage.removeItem('usuario')
-    localStorage.removeItem('avatarUrl')
-    localStorage.removeItem('permisos')
-    window.location.reload()
-  }
-
-  const tieneModulosAdmin = permisos.some(p => 
-    p.startsWith('usuarios:') || p.startsWith('dashboard:') || 
-    p.startsWith('perfiles:') || p.startsWith('membresias:') ||
-    p.startsWith('clases:') || p.startsWith('reservas:') ||
-    p.startsWith('creditos:') || p.startsWith('configuracion:')
-  );
-  
-  const tieneModulosAlumno = permisos.some(p => p.startsWith('alumno'));
-  const tieneModulosProfesor = permisos.some(p => p.startsWith('profesor')); 
-  const puedeAccederPanel = permisos.length > 0 && userData.estado === 'activo';
-  const panelesDisponibles = [tieneModulosAlumno && '/alumno', tieneModulosProfesor && '/profesor', tieneModulosAdmin && '/admin'].filter(Boolean);
-  const rutaMiPanel = panelesDisponibles.length === 1 ? panelesDisponibles[0] : '/seleccionar-panel';
-
-  const getIniciales = (name) => {
-    if (!name || name === 'Usuario Bravos') return 'UB'
-    const parts = name.trim().split(' ')
-    if (parts.length > 1) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return name.substring(0, 2).toUpperCase()
-  }
-
-
-  if (pageLoading) {
-    return (
-      <LandingPageSkeleton />
-    )
-  }
-
-  const irAlContenido = () => {
-    document.getElementById('contenido')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  // Número de WhatsApp solo con dígitos, como lo pide wa.me
-  // wa.me pide el número completo: 549 + característica + número (sin 0 ni 15).
-  const whatsappDigitos = (() => {
-    let d = (whatsapp || telefono || '').replace(/\D/g, '')
-    if (!d) return ''
-    if (d.startsWith('549')) return d
-    if (d.startsWith('54')) return '549' + d.slice(2)
-    return '549' + d.replace(/^0/, '')
-  })()
-
-  // La página principal es siempre oscura, aunque el celular esté en modo claro: "dark" hace que los colores del tema
-  // se vean claros sobre el fondo negro (antes el texto salía casi negro sobre negro).
   return (
-    <div className="dark min-h-screen overflow-x-hidden bg-black text-foreground selection:bg-emerald-500 selection:text-black">
-      <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="bg-black/95 backdrop-blur-md border-b-2 border-lime-400/80">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
+    <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] text-[#ecefe4] selection:bg-[#9be600] selection:text-[#0b0b0b]" style={{ fontFamily: 'Archivo, sans-serif' }}>
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:bg-[#9be600] focus:px-3.5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-[#0b0b0b]">
+        Saltar al contenido
+      </a>
 
-              <Link to="/" className="flex items-center h-[3.25rem]">
-                {showLogoSkeleton && (
-                  <div className="h-[2.5rem] w-[9.375rem] bg-white/5 animate-pulse rounded" />
-                )}
-                {logoUrl && (
-                  <img
-                    src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
-                    alt="Box Bravos"
-                    className={`block h-auto w-auto max-h-[2.125rem] max-w-[7.5rem] object-contain sm:max-h-[3rem] sm:max-w-[9.375rem] lg:max-h-[3.75rem] lg:max-w-[11.25rem] ${logoImgLoaded ? '' : 'hidden'}`}
-                    onLoad={() => setLogoImgLoaded(true)}
-                    onError={() => setLogoFailed(true)}
-                    ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
+      {/* ENCABEZADO */}
+      <header className="sticky top-0 z-40 border-b border-[#262626] bg-[rgba(11,11,11,.92)] backdrop-blur-[10px]">
+        <div className="relative mx-auto flex h-[68px] max-w-[1720px] items-center gap-6 px-5">
+          <Link to="/" aria-label="Bravos Box, inicio" className="flex shrink-0">
+            <img src="/bravos-logo.png" alt="Bravos Box" className="h-[34px] w-auto" />
+          </Link>
+
+          <nav aria-label="Principal" className="hidden flex-1 justify-center gap-1 min-[900px]:flex">
+            {menu.map((item) => (
+              <a key={item.name} href={item.href} onClick={(e) => abrirAccion(e, item)}
+                className="flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#c9ccbf] no-underline transition-colors hover:bg-[#161616] hover:text-[#ecefe4] focus-visible:outline-2 focus-visible:outline-[#9be600]">
+                {item.name}
+              </a>
+            ))}
+          </nav>
+          <span className="flex-1 min-[900px]:hidden" />
+
+          <div className="flex shrink-0 items-center gap-2">
+            <Link to="/ranking" className="hidden h-11 items-center gap-2 rounded-[10px] border border-[#3d5a10] px-4 text-[0.8125rem] font-bold tracking-[.04em] text-[#9be600] no-underline transition-colors hover:bg-[#16220a] min-[900px]:flex">
+              <Trophy className="h-4 w-4" aria-hidden="true" />
+              RANKING
+            </Link>
+
+            {logueado ? (
+              <>
+                <span className="hidden min-[900px]:inline-flex"><NotificacionesBell /></span>
+                <div className="relative hidden min-[900px]:block">
+                  <button type="button" onClick={() => setUserMenuOpen((v) => !v)} aria-expanded={userMenuOpen} aria-haspopup="menu" aria-label="Mi cuenta"
+                    className="grid h-11 w-11 place-items-center overflow-hidden rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-sm font-extrabold text-[#9be600] focus-visible:outline-2 focus-visible:outline-[#9be600]">
+                    {sesion.avatarUrl ? <img src={sesion.avatarUrl} alt="" className="h-full w-full object-cover" /> : iniciales(sesion.userData.nombrecompleto)}
+                  </button>
+                  <UserMenu
+                    userData={sesion.userData}
+                    avatarUrl={sesion.avatarUrl}
+                    userMenuOpen={userMenuOpen}
+                    setUserMenuOpen={setUserMenuOpen}
+                    handleLogout={handleLogout}
+                    tieneModulosAdmin={tieneModulosAdmin}
+                    tieneModulosAlumno={tieneModulosAlumno}
+                    tieneModulosProfesor={tieneModulosProfesor}
+                    puedeAccederPanel={puedeAccederPanel}
                   />
-                )}
-              </Link>
-
-              <nav className="hidden items-center gap-0 lg:flex">
-                <Link to="/" className="group relative px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
-                  INICIO
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
-                </Link>
-
-                {menuItems().filter(item => item.name !== 'INICIO').map((item) => (
-                  <div
-                    key={item.name}
-                    className="relative"
-                    onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
-                    onMouseLeave={() => setActiveDropdown(null)}
-                  >
-                    <a href={item.href} onClick={(e) => abrirAccion(e, item)} className="group relative flex items-center gap-1 px-4 py-5 text-sm font-semibold tracking-wider text-foreground/85 transition-colors hover:text-white">
-                      {item.name}
-                      {item.hasDropdown && <ChevronDown className="h-3.5 w-3.5" />}
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-lime-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"/>
-                    </a>
-
-                    {item.hasDropdown && activeDropdown === item.name && (
-                      <div className="absolute top-full left-0 w-48 border border-lime-400/20 border-t-2 border-t-lime-400 bg-black shadow-xl shadow-black/50">
-                        {subItemsClases.map((subItem) => (
-                          <a key={subItem.href} href={subItem.href} className="block px-4 py-3 text-xs font-bold tracking-wider text-foreground/60 transition-colors hover:bg-lime-400/5 hover:text-lime-700 dark:hover:text-lime-400">
-                            {subItem.name}
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </nav>
-
-              <div className="hidden items-center gap-3 lg:flex">
-                <Link to="/ranking" className="flex h-9 items-center gap-1.5 rounded-full border border-lime-400/70 bg-lime-400/10 px-4 text-xs font-black tracking-widest text-lime-400 transition-colors hover:bg-lime-400 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                  RANKING
-                </Link>
-
-                {!isLoggedIn ? (
-                  <>
-                    <Link to="/login">
-                      <Button variant="ghost" className="text-xs font-black tracking-widest text-foreground/70 hover:bg-foreground/5 hover:text-white">
-                        INGRESAR
-                      </Button>
-                    </Link>
-                    <Link to="/registro">
-                      <Button className="bg-lime-400 px-6 text-xs font-black tracking-widest text-black hover:bg-lime-300 transition-colors">
-                        UNIRSE
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-4 relative">
-                    <NotificacionesBell />
-
-                    <div className="relative">
-                      <button 
-                        onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className="flex items-center gap-1 focus:outline-none"
-                      >
-                        <div className="h-9 w-9 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
-                          {avatarUrl
-                            ? <img src={avatarUrl} alt={userData.nombrecompleto} className="h-full w-full object-cover" />
-                            : getIniciales(userData.nombrecompleto)
-                          }
-                        </div>
-                        <ChevronDown className="h-4 w-4 text-foreground/60" />
-                      </button>
-
-                      <UserMenu
-                        userData={userData}
-                        avatarUrl={avatarUrl}
-                        userMenuOpen={userMenuOpen}
-                        setUserMenuOpen={setUserMenuOpen}
-                        handleLogout={handleLogout}
-                        tieneModulosAdmin={tieneModulosAdmin}
-                        tieneModulosAlumno={tieneModulosAlumno}
-                        tieneModulosProfesor={tieneModulosProfesor}
-                        puedeAccederPanel={puedeAccederPanel}
-                      />
-                    </div>
-                  </div>
-                )}
+                </div>
+              </>
+            ) : (
+              <div className="hidden items-center gap-2 min-[900px]:flex">
+                <Link to="/login" className="flex h-11 items-center rounded-[10px] px-4 text-xs font-black tracking-widest text-[#ecefe4] no-underline hover:bg-[#161616]">INGRESAR</Link>
+                <Link to="/registro" className="flex h-11 items-center rounded-[10px] bg-[#9be600] px-5 text-xs font-black tracking-widest text-[#0b0b0b] no-underline hover:bg-[#c4ff3d]">UNIRSE</Link>
               </div>
+            )}
 
-              <div className="flex items-center gap-2 lg:hidden">
-                {!mobileMenuOpen && (!isLoggedIn ? (
-                  <Link to="/login" className="flex h-9 items-center rounded-full border border-white/25 px-4 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    INGRESAR
-                  </Link>
-                ) : puedeAccederPanel && (
-                  <Link to={rutaMiPanel} aria-label="Ir a mi panel" className="flex h-9 items-center gap-2 rounded-full border border-white/25 pl-1 pr-3 text-xs font-black tracking-widest text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
-                    <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-[0.625rem] text-black">
-                      {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(userData.nombrecompleto)}
-                    </span>
-                    MI PANEL
-                  </Link>
-                ))}
-                <button type="button" aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={mobileMenuOpen} className="p-2 text-foreground" onClick={() => setMobileMenuOpen((previous) => !previous)}>
-                  {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
-              </div>
-            </div>
+            <button type="button" onClick={() => setMenuAbierto((v) => !v)} aria-expanded={menuAbierto} aria-controls="menu-m" aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+              className="grid h-11 w-11 place-items-center rounded-[10px] border border-[#333] text-[#ecefe4] min-[900px]:hidden">
+              {menuAbierto ? <X className="h-[22px] w-[22px]" /> : <Menu className="h-[22px] w-[22px]" />}
+            </button>
           </div>
         </div>
 
-        {mobileMenuOpen && (
-          // Menú del celular: se despliega hacia abajo (no ocupa toda la pantalla) y se cierra tocando afuera
-          <>
-            <div className="fixed inset-x-0 top-[4.125rem] bottom-0 z-30 bg-black/60 lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
-            <div className="fixed inset-x-0 top-[4.125rem] z-40 max-h-[calc(100svh-4.125rem)] overflow-y-auto overscroll-contain border-b-2 border-lime-400/60 bg-black shadow-2xl lg:hidden">
-              <nav aria-label="Secciones del sitio" className="px-4 py-2">
-                <ul>
-                  {menuItems().map((item) => (
-                    <li key={item.name}>
-                      {item.hasDropdown ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setClasesAbiertas((v) => !v)}
-                            aria-expanded={clasesAbiertas}
-                            className="flex min-h-[2.75rem] w-full items-center justify-between rounded-lg px-2 text-left text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none"
-                          >
-                            {item.name}
-                            <ChevronDown className={`h-4 w-4 text-white/40 transition-transform ${clasesAbiertas ? 'rotate-180 text-bravos-green' : ''}`} aria-hidden="true" />
-                          </button>
-                          {clasesAbiertas && (
-                            <ul className="pb-1 pl-3">
-                              {subItemsClases.map((subItem) => (
-                                <li key={subItem.href}>
-                                  <a href={subItem.href} onClick={() => setMobileMenuOpen(false)} className="flex min-h-[2.375rem] items-center px-2 text-[0.8125rem] font-medium text-white/60 transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
-                                    {subItem.name}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </>
-                      ) : (
-                        <a href={item.href} onClick={(e) => { abrirAccion(e, item); setMobileMenuOpen(false) }} className="flex min-h-[2.75rem] items-center rounded-lg px-2 text-sm font-black tracking-widest text-white transition-colors hover:text-bravos-green focus-visible:text-bravos-green focus-visible:outline-none">
-                          {item.name}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-
-              <div className="border-t border-white/20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-                <Link to="/ranking" onClick={() => setMobileMenuOpen(false)} className="mb-2 flex h-11 items-center justify-center gap-2 rounded-lg border border-lime-400/70 bg-lime-400/10 text-xs font-black tracking-wider text-lime-400">
-                  RANKING DE RM
-                </Link>
-                {!isLoggedIn ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex h-11 items-center justify-center rounded-lg border border-white/25 text-xs font-bold tracking-wider text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bravos-green">
-                      INGRESAR
-                    </Link>
-                    <Link to="/registro" onClick={() => setMobileMenuOpen(false)} className="flex h-11 items-center justify-center rounded-lg bg-accent text-xs font-black tracking-wider text-accent-foreground transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bravos-green">
-                      UNIRSE
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bravos-green text-sm font-black text-black">
-                      {avatarUrl
-                        ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                        : (userData.nombrecompleto || '?').trim().charAt(0).toUpperCase()}
-                    </div>
-                    <p className="min-w-0 flex-1 truncate text-sm font-bold capitalize text-white">{userData.nombrecompleto}</p>
-                    <button
-                      type="button"
-                      onClick={() => { setMobileMenuOpen(false); handleLogout() }}
-                      className="flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-3 text-xs font-bold text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                    >
-                      <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-                      CERRAR SESIÓN
-                    </button>
-                  </div>
+        {menuAbierto && (
+          <nav id="menu-m" aria-label="Principal" className="flex flex-col border-t border-[#262626] bg-[#0b0b0b] px-5 pt-2 pb-5 min-[900px]:hidden">
+            <Link to="/ranking" onClick={() => setMenuAbierto(false)} className="flex min-h-[3.25rem] items-center gap-2 border-b border-[#1f1f1f] text-[1.0625rem] font-bold text-[#9be600] no-underline">
+              <Trophy className="h-[18px] w-[18px]" aria-hidden="true" /> Ranking
+            </Link>
+            {menu.map((item) => (
+              <a key={item.name} href={item.href} onClick={(e) => { abrirAccion(e, item); setMenuAbierto(false) }}
+                className="flex min-h-[3.25rem] items-center border-b border-[#1f1f1f] text-[1.0625rem] font-bold text-[#ecefe4] no-underline">
+                {item.name}
+              </a>
+            ))}
+            {logueado ? (
+              <>
+                {puedeAccederPanel && (
+                  <Link to={rutaMiPanel} onClick={() => setMenuAbierto(false)} className="mt-2 flex h-12 items-center justify-center rounded-[10px] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">Ir a mi panel</Link>
                 )}
+                <button type="button" onClick={handleLogout} className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[10px] text-sm font-bold text-[#ff6b5e]">
+                  <LogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Link to="/login" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[10px] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">INGRESAR</Link>
+                <Link to="/registro" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold text-[#0b0b0b] no-underline">UNIRSE</Link>
               </div>
-            </div>
-          </>
+            )}
+            <a href="#horarios" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">RESERVAR CLASE</a>
+          </nav>
         )}
       </header>
 
-      {/* 🟢 SECCIÓN HERO - RECUPERADA CON TU FORMATO NATIVO DE CAPAS EXPANSIVAS */}
-      <section className="relative flex min-h-[85svh] items-end pb-8 sm:min-h-screen sm:pb-12">
-        {heroImages.map((imageSource, index) => (
-          <div key={imageSource} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}>
-            <ImgConSkeleton src={imageSource} alt="Entrenamiento" className="h-full w-full object-cover object-[var(--enfoque-movil,center)] sm:object-center" containerClassName="h-full w-full" style={enfoqueMovil(imageSource) ? { '--enfoque-movil': enfoqueMovil(imageSource) } : undefined} loading={index === 0 ? 'eager' : 'lazy'} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
-          </div>
-        ))}
+      <main id="main">
+        {/* PORTADA: foto de Malvinas a pantalla completa */}
+        <section aria-labelledby="t-hero" className="relative flex min-h-[40rem] items-end overflow-hidden lg:min-h-[53.125rem]">
+          <img src="/hero-malvinas.png" alt="Soldados argentinos en Malvinas" className="absolute inset-0 h-full w-full object-cover object-[62%_center] lg:object-[center_30%]" />
+          <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%),linear-gradient(0deg,#0b0b0b 0%,rgba(11,11,11,0) 45%)' }} />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-40 bg-gradient-to-b from-transparent via-black/70 to-black" aria-hidden="true" />
-
-        <button
-          type="button"
-          onClick={irAlContenido}
-          aria-label="Ver más contenido"
-          className="group absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-1 text-white/70 sm:flex transition-colors hover:text-lime-400 focus-visible:text-lime-400 focus-visible:outline-none"
-        >
-          <span className="h-10 w-px bg-gradient-to-b from-transparent to-current" />
-          <ChevronDown className="h-7 w-7 motion-safe:animate-bounce" />
-        </button>
-
-        <div className="absolute right-2 bottom-5 z-20 flex sm:right-24 sm:bottom-6">
-          {heroImages.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => setCurrentImageIndex(index)}
-              aria-label={`Ver foto ${index + 1} de ${heroImages.length}`}
-              aria-current={index === currentImageIndex ? 'true' : undefined}
-              className="group flex h-11 items-center px-1.5 focus-visible:outline-none"
-            >
-              <span className={`block h-2 rounded-full transition-all group-focus-visible:ring-2 group-focus-visible:ring-lime-400 ${index === currentImageIndex ? 'w-6 bg-accent' : 'w-2 bg-white/50'}`} />
-            </button>
-          ))}
-        </div>
-
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start gap-2">
-
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-1.5 text-xs text-foreground/50">
-              <span>Argentina</span>
-              <ChevronRight className="h-3 w-3" />
-              <span className="text-foreground/70">Formosa Capital</span>
+          <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 lg:pb-[4.5rem]">
+            <div className="inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
+              <MapPin className="h-[15px] w-[15px] text-[#9be600]" aria-hidden="true" />
+              FORMOSA CAPITAL · ARGENTINA
             </div>
-
-            {/* Logo */}
-            <div className="flex h-16 w-auto items-center sm:h-20 md:h-24 -ml-[2px]">
-              {showLogoSkeleton && (
-                <div className="h-full w-[13.75rem] bg-white/5 animate-pulse rounded" />
-              )}
-              {logoUrl && (
-                <img
-                  src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
-                  alt="Box Bravos"
-                  className={`h-full w-auto object-contain object-left ${logoImgLoaded ? '' : 'hidden'}`}
-                  onLoad={() => setLogoImgLoaded(true)}
-                  onError={() => setLogoFailed(true)}
-                  ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLogoImgLoaded(true) }}
-                />
-              )}
-            </div>
-
-            {/* Título */}
-            <p
-              className="text-xl font-black tracking-wide text-foreground sm:text-2xl md:text-3xl"
-              style={{ fontSize: tituloSize ? `${tituloSize}px` : undefined, fontFamily: tituloFont || undefined }}
-            >
-              {titulo}
-            </p>
-
-            {/* Botón para sumarse — solo celular y sin sesión (con sesión, "Mi panel" está en la barra de arriba) */}
-            {!isLoggedIn && (
-              <div className="mt-4 w-full lg:hidden">
-                <Link to="/registro" className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-lime-400 text-sm font-black tracking-widest text-black transition-colors hover:bg-lime-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  UNIRME <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            )}
-
-            {/* MÁS INFO */}
-            <button type="button" onClick={irAlContenido} className="group mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-foreground/70 transition-colors hover:text-lime-700 dark:hover:text-lime-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 sm:mt-3">
-              <span>MÁS INFO</span>
-              <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-1" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* SECCIÓN FRASE MOTIVACIONAL */}
-      <section id="contenido" className="scroll-mt-16 bg-black py-12 md:py-16">
-        <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
-          <blockquote className="text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
-            {'"EL ÚNICO ENTRENAMIENTO MALO'} <br />
-            <span className="text-accent">{'ES EL QUE NO HICISTE"'}</span>
-          </blockquote>
-        </div>
-      </section>
-
-      {/* SECCIÓN SOBRE NOSOTROS */}
-      <section id="nosotros" className="relative py-10 md:py-12">
-        <div className="absolute inset-0">
-          <ImgConSkeleton src={imagenNosotros} alt="Interior del Box" className="h-full w-full object-cover" containerClassName="h-full w-full" />
-          <div className="absolute inset-0 bg-black/80" />
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black to-transparent" aria-hidden="true" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" aria-hidden="true" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              {tituloNosotros
-                ? <>{tituloNosotros.toUpperCase()}</>
-                : <>SOBRE <span className="text-accent">NOSOTROS</span></>
-              }
-            </h2>
-            {descripcionNosotros
-              ? <p className="mt-6 text-lg leading-relaxed text-foreground/70">{descripcionNosotros}</p>
-              : <p className="mt-6 text-lg leading-relaxed text-foreground/70">Somos más que un gimnasio. Somos una comunidad de atletas comprometidos con la excelencia. Desde 2019, hemos ayudado a cientos de personas a transformar sus vidas a través del entrenamiento funcional.</p>
-            }
-            {mision
-              ? <p className="mt-4 text-lg leading-relaxed text-foreground/70">{mision}</p>
-              : <p className="mt-4 text-lg leading-relaxed text-foreground/70">Nuestro Box cuenta con equipamiento Rogue Fitness de primera línea y coaches certificados que te guiarán en cada paso de tu transformación.</p>
-            }
-            {(() => {
-              // Solo cifras reales y mayores a cero; si no hay ninguna, no se muestra el bloque
-              const n = (v, uno, varios) => (v === 1 ? uno : varios)
-              const cifras = estadisticas ? [
-                { value: estadisticas.atletas, label: n(estadisticas.atletas, 'ATLETA ACTIVO', 'ATLETAS ACTIVOS') },
-                { value: estadisticas.coaches, label: n(estadisticas.coaches, 'COACH', 'COACHES') },
-                { value: estadisticas.clasesPorSemana, label: n(estadisticas.clasesPorSemana, 'CLASE POR SEMANA', 'CLASES POR SEMANA') },
-              ].filter((c) => c.value > 0) : []
-              if (cifras.length === 0) return null
-              return (
-                <div className="mt-10 flex flex-wrap gap-x-10 gap-y-6">
-                  {cifras.map((stat) => (
-                    <div key={stat.label}>
-                      <div className="text-3xl font-black text-accent sm:text-4xl">{stat.value}</div>
-                      <div className="mt-1 text-xs font-semibold tracking-wider text-foreground/50 sm:text-sm">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )
-            })()}
-          </div>
-        </div>
-      </section>
-
-      {/* SECCIÓN CLASES */}
-      <section id="clases" className="bg-zinc-950 py-12 md:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-5 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Entrenamiento guiado</p>
-              <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">NUESTRAS <span className="text-accent">CLASES</span></h2>
-            </div>
-            {filtroClase === 'todas' && claseCards.length > 1 && (
-              <span className="flex shrink-0 items-center gap-1 pb-1 text-xs text-white/50 md:hidden">
-                Deslizar <MoveHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+            <h1 id="t-hero" className="mt-[1.125rem] flex flex-col gap-3.5">
+              <img src="/bravos-logo.png" alt="Bravos Box" className="h-[4.5rem] w-auto self-start md:h-[6.25rem] lg:h-[8rem]" />
+              <span className="font-[Archivo]! text-[1.25rem] font-extrabold tracking-[.06em] uppercase md:text-2xl lg:text-[1.875rem]">
+                Centro de <span className="text-[#9be600]">entrenamiento</span>
               </span>
-            )}
-          </div>
+            </h1>
 
-          {/* Filtro por disciplina */}
-          <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0" role="group" aria-label="Filtrar clases">
-            {[{ id: 'todas', texto: 'Todas' }, ...claseCards.map((c, i) => ({ id: i, texto: c.titulo }))].map(({ id, texto }) => (
-              <button key={id} type="button" onClick={() => setFiltroClase(id)} aria-pressed={filtroClase === id}
-                className={`min-h-[2.375rem] shrink-0 rounded-md border px-4 text-xs font-black uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  filtroClase === id ? 'border-accent bg-accent text-black' : 'border-white/15 bg-white/5 text-white/75 hover:border-white/30'
-                }`}>
-                {texto}
-              </button>
-            ))}
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
+                RESERVAR CLASE
+              </a>
+              <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] border border-[rgba(236,239,228,.45)] px-6 text-[0.9375rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] md:w-auto">
+                Ver horarios
+              </a>
+            </div>
           </div>
+        </section>
 
-          {/* Celular: tarjetas que se deslizan de costado. Computadora: las tres juntas */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
-            {claseCards.map((clase, idx) => {
-              if (filtroClase !== 'todas' && filtroClase !== idx) return null
-              const nivel = NIVELES[clase.level] || clase.level
-              return (
-                <article key={idx} id={`clase-${idx + 1}`}
-                  className={`group flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 transition-[transform,border-color] duration-300 hover:border-accent/50 motion-safe:hover:-translate-y-1 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
-                  <div className="relative aspect-square overflow-hidden">
-                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="h-full w-full absolute inset-0" />
-                    <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-                      {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
-                      {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
-                    </div>
+        {/* NOSOTROS: el lema es lo único con la tipografía stencil del logo */}
+        <section id="nosotros" aria-labelledby="t-nos" className="scroll-mt-20 border-b border-[#1f1f1f]">
+          <div className="mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-24 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+            <p className="m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
+              "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
+            </p>
+            <div className="flex flex-col gap-3.5">
+              <img src="/malvinas.png" alt="" aria-hidden="true" className="h-auto w-[12.5rem] max-w-[60%]" />
+              <h2 id="t-nos" className="m-0 font-[Archivo]! text-2xl leading-[1.25] font-extrabold text-[#ecefe4]">Honor y gloria a los Bravos de Malvinas</h2>
+              <p className="m-0 text-base leading-relaxed text-[#c9ccbf]">{cfg.descripcionNosotros || TEXTO_NOSOTROS}</p>
+              <p className="m-0 text-base leading-relaxed text-[#a3a698]">{cfg.mision || TEXTO_MISION}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* CLASES: dos tarjetas que ocupan todo el ancho */}
+        <section id="clases" aria-labelledby="t-cla" className="scroll-mt-20">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+            <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
+            <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5">
+              {clases.map((k, i) => (
+                <article key={i} id={`clase-${i + 1}`} className="group flex scroll-mt-20 flex-col overflow-hidden rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <ImgConSkeleton src={k.img} alt={k.alt} className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="absolute inset-0 h-full w-full" />
                   </div>
-                  <div className="flex flex-1 flex-col p-4">
-                    <h3 className="text-xl font-black uppercase text-white">{clase.titulo}</h3>
-                    <p className="mt-2 line-clamp-4 flex-1 text-sm leading-relaxed text-white/65">{clase.descripcion}</p>
+                  <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-md bg-[#1f2a0e] px-2.5 py-1 text-xs font-bold text-[#9be600]">{k.min}</span>
+                      <span className="rounded-md border border-[#333] px-2.5 py-1 text-xs font-bold text-[#c9ccbf]">Todos los niveles</span>
+                    </div>
+                    <h3 className="m-0 mt-1 font-[Archivo]! text-2xl font-extrabold">{k.t}</h3>
+                    <p className="m-0 flex-1 text-base leading-normal text-[#a3a698]">{k.d}</p>
+                    <a href="#horarios" className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-[0.9375rem] font-bold text-[#9be600] no-underline">
+                      Ver horarios de {k.t} <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    </a>
                   </div>
                 </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* 🟢 SECCIÓN HORARIOS: 100% SCONECTADA Y FUNCIONANDO EN PARALELO */}
-      <section id="horarios" className="relative py-12 md:py-16">
-        <div className="absolute inset-0">
-          {/* Fondo decorativo: sin texto alternativo, y si el archivo no está se oculta (antes aparecía la palabra "Training") */}
-          <img src="/landing-hero-2.jpg" alt="" aria-hidden="true" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-          <div className="absolute inset-0 bg-black/90" />
-        </div>
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Calendario activo</p>
-          <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl md:text-5xl">HORARIOS <span className="text-accent">SEMANALES</span></h2>
-          <p className="mb-5 mt-2 max-w-2xl text-sm text-white/60">Tocá un día para ver los turnos.</p>
-
-          {/* Días: una sola fila, pareja, en el celular */}
-          <div className="mb-6 grid grid-cols-6 gap-1.5 sm:flex sm:flex-wrap sm:gap-2" role="group" aria-label="Día de la semana">
-            {diasSemanaMapeo.map((day) => {
-              const elegido = diaSeleccionado === day.value
-              return (
-                <button
-                  key={day.value}
-                  type="button"
-                  onClick={() => setDiaSeleccionado(day.value)}
-                  aria-pressed={elegido}
-                  aria-label={day.label}
-                  className={`min-h-[2.75rem] rounded-md border text-xs font-black tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:px-5 ${
-                    elegido
-                      ? 'border-accent bg-accent text-black'
-                      : 'border-border bg-white/5 text-white/75 hover:border-white/30 hover:text-white'
-                  }`}
-                >
-                  <span className="sm:hidden">{day.corto}</span>
-                  <span className="hidden sm:inline">{day.label}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {loadingHorarios ? (
-            <div className="space-y-3 animate-pulse" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-16 rounded-md border border-border bg-white/5" />)}</div>
-          ) : turnosDelDia.length === 0 ? (
-            <div className="rounded-md border border-border bg-white/5 p-6 text-center">
-              <p className="text-sm text-white/50">{turnosBox.length === 0 ? 'Los horarios se publican muy pronto.' : 'No hay turnos publicados este día.'}</p>
+              ))}
             </div>
-          ) : (
-            <div key={diaSeleccionado} className="horarios-cambio grid gap-3 md:grid-cols-2">
-              <style>{`
-                @keyframes horarios-entra { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-                .horarios-cambio > article { animation: horarios-entra .35s cubic-bezier(.22,1,.36,1) backwards }
-                .horarios-cambio > article:nth-of-type(2) { animation-delay: .07s }
-                @media (prefers-reduced-motion: reduce) { .horarios-cambio > article { animation: none } }
-              `}</style>
-              {/* Un bloque por tipo de clase (como en las publicaciones de Instagram), con sus turnos y horas */}
-              {turnosDelDia.map((tipo) => {
-                const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
-                const turnos = Object.values(
-                  [...tipo.horarios]
-                    .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio))
-                    .reduce((acc, h) => {
-                      const clave = `${h.turno}|${h.etiqueta || ''}`
-                      ;(acc[clave] ||= { clave, turno: h.turno, etiqueta: h.etiqueta, horas: [] }).horas.push(h)
-                      return acc
-                    }, {})
-                )
+          </div>
+        </section>
+
+        {/* HORARIOS */}
+        <section id="horarios" aria-labelledby="t-hor" className="scroll-mt-20 border-y border-[#1f1f1f] bg-[#0e0e0e]">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+            <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CALENDARIO ACTIVO</p>
+            <h2 id="t-hor" className="mt-2 mb-6 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Horarios semanales</h2>
+
+            <div role="tablist" aria-label="Día de la semana" className="-mx-5 mb-5 flex gap-2 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {DIAS.map((d) => {
+                const on = diaSeleccionado === d.value
                 return (
-                  <article key={tipo.codigo} className="rounded-xl border border-white/15 bg-black/50 p-4 backdrop-blur-sm">
-                    <h3 className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-accent">{tipo.nombre}</h3>
-                    <div className="divide-y divide-white/10">
-                      {turnos.map((t) => (
-                        <div key={t.clave} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
-                          <div className="min-w-0">
-                            <p className="text-sm font-black uppercase leading-tight text-white">Turno {t.turno}</p>
-                            {t.etiqueta && <p className="text-[0.6875rem] leading-tight text-white/55">{t.etiqueta}</p>}
+                  <button key={d.value} type="button" role="tab" aria-selected={on} onClick={() => setDiaSeleccionado(d.value)}
+                    className={`h-[2.875rem] shrink-0 rounded-[10px] border px-[1.125rem] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? 'border-[#9be600] bg-[#9be600] text-[#0b0b0b]' : 'border-[#333] text-[#ecefe4] hover:border-[#555]'}`}>
+                    <span className="md:hidden">{d.corto}</span>
+                    <span className="hidden md:inline">{d.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {loadingHorarios ? (
+              <div className="grid animate-pulse gap-5 md:grid-cols-2" role="status" aria-label="Cargando horarios">
+                {[0, 1].map((i) => <div key={i} className="h-40 rounded-2xl border border-[#262626] bg-[#161616]" />)}
+              </div>
+            ) : turnosDelDia.length === 0 ? (
+              <p className="rounded-2xl border border-[#262626] bg-[#161616] p-6 text-center text-sm text-[#a3a698]">
+                {turnosBox.length === 0 ? 'Los horarios se publican muy pronto.' : 'No hay turnos publicados este día.'}
+              </p>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]">
+                {turnosDelDia.map((tipo) => {
+                  const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
+                  const turnos = Object.values(
+                    [...tipo.horarios]
+                      .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio))
+                      .reduce((acc, h) => {
+                        const clave = `${h.turno}|${h.etiqueta || ''}`
+                        ;(acc[clave] ||= { clave, turno: h.turno, etiqueta: h.etiqueta, horas: [] }).horas.push(h)
+                        return acc
+                      }, {})
+                  )
+                  return (
+                    <article key={tipo.codigo} className="rounded-2xl border border-[#262626] bg-[#161616] px-5 py-2">
+                      <h3 className="my-3 font-[Archivo]! text-xs font-bold tracking-[.12em] text-[#9be600] uppercase">{tipo.nombre}</h3>
+                      {turnos.map((t, i) => (
+                        <div key={t.clave} className={`flex flex-wrap items-center gap-2.5 py-3.5 ${i ? 'border-t border-[#262626]' : ''}`}>
+                          <div className="min-w-[7.5rem] flex-1">
+                            <p className="m-0 text-[0.9375rem] font-bold">Turno {t.turno}</p>
+                            {t.etiqueta && <p className="m-0 text-[0.8125rem] text-[#a3a698]">{t.etiqueta}</p>}
                           </div>
-                          <div className="flex flex-wrap justify-end gap-1.5">
+                          <div className="flex flex-wrap gap-1.5">
                             {t.horas.map((h) => {
                               const largo = minutos(h.horaFin) - minutos(h.horaInicio) > 90
                               return (
-                                <span key={`${h.horaInicio}-${h.horaFin}`} className="rounded-full border border-white/40 px-3 py-1 text-sm font-black tabular-nums text-white">
+                                <Link key={`${h.horaInicio}-${h.horaFin}`} to={destinoReserva} aria-label={`Reservar ${largo ? `de ${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : `a las ${h.horaInicio.slice(0, 5)}`}`}
+                                  className="flex h-10 items-center rounded-full border border-[#333] px-3.5 text-sm font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:bg-[#1f2a0e]">
                                   {largo ? `${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : h.horaInicio.slice(0, 5)}
-                                </span>
+                                </Link>
                               )
                             })}
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+            <p className="mt-4 text-sm text-[#a3a698]">Tocá un horario para reservar. Necesitás tener una cuenta.</p>
+          </div>
+        </section>
 
-      {/* Novedades del box (solo para quien tiene sesión): ventana que se muestra una vez */}
-      {/* Solo el aviso con las novedades (se abre desde la palabra NOVEDADES del menú); la sección ya no se muestra en la página */}
-      <NovedadesPortada soloAviso />
+        {/* Novedades del box (solo para quien tiene sesión): el aviso se abre desde el menú */}
+        <NovedadesPortada soloAviso />
 
-      {/* SECCIÓN CONTACTO */}
-      <section id="contacto" className="bg-zinc-950 py-12 text-white md:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-accent">Contacto directo</p>
-          <h2 className="mb-6 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl md:text-5xl">Encontranos</h2>
+        {/* CONTACTO */}
+        <section id="contacto" aria-labelledby="t-con" className="scroll-mt-20">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+            <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CONTACTO DIRECTO</p>
+            <h2 id="t-con" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Encontranos</h2>
 
-          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
-            {/* Columna de info */}
-            <div className="space-y-3">
-              {/* Accesos directos a WhatsApp e Instagram (el mapa va completo, abajo) */}
-              {(whatsappDigitos || instagram) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {whatsappDigitos && (
-                    <a href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className={`flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${instagram ? '' : 'col-span-2'}`}>
-                      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#25D366] text-white">
-                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.78a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88a9.82 9.82 0 0 1 6.99 2.9 9.82 9.82 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.89 9.88M20.52 3.45A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.48-8.41z" /></svg>
+            <div className="grid gap-5 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]">
+              <div className="flex flex-col gap-3">
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 rounded-2xl border border-[#262626] bg-[#161616] px-5 py-[1.125rem] text-[#ecefe4] no-underline transition-colors hover:border-[#9be600]">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#1f2a0e] text-[#9be600]"><MapPin className="h-5 w-5" aria-hidden="true" /></span>
+                  <span className="flex-1">
+                    <span className="block text-lg font-extrabold">{calle.trim()}</span>
+                    <span className="block text-sm text-[#a3a698]">{resto.join(',').trim() || 'Formosa, Argentina'}</span>
+                  </span>
+                  <span className="text-sm font-bold text-[#9be600]">Cómo llegar ↗<span className="sr-only"> (se abre en otra pestaña)</span></span>
+                </a>
+
+                <div className="rounded-2xl border border-[#262626] bg-[#161616] px-5 py-[1.125rem]">
+                  <div className="mb-2.5 flex items-center justify-between gap-2">
+                    <h3 className="m-0 text-xs font-bold tracking-[.12em] text-[#a3a698]">HORARIOS DEL BOX</h3>
+                    {abiertoAhora !== null && (
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-xs font-bold ${abiertoAhora ? 'border-[#3d5a10] bg-[#16220a] text-[#9be600]' : 'border-[#333] text-[#a3a698]'}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${abiertoAhora ? 'bg-[#9be600]' : 'bg-[#6b6b6b]'}`} aria-hidden="true" />
+                        {abiertoAhora ? 'Abierto ahora' : 'Cerrado ahora'}
                       </span>
-                      <span className="min-w-0 max-w-full">
-                        <span className="block text-sm font-black uppercase text-white">WhatsApp</span>
-                        <span className="block truncate text-xs text-white/55">+{whatsappDigitos.replace(/^549/, '54 ')}</span>
+                    )}
+                  </div>
+                  <dl className="m-0 grid grid-cols-[1fr_auto] gap-y-2 text-[0.9375rem]">
+                    {filasHorario.map((f, i) => (
+                      <div key={i} className="contents">
+                        <dt className="text-[#ecefe4]">{f.etiqueta}</dt>
+                        <dd className={`m-0 text-right font-bold tabular-nums ${f.cerrado ? 'font-normal text-[#a3a698]' : ''}`}>{f.valor}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {whatsapp && (
+                    <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#161616] p-4 text-[#ecefe4] no-underline transition-colors hover:border-[#9be600]">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" aria-hidden="true"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z" /></svg>
+                      <span className="min-w-0">
+                        <span className="block text-[0.9375rem] font-bold">WhatsApp</span>
+                        <span className="block truncate text-[0.8125rem] text-[#a3a698]">+{whatsapp.replace(/^549/, '54 ')}</span>
                       </span>
                     </a>
                   )}
-                  {instagram && (
-                    <a href={`https://instagram.com/${instagram.replace(/^@/, '')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className={`flex min-h-[5.5rem] flex-col items-center justify-center gap-2 rounded-md text-center border border-border bg-foreground/5 p-4 transition-colors hover:border-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${whatsappDigitos ? '' : 'col-span-2'}`}>
-                      <span className="flex h-9 w-9 items-center justify-center rounded-md text-white" style={{ background: 'linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)' }}>
-                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
-                      </span>
-                      <span className="min-w-0 max-w-full">
-                        <span className="block text-sm font-black uppercase text-white">Instagram</span>
-                        <span className="block truncate text-xs text-white/55">@{instagram.replace(/^@/, '')}</span>
+                  {cfg.instagram && (
+                    <a href={`https://instagram.com/${cfg.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#161616] p-4 text-[#ecefe4] no-underline transition-colors hover:border-[#9be600]">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" aria-hidden="true"><path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM17.5 6.5h.01" /></svg>
+                      <span className="min-w-0">
+                        <span className="block text-[0.9375rem] font-bold">Instagram</span>
+                        <span className="block truncate text-[0.8125rem] text-[#a3a698]">@{cfg.instagram.replace(/^@/, '')}</span>
                       </span>
                     </a>
                   )}
                 </div>
-              )}
-              {/* Dirección, horarios y demás datos */}
-              <div className="divide-y divide-white/10 overflow-hidden rounded-md border border-border bg-foreground/5">
-                {direccion && (() => {
-                  const [calle, ...resto] = direccion.split(',')
-                  return (
-                    <div className="flex items-start gap-3 p-4">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><MapPin className="h-4 w-4" aria-hidden="true" /></span>
-                      <div className="min-w-0">
-                        <p className="text-[0.625rem] font-black uppercase tracking-widest text-white/50">Dirección</p>
-                        <p className="font-bold text-white">{calle.trim()}</p>
-                        <p className="text-sm text-white/55">{resto.join(',').trim() || 'Formosa, Argentina'}</p>
-                      </div>
-                    </div>
-                  )
-                })()}
-
-                {(horarioSemana || horarioSabado || horarioDomingo) && (() => {
-                  const filas = [horarioSemana, horarioSabado, horarioDomingo].map(leerHorario).filter(Boolean)
-                  const abierto = estaAbiertoAhora(horarioSemana, horarioSabado, horarioDomingo)
-                  return (
-                    <div className="flex items-start gap-3 p-4">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Clock className="h-4 w-4" aria-hidden="true" /></span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[0.625rem] font-black uppercase tracking-widest text-white/50">Horarios del box</p>
-                          {abierto !== null && (
-                            <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide ${
-                              abierto ? 'border-accent/40 bg-accent/10 text-accent' : 'border-white/15 bg-white/5 text-white/60'
-                            }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${abierto ? 'bg-accent' : 'bg-white/40'}`} aria-hidden="true" />
-                              {abierto ? 'Abierto ahora' : 'Cerrado ahora'}
-                            </span>
-                          )}
-                        </div>
-                        <dl className="mt-2 space-y-1">
-                          {filas.map((f, i) => (
-                            <div key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                              {f.etiqueta && <dt className="text-white/80">{f.etiqueta}</dt>}
-                              <dd className={`ml-auto text-right font-bold tabular-nums ${f.cerrado ? 'font-normal text-white/45' : 'text-white'}`}>{f.valor}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </div>
-                    </div>
-                  )
-                })()}
-
-                {emailContacto && (
-                  <a href={`mailto:${emailContacto}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-white/[0.03]">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent"><Mail className="h-4 w-4" aria-hidden="true" /></span>
-                    <span className="min-w-0">
-                      <span className="block text-[0.625rem] font-black uppercase tracking-widest text-white/50">Email</span>
-                      <span className="block truncate text-sm font-bold text-white">{emailContacto}</span>
-                    </span>
+                {cfg.email && (
+                  <a href={`mailto:${cfg.email}`} className="flex items-center gap-3 rounded-2xl border border-[#262626] bg-[#161616] p-4 text-[#ecefe4] no-underline transition-colors hover:border-[#9be600]">
+                    <Mail className="h-5 w-5 text-[#9be600]" aria-hidden="true" />
+                    <span className="min-w-0 truncate text-[0.9375rem] font-bold">{cfg.email}</span>
                   </a>
                 )}
               </div>
-            </div>
 
-            {/* Columna de Mapa (en el celular va debajo de los datos) */}
-            <div className="h-[17.5rem] w-full overflow-hidden rounded-md border border-border shadow-lg md:h-[22.5rem]">
-              {!mapaVisible ? (
-                <button
-                  type="button"
-                  onClick={() => setMapaVisible(true)}
-                  className="flex h-full w-full flex-col items-center justify-center gap-3 bg-muted/40 px-6 text-center transition-colors hover:bg-muted/70"
-                >
-                  <MapPin className="h-10 w-10 text-accent" />
-                  <span className="text-sm font-black uppercase tracking-widest text-foreground">Ver mapa</span>
-                  <span className="max-w-xs text-xs text-foreground/50">
-                    El mapa lo muestra Google Maps, que puede guardar cookies propias.
-                  </span>
-                </button>
-              ) : (
-              <iframe
-                src={mapaUrl}
-                width="100%"
-                height="100%"
-                style={{ filter: 'grayscale(0.8) invert(1) contrast(0.9)' }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Mapa de ubicación"
-              />
-              )}
+              {/* Mapa: no carga hasta tocar "Cargar mapa" (Google Maps puede guardar cookies) */}
+              <div className="relative min-h-[20rem] overflow-hidden rounded-2xl border border-[#262626] bg-[#161616]">
+                {mapaVisible ? (
+                  <iframe src={cfg.mapaUrl || `https://www.google.com/maps?q=${encodeURIComponent(`${direccion}, Formosa`)}&output=embed`} title="Mapa de ubicación" className="h-full min-h-[20rem] w-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+                ) : (
+                  <div className="flex h-full min-h-[20rem] flex-col items-center justify-center gap-3 p-6 text-center">
+                    <MapPin className="h-8 w-8 text-[#9be600]" aria-hidden="true" />
+                    <button type="button" onClick={() => setMapaVisible(true)} className="h-[2.875rem] rounded-[10px] border border-[#333] px-5 text-sm font-bold text-[#ecefe4] transition-colors hover:border-[#9be600]">
+                      Cargar mapa
+                    </button>
+                    <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-normal text-[#a3a698]">El mapa lo muestra Google Maps, que puede guardar cookies propias.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-border bg-black py-10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-5 text-center">
-            <div className="flex flex-col items-center gap-2">
-              {/* El mismo logo del encabezado (se carga en Configuración → Portada y logo) */}
-              {logoUrl && !logoFailed ? (
-                <img
-                  src={`${logoUrl}${logoUrl.includes('?') ? '&' : '?'}t=${logoTs}`}
-                  alt="Bravos Box"
-                  loading="lazy"
-                  className="block h-auto max-h-[4rem] w-auto max-w-[12.5rem] object-contain"
-                />
-              ) : (
-                <span className="text-xl font-black uppercase tracking-tight text-white">Bravos Box</span>
-              )}
-              <p className="text-xs text-white/50">Centro de entrenamiento funcional y CrossFit · Formosa</p>
+      {/* PIE */}
+      <footer className="border-t border-[#1f1f1f] bg-[#080808]">
+        <div className="mx-auto flex max-w-[1720px] flex-col gap-6 px-5 pt-10 pb-7">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div className="flex flex-col gap-2">
+              <img src="/bravos-logo.png" alt="Bravos Box" className="h-[1.875rem] w-auto self-start" />
+              <span className="text-sm text-[#a3a698]">Centro de entrenamiento funcional y CrossFit · Formosa</span>
             </div>
-            <nav aria-label="Información legal" className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/65">
-              <Link to="/terminos" className="hover:text-white">Términos y condiciones</Link>
-              <Link to="/privacidad" className="hover:text-white">Privacidad</Link>
-              <Link to="/cookies" className="hover:text-white">Cookies</Link>
-              <Link to="/reembolsos" className="hover:text-white">Reembolsos</Link>
-            </nav>
-            <Link
-              to="/arrepentimiento"
-              className="flex min-h-[2.75rem] items-center rounded-md border border-white/25 bg-white/5 px-5 text-xs font-black uppercase tracking-wider text-white transition-colors hover:border-accent hover:text-accent"
-            >
+            <Link to="/arrepentimiento" className="flex h-11 items-center rounded-[10px] border border-[#333] px-[1.125rem] text-[0.8125rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:text-[#ecefe4]">
               Botón de arrepentimiento
             </Link>
           </div>
-          <div className="mt-8 flex flex-col items-center gap-2 border-t border-border pt-6 text-center text-xs text-white/40">
-            <p>2026 Bravos Box. Todos los derechos reservados.</p>
-            <a
-              href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-white"
-            >
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-1">
+            {[['Términos y condiciones', '/terminos'], ['Privacidad', '/privacidad'], ['Cookies', '/cookies'], ['Reembolsos', '/reembolsos']].map(([label, to]) => (
+              <Link key={to} to={to} className="flex min-h-11 items-center text-sm font-medium text-[#c9ccbf] no-underline hover:text-[#ecefe4]">{label}</Link>
+            ))}
+          </nav>
+          <div className="flex flex-wrap justify-between gap-2 border-t border-[#1f1f1f] pt-5 text-[0.8125rem] text-[#a3a698]">
+            <span>© 2026 Bravos Box. Todos los derechos reservados.</span>
+            <a href="https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario" target="_blank" rel="noopener noreferrer" className="text-[#c9ccbf] hover:text-[#ecefe4]">
               Defensa de las y los consumidores. Para reclamos ingresá aquí.
             </a>
           </div>
         </div>
       </footer>
-      {whatsappDigitos && (
-        <a
-          href={`https://wa.me/${whatsappDigitos}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Escribinos por WhatsApp"
-          className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/40 transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        >
-          <svg viewBox="0 0 32 32" className="h-8 w-8" fill="currentColor" aria-hidden="true">
-            <path d="M16.04 3C8.86 3 3.04 8.82 3.04 16c0 2.29.6 4.53 1.74 6.5L3 29l6.68-1.75A12.94 12.94 0 0 0 16.04 29C23.22 29 29 23.18 29 16S23.22 3 16.04 3Zm0 23.62c-1.98 0-3.92-.53-5.61-1.53l-.4-.24-3.96 1.04 1.06-3.86-.26-.4A10.6 10.6 0 0 1 5.42 16c0-5.86 4.76-10.62 10.62-10.62 5.85 0 10.6 4.76 10.6 10.62 0 5.86-4.75 10.62-10.6 10.62Zm5.82-7.95c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.71.16-.21.32-.82 1.03-1 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.55-1.57-.94-.84-1.58-1.88-1.76-2.2-.18-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.09-1.11 2.65s1.14 3.07 1.3 3.28c.16.21 2.24 3.42 5.43 4.8.76.33 1.35.52 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z" />
-          </svg>
+
+      {whatsapp && (
+        <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`} target="_blank" rel="noopener noreferrer"
+          aria-label="Escribinos por WhatsApp (se abre en otra pestaña)"
+          className="fixed right-5 bottom-5 z-30 grid h-14 w-14 place-items-center rounded-full border-2 border-[#9be600] bg-[#141510] text-[#9be600] shadow-[0_8px_24px_rgba(0,0,0,.4)]">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true"><path d="M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z" /></svg>
         </a>
       )}
     </div>
