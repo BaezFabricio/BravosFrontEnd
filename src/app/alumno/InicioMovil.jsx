@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import apiClient from "@/api"
 import { Esqueleto, Progreso } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
+import { BottomSheet } from "@/components/bx/BottomSheet"
 import { IC } from "@/components/bx/trazos"
 import NovedadesPortada from "@/components/NovedadesPortada"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -72,11 +73,25 @@ function RankingFila() {
   )
 }
 
+function DetalleLogro({ logro }) {
+  const Icono = logro.icono
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <span className={`grid h-12 w-12 place-items-center rounded-xl border ${logro.completado ? "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg" : "border-bx-line2 bg-bx-surf text-bx-muted"}`}><Icono className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" /></span>
+        <span className={`text-sm font-bold ${logro.completado ? "text-bx-ok-fg" : "text-bx-muted"}`}>{logro.completado ? "✓ Desbloqueado" : "Bloqueado"}</span>
+      </div>
+      <p className="m-0 text-[0.9375rem] leading-normal"><strong>Cómo se consigue:</strong> {logro.descripcion}</p>
+    </div>
+  )
+}
+
 export default function InicioMovil({
   nombreUsuario, frase, racha, creditos, cargando, agendadas, estadoMembresia, nombrePlanes, miPlan,
   logros, clasesHoy, cargandoClases, proximasReservadas, clasesSemanales, metaSemanal, clasesMes, diasEnMes, nombreMes, totalMarcas,
 }) {
   const [rutinasAbiertas, setRutinasAbiertas] = useState(false)
+  const [logroAbierto, setLogroAbierto] = useState(null) // logro del que se muestra el detalle
   const nombreRef = useRef(null)
 
   // El nombre va en una sola línea: si no entra en el ancho del celular, se achica hasta que entre
@@ -213,6 +228,11 @@ export default function InicioMovil({
       </section>
       <MisRutinasModal open={rutinasAbiertas} onOpenChange={setRutinasAbiertas} />
 
+      {/* Detalle de un logro: qué pide y si ya lo tenés */}
+      <BottomSheet abierto={!!logroAbierto} onCerrar={() => setLogroAbierto(null)} titulo={logroAbierto?.nombre || "Logro"} descripcion={logroAbierto ? (logroAbierto.completado ? "Desbloqueado" : "Todavía bloqueado") : ""}>
+        {logroAbierto && <DetalleLogro logro={logroAbierto} />}
+      </BottomSheet>
+
       {/* Clases de hoy */}
       <section aria-labelledby="t-hoy" className="flex flex-col gap-2.5">
         <Titulo id="t-hoy" enlace={<VerTodas to="/alumno/reservar" />}>Clases de hoy</Titulo>
@@ -287,7 +307,8 @@ export default function InicioMovil({
                 <button
                   type="button"
                   aria-label={`${l.nombre}, ${l.completado ? "desbloqueado" : "bloqueado"}`}
-                  title={`${l.nombre}: ${l.descripcion}`}
+                  aria-haspopup="dialog"
+                  onClick={() => setLogroAbierto(l)}
                   className={`grid aspect-square min-h-11 w-full place-items-center rounded-[0.625rem] border transition-transform duration-200 active:scale-90 ${l.completado ? "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg" : "border-bx-line2 bg-bx-surf text-bx-muted"}`}
                 >
                   <Icono className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.8} aria-hidden="true" />
