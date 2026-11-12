@@ -296,18 +296,18 @@ function LandingPage() {
 
       <main id="main">
         {/* PORTADA: foto de Malvinas a pantalla completa */}
-        <section aria-labelledby="t-hero" className="relative flex min-h-[40rem] items-end overflow-hidden lg:min-h-[53.125rem]">
+        <section aria-labelledby="t-hero" className="relative flex min-h-[640px] items-end overflow-hidden md:min-h-[min(calc(100vh-68px),820px)]">
           <img src="/hero-malvinas.png" alt="Soldados argentinos en Malvinas" className="absolute inset-0 h-full w-full object-cover object-[62%_center] lg:object-[center_30%]" />
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%),linear-gradient(0deg,#0b0b0b 0%,rgba(11,11,11,0) 45%)' }} />
 
-          <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 lg:pb-[4.5rem]">
+          <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 md:px-10 md:pb-16">
             <div className="inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
               <MapPin className="h-[15px] w-[15px] text-[#9be600]" aria-hidden="true" />
               FORMOSA CAPITAL · ARGENTINA
             </div>
             <h1 id="t-hero" className="mt-[1.125rem] flex flex-col gap-3.5">
-              <img src="/bravos-logo.png" alt="Bravos Box" className="h-[4.5rem] w-auto self-start md:h-[6.25rem] lg:h-[8rem]" />
-              <span className="font-[Archivo]! text-[1.25rem] font-extrabold tracking-[.06em] uppercase md:text-2xl lg:text-[1.875rem]">
+              <img src="/bravos-logo.png" alt="Bravos Box" className="h-16 w-auto self-start md:h-[5.25rem] lg:h-24" />
+              <span className="font-[Archivo]! text-[1.125rem] font-extrabold tracking-[.06em] uppercase md:text-[1.25rem] lg:text-[1.5rem]">
                 Centro de <span className="text-[#9be600]">entrenamiento</span>
               </span>
             </h1>

@@ -147,19 +147,19 @@ export default function RankingPublicoPage() {
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-3">
-              <div role="group" aria-label="Ejercicio" className="flex min-w-[16rem] flex-1 flex-wrap gap-2">
+            <div className="flex flex-nowrap items-center gap-3">
+              <div role="group" aria-label="Ejercicio" className="flex min-w-0 flex-1 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {ejercicios.map((e) => {
                   const on = e.idCatalogo === actual.idCatalogo
                   return (
                     <button key={e.idCatalogo} type="button" aria-pressed={on} onClick={() => { setIdCatalogo(e.idCatalogo); setBusqueda("") }}
-                      className={`h-11 rounded-full border px-4 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? "border-[#9be600] bg-[#9be600] text-[#0b0b0b]" : "border-[#333] text-[#ecefe4] hover:border-[#555]"}`}>
+                      className={`h-11 shrink-0 whitespace-nowrap rounded-full border px-4 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? "border-[#9be600] bg-[#9be600] text-[#0b0b0b]" : "border-[#333] text-[#ecefe4] hover:border-[#555]"}`}>
                       {e.nombre}
                     </button>
                   )
                 })}
               </div>
-              <label className="relative block min-w-[15rem] flex-[0_1_340px]">
+              <label className="relative block w-[15rem] shrink-0">
                 <span className="sr-only">Buscar un alumno</span>
                 <Search className="pointer-events-none absolute top-[0.8125rem] left-3.5 h-[18px] w-[18px] text-[#a3a698]" aria-hidden="true" />
                 <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar un alumno"
@@ -180,7 +180,7 @@ export default function RankingPublicoPage() {
                         <div className="flex w-full flex-col items-center gap-2">
                           <span className="grid place-items-center rounded-full border-[3px] bg-[#1f2a0e] text-lg font-extrabold text-[#9be600]" style={{ width: av, height: av, borderColor: c }}>{iniciales(f.nombre)}</span>
                           <span className="flex max-w-full items-center justify-center gap-1.5 text-[0.9375rem] leading-tight font-bold whitespace-nowrap">
-                            <span className="overflow-hidden text-ellipsis">{f.nombre}</span>
+                            <span className="min-w-0 truncate">{f.nombre}</span>
                             {f.esMio && <span className="rounded-md bg-[#9be600] px-1.5 py-0.5 text-[0.625rem] font-extrabold text-[#0b0b0b]">VOS</span>}
                           </span>
                           <span className="text-[1.375rem] leading-tight font-extrabold">{formatearValor(tipo, f.valor)}</span>
