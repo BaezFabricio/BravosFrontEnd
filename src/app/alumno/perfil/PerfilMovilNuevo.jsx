@@ -36,6 +36,7 @@ export default function PerfilMovilNuevo() {
   const u = p.usuario
   const iniciales = (u.nombre || "").trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "BR"
   const rolTxt = String(u.perfil || "alumno").toUpperCase()
+  const activo = String(u.estado || "").toLowerCase() === "activo"
   const esAdmin = panelesPermitidos().admin
   const vigente = !!plan?.vigente
   const creditos = vigente ? plan.totalDisponibles : 0
@@ -67,12 +68,10 @@ export default function PerfilMovilNuevo() {
         <div className="flex flex-wrap gap-2">
           {/* Rol: sólido en lima para administradores, contorno para el resto (como en la referencia) */}
           <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.6875rem] font-extrabold tracking-[0.06em] ${esAdmin ? "bg-bx-lima text-bx-negro" : "border border-[#4a4d42] text-[#c9ccbe]"}`}>{rolTxt}</span>
-          {/* Estado de la membresía (reemplaza el de usuario) */}
-          {plan && (
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.6875rem] font-bold ${!vigente ? "border-[#6b2a24] bg-[#2a1210] text-[#ffb4aa]" : plan.porVencer ? "border-[#5a4a12] bg-[#2a230a] text-[#e6c200]" : "border-[#3d5a10] bg-[#16220a] text-bx-lima"}`}>
-              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{!vigente ? "Sin membresía" : plan.porVencer ? "Membresía por vencer" : "Membresía activa"}
-            </span>
-          )}
+          {/* Estado del usuario */}
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.6875rem] font-bold ${activo ? "border-[#3d5a10] bg-[#16220a] text-bx-lima" : "border-[#4a4d42] text-[#c9ccbe]"}`}>
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{activo ? "Usuario activo" : "Usuario inactivo"}
+          </span>
         </div>
         {p.errorFoto && <p role="alert" className="m-0 text-sm font-medium text-[#ffb4aa]">{p.errorFoto}</p>}
       </section>
