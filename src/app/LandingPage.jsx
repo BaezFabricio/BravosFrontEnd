@@ -374,11 +374,11 @@ function LandingPage() {
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
             <div data-revela className="landing-revelar flex flex-col gap-3.5" style={{ animationDelay: '.15s' }}>
-              <p className="m-0 text-center text-xs font-bold tracking-[.12em] text-[#9be600] uppercase">{cfg.tituloNosotros || 'Sobre nosotros'}</p>
               <img src="/malvinas.png" alt="" aria-hidden="true" className="mx-auto block h-auto w-[12.5rem] max-w-[60%]" />
               <h2 id="t-nos" className="m-0 font-[Archivo]! text-2xl leading-[1.25] font-extrabold text-[#ecefe4]">Honor y gloria a los Bravos de Malvinas</h2>
               <p className="m-0 text-base leading-relaxed text-[#c9ccbf]">{cfg.descripcionNosotros || TEXTO_NOSOTROS}</p>
               <p className="m-0 text-base leading-relaxed text-[#a3a698]">{cfg.mision || TEXTO_MISION}</p>
+              <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600] uppercase">{cfg.tituloNosotros || 'Sobre nosotros'}</p>
             </div>
           </div>
         </section>
