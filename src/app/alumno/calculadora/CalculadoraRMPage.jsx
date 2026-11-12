@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card"
 import { TituloPagina } from "@/components/TituloPagina"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import CalculadoraEscritorio from "./CalculadoraEscritorio"
+import CalculadoraMovilNuevo from "./CalculadoraMovilNuevo"
 
 /*
  * Calculadora de RM. Diseño: "calculadora-referencia.html" (números grandes en stencil, tabla con barras),
@@ -156,5 +157,5 @@ function CalculadoraMovil() {
 // Desde 1024 px: diseño de escritorio; por debajo, el del celular
 export default function CalculadoraRMPage() {
   const escritorio = useAnchoPanel()
-  return escritorio ? <CalculadoraEscritorio /> : <CalculadoraMovil />
+  return escritorio ? <CalculadoraEscritorio /> : <CalculadoraMovilNuevo />
 }

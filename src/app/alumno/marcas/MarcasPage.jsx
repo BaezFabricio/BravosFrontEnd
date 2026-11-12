@@ -14,6 +14,7 @@ import { TituloPagina } from "@/components/TituloPagina"
 import RankingBox from "../ranking/RankingBox"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import MarcasEscritorio from "./MarcasEscritorio"
+import MarcasMovilNuevo from "./MarcasMovilNuevo"
 
 /*
  * Mis RM: elegís el ejercicio, ponés el peso y guardás. En la otra pestaña está el ranking del box.
@@ -290,5 +291,5 @@ function MarcasMovil() {
 // Desde 1024 px: diseño de escritorio; por debajo, el del celular
 export default function MarcasPage() {
   const escritorio = useAnchoPanel()
-  return escritorio ? <MarcasEscritorio /> : <MarcasMovil />
+  return escritorio ? <MarcasEscritorio /> : <MarcasMovilNuevo />
 }
