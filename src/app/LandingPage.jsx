@@ -22,7 +22,26 @@ const MENU = [
   { name: 'Contacto', href: '#contacto' },
 ]
 
-const TEXTO_NOSOTROS = 'Nuestro centro de entrenamiento busca honrar la memoria de los héroes argentinos. Por los que volvieron y los que se quedaron velando por nuestras Islas.'
+// Movimiento de la portada: entradas al cargar, bloques que aparecen al bajar y listas escalonadas.
+// Con "reducir movimiento" en el sistema no se anima nada.
+const ANIMACIONES = `
+@keyframes landing-sube { from { opacity: 0; transform: translateY(28px) } to { opacity: 1; transform: none } }
+@keyframes landing-entra { from { opacity: 0 } to { opacity: 1 } }
+.landing-sube { animation: landing-sube .9s cubic-bezier(.22,1,.36,1) both }
+.landing-entra { animation: landing-entra 1.1s ease both }
+.landing-revelar { opacity: 0 }
+.landing-revelar.visible { animation: landing-sube .8s cubic-bezier(.22,1,.36,1) both }
+.landing-lista > * { animation: landing-sube .5s cubic-bezier(.22,1,.36,1) both }
+.landing-lista > :nth-child(2) { animation-delay: .08s }
+.landing-lista > :nth-child(3) { animation-delay: .16s }
+.landing-lista > :nth-child(n+4) { animation-delay: .24s }
+@media (prefers-reduced-motion: reduce) {
+  .landing-sube, .landing-entra, .landing-revelar.visible, .landing-lista > * { animation: none !important }
+  .landing-revelar { opacity: 1 }
+}
+`
+
+const TEXTO_NOSOTROS ='Nuestro centro de entrenamiento busca honrar la memoria de los héroes argentinos. Por los que volvieron y los que se quedaron velando por nuestras Islas.'
 const TEXTO_MISION = 'Somos una comunidad comprometida con el bienestar y el desarrollo integral de las personas. Trabajamos con atención, profesionalismo y compromiso, acompañando a cada alumno a superar sus propios límites a través del CrossFit.'
 
 const DIAS = [
@@ -113,6 +132,20 @@ function LandingPage() {
 
   const logueado = !!sesion
 
+  // Lo que tiene data-revela aparece con un movimiento suave al entrar en pantalla (una sola vez)
+  useEffect(() => {
+    if (!configLoaded) return
+    const elementos = document.querySelectorAll('[data-revela]')
+    if (!('IntersectionObserver' in window)) { elementos.forEach((el) => el.classList.add('visible')); return }
+    const observador = new IntersectionObserver((entradas) => {
+      entradas.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); observador.unobserve(e.target) }
+      })
+    }, { threshold: 0.15 })
+    elementos.forEach((el) => observador.observe(el))
+    return () => observador.disconnect()
+  }, [configLoaded])
+
   // Datos de la configuración (con reintentos si el servidor no responde; sin datos de relleno)
   useEffect(() => {
     let vivo = true
@@ -199,6 +232,7 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] text-[#ecefe4] selection:bg-[#9be600] selection:text-[#0b0b0b]" style={{ fontFamily: 'Archivo, sans-serif' }}>
+      <style>{ANIMACIONES}</style>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:bg-[#9be600] focus:px-3.5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-[#0b0b0b]">
         Saltar al contenido
       </a>
@@ -213,7 +247,7 @@ function LandingPage() {
           <nav aria-label="Principal" className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 gap-1 min-[900px]:flex">
             {menu.map((item) => (
               <a key={item.name} href={item.href} onClick={(e) => abrirAccion(e, item)}
-                className="flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#c9ccbf] no-underline transition-colors hover:bg-[#161616] hover:text-[#ecefe4] focus-visible:outline-2 focus-visible:outline-[#9be600]">
+                className="relative flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#c9ccbf] no-underline transition-colors after:absolute after:bottom-1 after:left-3 after:right-3 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[#9be600] after:transition-transform hover:after:scale-x-100 hover:bg-[#161616] hover:text-[#ecefe4] focus-visible:outline-2 focus-visible:outline-[#9be600]">
                 {item.name}
               </a>
             ))}
@@ -301,18 +335,18 @@ function LandingPage() {
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%),linear-gradient(0deg,#0b0b0b 0%,rgba(11,11,11,0) 45%)' }} />
 
           <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 md:px-10 md:pb-16">
-            <div className="inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
+            <div className="landing-entra inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
               <MapPin className="h-[15px] w-[15px] text-[#9be600]" aria-hidden="true" />
               FORMOSA CAPITAL · ARGENTINA
             </div>
             <h1 id="t-hero" className="mt-[1.125rem] flex flex-col gap-3.5">
-              <img src="/bravos-logo.png" alt="Bravos Box" className="h-16 w-auto self-start md:h-[5.25rem] lg:h-24" />
-              <span className="font-[Archivo]! text-[1.125rem] font-extrabold tracking-[.06em] uppercase md:text-[1.25rem] lg:text-[1.5rem]">
+              <img src="/bravos-logo.png" alt="Bravos Box" className="landing-sube h-16 w-auto self-start md:h-[5.25rem] lg:h-24" style={{ animationDelay: '.15s' }} />
+              <span className="landing-sube font-[Archivo]! text-[1.125rem] font-extrabold tracking-[.06em] uppercase md:text-[1.25rem] lg:text-[1.5rem]" style={{ animationDelay: '.3s' }}>
                 Centro de <span className="text-[#9be600]">entrenamiento</span>
               </span>
             </h1>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="landing-sube mt-7 flex flex-wrap gap-3" style={{ animationDelay: '.45s' }}>
               {esAlumno && (
                 <Link to="/alumno/reservar" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
                   RESERVAR CLASE
@@ -334,11 +368,11 @@ function LandingPage() {
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
-          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-24 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
-            <p className="m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
+          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-12 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+            <p data-revela className="landing-revelar m-0 font-[Big_Shoulders_Stencil_Display]!text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
-            <div className="flex flex-col gap-3.5">
+            <div data-revela className="landing-revelar flex flex-col gap-3.5" style={{ animationDelay: '.15s' }}>
               <img src="/malvinas.png" alt="" aria-hidden="true" className="mx-auto block h-auto w-[12.5rem] max-w-[60%]" />
               <h2 id="t-nos" className="m-0 font-[Archivo]! text-2xl leading-[1.25] font-extrabold text-[#ecefe4]">Honor y gloria a los Bravos de Malvinas</h2>
               <p className="m-0 text-base leading-relaxed text-[#c9ccbf]">{cfg.descripcionNosotros || TEXTO_NOSOTROS}</p>
@@ -349,12 +383,12 @@ function LandingPage() {
 
         {/* CLASES: dos tarjetas que ocupan todo el ancho */}
         <section id="clases" aria-labelledby="t-cla" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
               {clases.map((k, i) => (
-                <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
+                <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   {/* Marco de alto fijo: la foto llena el marco (se recorta un poco en los bordes) y las dos tarjetas quedan del mismo tamaño */}
                   <div className="relative h-[22rem] overflow-hidden">
                     <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative h-full w-full" />
@@ -378,7 +412,7 @@ function LandingPage() {
 
         {/* HORARIOS */}
         <section id="horarios" aria-labelledby="t-hor" className="scroll-mt-20 border-y border-[#1f1f1f] bg-[#0e0e0e]">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CALENDARIO ACTIVO</p>
             <h2 id="t-hor" className="mt-2 mb-6 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Horarios semanales</h2>
 
@@ -404,7 +438,7 @@ function LandingPage() {
                 {turnosBox.length === 0 ? 'Los horarios se publican muy pronto.' : 'No hay turnos publicados este día.'}
               </p>
             ) : (
-              <div className="grid gap-5 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]">
+              <div key={diaSeleccionado} className="landing-lista grid gap-5 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]">
                 {turnosDelDia.map((tipo) => {
                   const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
                   const turnos = Object.values(
@@ -459,7 +493,7 @@ function LandingPage() {
 
         {/* CONTACTO */}
         <section id="contacto" aria-labelledby="t-con" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
+          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CONTACTO DIRECTO</p>
             <h2 id="t-con" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Encontranos</h2>
 
@@ -549,7 +583,7 @@ function LandingPage() {
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex flex-col gap-2">
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-[1.875rem] w-auto self-start" />
-              <span className="text-sm text-[#a3a698]">Centro de entrenamiento funcional y CrossFit · Formosa</span>
+              <span className="text-sm text-[#a3a698]">Centro de entrenamiento funcional · Formosa</span>
             </div>
             <Link to="/arrepentimiento" className="flex h-11 items-center rounded-[10px] border border-[#333] px-[1.125rem] text-[0.8125rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:text-[#ecefe4]">
               Botón de arrepentimiento
