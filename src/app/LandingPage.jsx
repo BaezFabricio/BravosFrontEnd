@@ -355,9 +355,9 @@ function LandingPage() {
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
               {clases.map((k, i) => (
                 <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
-                  {/* Marco de alto fijo: la foto entra completa (sin recortar) y las dos tarjetas quedan del mismo tamaño */}
-                  <div className="relative h-[22rem] overflow-hidden bg-[#111]">
-                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-contain transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative h-full w-full" />
+                  {/* Marco de alto fijo: la foto llena el marco (se recorta un poco en los bordes) y las dos tarjetas quedan del mismo tamaño */}
+                  <div className="relative h-[22rem] overflow-hidden">
+                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative h-full w-full" />
                   </div>
                   <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
                     <div className="flex flex-wrap gap-2">
