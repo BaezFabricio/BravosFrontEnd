@@ -59,6 +59,13 @@ export default function AlumnoLayout({ children }) {
   // Desde 1024 px: diseño de escritorio (LayoutEscritorio). Por debajo: el marco del celular, que no cambia.
   const escritorio = useAnchoPanel()
   const [cuentaAbierta, setCuentaAbierta] = useState(false)
+
+  // Celular: el contenido se desplaza sin barra de scroll visible
+  useEffect(() => {
+    if (escritorio) return undefined
+    document.documentElement.classList.add("sin-barra-movil")
+    return () => document.documentElement.classList.remove("sin-barra-movil")
+  }, [escritorio])
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
   usePermisosVivos() // el menú de paneles se actualiza solo cuando cambian los permisos
   const slotTitulo = null // las pantallas no dibujan su título en el cuerpo: lo muestran el header (celular) y la barra de arriba (escritorio)
@@ -296,9 +303,7 @@ export default function AlumnoLayout({ children }) {
         onCerrar={() => setCuentaAbierta(false)}
         userData={userData}
         avatarUrl={avatarUrl}
-        onLogout={handleLogout}
         rutaPerfil="/alumno/perfil"
-        rutaConfiguracion="/alumno/configuracion"
       />
 
       {/* "Más" (menú de abajo): hoja que sube desde abajo con todas las opciones */}

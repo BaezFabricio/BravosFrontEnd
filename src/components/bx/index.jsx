@@ -87,7 +87,7 @@ export function Insignia({ className, children, ...props }) {
 }
 
 // Filtros: chips con aria-pressed (el activo va invertido: ink/bg)
-export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", className }) {
+export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", className, tactil = false }) {
   return (
     <div role="group" aria-label={etiqueta} className={cn("flex flex-wrap gap-2", className)}>
       {opciones.map((o) => {
@@ -99,11 +99,12 @@ export function FiltroChips({ opciones, valor, onChange, etiqueta = "Filtrar", c
             aria-pressed={activo}
             onClick={() => onChange(o.id)}
             className={cn(
-              "h-9 rounded-full border px-3.5 text-[0.8125rem] font-bold transition-[background-color,border-color,color,transform] duration-200 active:scale-95",
+              tactil ? "h-11 px-4" : "h-9 px-3.5", "inline-flex items-center gap-2 rounded-full border text-[0.8125rem] font-bold transition-[background-color,border-color,color,transform] duration-200 active:scale-95",
               activo ? "border-bx-ink bg-bx-ink text-bx-bg" : "border-bx-btn-line bg-transparent text-bx-ink hover:border-bx-ink"
             )}
           >
             {o.label}
+            {o.contador != null && <span className={cn("grid h-[1.25rem] min-w-[1.25rem] place-items-center rounded-full px-1 text-[0.6875rem] font-bold", activo ? "bg-bx-bg/25" : "bg-bx-line2")}>{o.contador}</span>}
           </button>
         )
       })}
@@ -385,4 +386,49 @@ export function Stepper({ valor, onChange, paso = 1, min = 0, max = Infinity, et
       </button>
     </div>
   )
+}
+
+/* ───────── Chip de estado (activo / por vencer / vencido / pendiente / en revisión / rechazado) ───────── */
+
+const ESTADOS_CHIP = {
+  activo: { texto: "Activo", tono: "ok" },
+  por_vencer: { texto: "Por vencer", tono: "warn" },
+  vencido: { texto: "Vencido", tono: "err" },
+  pendiente: { texto: "Pendiente", tono: "neutral" },
+  en_revision: { texto: "En revisión", tono: "warn" },
+  aprobado: { texto: "Aprobado", tono: "ok" },
+  rechazado: { texto: "Rechazado", tono: "err" },
+}
+
+// El punto lleva el color del estado; el texto no se parte (whitespace-nowrap)
+export function ChipEstado({ estado, texto, className }) {
+  const e = ESTADOS_CHIP[estado] || ESTADOS_CHIP.pendiente
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-[0.1875rem] text-xs font-bold", TONOS_CHIP[e.tono], className)}>
+      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{texto || e.texto}
+    </span>
+  )
+}
+
+/* ───────── Fila de lista tocable (toda la fila es el botón o el enlace; mínimo 56 px) ───────── */
+
+export function FilaTocable({ to, onClick, icono, titulo, sub, derecha, flecha = true, peligro = false, className, ...props }) {
+  const clases = cn(
+    "flex min-h-14 w-full items-center gap-3.5 px-4 py-2.5 text-left transition-colors duration-200 active:bg-bx-surf",
+    peligro ? "text-bx-err-fg" : "text-bx-ink",
+    className
+  )
+  const contenido = (
+    <>
+      {icono && <span className={cn("flex shrink-0", peligro ? "" : "text-bx-muted")}>{icono}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[0.9375rem] font-bold">{titulo}</span>
+        {sub && <span className="block truncate text-xs text-bx-muted">{sub}</span>}
+      </span>
+      {derecha}
+      {flecha && !peligro && <ChevronRight className="h-[1.125rem] w-[1.125rem] shrink-0 text-bx-muted" aria-hidden="true" />}
+    </>
+  )
+  if (to) return <Link to={to} className={clases} {...props}>{contenido}</Link>
+  return <button type="button" onClick={onClick} className={clases} {...props}>{contenido}</button>
 }

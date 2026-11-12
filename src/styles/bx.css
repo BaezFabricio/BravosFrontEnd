@@ -183,3 +183,9 @@
   }
   .bx-lift:hover, .bx-plan:hover { transform: none; }
 }
+
+/* Contenido sin barra de scroll visible (celular): la página y las hojas se siguen desplazando */
+html.sin-barra-movil { scrollbar-width: none; }
+html.sin-barra-movil::-webkit-scrollbar { display: none; }
+.scroll-sin-barra { scrollbar-width: none; }
+.scroll-sin-barra::-webkit-scrollbar { display: none; }
