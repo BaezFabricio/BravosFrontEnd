@@ -210,7 +210,7 @@ function LandingPage() {
             <img src="/bravos-logo.png" alt="Bravos Box" className="h-[34px] w-auto" />
           </Link>
 
-          <nav aria-label="Principal" className="hidden flex-1 justify-center gap-1 min-[900px]:flex">
+          <nav aria-label="Principal" className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 gap-1 min-[900px]:flex">
             {menu.map((item) => (
               <a key={item.name} href={item.href} onClick={(e) => abrirAccion(e, item)}
                 className="flex h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#c9ccbf] no-underline transition-colors hover:bg-[#161616] hover:text-[#ecefe4] focus-visible:outline-2 focus-visible:outline-[#9be600]">
@@ -220,7 +220,7 @@ function LandingPage() {
           </nav>
           <span className="flex-1 min-[900px]:hidden" />
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <Link to="/ranking" className="hidden h-11 items-center gap-2 rounded-[10px] border border-[#3d5a10] px-4 text-[0.8125rem] font-bold tracking-[.04em] text-[#9be600] no-underline transition-colors hover:bg-[#16220a] min-[900px]:flex">
               <Trophy className="h-4 w-4" aria-hidden="true" />
               RANKING
