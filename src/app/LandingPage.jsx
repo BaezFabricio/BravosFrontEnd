@@ -754,9 +754,9 @@ function LandingPage() {
               const nivel = NIVELES[clase.level] || clase.level
               return (
                 <article key={idx} id={`clase-${idx + 1}`}
-                  className={`flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
+                  className={`group flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 transition-[transform,border-color] duration-300 hover:border-accent/50 motion-safe:hover:-translate-y-1 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
                   <div className="relative aspect-square overflow-hidden">
-                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover" containerClassName="h-full w-full absolute inset-0" />
+                    <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="h-full w-full absolute inset-0" />
                     <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                       {clase.duration && <span className="rounded-md bg-accent px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-black">{clase.duration}</span>}
                       {nivel && <span className="rounded-md bg-black/70 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide text-white backdrop-blur">{nivel}</span>}
