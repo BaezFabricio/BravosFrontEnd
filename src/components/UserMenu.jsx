@@ -14,7 +14,7 @@ function RolBadge({ tieneModulosAdmin, tieneModulosProfesor }) {
   return <span className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Alumno</span>;
 }
 
-export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual }) {
+export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual, sinAcordeon = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [verPaneles, setVerPaneles] = useState(false);
@@ -66,6 +66,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
         {mostrarPaneles && (
           <div className="border-b border-border p-1.5">
             {/* Lista desplegable: cerrada muestra el panel actual; al abrirla se elige el otro */}
+            {!sinAcordeon && (
             <button
               type="button"
               aria-expanded={verPaneles}
@@ -92,7 +93,9 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
               </span>
               <ChevronDown className={`h-4 w-4 shrink-0 text-foreground/50 transition-transform ${verPaneles ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
-            {verPaneles && (
+            )}
+            {sinAcordeon && <p className="px-2 pb-1 pt-1.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Ir a un panel</p>}
+            {(verPaneles || sinAcordeon) && (
             <ul className="mt-1 border-t border-border pt-1" aria-label={panelActual ? "Cambiar de panel" : "Ir a un panel"}>
               {paneles.map((panel) => {
                 const esActual = panel.key === panelActual;

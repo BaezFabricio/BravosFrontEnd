@@ -5,7 +5,7 @@ import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import UserMenu from '@/components/UserMenu'
-import NotificacionesBell from '@/components/NotificacionesBell'
+import CampanaPortada from '@/components/CampanaPortada'
 import NovedadesPortada from '@/components/NovedadesPortada'
 
 /*
@@ -262,7 +262,7 @@ function LandingPage() {
 
             {logueado ? (
               <>
-                <span className="hidden min-[900px]:inline-flex"><NotificacionesBell /></span>
+                <span className="hidden min-[900px]:inline-flex"><CampanaPortada verTodasHref={esAlumno ? '/alumno/notificaciones' : null} /></span>
                 <div className="relative hidden min-[900px]:block">
                   <button type="button" onClick={() => setUserMenuOpen((v) => !v)} aria-expanded={userMenuOpen} aria-haspopup="menu" aria-label="Mi cuenta"
                     className="grid h-11 w-11 place-items-center overflow-hidden rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-sm font-extrabold text-[#9be600] focus-visible:outline-2 focus-visible:outline-[#9be600]">
@@ -270,6 +270,7 @@ function LandingPage() {
                   </button>
                   <UserMenu
                     userData={sesion.userData}
+                    sinAcordeon
                     avatarUrl={sesion.avatarUrl}
                     userMenuOpen={userMenuOpen}
                     setUserMenuOpen={setUserMenuOpen}
