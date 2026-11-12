@@ -191,7 +191,8 @@ function LandingPage() {
   const [calle, ...resto] = direccion.split(',')
   const abiertoAhora = estaAbiertoAhora(cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo)
   const filasHorario = [cfg.horario_semana || 'Lun-Vie: 6:00 - 22:00', cfg.horario_sabado || 'Sábado: 17:00 - 19:00', cfg.horario_domingo || 'Domingo: Cerrado'].map(leerHorario).filter(Boolean)
-  const destinoReserva = logueado ? '/alumno/reservar' : '/registro'
+  // Reservar solo para alumnos con sesión iniciada (el resto ve los horarios sin poder reservar)
+  const esAlumno = logueado && permisos.some((p) => p.startsWith('alumno'))
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(`${direccion}, Formosa`)}`
 
   if (!configLoaded) return <LandingPageSkeleton />
@@ -286,7 +287,9 @@ function LandingPage() {
                 <Link to="/registro" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold text-[#0b0b0b] no-underline">UNIRSE</Link>
               </div>
             )}
-            <a href="#horarios" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">RESERVAR CLASE</a>
+            {esAlumno && (
+              <a href="#horarios" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">RESERVAR CLASE</a>
+            )}
           </nav>
         )}
       </header>
@@ -310,9 +313,11 @@ function LandingPage() {
             </h1>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
-                RESERVAR CLASE
-              </a>
+              {esAlumno && (
+                <Link to="/alumno/reservar" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
+                  RESERVAR CLASE
+                </Link>
+              )}
               <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] border border-[rgba(236,239,228,.45)] px-6 text-[0.9375rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] md:w-auto">
                 Ver horarios
               </a>
@@ -415,11 +420,16 @@ function LandingPage() {
                           <div className="flex flex-wrap gap-1.5">
                             {t.horas.map((h) => {
                               const largo = minutos(h.horaFin) - minutos(h.horaInicio) > 90
-                              return (
-                                <Link key={`${h.horaInicio}-${h.horaFin}`} to={destinoReserva} aria-label={`Reservar ${largo ? `de ${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : `a las ${h.horaInicio.slice(0, 5)}`}`}
+                              const texto = largo ? `${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : h.horaInicio.slice(0, 5)
+                              return esAlumno ? (
+                                <Link key={`${h.horaInicio}-${h.horaFin}`} to="/alumno/reservar" aria-label={`Reservar ${largo ? `de ${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : `a las ${h.horaInicio.slice(0, 5)}`}`}
                                   className="flex h-10 items-center rounded-full border border-[#333] px-3.5 text-sm font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:bg-[#1f2a0e]">
-                                  {largo ? `${h.horaInicio.slice(0, 5)} a ${h.horaFin.slice(0, 5)}` : h.horaInicio.slice(0, 5)}
+                                  {texto}
                                 </Link>
+                              ) : (
+                                <span key={`${h.horaInicio}-${h.horaFin}`} className="flex h-10 items-center rounded-full border border-[#333] px-3.5 text-sm font-bold text-[#ecefe4]">
+                                  {texto}
+                                </span>
                               )
                             })}
                           </div>
@@ -430,7 +440,9 @@ function LandingPage() {
                 })}
               </div>
             )}
-            <p className="mt-4 text-sm text-[#a3a698]">Tocá un horario para reservar. Necesitás tener una cuenta.</p>
+            <p className="mt-4 text-sm text-[#a3a698]">
+              {esAlumno ? 'Tocá un horario para reservar.' : 'Para reservar un horario tenés que iniciar sesión como alumno.'}
+            </p>
           </div>
         </section>
 
