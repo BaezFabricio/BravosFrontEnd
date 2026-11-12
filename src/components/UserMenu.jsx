@@ -37,6 +37,8 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
   // Todas las filas iguales: misma altura, ícono en la misma columna, texto normal
   const fila = "flex h-11 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500";
   const icono = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg";
+  // Variante de la portada (sinAcordeon): íconos sueltos, sin cuadrado de fondo
+  const iconoSimple = "flex h-6 w-6 shrink-0 items-center justify-center text-foreground/60";
 
   // Mi configuración (preferencias de la persona) se abre dentro del panel en el que está
   const rutaMiConfiguracion = pathname.startsWith('/alumno') ? '/alumno/configuracion'
@@ -51,7 +53,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
         {/* Quién está conectado */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <div className="flex h-10 w-10 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-sm font-black leading-none text-black">
-            {avatarUrl
+            {avatarUrl && !sinAcordeon
               ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
               : <Iniciales nombre={userData.nombrecompleto} />}
           </div>
@@ -108,10 +110,11 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
                       onClick={() => { setUserMenuOpen(false); setVerPaneles(false); if (!esActual) navigate(panel.href); }}
                       className={`${fila} ${esActual ? "bg-lime-400/10 text-foreground" : "text-foreground/80 hover:bg-foreground/5 hover:text-foreground"}`}
                     >
-                      <span className={`${icono} bg-lime-400/10`}>
-                        <IconoPanel className="h-4 w-4 text-lime-700 dark:text-lime-400" />
+                      <span className={sinAcordeon ? iconoSimple : `${icono} bg-lime-400/10`}>
+                        <IconoPanel className={`h-4 w-4 ${sinAcordeon ? "" : "text-lime-700 dark:text-lime-400"}`} />
                       </span>
                       <span className="flex-1">{panel.label}</span>
+                      {sinAcordeon && <span className="text-foreground/50" aria-hidden="true">→</span>}
                       {esActual && <Check className="h-4 w-4 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />}
                     </button>
                   </li>
@@ -125,15 +128,15 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
         {/* Cuenta */}
         <div className="p-1.5">
           <Link to={rutaPerfil} onClick={() => setUserMenuOpen(false)} className={`${fila} text-foreground/80 hover:bg-foreground/5 hover:text-foreground`}>
-            <span className={`${icono} bg-foreground/5`}><User className="h-4 w-4" /></span>
+            <span className={sinAcordeon ? iconoSimple : `${icono} bg-foreground/5`}><User className="h-4 w-4" /></span>
             Mi perfil
           </Link>
           <Link to={rutaMiConfiguracion} onClick={() => setUserMenuOpen(false)} className={`${fila} text-foreground/80 hover:bg-foreground/5 hover:text-foreground`}>
-            <span className={`${icono} bg-foreground/5`}><Settings className="h-4 w-4" /></span>
+            <span className={sinAcordeon ? iconoSimple : `${icono} bg-foreground/5`}><Settings className="h-4 w-4" /></span>
             Mi configuración
           </Link>
           <button type="button" onClick={() => { setUserMenuOpen(false); handleLogout(); }} className={`${fila} text-red-600 hover:bg-red-500/10 dark:text-red-400`}>
-            <span className={`${icono} bg-red-500/10`}><LogOut className="h-4 w-4" /></span>
+            <span className={sinAcordeon ? iconoSimple : `${icono} bg-red-500/10`}><LogOut className="h-4 w-4" /></span>
             Cerrar sesión
           </button>
         </div>
