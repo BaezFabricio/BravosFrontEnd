@@ -366,7 +366,7 @@ export default function BravoChat({ rol = "alumno" }) {
         onFocus={() => setGloboHover(true)}
         onBlur={() => setGloboHover(false)}
         aria-label={abierto ? `Cerrar chat con ${mascota.nombre}` : `Abrir chat con ${mascota.nombre}`}
-        className="touch-none group bravo-anim fixed z-[21] right-4 bottom-[calc(80px+env(safe-area-inset-bottom))] lg:right-4 lg:bottom-6 h-[3.25rem] w-[3.25rem] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="touch-none group bravo-anim fixed z-[21] right-4 bottom-[104px] lg:right-4 lg:bottom-6 h-[3.25rem] w-[3.25rem] rounded-full outline-none focus:outline-none focus-visible:outline-none transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         <span className="absolute inset-0 rounded-full bg-lime-400 shadow-lg ring-0 group-focus-visible:ring-2 group-focus-visible:ring-lime-200" />
         {abierto ? (

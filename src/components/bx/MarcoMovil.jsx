@@ -125,7 +125,7 @@ export function MenuInferior({ items, onNavegar }) {
   const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }
 
   return (
-    <div className="bx fixed inset-x-3 bottom-[calc(12px+env(safe-area-inset-bottom))] z-20 lg:hidden">
+    <div className="bx fixed inset-x-3 bottom-5 z-20 lg:hidden">
       <nav aria-label="Navegación principal">
         <div
           ref={barra}
@@ -135,7 +135,7 @@ export function MenuInferior({ items, onNavegar }) {
           onPointerCancel={cancelar}
           onClickCapture={(e) => { if (ignorarClic.current) { e.preventDefault(); e.stopPropagation() } }}
           style={{ touchAction: "none" }}
-          className={`relative grid grid-cols-5 rounded-[22px] border border-bx-line bg-bx-card shadow-[0_10px_30px_rgba(0,0,0,.35)] transition-[height] duration-300 ease-out ${compacta ? "h-12" : "h-14"}`}
+          className={`relative grid grid-cols-5 rounded-[22px] border border-bx-line bg-bx-card shadow-[0_10px_30px_rgba(0,0,0,.35)] transition-[height] duration-300 ease-out ${compacta ? "h-14" : "h-[68px]"}`}
         >
           {/* Brillo que sigue al dedo, con retraso, y ondas que se expanden desde donde se tocó */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
@@ -172,9 +172,9 @@ export function MenuInferior({ items, onNavegar }) {
                   to={item.href}
                   aria-label="Reservar clase"
                   aria-current={item.activo ? "page" : undefined}
-                  className="relative z-10 flex h-full min-w-0 flex-col items-center justify-end pb-1 text-[0.6875rem] font-bold text-bx-ok-fg"
+                  className="relative z-10 flex h-full min-w-0 flex-col items-center justify-end pb-[7px] text-[0.6875rem] font-bold text-bx-ok-fg"
                 >
-                  <span className={`latido-centro absolute left-[calc(50%-28px)] -top-5 grid h-14 w-14 place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
+                  <span className={`latido-centro absolute left-[calc(50%-30px)] -top-[30px] grid h-[60px] w-[60px] place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                     <Ico d={item.d} size={22} sw={1.9} />
                   </span>
                   {etiqueta}
