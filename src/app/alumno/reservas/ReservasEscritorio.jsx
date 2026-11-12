@@ -1,9 +1,8 @@
 import { useState } from "react"
-import apiClient from "@/api"
 import { Boton, Dialogo, ErrorBanner, Esqueleto, FiltroChips, Pantalla, Pestanas } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
-import { sanitizarHtml } from "@/lib/sanitizarHtml"
+import PizarronRutina from "./PizarronRutina"
 import { diaDelMes, diaSemanaCorto, duracion, etiquetaFecha, fechaCorta, limiteCancelacion, mesAbreviado, mesYAnio } from "@/lib/fechasBx"
 
 /*
@@ -14,20 +13,6 @@ const ESTADOS = {
   completada: { etiqueta: "Completada", clases: "border-bx-ok-line bg-bx-ok-bg text-bx-ok-fg", icono: IC.check },
   cancelada: { etiqueta: "Cancelada", clases: "border-bx-btn-line bg-transparent text-bx-muted", icono: IC.close },
   inasistencia: { etiqueta: "No asistió", clases: "border-bx-err-line bg-bx-err-bg text-bx-err-fg", icono: IC.close },
-}
-
-// La descripción de la rutina puede ser JSON { desc, rutina } (texto enriquecido) o texto plano (formato viejo)
-function partesDeRutina(rutina) {
-  let desc = rutina.descripcion || ""
-  let contenido = rutina.contenido || ""
-  try {
-    const p = JSON.parse(rutina.descripcion || "")
-    if (p && typeof p.rutina !== "undefined") { desc = p.desc || ""; contenido = p.rutina || "" }
-  } catch { /* texto plano o HTML sin JSON: se muestra tal cual */ }
-  const ejercicios = !contenido && Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0
-    ? rutina.ejercicios.map((e) => e.nombre).join("\n")
-    : ""
-  return { desc, contenido, ejercicios }
 }
 
 function BotonRutina({ onClick, etiqueta, conFlecha = false }) {
@@ -49,25 +34,9 @@ export default function ReservasEscritorio({
 }) {
   const [pestana, setPestana] = useState("prox")
   const [filtro, setFiltro] = useState("todas")
-  const [rutinaDe, setRutinaDe] = useState(null) // reserva cuya rutina se está viendo
-  const [rutina, setRutina] = useState(null) // null: sin pedir; false: no tiene; objeto: la rutina
-  const [cargandoRutina, setCargandoRutina] = useState(false)
+  const [rutinaDe, setRutinaDe] = useState(null) // reserva cuya rutina se está viendo (la pide PizarronRutina)
 
-  const abrirRutina = async (reserva) => {
-    setRutinaDe(reserva)
-    setRutina(null)
-    if (!reserva.idReserva) { setRutina(false); return }
-    setCargandoRutina(true)
-    try {
-      // Solo responde si la reserva es del alumno de la sesión
-      const res = await apiClient.get(`/reservas/${reserva.idReserva}/rutina`)
-      setRutina(res.data?.data || false)
-    } catch {
-      setRutina(false)
-    } finally {
-      setCargandoRutina(false)
-    }
-  }
+  const abrirRutina = (reserva) => setRutinaDe(reserva)
 
   const completadas = historial.filter((r) => r.estado === "completada")
   const canceladas = historial.filter((r) => r.estado === "cancelada")
@@ -87,7 +56,6 @@ export default function ReservasEscritorio({
     else grupos.push({ mes, items: [r] })
   })
 
-  const partes = rutina ? partesDeRutina(rutina) : null
 
   return (
     <Pantalla className="gap-5">
@@ -229,29 +197,7 @@ export default function ReservasEscritorio({
         </p>
       </Dialogo>
 
-      <Dialogo
-        abierto={!!rutinaDe}
-        onCerrar={() => setRutinaDe(null)}
-        titulo={rutinaDe ? `Rutina — ${rutinaDe.clase}` : "Rutina"}
-        descripcion={rutinaDe ? `${fechaCorta(rutinaDe.fecha)} · ${rutinaDe.hora} · Coach: ${rutinaDe.coach}` : undefined}
-        ancho={560}
-      >
-        {cargandoRutina && <Esqueleto alto={120} etiqueta="Cargando rutina" />}
-        {!cargandoRutina && rutina === false && <p className="py-6 text-center text-sm text-bx-muted">Esta clase todavía no tiene una rutina asignada.</p>}
-        {!cargandoRutina && partes && (
-          <div className="flex flex-col gap-4">
-            {partes.desc && (
-              <div className="prose prose-sm max-w-none text-sm leading-relaxed text-bx-ink prose-headings:font-bold prose-headings:text-bx-ink prose-strong:text-bx-ink" dangerouslySetInnerHTML={{ __html: sanitizarHtml(partes.desc) }} />
-            )}
-            {partes.contenido && (
-              <div className="prose prose-sm max-w-none rounded-xl border border-bx-line2 bg-bx-surf p-4 text-sm leading-relaxed text-bx-ink prose-headings:font-bold prose-headings:text-bx-ink prose-strong:text-bx-ink" dangerouslySetInnerHTML={{ __html: sanitizarHtml(partes.contenido) }} />
-            )}
-            {partes.ejercicios && (
-              <pre className="m-0 whitespace-pre-wrap rounded-xl border border-bx-line2 bg-bx-surf p-4 font-[inherit] text-sm leading-relaxed text-bx-ink">{partes.ejercicios}</pre>
-            )}
-          </div>
-        )}
-      </Dialogo>
+      <PizarronRutina reserva={rutinaDe} onClose={() => setRutinaDe(null)} />
     </Pantalla>
   )
 }
