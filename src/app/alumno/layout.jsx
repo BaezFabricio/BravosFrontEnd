@@ -18,7 +18,6 @@ import {
   Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import NotificacionesBell from "@/components/NotificacionesBell"
 import NovedadesPortada from "@/components/NovedadesPortada"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
@@ -29,6 +28,7 @@ import { HojaMas } from "@/components/MenuPanel"
 import { EncabezadoMovil, MenuInferior } from "@/components/bx/MarcoMovil"
 import { HojaCuenta } from "@/components/bx/MenuCuenta"
 import { IC } from "@/components/bx/trazos"
+import { LayoutBxContext } from "@/lib/layoutBx"
 import { Ico } from "@/components/bx/iconos"
 import { useAnchoPanel } from '@/lib/useEscritorio'
 import LayoutEscritorio from './LayoutEscritorio'
@@ -337,7 +337,7 @@ export default function AlumnoLayout({ children }) {
       />
 
       <main className="p-4 pb-[calc(7.5rem+env(safe-area-inset-bottom))]">
-        {cuerpo}
+        <LayoutBxContext.Provider value={true}>{cuerpo}</LayoutBxContext.Provider>
       </main>
 
       <MenuInferior items={itemsMenu} />
