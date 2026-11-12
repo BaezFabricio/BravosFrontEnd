@@ -369,7 +369,7 @@ function LandingPage() {
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
           <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-12 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
-            <p data-revela className="landing-revelar m-0 font-[Big_Shoulders_Stencil_Display]!text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
+            <p data-revela className="landing-revelar m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
             <div data-revela className="landing-revelar flex flex-col gap-3.5" style={{ animationDelay: '.15s' }}>
