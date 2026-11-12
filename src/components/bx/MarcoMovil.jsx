@@ -125,8 +125,8 @@ export function MenuInferior({ items, onNavegar }) {
   const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }
 
   return (
-    <div className="bx fixed inset-x-0 bottom-0 z-30 lg:hidden">
-      <nav aria-label="Navegación principal" className="border-t border-bx-line bg-bx-card pb-[max(1.375rem,env(safe-area-inset-bottom))]">
+    <div className="bx fixed inset-x-3 bottom-[calc(24px+env(safe-area-inset-bottom))] z-20 lg:hidden">
+      <nav aria-label="Navegación principal">
         <div
           ref={barra}
           onPointerDown={alTocar}
@@ -135,10 +135,10 @@ export function MenuInferior({ items, onNavegar }) {
           onPointerCancel={cancelar}
           onClickCapture={(e) => { if (ignorarClic.current) { e.preventDefault(); e.stopPropagation() } }}
           style={{ touchAction: "none" }}
-          className={`relative grid grid-cols-5 transition-[height] duration-300 ease-out ${compacta ? "h-[3.5rem]" : "h-[4.625rem]"}`}
+          className={`relative grid grid-cols-5 rounded-[22px] border border-bx-line bg-bx-card shadow-[0_10px_30px_rgba(0,0,0,.35)] transition-[height] duration-300 ease-out ${compacta ? "h-14" : "h-[68px]"}`}
         >
           {/* Brillo que sigue al dedo, con retraso, y ondas que se expanden desde donde se tocó */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
             <span
               className="pointer-events-none absolute z-0 h-14 w-14 rounded-full bg-[radial-gradient(circle,rgba(155,230,0,0.22)_0%,rgba(155,230,0,0.07)_50%,transparent_72%)] motion-reduce:hidden"
               style={{
@@ -172,9 +172,9 @@ export function MenuInferior({ items, onNavegar }) {
                   to={item.href}
                   aria-label="Reservar clase"
                   aria-current={item.activo ? "page" : undefined}
-                  className="relative z-10 flex min-w-0 flex-col items-center justify-end gap-1 pb-2.5 text-[0.6875rem] font-bold text-bx-ok-fg"
+                  className="relative z-10 flex h-full min-w-0 flex-col items-center justify-end pb-[7px] text-[0.6875rem] font-bold text-bx-ok-fg"
                 >
-                  <span className={`latido-centro grid place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${compacta ? "-mt-3 h-[2.75rem] w-[2.75rem]" : "-mt-[1.875rem] h-[3.75rem] w-[3.75rem]"} ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
+                  <span className={`latido-centro absolute left-[calc(50%-30px)] -top-[30px] grid h-[60px] w-[60px] place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                     <Ico d={item.d} size={22} sw={1.9} />
                   </span>
                   {etiqueta}
@@ -188,7 +188,7 @@ export function MenuInferior({ items, onNavegar }) {
                 to={item.href}
                 data-guia={item.guia}
                 aria-current={item.activo ? "page" : undefined}
-                className={`relative z-10 flex min-w-0 flex-col items-center justify-end gap-1 pb-2.5 text-[0.6875rem] transition-colors duration-200 ${resaltada ? "font-bold text-bx-ok-fg" : "font-semibold text-bx-muted hover:text-bx-ink"}`}
+                className={`relative z-10 flex h-full min-w-0 flex-col items-center justify-center gap-[3px] text-[0.6875rem] transition-colors duration-200 ${resaltada ? "font-bold text-bx-ok-fg" : "font-semibold text-bx-muted hover:text-bx-ink"}`}
               >
                 <span className={`relative grid h-[1.875rem] w-[3.25rem] place-items-center rounded-[0.9375rem] transition-[background-color,transform] duration-300 active:scale-90 ${resaltada ? "bg-bx-ok-bg -translate-y-0.5 scale-110" : "bg-transparent"}`}>
                   <Ico d={item.d} size={22} sw={1.9} />
