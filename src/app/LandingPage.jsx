@@ -748,13 +748,13 @@ function LandingPage() {
           </div>
 
           {/* Celular: tarjetas que se deslizan de costado. Computadora: las tres juntas */}
-          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:flex md:justify-center md:gap-6 md:overflow-visible md:px-0">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
             {claseCards.map((clase, idx) => {
               if (filtroClase !== 'todas' && filtroClase !== idx) return null
               const nivel = NIVELES[clase.level] || clase.level
               return (
                 <article key={idx} id={`clase-${idx + 1}`}
-                  className={`flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-[calc((100%-3rem)/3)]' : 'w-full md:w-[calc((100%-3rem)/3)]'}`}>
+                  className={`flex scroll-mt-20 snap-start flex-col overflow-hidden rounded-md border border-border bg-foreground/5 ${filtroClase === 'todas' ? 'w-[85%] shrink-0 sm:w-[60%] md:w-auto' : 'w-full'}`}>
                   <div className="relative aspect-square overflow-hidden">
                     <ImgConSkeleton src={clase.image} alt={clase.titulo} className="h-full w-full object-cover" containerClassName="h-full w-full absolute inset-0" />
                     <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
