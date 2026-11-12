@@ -86,28 +86,18 @@ const resumen = [
     texto: "Esta es tu pantalla de inicio.",
     puntos: [
       "Arriba está tu racha: los días seguidos que fuiste a entrenar.",
-      "Con Reservar clase vas directo a la agenda.",
+      "Con el botón verde del centro del menú de abajo vas directo a la agenda.",
     ],
     objetivo: "res-hero",
     ruta: "/alumno",
   },
   {
-    titulo: "Créditos y clases",
-    texto: "Dos números para tener a mano.",
-    puntos: [
-      "Créditos: cuántas clases podés reservar. Cada clase usa uno.",
-      "Clases: las que reservaste y todavía no se dieron.",
-      "Tocá el signo de pregunta de cada tarjeta para ver qué significa.",
-    ],
-    objetivo: "res-numeros",
-    ruta: "/alumno",
-  },
-  {
     titulo: "Tu membresía",
-    texto: "Tu plan de un vistazo.",
+    texto: "Tu plan y tus créditos de un vistazo.",
     puntos: [
-      "Ves si está activa y hasta cuándo vence.",
-      "Con Contratar otra membresía sumás otro plan; con Renovar, seguís entrenando.",
+      "Ves si está activa, hasta cuándo vence y cuántos días faltan.",
+      "Tus créditos aparecen como \"19 de 20\", con una barra.",
+      "Tocá la franja para ir a Mi membresía: ahí renovás o sumás otro plan.",
       "Sin membresía vigente no se pueden reservar clases.",
     ],
     objetivo: "res-membresia",

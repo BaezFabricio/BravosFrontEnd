@@ -39,7 +39,7 @@ function tiempoRelativo(raw) {
  * cambian la campanita, el panel y los avisos (abajo en el medio, 5 s).
  */
 export default function NotificacionesBell({ variante } = {}) {
-  const bx = variante === 'bx'
+  const bx = variante === 'bx' || variante === 'bxm' // bxm: la del header del celular
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [noLeidas, setNoLeidas] = useState(0)
@@ -169,11 +169,16 @@ export default function NotificacionesBell({ variante } = {}) {
             aria-label={`Notificaciones${noLeidas > 0 ? `, ${noLeidas > 9 ? '9 o más' : noLeidas} sin leer` : ''}`}
             aria-expanded={open}
             aria-controls="panel-notif"
-            className="relative grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-colors hover:bg-bx-surf"
+            data-guia="campana"
+            className={variante === 'bxm'
+              ? "relative grid h-11 w-11 place-items-center rounded-[0.625rem] text-bx-ink transition-[background-color,transform] duration-200 active:scale-90"
+              : "relative grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-[background-color,transform] duration-200 hover:bg-bx-surf active:scale-95"}
           >
-            <Ico d={IC.bell} />
+            <Ico d={IC.bell} size={variante === 'bxm' ? 22 : 20} />
             {noLeidas > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 h-[1.375rem] min-w-[1.375rem] rounded-[0.6875rem] bg-bx-lima px-[0.3125rem] text-center text-[0.6875rem] font-extrabold leading-[1.375rem] text-bx-negro">
+              <span className={variante === 'bxm'
+                ? "absolute right-1 top-1 h-[1.125rem] min-w-[1.125rem] rounded-[0.5625rem] bg-bx-lima px-1 text-center text-[0.625rem] font-extrabold leading-[1.125rem] text-bx-negro"
+                : "absolute -right-1.5 -top-1.5 h-[1.375rem] min-w-[1.375rem] rounded-[0.6875rem] bg-bx-lima px-[0.3125rem] text-center text-[0.6875rem] font-extrabold leading-[1.375rem] text-bx-negro"}>
                 {noLeidas > 9 ? '9+' : noLeidas}
               </span>
             )}

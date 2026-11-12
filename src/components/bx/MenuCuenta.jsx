@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Ico } from "@/components/bx/iconos"
 import { IC } from "@/components/bx/trazos"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { PANELES, panelesPermitidos } from "@/lib/paneles"
+import { useTheme } from "@/components/theme-provider"
 
 /*
  * Menú de cuenta del módulo Alumno en escritorio (handoff, pantalla 11): avatar con nombre y correo,
@@ -145,5 +147,82 @@ export function MenuCuenta({ userData, avatarUrl, onLogout, rutaPerfil, rutaConf
         </div>
       )}
     </div>
+  )
+}
+
+/*
+ * Menú de cuenta del celular: hoja que sube desde abajo (se abre tocando el avatar del header). Misma información que el
+ * de escritorio: quién está conectado, cambiar de panel, Mi perfil, Mi configuración y Cerrar sesión, más el cambio de tema.
+ */
+export function HojaCuenta({ abierto, onCerrar, userData, avatarUrl, onLogout, rutaPerfil, rutaConfiguracion, panelActual = "alumno" }) {
+  const navigate = useNavigate()
+  const { theme, setTheme } = useTheme()
+  const oscuro = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+  const [saliendo, setSaliendo] = useState(false)
+  const permitidos = panelesPermitidos()
+  const paneles = PANELES.filter((p) => permitidos[p.key])
+  const fila = "flex min-h-12 w-full items-center gap-3 rounded-[0.625rem] px-3 text-left text-[0.9375rem] font-semibold text-bx-ink transition-colors duration-200 active:bg-bx-surf"
+
+  return (
+    <DialogPrimitive.Root open={abierto} onOpenChange={(v) => { if (!v) onCerrar() }}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="bx-overlay fixed inset-0 z-[100] bg-black/60" />
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          className="bx hoja-movil fixed inset-x-0 bottom-0 z-[101] max-h-[88dvh] overflow-y-auto rounded-t-3xl border border-b-0 border-bx-line bg-bx-card pb-[max(1rem,env(safe-area-inset-bottom))] text-bx-ink shadow-[0_-1rem_2.5rem_rgba(0,0,0,.35)]"
+        >
+          <div aria-hidden="true" className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-bx-btn-line" />
+          <div className="flex items-center gap-3 px-4 pb-3 pt-3">
+            <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} tam={48} />
+            <div className="min-w-0 flex-1">
+              <DialogPrimitive.Title className="truncate text-base font-bold">{userData.nombrecompleto}</DialogPrimitive.Title>
+              <div className="truncate text-[0.8125rem] text-bx-muted">{userData.correo}</div>
+            </div>
+            <DialogPrimitive.Close aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-[0.625rem] text-bx-ink active:bg-bx-surf">
+              <Ico d={IC.close} size={18} sw={2} />
+            </DialogPrimitive.Close>
+          </div>
+
+          {paneles.length > 1 && (
+            <div role="group" aria-labelledby="lbl-panel-m" className="px-4 pb-3">
+              <div id="lbl-panel-m" className="mb-2 text-xs font-semibold tracking-[0.1em] text-bx-muted">CAMBIAR DE PANEL</div>
+              <div className="flex flex-col gap-0.5">
+                {paneles.map((p) => {
+                  const actual = p.key === panelActual
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      aria-pressed={actual}
+                      onClick={() => { onCerrar(); if (!actual) navigate(p.href) }}
+                      className={`${fila} border ${actual ? "border-bx-ok-line bg-bx-ok-bg font-bold" : "border-transparent"}`}
+                    >
+                      <Ico d={ICONO_PANEL[p.key]} className={actual ? "text-bx-ok-fg" : "text-bx-muted"} />
+                      <span className="flex-1">{p.label}</span>
+                      {actual && <Ico d={IC.check} size={18} sw={2.4} className="text-bx-lima" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="h-px bg-bx-line" />
+          <div className="p-2">
+            <Link to={rutaPerfil} onClick={onCerrar} className={fila}><Ico d={IC.user} className="text-bx-muted" />Mi perfil</Link>
+            <Link to={rutaConfiguracion} onClick={onCerrar} className={fila}><Ico d={IC.settings} className="text-bx-muted" />Mi configuración</Link>
+            <button type="button" onClick={() => setTheme(oscuro ? "light" : "dark")} className={fila}>
+              <Ico d={oscuro ? IC.sun : IC.moon} className="text-bx-muted" />{oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            </button>
+          </div>
+          <div className="h-px bg-bx-line" />
+          <div className="p-2">
+            <button type="button" disabled={saliendo} onClick={() => { setSaliendo(true); onLogout() }} className={`${fila} text-bx-err-fg`}>
+              <Ico d={IC.logout} />{saliendo ? "Cerrando sesión…" : "Cerrar sesión"}
+            </button>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }

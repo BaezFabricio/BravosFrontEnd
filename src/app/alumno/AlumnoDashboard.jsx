@@ -4,10 +4,9 @@ import { logrosConEstado, sincronizarLogros } from "@/lib/logros"
 import { mensajeBienvenida } from "@/lib/mensajeBienvenida"
 import { toast } from "@/lib/notificar"
 import LogroCelebracion from "@/components/LogroCelebracion"
-import NovedadesPortada from "@/components/NovedadesPortada"
 import { useMiPlan } from "@/lib/miPlan"
 import { useAnchoPanel } from "@/lib/useEscritorio"
-import DashboardMovil from "./DashboardMovil"
+import InicioMovil from "./InicioMovil"
 import ResumenEscritorio from "./ResumenEscritorio"
 
 export default function AlumnoDashboard() {
@@ -244,35 +243,28 @@ export default function AlumnoDashboard() {
     <>
       <LogroCelebracion logros={logrosNuevos} onCerrar={() => setLogrosNuevos((prev) => prev.slice(1))} />
 
-      {/* CELULAR: diseño propio (DashboardMovil.jsx) */}
-      <div>
-        <DashboardMovil
-          nombreUsuario={nombreUsuario}
-          frase={fraseBienvenida}
-          racha={userStats.racha}
-          creditos={creditosReales}
-          cargando={loadingReservas}
-          agendadas={proximasReservadas.length}
-          estadoMembresia={estadoMembresia}
-          nombrePlanes={nombrePlanesMovil}
-          miPlan={miPlan}
-          logros={logros}
-          clasesHoy={clasesHoy}
-          cargandoClases={loadingClases}
-          proximasReservadas={proximasReservadas}
-          clasesSemanales={clasesSemanales}
-          metaSemanal={metaSemanal}
-          clasesMes={clasesCompletadasEsteMes}
-          diasEnMes={diasEnMes}
-          nombreMes={nombreMes}
-          totalMarcas={statsMarcas.totalMarcas}
-        />
-      </div>
-
-      {/* Novedades al final de la página: las últimas tres y "Todas" lleva a la lista completa */}
-      <div className="px-4 pb-6 pt-6">
-        <NovedadesPortada compacta limite={3} />
-      </div>
+      {/* CELULAR: inicio nuevo (InicioMovil.jsx); incluye las novedades */}
+      <InicioMovil
+        nombreUsuario={nombreUsuario}
+        frase={fraseBienvenida}
+        racha={userStats.racha}
+        creditos={creditosReales}
+        cargando={loadingReservas}
+        agendadas={proximasReservadas.length}
+        estadoMembresia={estadoMembresia}
+        nombrePlanes={nombrePlanesMovil}
+        miPlan={miPlan}
+        logros={logros}
+        clasesHoy={clasesHoy}
+        cargandoClases={loadingClases}
+        proximasReservadas={proximasReservadas}
+        clasesSemanales={clasesSemanales}
+        metaSemanal={metaSemanal}
+        clasesMes={clasesCompletadasEsteMes}
+        diasEnMes={diasEnMes}
+        nombreMes={nombreMes}
+        totalMarcas={statsMarcas.totalMarcas}
+      />
     </>
   )
 }

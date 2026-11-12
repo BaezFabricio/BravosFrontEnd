@@ -61,7 +61,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
       id="panel-notif"
       role="dialog"
       aria-labelledby="t-notif"
-      className="bx-pop absolute right-0 top-14 z-50 flex max-h-[min(40rem,calc(100vh-6rem))] w-[min(26.25rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
+      className="bx-pop absolute right-0 top-14 z-50 flex max-sm:fixed max-sm:inset-x-3 max-sm:right-auto max-sm:top-[calc(3.75rem+env(safe-area-inset-top))] max-sm:!w-auto max-sm:max-h-[calc(100dvh-11rem)] max-h-[min(40rem,calc(100vh-6rem))] w-[min(26.25rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-bx-line bg-bx-card shadow-[0_1rem_2.5rem_rgba(0,0,0,.35)]"
     >
       <div className="flex items-center justify-between gap-3 py-4 pl-5 pr-4">
         <div>
@@ -220,7 +220,7 @@ const AVISO_NEUTRO = { caja: "border-bx-line bg-bx-card text-bx-ink", icono: "" 
 export function AvisosAbajo({ toasts, onClick }) {
   if (toasts.length === 0) return null
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[110] flex flex-col items-center gap-2 px-4" role="status" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[110] max-lg:bottom-[calc(6.75rem+env(safe-area-inset-bottom))] flex flex-col items-center gap-2 px-4" role="status" aria-live="polite">
       {toasts.map((t) => {
         const Icono = ICONOS_TIPO[t.tipo] || Info
         const generico = ["Éxito", "Error", "Atención", "Info"].includes(t.titulo)

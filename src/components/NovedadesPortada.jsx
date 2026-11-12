@@ -136,6 +136,37 @@ export default function NovedadesPortada({ conAviso = false, compacta = false, l
             ))}
           </ul>
         </section>
+      ) : compacta && variante === "bxm" ? (
+        <section aria-labelledby="novedades-titulo" className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <h2 id="novedades-titulo" className="m-0 flex items-center gap-2 text-[1.0625rem] font-bold text-bx-ink">
+              Novedades
+              {lista.filter((n) => esReciente(n.fecha)).length > 0 && <span className="shrink-0 rounded-full bg-bx-lima px-2 py-0.5 text-[0.6875rem] font-extrabold text-bx-negro">{lista.filter((n) => esReciente(n.fecha)).length} {lista.filter((n) => esReciente(n.fecha)).length === 1 ? "nueva" : "nuevas"}</span>}
+            </h2>
+            {limite && <EnlaceVer to="/alumno/novedades">Ver todas</EnlaceVer>}
+          </div>
+          {lista.length === 0 && <Vacio titulo="No hay noticias disponibles por ahora" />}
+          <ul className="bx-lista m-0 flex list-none flex-col gap-2 p-0">
+            {visibles.map((n) => (
+              <li key={n.idNovedad}>
+                <button
+                  type="button"
+                  onClick={() => setAbierta(n)}
+                  className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-[0.875rem] border border-bx-line bg-bx-card p-2.5 text-left text-bx-ink transition-[border-color,transform] duration-200 active:scale-[0.98]"
+                >
+                  <span className={`bx-num grid h-[3.25rem] w-[3.25rem] shrink-0 place-items-center rounded-[0.625rem] text-[0.9375rem] tracking-[0.04em] ${n.tipo === "noticia" ? "bg-bx-lateral text-bx-lima" : "bg-bx-tile text-bx-ok-fg"}`}>{n.tipo === "noticia" ? "NEWS" : "AVISO"}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.06em] text-bx-muted">
+                      {esReciente(n.fecha) && <span className="rounded-full bg-bx-ink px-1.5 py-px text-[0.625rem] font-extrabold text-bx-bg">NUEVO</span>}
+                      <span className="truncate uppercase">{String(n.fecha || "").slice(0, 5)} · {tipoDe(n.tipo).nombre}</span>
+                    </span>
+                    <span className="mt-1 block truncate text-[0.9375rem] font-bold">{n.titulo}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : compacta ? (
         <section aria-labelledby="novedades-titulo" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
