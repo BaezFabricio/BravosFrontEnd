@@ -369,7 +369,7 @@ function LandingPage() {
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
-          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-12 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
             <p data-revela className="landing-revelar m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
@@ -385,7 +385,7 @@ function LandingPage() {
 
         {/* CLASES: dos tarjetas que ocupan todo el ancho */}
         <section id="clases" aria-labelledby="t-cla" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
@@ -414,7 +414,7 @@ function LandingPage() {
 
         {/* HORARIOS */}
         <section id="horarios" aria-labelledby="t-hor" className="scroll-mt-20 border-y border-[#1f1f1f] bg-[#0e0e0e]">
-          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CALENDARIO ACTIVO</p>
             <h2 id="t-hor" className="mt-2 mb-6 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Horarios semanales</h2>
 
@@ -495,7 +495,7 @@ function LandingPage() {
 
         {/* CONTACTO */}
         <section id="contacto" aria-labelledby="t-con" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-12 lg:py-16">
+          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CONTACTO DIRECTO</p>
             <h2 id="t-con" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Encontranos</h2>
 
