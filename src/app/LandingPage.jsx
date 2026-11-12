@@ -352,12 +352,12 @@ function LandingPage() {
           <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-24">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
-            <div className="flex flex-col items-center gap-5 md:flex-row md:justify-center md:gap-6">
+            <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
               {clases.map((k, i) => (
                 <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
-                  <div className="relative overflow-hidden">
-                    {/* La foto se muestra con su proporción real, sin recortar */}
-                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-auto w-full transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative w-full" />
+                  {/* Marco de alto fijo: la foto entra completa (sin recortar) y las dos tarjetas quedan del mismo tamaño */}
+                  <div className="relative h-[22rem] overflow-hidden bg-[#111]">
+                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-contain transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative h-full w-full" />
                   </div>
                   <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
                     <div className="flex flex-wrap gap-2">
