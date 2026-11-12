@@ -1,11 +1,11 @@
 import { TituloPagina } from "@/components/TituloPagina"
+import CreditosMovilNuevo from "./CreditosMovilNuevo"
 import { useEffect, useState } from "react"
 import { AlertCircle } from "lucide-react"
 import apiClient from "@/api"
 import { GymLoader } from "@/components/GymLoader"
 import RenovarMembresia from "@/components/RenovarMembresia"
 import { useAnchoPanel } from "@/lib/useEscritorio"
-import CreditosMovil from "./CreditosMovil"
 import CreditosEscritorio from "./CreditosEscritorio"
 
 export default function CreditosPage() {
@@ -67,7 +67,7 @@ export default function CreditosPage() {
       )}
 
       {/* CELULAR: diseño propio (CreditosMovil.jsx) */}
-      {!sinAbono && <CreditosMovil abono={abono} movimientos={movimientos} />}
+      {!sinAbono && <CreditosMovilNuevo abono={abono} movimientos={movimientos} />}
 
     </div>
   )
