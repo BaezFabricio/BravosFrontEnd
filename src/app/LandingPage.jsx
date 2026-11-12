@@ -355,8 +355,9 @@ function LandingPage() {
             <div className="flex flex-col items-center gap-5 md:flex-row md:justify-center md:gap-6">
               {clases.map((k, i) => (
                 <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[calc((100%-3rem)/3)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <ImgConSkeleton src={k.img} alt={k.alt} className="h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="absolute inset-0 h-full w-full" />
+                  <div className="relative overflow-hidden">
+                    {/* La foto se muestra con su proporción real, sin recortar */}
+                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-auto w-full transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative w-full" />
                   </div>
                   <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
                     <div className="flex flex-wrap gap-2">
