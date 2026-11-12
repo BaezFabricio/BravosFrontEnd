@@ -329,7 +329,7 @@ function LandingPage() {
         <section id="nosotros" aria-labelledby="t-nos" className="relative scroll-mt-20 overflow-hidden">
           {/* Foto del box con degradé arriba y abajo: así Nosotros se separa de lo de arriba y de lo de abajo */}
           <div aria-hidden="true" className="absolute inset-0">
-            <ImgConSkeleton src={cfg.imagenNosotros || '/gym-interior.jpg'} alt="" className="h-full w-full object-cover" containerClassName="h-full w-full" />
+            <ImgConSkeleton src={cfg.imagenNosotros || '/nosotros-fondo.jpg'} alt="" className="h-full w-full object-cover" containerClassName="h-full w-full" />
             <div className="absolute inset-0 bg-black/80" />
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
