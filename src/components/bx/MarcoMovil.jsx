@@ -174,7 +174,7 @@ export function MenuInferior({ items, onNavegar }) {
                   aria-current={item.activo ? "page" : undefined}
                   className="relative z-10 flex h-full min-w-0 flex-col items-center justify-end pb-1 text-[0.6875rem] font-bold text-bx-ok-fg"
                 >
-                  <span className={`latido-centro absolute left-[calc(50%-22px)] -top-3 grid h-11 w-11 place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
+                  <span className={`latido-centro absolute left-[calc(50%-28px)] -top-5 grid h-14 w-14 place-items-center rounded-full border-4 border-bx-bg bg-bx-lima text-bx-negro shadow-[0_0_0_1px_rgba(155,230,0,0.4),0_0.5rem_1.5rem_rgba(155,230,0,0.25)] transition-all duration-300 active:scale-90 ${resaltada ? "ring-2 ring-lime-200/60" : ""}`}>
                     <Ico d={item.d} size={22} sw={1.9} />
                   </span>
                   {etiqueta}
