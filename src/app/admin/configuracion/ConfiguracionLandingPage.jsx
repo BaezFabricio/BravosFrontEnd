@@ -7,12 +7,13 @@ import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import DatosBancarios from './DatosBancarios'
 import MenuAjustes from './MenuAjustes'
 import { TituloPagina } from "@/components/TituloPagina"
+import RecortarFoto from '@/components/RecortarFoto'
 
 // Cada sección se abre desde el menú de Configuración con ?seccion=
 const SECCIONES = {
   hero:     { grupo: 'Web pública', titulo: 'Portada y logo', detalle: 'El título, el logo y las fotos del carrusel de la portada.' },
   nosotros: { grupo: 'Web pública', titulo: 'Sobre nosotros', detalle: 'La foto, la historia y la misión que ven los visitantes.' },
-  clases:   { grupo: 'Web pública', titulo: 'Tarjetas de clases', detalle: 'Las 3 tarjetas que presentan las disciplinas en la portada.' },
+  clases:   { grupo: 'Web pública', titulo: 'Tarjetas de clases', detalle: 'Las 2 tarjetas que presentan las clases en la portada.' },
   contacto: { grupo: 'Web pública', titulo: 'Contacto, horarios y mapa', detalle: 'Cómo encontrarte y los datos legales del gimnasio.' },
   banco:    { grupo: 'Cobros', titulo: 'Datos bancarios', detalle: 'La cuenta a la que transfieren los alumnos.' },
 }
@@ -59,7 +60,7 @@ const ImageUpload = ({ preview, onChange, label, aspect = 'aspect-video', disabl
 
 // Selector 1 · 2 · 3 para ver de a una foto o tarjeta en el celular
 const SelectorTres = ({ valor, onChange, etiquetas, nombre }) => (
-  <div role="tablist" aria-label={nombre} className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-background/60 p-1 md:hidden">
+  <div role="tablist" aria-label={nombre} className={`grid gap-1 rounded-xl border border-border bg-background/60 p-1 md:hidden ${etiquetas.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
     {etiquetas.map((e, i) => (
       <button key={i} type="button" role="tab" aria-selected={valor === i} onClick={() => onChange(i)}
         className={`min-h-[2.5rem] truncate rounded-lg px-2 text-xs font-black transition-colors ${valor === i ? 'bg-lime-400 text-black' : 'text-foreground/60'}`}>
@@ -113,14 +114,15 @@ function ConfiguracionLandingPage() {
   const [imagenNosotros, setImagenNosotros] = useState(null)
   const [imagenNosotrosPreview, setImagenNosotrosPreview] = useState('/gym-interior.jpg')
 
-  // Clases (3 cards)
+  // Clases: dos tarjetas. La 1 es CrossFit (claseCard1 / imagenClase1) y la 2 es Planificación (claseCard3 / imagenClase3).
   const [cards, setCards] = useState([
     { titulo: 'CrossFit', descripcion: '', icono: '🔥' },
-    { titulo: 'Funcional', descripcion: '', icono: '💪' },
     { titulo: 'Planificación', descripcion: '', icono: '📋' },
   ])
-  const [imagenesClase, setImagenesClase] = useState([null, null, null])
-  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/wod-training.jpg', '/gym-interior.jpg'])
+  const [imagenesClase, setImagenesClase] = useState([null, null])
+  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/gym-interior.jpg'])
+  // Foto elegida que se está ajustando antes de guardarla (null si no hay ninguna)
+  const [recorte, setRecorte] = useState(null)
 
   const updateCard = (i, field, val) =>
     setCards(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c))
@@ -166,13 +168,11 @@ function ConfiguracionLandingPage() {
       setDescripcionNosotros(d.descripcionNosotros || '')
       setMision(d.mision || '')
       if (d.imagenNosotros) setImagenNosotrosPreview(d.imagenNosotros)
-      if (d.imagenClase1) setImagenesClasePreview(prev => [d.imagenClase1, prev[1], prev[2]])
-      if (d.imagenClase2) setImagenesClasePreview(prev => [prev[0], d.imagenClase2, prev[2]])
-      if (d.imagenClase3) setImagenesClasePreview(prev => [prev[0], prev[1], d.imagenClase3])
+      if (d.imagenClase1) setImagenesClasePreview(prev => [d.imagenClase1, prev[1]])
+      if (d.imagenClase3) setImagenesClasePreview(prev => [prev[0], d.imagenClase3])
 
       setCards([
         { titulo: d.claseCard1Titulo || 'CrossFit', descripcion: d.claseCard1Descripcion || '', icono: d.claseCard1Icono || '🔥' },
-        { titulo: d.claseCard2Titulo || 'Funcional', descripcion: d.claseCard2Descripcion || '', icono: d.claseCard2Icono || '💪' },
         { titulo: d.claseCard3Titulo || 'Planificación', descripcion: d.claseCard3Descripcion || '', icono: d.claseCard3Icono || '📋' },
       ])
 
@@ -205,16 +205,27 @@ function ConfiguracionLandingPage() {
   const handleFileChange = (e, tipo) => {
     if (!puedeModificar) return
     const file = e.target.files[0]
+    e.target.value = ''
     if (!file) return
+    // Las tarjetas se ajustan antes de guardarse (ver RecortarFoto)
+    if (tipo === 'clase1') { setRecorte({ indice: 0, archivo: file }); return }
+    if (tipo === 'clase3') { setRecorte({ indice: 1, archivo: file }); return }
     const url = URL.createObjectURL(file)
     if (tipo === 'logo') { setLogo(file); setLogoPreview(url) }
     else if (tipo === 'hero1') { setImagenHero1(file); setHeroPreview1(url) }
     else if (tipo === 'hero2') { setImagenHero2(file); setHeroPreview2(url) }
     else if (tipo === 'hero3') { setImagenHero3(file); setHeroPreview3(url) }
     else if (tipo === 'nosotros') { setImagenNosotros(file); setImagenNosotrosPreview(url) }
-    else if (tipo === 'clase1') { setImagenesClase(prev => { const n=[...prev]; n[0]=file; return n }); setImagenesClasePreview(prev => { const n=[...prev]; n[0]=url; return n }) }
-    else if (tipo === 'clase2') { setImagenesClase(prev => { const n=[...prev]; n[1]=file; return n }); setImagenesClasePreview(prev => { const n=[...prev]; n[1]=url; return n }) }
-    else if (tipo === 'clase3') { setImagenesClase(prev => { const n=[...prev]; n[2]=file; return n }); setImagenesClasePreview(prev => { const n=[...prev]; n[2]=url; return n }) }
+  }
+
+  // Foto de una tarjeta: primero se ajusta a cuadrado; al aceptar recién se guarda como elegida
+  const aplicarRecorte = (blob) => {
+    const indice = recorte.indice
+    const archivo = new File([blob], `tarjeta-${indice + 1}.jpg`, { type: 'image/jpeg' })
+    const url = URL.createObjectURL(archivo)
+    setImagenesClase(prev => { const n = [...prev]; n[indice] = archivo; return n })
+    setImagenesClasePreview(prev => { const n = [...prev]; n[indice] = url; return n })
+    setRecorte(null)
   }
 
   const handleSubmit = async (e) => {
@@ -236,8 +247,7 @@ function ConfiguracionLandingPage() {
       if (imagenHero3) fd.append('imagenHero3', imagenHero3)
       if (imagenNosotros) fd.append('imagenNosotros', imagenNosotros)
       if (imagenesClase[0]) fd.append('imagenClase1', imagenesClase[0])
-      if (imagenesClase[1]) fd.append('imagenClase2', imagenesClase[1])
-      if (imagenesClase[2]) fd.append('imagenClase3', imagenesClase[2])
+      if (imagenesClase[1]) fd.append('imagenClase3', imagenesClase[1])
 
       // Nosotros
       fd.append('tituloNosotros', tituloNosotros)
@@ -249,12 +259,9 @@ function ConfiguracionLandingPage() {
       fd.append('claseCard1Titulo', cards[0].titulo)
       fd.append('claseCard1Descripcion', cards[0].descripcion)
       fd.append('claseCard1Icono', cards[0].icono)
-      fd.append('claseCard2Titulo', cards[1].titulo)
-      fd.append('claseCard2Descripcion', cards[1].descripcion)
-      fd.append('claseCard2Icono', cards[1].icono)
-      fd.append('claseCard3Titulo', cards[2].titulo)
-      fd.append('claseCard3Descripcion', cards[2].descripcion)
-      fd.append('claseCard3Icono', cards[2].icono)
+      fd.append('claseCard3Titulo', cards[1].titulo)
+      fd.append('claseCard3Descripcion', cards[1].descripcion)
+      fd.append('claseCard3Icono', cards[1].icono)
 
       // Contacto
       fd.append('direccion', direccion)
@@ -454,22 +461,22 @@ function ConfiguracionLandingPage() {
 
         {/* ── CLASES ── */}
         {activeTab === 'clases' && (
-          <SectionCard title="Tarjetas de clases" subtitle="Tres tarjetas que se muestran en la landing para presentar los tipos de entrenamiento disponibles.">
+          <SectionCard title="Tarjetas de clases" subtitle="Dos tarjetas que se muestran en la landing: CrossFit y Planificación.">
             <SelectorTres valor={tarjeta} onChange={setTarjeta} etiquetas={cards.map((c, i) => c.titulo || `Tarjeta ${i + 1}`)} nombre="Tarjetas" />
-            {/* Celular: de a una tarjeta. Computadora: las tres juntas */}
-            <div className="grid gap-5 md:grid-cols-3">
+            {/* Celular: de a una tarjeta. Computadora: las dos juntas */}
+            <div className="grid gap-5 md:grid-cols-2">
               {cards.map((card, i) => (
                 <div key={i} className={`space-y-3 rounded-xl border border-border bg-background/50 p-4 ${i === tarjeta ? '' : 'hidden md:block'}`}>
                   <div className="flex items-center gap-2">
                     <span className="rounded-md bg-lime-400/15 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Tarjeta {i + 1}</span>
                   </div>
 
-                  <Field label="Foto de la tarjeta">
+                  <Field label="Foto de la tarjeta" hint="Se ajusta a cuadrado: arrastrá la foto y usá el zoom antes de guardar.">
                     <ImageUpload
                       preview={imagenesClasePreview[i]}
-                      onChange={e => handleFileChange(e, `clase${i + 1}`)}
+                      onChange={e => handleFileChange(e, i === 0 ? 'clase1' : 'clase3')}
                       label="Cambiar foto"
-                      aspect="aspect-[4/3]"
+                      aspect="aspect-square"
                       disabled={!puedeModificar}
                     />
                   </Field>
@@ -498,6 +505,7 @@ function ConfiguracionLandingPage() {
                 </div>
               ))}
             </div>
+            {recorte && <RecortarFoto archivo={recorte.archivo} onAceptar={aplicarRecorte} onCancelar={() => setRecorte(null)} />}
           </SectionCard>
         )}
 

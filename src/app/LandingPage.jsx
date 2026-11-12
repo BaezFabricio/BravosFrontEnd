@@ -107,10 +107,10 @@ function LandingPage() {
   const [imagenNosotros, setImagenNosotros] = useState('/gym-interior.jpg')
 
   // Clases cards
+  // Dos tarjetas: CrossFit (claseCard1) y Planificación (claseCard3). La del medio ya no se muestra.
   const [claseCards, setClaseCards] = useState([
-    { titulo: 'FUNCIONAL', descripcion: 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.', duration: '60 MIN', level: 'TODOS', image: '/hero-crossfit.jpg' },
-    { titulo: 'WOD INTENSIVO', descripcion: 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.', duration: '45 MIN', level: 'INT/AVZ', image: '/wod-training.jpg' },
-    { titulo: 'OPEN BOX', descripcion: 'Espacio libre para entrenar a tu ritmo con acceso a todo el equipamiento.', duration: '90 MIN', level: 'TODOS', image: '/gym-interior.jpg' },
+    { titulo: 'CrossFit', descripcion: 'Entrenamiento funcional de alta intensidad.', duration: '60 MIN', level: 'TODOS', image: '/hero-crossfit.jpg' },
+    { titulo: 'Planificación', descripcion: 'Programa personalizado para atletas.', duration: '90 MIN', level: 'TODOS', image: '/gym-interior.jpg' },
   ])
 
   // Contacto
@@ -266,9 +266,8 @@ function LandingPage() {
 
         // Clases cards
         setClaseCards([
-          { titulo: data?.claseCard1Titulo || 'FUNCIONAL', descripcion: data?.claseCard1Descripcion || 'Entrenamiento funcional de alta intensidad que combina levantamiento, cardio y gimnasia.', duration: '60 MIN', level: 'TODOS', image: data?.imagenClase1 || '/hero-crossfit.jpg' },
-          { titulo: data?.claseCard2Titulo || 'WOD INTENSIVO', descripcion: data?.claseCard2Descripcion || 'Workout of the Day con ejercicios variados para maximizar rendimiento y resistencia.', duration: '45 MIN', level: 'INT/AVZ', image: data?.imagenClase2 || '/wod-training.jpg' },
-          { titulo: data?.claseCard3Titulo || 'OPEN BOX', descripcion: data?.claseCard3Descripcion || 'Espacio libre para entrenar a tu ritmo con acceso a todo el equipamiento.', duration: '90 MIN', level: 'TODOS', image: data?.imagenClase3 || '/gym-interior.jpg' },
+          { titulo: data?.claseCard1Titulo || 'CrossFit', descripcion: data?.claseCard1Descripcion || 'Entrenamiento funcional de alta intensidad.', duration: '60 MIN', level: 'TODOS', image: data?.imagenClase1 || '/hero-crossfit.jpg' },
+          { titulo: data?.claseCard3Titulo || 'Planificación', descripcion: data?.claseCard3Descripcion || 'Programa personalizado para atletas.', duration: '90 MIN', level: 'TODOS', image: data?.imagenClase3 || '/gym-interior.jpg' },
         ])
 
         // Contacto
