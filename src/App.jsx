@@ -48,6 +48,8 @@ import AlumnoPlanPage from './app/alumno/plan/MiPlanPage.jsx'
 import AlumnoNovedadesPage from './app/alumno/novedades/NovedadesAlumnoPage.jsx'
 import AlumnoCalculadoraRMPage from './app/alumno/calculadora/CalculadoraRMPage.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
+import MasMovilNuevo from './app/alumno/MasMovilNuevo.jsx'
+import NotificacionesMovilNuevo from './app/alumno/NotificacionesMovilNuevo.jsx'
 import AlumnoDocumentacionPage from './app/alumno/documentacion/DocumentacionPage.jsx'
 import VerificarCuentaPage from './app/verificar-cuenta/VerificarCuentaPage.jsx'
 import SeleccionarPanelPage from './app/seleccionar-panel/SeleccionarPanelPage.jsx'
@@ -210,6 +212,8 @@ function App() {
         <Route path="/alumno/marcas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoMarcasPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/calculadora-rm" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoCalculadoraRMPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/plan" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPlanPage /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/mas" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><MasMovilNuevo /></AlumnoLayout></RequireAuth>} />
+        <Route path="/alumno/notificaciones" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><NotificacionesMovilNuevo /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/novedades" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoNovedadesPage /></AlumnoLayout></RequireAuth>} />        <Route path="/alumno/perfil" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoPerfilPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/alumno/documentacion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><AlumnoDocumentacionPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/perfil" element={<RequireAuth><SharedProfileRoute><AlumnoPerfilPage /></SharedProfileRoute></RequireAuth>} />

@@ -30,6 +30,7 @@ import FotoAmpliable from "@/components/FotoAmpliable"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import { LayoutBxContext } from "@/lib/layoutBx"
 import PerfilEscritorio from "./PerfilEscritorio"
+import PerfilMovilNuevo from "./PerfilMovilNuevo"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/vv1"
 
@@ -684,5 +685,6 @@ function PerfilClasico() {
 export default function PerfilPage() {
   const escritorio = useAnchoPanel()
   const enMarcoAlumno = useContext(LayoutBxContext)
-  return escritorio && enMarcoAlumno ? <PerfilEscritorio /> : <PerfilClasico />
+  if (enMarcoAlumno) return escritorio ? <PerfilEscritorio /> : <PerfilMovilNuevo />
+  return <PerfilClasico />
 }

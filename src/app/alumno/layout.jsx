@@ -2,7 +2,7 @@ import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState } from "react"
 import { SlotTituloContext } from "@/lib/slotTitulo"
 import { usePermisosVivos } from "@/lib/sincronizarPermisos"
-import { useLocation, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import {
   Calendar,
@@ -29,6 +29,7 @@ import { HojaMas } from "@/components/MenuPanel"
 import { EncabezadoMovil, MenuInferior } from "@/components/bx/MarcoMovil"
 import { HojaCuenta } from "@/components/bx/MenuCuenta"
 import { IC } from "@/components/bx/trazos"
+import { Ico } from "@/components/bx/iconos"
 import { useAnchoPanel } from '@/lib/useEscritorio'
 import LayoutEscritorio from './LayoutEscritorio'
 
@@ -54,6 +55,24 @@ const navigation = [
 // "/alumno" (Resumen) solo se marca en su propia página, no en todas las de adentro
 const esActivo = (item, pathname) =>
   item.href === "/alumno" ? pathname === "/alumno" : pathname === item.href || pathname.startsWith(item.href + "/")
+
+// Campanita del celular: lleva a la pantalla de Notificaciones y muestra cuántas hay sin leer
+function CampanaMovil() {
+  const [noLeidas, setNoLeidas] = useState(0)
+  useEffect(() => {
+    let vigente = true
+    const pedir = () => apiClient.get("/notificaciones").then((r) => { if (vigente) setNoLeidas(r.data?.data?.noLeidas || 0) }).catch(() => {})
+    pedir()
+    const t = setInterval(pedir, 30000)
+    return () => { vigente = false; clearInterval(t) }
+  }, [])
+  return (
+    <Link to="/alumno/notificaciones" aria-label={`Notificaciones${noLeidas ? `, ${noLeidas} sin leer` : ""}`} className="relative grid h-11 w-11 place-items-center rounded-[0.625rem] text-bx-ink transition-transform duration-200 active:scale-90">
+      <Ico d={IC.bell} size={22} sw={1.8} />
+      {noLeidas > 0 && <span className="absolute right-1 top-1 h-[1.125rem] min-w-[1.125rem] rounded-[0.5625rem] bg-bx-lima px-1 text-center text-[0.625rem] font-extrabold leading-[1.125rem] text-bx-negro">{noLeidas > 9 ? "9+" : noLeidas}</span>}
+    </Link>
+  )
+}
 
 export default function AlumnoLayout({ children }) {
   // Desde 1024 px: diseño de escritorio (LayoutEscritorio). Por debajo: el marco del celular, que no cambia.
@@ -274,7 +293,7 @@ export default function AlumnoLayout({ children }) {
     const items = navigation.filter((item) => item.principal && !item.centro)
     const centro = navigation.find((item) => item.centro)
     const mitad = Math.ceil(items.length / 2)
-    const mas = { name: "Más", mobileLabel: "Más", href: "#", d: IC.menu, alTocar: () => setMenuMovilAbierto((v) => !v), guia: "menu" }
+    const mas = { name: "Más", mobileLabel: "Más", href: "/alumno/mas", d: IC.menu, guia: "menu" }
     return [...items.slice(0, mitad), centro, ...items.slice(mitad), mas].filter(Boolean).map((item) => ({
       ...item,
       d: item.d || ICONOS_MENU[item.href],
@@ -294,7 +313,7 @@ export default function AlumnoLayout({ children }) {
         userData={userData}
         avatarUrl={avatarUrl}
         onAvatar={() => setCuentaAbierta(true)}
-        campana={<NotificacionesBell variante="bxm" />}
+        campana={<CampanaMovil />}
       />
 
       {/* Menú de cuenta (avatar): hoja que sube desde abajo */}
