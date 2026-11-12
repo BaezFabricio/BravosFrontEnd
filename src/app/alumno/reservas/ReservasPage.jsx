@@ -20,7 +20,7 @@ import apiClient from "@/api"
 
 import { toast } from "@/lib/notificar"
 import { useAnchoPanel } from "@/lib/useEscritorio"
-import ReservasMovil from "./ReservasMovil"
+import ReservasMovilNuevo from "./ReservasMovilNuevo"
 import ReservasEscritorio from "./ReservasEscritorio"
 
 const formatFechaFront = (fechaStr) => {
@@ -114,6 +114,26 @@ export default function ReservasPage() {
   }
 
 
+  // Celular: cancela la reserva confirmada en la hoja (sin pasar por el diálogo de escritorio)
+  const cancelarDirecto = async (r) => {
+    if (!r?.idReserva) return
+    setIsLoadingCancel(true)
+    try {
+      await apiClient.patch(`/reservas/${r.idReserva}/cancelar`)
+      const fechaCorta = r.fecha
+      const devuelve = !semana && (new Date(`${fechaCorta}T${r.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
+      if (semana) toast.warning("Reserva cancelada", { description: "En tu plan el crédito no se devuelve al cancelar.", guardar: false })
+      else if (devuelve) toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto.", guardar: false })
+      else toast.warning("Reserva cancelada", { description: "El crédito no fue devuelto porque faltaban menos de 2 horas.", guardar: false })
+      await cargarReservas()
+      window.dispatchEvent(new CustomEvent("bravos:reservas-cambiaron"))
+    } catch (err) {
+      toast.error("No se pudo cancelar la reserva", { description: err.response?.data?.message || "Revisá tu conexión e intentá de nuevo." })
+    } finally {
+      setIsLoadingCancel(false)
+    }
+  }
+
   const cerrarCancelar = () => setCancelDialog({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })
 
   if (escritorio) {
@@ -140,7 +160,7 @@ export default function ReservasPage() {
     <div className="space-y-6">
       {/* CELULAR: diseño propio (ReservasMovil.jsx) */}
       <div>
-        <ReservasMovil proximas={proximas} historial={historial} cargando={loading} onCancelar={abrirCancelar} semana={semana} />
+        <ReservasMovilNuevo proximas={proximas} historial={historial} cargando={loading} errorCarga={errorCarga} onReintentar={cargarReservas} onCancelar={abrirCancelar} onConfirmarCancelar={(r) => cancelarDirecto(r)} semana={semana} />
       </div>
 
       <Dialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog({ ...cancelDialog, open })}>
