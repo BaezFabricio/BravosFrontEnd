@@ -90,7 +90,7 @@ function Contenido({ reserva, onClose }) {
     <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="bx top-0 left-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-bx-card p-0 text-bx-ink sm:max-w-none md:top-[50%] md:left-[50%] md:h-auto md:max-h-[42.5rem] md:w-[37.5rem] md:max-w-[37.5rem] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[1.25rem] md:border md:border-bx-line md:shadow-[0_1.5rem_3.75rem_rgba(0,0,0,.5)]"
+        className="bx top-0 left-0 flex flex-col h-[100dvh] max-h-[100dvh] w-full max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none border-0 bg-bx-card p-0 text-bx-ink sm:max-w-none md:top-[50%] md:left-[50%] md:h-auto md:max-h-[42.5rem] md:w-[37.5rem] md:max-w-[37.5rem] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[1.25rem] md:border md:border-bx-line md:shadow-[0_1.5rem_3.75rem_rgba(0,0,0,.5)]"
       >
         <header className="relative shrink-0 overflow-hidden bg-[#0e0e0e] px-4 pb-5 pt-[calc(0.5rem+env(safe-area-inset-top))] text-[#ecefe4] md:px-7 md:pb-[1.625rem] md:pt-6">
           <img
