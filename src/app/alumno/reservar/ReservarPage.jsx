@@ -11,6 +11,7 @@ import { toast } from '@/lib/notificar'
 import apiClient from "@/api"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import ReservarMovil from "./ReservarMovil"
+import ReservarMovilNuevo from "./ReservarMovilNuevo"
 import ReservarEscritorio from "./ReservarEscritorio"
 
 const mapaDiasBD = { 0: "DOMINGO", 1: "LUNES", 2: "MARTES", 3: "MIERCOLES", 4: "JUEVES", 5: "VIERNES", 6: "SABADO" }
@@ -382,7 +383,7 @@ export default function ReservarClasePage() {
     <>
       {/* CELULAR: diseño propio (ReservarMovil.jsx) */}
       <div>
-        <ReservarMovil
+        <ReservarMovilNuevo
           creditos={creditosReales}
           semana={semana}
           cargandoCreditos={loadingCreditos}
