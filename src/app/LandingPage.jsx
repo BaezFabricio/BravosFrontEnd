@@ -354,7 +354,7 @@ function LandingPage() {
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
             <div className="flex flex-col items-center gap-5 md:flex-row md:justify-center md:gap-6">
               {clases.map((k, i) => (
-                <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[calc((100%-3rem)/3)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
+                <article key={i} id={`clase-${i + 1}`} className="group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),26rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   <div className="relative overflow-hidden">
                     {/* La foto se muestra con su proporción real, sin recortar */}
                     <ImgConSkeleton src={k.img} alt={k.alt} className="block h-auto w-full transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative w-full" />
