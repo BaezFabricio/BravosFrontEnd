@@ -3,6 +3,7 @@ import { useConfirmar } from "@/components/useConfirmar"
 import { CheckCheck, Copy, Search, ArrowRight, ArrowLeft } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import { TituloPagina } from "@/components/TituloPagina"
+import { Link } from "react-router-dom"
 import IconoWhatsApp from "@/components/IconoWhatsApp"
 import { getUsuarios } from "@/api"
 import { enlaceWhatsApp, numeroWhatsApp } from "@/lib/whatsapp"
@@ -164,6 +165,7 @@ export default function AvisosPage() {
             </div>
           </div>
 
+          <h2 id="dest-t" className="px-4 pb-1 pt-4 text-[17px] font-extrabold text-foreground">¿A quién?</h2>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <p className={rotulo}>Para todos</p>
             <button type="button" onClick={() => elegirDestino("grupo")} aria-pressed={aQuien === "grupo"} className={itemCls(aQuien === "grupo")}>
@@ -171,13 +173,19 @@ export default function AvisosPage() {
               <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">Alumnos Bravos</span><span className="block truncate text-xs text-muted-foreground">Grupo o lista de difusión</span></span>
             </button>
 
-            <p className={`${rotulo} flex items-center justify-between`}><span>Un alumno</span><span>{lista.length}</span></p>
+            <p className={`${rotulo} flex items-center justify-between`}><span>A UN ALUMNO</span><span>{lista.length}</span></p>
             {usuarios === null ? (
               <p className="px-4 py-3 text-sm text-muted-foreground">Cargando…</p>
             ) : lista.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-muted-foreground">
-                {conTelefono.length === 0 ? "No hay usuarios con un teléfono válido cargado (o tu perfil no puede ver los usuarios)." : "Nadie coincide con la búsqueda."}
-              </p>
+              <div className="px-4 py-3">
+                <p className="text-sm font-bold text-foreground">{conTelefono.length === 0 ? "Ningún alumno tiene teléfono cargado" : "Nadie coincide con la búsqueda."}</p>
+                {conTelefono.length === 0 && (
+                  <>
+                    <p className="mt-1 text-[13px] text-muted-foreground">Para mandarle un aviso a un solo alumno, cargale un celular válido en su ficha.</p>
+                    <Link to="/admin/usuarios" className="mt-3 inline-flex min-h-11 items-center rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground no-underline hover:bg-[rgba(128,128,128,.14)]">Ir a Usuarios</Link>
+                  </>
+                )}
+              </div>
             ) : lista.map((u) => (
               <button key={u.id} type="button" onClick={() => elegirDestino(String(u.id))} aria-pressed={String(aQuien) === String(u.id)} className={itemCls(String(aQuien) === String(u.id))}>
                 <Avatar texto={iniciales(u.nombre)} activo={String(aQuien) === String(u.id)} />
@@ -233,7 +241,8 @@ export default function AvisosPage() {
               ))}
             </div>
 
-            <div className="rounded-xl border border-border bg-background/60 focus-within:border-lime-500">
+            <div className="flex items-center justify-between gap-3 pb-2"><h2 id="msg-t" className="text-[17px] font-extrabold text-foreground">Escribí el aviso</h2></div>
+              <div className="rounded-xl border border-border bg-background/60 focus-within:border-lime-500">
               {conTitulo && (
                 <input autoFocus value={titulo} maxLength={80} onChange={(e) => setTitulo(e.target.value)} placeholder="Título (va en negrita)" aria-label="Título del aviso"
                   className="h-11 w-full border-b border-border bg-transparent px-3.5 text-base font-bold text-foreground outline-none placeholder:font-normal placeholder:text-foreground/35" />
@@ -244,11 +253,11 @@ export default function AvisosPage() {
               <div className="flex items-center justify-between gap-2 border-t border-border px-2.5 py-2">
                 <div className="flex items-center gap-1.5">
                   <button type="button" onClick={() => { if (conTitulo) { setTitulo(""); setModeloActivo(null) } setConTitulo((v) => !v) }} aria-pressed={conTitulo}
-                    className={`h-8 rounded-lg border px-3 text-xs font-bold transition-colors ${conTitulo ? "border-lime-500 text-lime-700 dark:text-lime-400" : "border-border text-foreground/75 hover:bg-foreground/5"}`}>
+                    className={`min-h-11 rounded-lg border px-3 text-xs font-bold transition-colors ${conTitulo ? "border-lime-500 text-lime-700 dark:text-lime-400" : "border-border text-foreground/75 hover:bg-foreground/5"}`}>
                     {conTitulo ? "− Quitar título" : "+ Título"}
                   </button>
-                  <button type="button" onClick={() => envolver("*")} aria-label="Negrita" className="h-8 w-8 rounded-lg border border-border text-sm font-black text-foreground/75 hover:bg-foreground/5">B</button>
-                  <button type="button" onClick={() => envolver("_")} aria-label="Cursiva" className="h-8 w-8 rounded-lg border border-border text-sm italic text-foreground/75 hover:bg-foreground/5">I</button>
+                  <button type="button" onClick={() => envolver("*")} aria-label="Negrita: marcá el texto y tocá" className="h-11 w-11 rounded-lg border border-border text-sm font-black text-foreground/75 hover:bg-foreground/5">B</button>
+                  <button type="button" onClick={() => envolver("_")} aria-label="Cursiva: marcá el texto y tocá" className="h-11 w-11 rounded-lg border border-border text-sm italic text-foreground/75 hover:bg-foreground/5">I</button>
                 </div>
                 <span className="text-xs tabular-nums text-muted-foreground">{cuerpo.length}/{MAX}</span>
               </div>
