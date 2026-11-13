@@ -232,13 +232,13 @@ export default function LandingPageMovil() {
 
       <main id="main" className="pb-[110px]">
         {/* PORTADA como la versión anterior: 85 % de la pantalla, carrusel de fotos, texto abajo a la izquierda */}
-        <section aria-labelledby="t-hero" className="relative flex min-h-[66svh] items-end overflow-hidden bg-[#0b0b0b] pb-8">
+        <section aria-labelledby="t-hero" className="relative flex min-h-[74svh] items-end overflow-hidden bg-[#0b0b0b] pb-2">
           {imagenesHero.map((src, i) => (
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
-          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-b from-transparent via-[#0b0b0b]/80 to-[#0b0b0b]" />
-          <div className="relative flex w-full flex-col gap-3 px-4 pb-6">
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-b from-transparent via-[#0b0b0b]/80 to-[#0b0b0b]" />
+          <div className="relative flex w-full flex-col gap-3 px-4 pb-3">
             <nav aria-label="Ubicación" className="flex items-center gap-1.5 text-xs text-[#ecefe4]/50">
               <span>Argentina</span>
               <span aria-hidden="true">›</span>
@@ -267,7 +267,7 @@ export default function LandingPageMovil() {
         </section>
 
         {/* FRASE (primero) y luego el bloque de Malvinas, dentro del mismo recuadro */}
-        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-[84px] scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
+        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-6 scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
           <p className="m-0 text-center text-[27px] leading-[1.15] font-extrabold tracking-normal uppercase" style={{ fontFamily: "'Barlow Semi Condensed', Archivo, sans-serif", textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
             "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
           </p>
