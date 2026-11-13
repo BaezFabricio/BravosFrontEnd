@@ -93,7 +93,6 @@ export default function LandingPageMovil() {
   const logueado = !!sesion
   const permisos = sesion?.permisos || []
   const esAlumno = logueado && permisos.some((p) => p.startsWith('alumno'))
-  const puedeAccederPanel = permisos.length > 0
   const panelesDisponibles = PANELES.filter((p) => panelesPermitidos()[p.key]).map((p) => p.href)
   const rutaMiPanel = panelesDisponibles.length === 1 ? panelesDisponibles[0] : '/seleccionar-panel'
 
@@ -247,7 +246,7 @@ export default function LandingPageMovil() {
             </nav>
             <h1 id="t-hero" className="m-0 flex flex-col gap-3">
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-16 w-auto self-start" />
-              <span className="!font-[Archivo] text-xl font-black tracking-wide text-[#ecefe4]">CENTRO DE ENTRENAMIENTO</span>
+              <span className="!font-[Archivo] text-[20px] font-extrabold tracking-[.04em] text-[#ecefe4]">CENTRO DE ENTRENAMIENTO</span>
             </h1>
             {!logueado && (
               <Link to="/registro" className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#9be600] text-sm font-black tracking-widest text-[#0b0b0b] no-underline">
@@ -465,19 +464,36 @@ export default function LandingPageMovil() {
           <nav ref={hojaRef} role="dialog" aria-modal="true" aria-label="Menú"
             className="fixed inset-x-0 bottom-0 z-[36] flex flex-col rounded-t-[24px] border-t border-[#262626] bg-[#161616] px-4 pt-3 pb-9">
             <span aria-hidden="true" className="mb-2 h-[5px] w-10 self-center rounded-[3px] bg-[#333]" />
-            <Link to="/ranking" onClick={cerrarMenu} className="flex min-h-14 items-center border-b border-[#222] text-base font-bold text-[#ecefe4] no-underline">Ranking</Link>
-            {[['Clases', '#clases'], ['Horarios', '#horarios'], ['Nosotros', '#nosotros'], ['Contacto', '#contacto']].map(([label, href]) => (
-              <a key={href} href={href} onClick={cerrarMenu} className="flex min-h-14 items-center border-b border-[#222] text-base font-bold text-[#ecefe4] no-underline">{label}</a>
-            ))}
-            {esAlumno && (
-              <Link to="/alumno" onClick={cerrarMenu} className="mt-3 flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">IR A MI PANEL</Link>
-            )}
+            {[
+              ['Ranking', '/ranking', 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z'],
+              ['Clases', '#clases', 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12'],
+              ['Horarios', '#horarios', 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z'],
+              ['Nosotros', '#nosotros', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'],
+              ['Contacto', '#contacto', 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z'],
+            ].map(([label, destino, icono]) => {
+              const contenido = (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icono} /></svg>
+                  {label}
+                </>
+              )
+              const clase = 'flex min-h-14 items-center gap-3.5 border-b border-[#222] text-base font-bold text-[#ecefe4] no-underline'
+              return destino.startsWith('/')
+                ? <Link key={label} to={destino} onClick={cerrarMenu} className={clase}>{contenido}</Link>
+                : <a key={label} href={destino} onClick={cerrarMenu} className={clase}>{contenido}</a>
+            })}
             {logueado ? (
-              <div className="mt-3.5 flex items-center gap-3 border-t border-[#262626] pt-3.5">
-                {puedeAccederPanel && (
-                  <Link to={rutaMiPanel} onClick={cerrarMenu} className="flex h-11 flex-1 items-center justify-center rounded-[10px] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">Mi panel</Link>
-                )}
-                <button type="button" onClick={handleLogout} className="flex h-11 items-center justify-center rounded-[10px] border border-[#6b2a24] px-3 text-[13px] font-bold text-[#ff8a80]">Cerrar sesión</button>
+              <div className="mt-3.5 flex items-center gap-3 pt-1">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-[13px] font-extrabold text-[#9be600]">
+                    {sesion.userData.nombrecompleto.trim().split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'UB'}
+                  </span>
+                  <span className="min-w-0 truncate text-[15px] font-bold">{sesion.userData.nombrecompleto}</span>
+                </div>
+                <button type="button" onClick={handleLogout} className="flex h-11 shrink-0 items-center gap-2 rounded-[10px] border border-[#6b2a24] px-3 text-[13px] font-bold text-[#ff8a80]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+                  Cerrar sesión
+                </button>
               </div>
             ) : (
               <div className="mt-3.5 grid grid-cols-2 gap-2 border-t border-[#262626] pt-3.5">
