@@ -232,24 +232,35 @@ export default function LandingPageMovil() {
       </header>
 
       <main id="main" className="pb-[110px]">
-        {/* PORTADA (420 px): carrusel de fotos con texto abajo a la izquierda */}
-        <section aria-labelledby="t-hero" className="relative flex h-[420px] items-end overflow-hidden bg-[#0b0b0b]">
+        {/* PORTADA como la versión anterior: 85 % de la pantalla, carrusel de fotos, texto abajo a la izquierda */}
+        <section aria-labelledby="t-hero" className="relative flex min-h-[85svh] items-end overflow-hidden bg-[#0b0b0b] pb-8">
           {imagenesHero.map((src, i) => (
-            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
+            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
-          <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(0deg,#0b0b0b 0%,rgba(11,11,11,.75) 22%,rgba(11,11,11,0) 50%)' }} />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-black/70 to-black" />
           <div className="relative flex w-full flex-col gap-3 px-4 pb-6">
-            <nav aria-label="Ubicación" className="flex items-center gap-2 text-xs text-[#a3a698]">
+            <nav aria-label="Ubicación" className="flex items-center gap-1.5 text-xs text-[#ecefe4]/50">
               <span>Argentina</span>
               <span aria-hidden="true">›</span>
-              <span className="text-[#ecefe4]">Formosa Capital</span>
+              <span className="text-[#ecefe4]/70">Formosa Capital</span>
             </nav>
-            <h1 id="t-hero" className="m-0 flex flex-col gap-2.5">
-              <img src="/bravos-logo.png" alt="Bravos Box" className="h-14 w-auto self-start" />
-              <span className="!font-[Archivo] text-[20px] font-extrabold tracking-[.04em]">CENTRO DE ENTRENAMIENTO</span>
+            <h1 id="t-hero" className="m-0 flex flex-col gap-3">
+              <img src="/bravos-logo.png" alt="Bravos Box" className="h-16 w-auto self-start" />
+              <span className="!font-[Archivo] text-xl font-black tracking-wide text-[#ecefe4]">CENTRO DE ENTRENAMIENTO</span>
             </h1>
-            <div className="flex items-center justify-end">
-              <span className="flex items-center gap-1.5">
+            {!logueado && (
+              <Link to="/registro" className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#9be600] text-sm font-black tracking-widest text-[#0b0b0b] no-underline">
+                UNIRME
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+              </Link>
+            )}
+            <div className="flex items-center justify-between">
+              <a href="#nosotros" className="mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-[#ecefe4]/70 no-underline">
+                MÁS INFO
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </a>
+              <span className="flex items-center gap-1.5" aria-hidden={imagenesHero.length <= 1 ? 'true' : undefined}>
                 {imagenesHero.map((_, i) => (
                   <button key={i} type="button" onClick={() => setIndiceHero(i)} aria-label={`Ver foto ${i + 1} de ${imagenesHero.length}`} aria-current={i === indiceHero ? 'true' : undefined} className="grid h-5 place-items-center">
                     <span className={`block h-[7px] rounded-[4px] transition-all ${i === indiceHero ? 'w-5 bg-[#9be600]' : 'w-[7px] rounded-full bg-[#555]'}`} />
@@ -261,7 +272,7 @@ export default function LandingPageMovil() {
         </section>
 
         {/* FRASE (primero) y luego el bloque de Malvinas, dentro del mismo recuadro */}
-        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-6 scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
+        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-14 scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
           <p className="m-0 text-center text-[27px] leading-[1.15] font-extrabold tracking-normal uppercase" style={{ fontFamily: "'Barlow Semi Condensed', Archivo, sans-serif", textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
             "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
           </p>
