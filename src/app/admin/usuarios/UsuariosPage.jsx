@@ -238,7 +238,6 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
   const ed = useEdicionFicha(user, onGuardado)
   const { editando, form, errores } = ed
   const membresia = membershipConfig[user.membresia] || membershipConfig.vencida
-  const estado = statusConfig[user.estado] || statusConfig.activo
   const planes = Array.isArray(user.planes) ? user.planes : []
   const puedeVerReservas = permisos.includes("reservas:consulta")
   const puedeVerDetalle = permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")
@@ -262,7 +261,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
   const mensaje = (texto) => texto && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{texto}</p>
 
   const dato = (titulo, valor, ancho = "") => (
-    <div className={`min-w-0 rounded-xl bg-foreground/5 px-4 py-3 ${ancho}`}>
+    <div className={`min-w-0 border-l border-border px-[18px] py-3.5 first:border-l-0 ${ancho}`}>
       <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">{titulo}</p>
       <div className="mt-0.5 text-sm font-bold text-foreground">{valor}</div>
     </div>
@@ -329,7 +328,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
           <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{Number(user.creditos) || 0}</p>
         </div>
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
-          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Estado general</p>
+          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">{editando && !ed.propia ? "Estado general" : "Plan vigente"}</p>
           {editando && !ed.propia ? (
             <div className="mt-1.5">
               {lista(
@@ -344,14 +343,14 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
               )}
             </div>
           ) : (
-            <span className={`mt-1.5 inline-block rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-wider ${claseEstado(user.estado)}`}>{estado.label}</span>
+            <span className="mt-1.5 block text-[17px] font-extrabold text-foreground">{planes.length ? planes.map((p) => p.nombre).join(", ") : "Ninguno"}</span>
           )}
         </div>
       </div>
       {editando && ed.propia && <p className="mt-2 text-xs text-foreground/60">Es tu cuenta: podés pasarte a un perfil igual o con menos permisos que el tuyo, nunca a uno con más. El estado lo cambia otro administrador.</p>}
 
-      <h3 className="mt-6 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Ficha del usuario</h3>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <h3 className="mt-6 text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Datos de contacto</h3>
+      <div className="mt-2 grid grid-cols-3 overflow-hidden rounded-xl border border-border">
         {dato("DNI", editando
           ? <>{conLapiz(<input aria-label="DNI" inputMode="numeric" maxLength={10} value={form.dni} onChange={(e) => ed.cambiar("dni", e.target.value.replace(/\D/g, ""))} className={campo(errores.dni)} />)}{mensaje(errores.dni)}</>
           : (user.dni || "—"))}
@@ -360,12 +359,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
           : (user.telefono ? <span className="flex items-center gap-2"><a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a><BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span> : "—"))}
         {dato("Correo electrónico", editando
           ? <>{conLapiz(<input aria-label="Correo electrónico" type="email" autoComplete="off" maxLength={100} value={form.email} onChange={(e) => ed.cambiar("email", e.target.value)} className={campo(errores.email)} />)}{mensaje(errores.email)}</>
-          : <span className="block truncate">{user.email || "Sin correo"}</span>, "col-span-2")}
-        {dato("Planes vigentes", planes.length ? (
-          <span className="flex flex-wrap gap-1.5">
-            {planes.map((p) => <span key={p.idPlan} className="rounded-md border border-border px-2 py-0.5 text-xs font-bold">{p.nombre}</span>)}
-          </span>
-        ) : "Ninguno", "col-span-2")}
+          : <span className="block truncate">{user.email || "Sin correo"}</span>)}
       </div>
 
       {editando ? (
@@ -388,7 +382,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
           </div>
         </div>
       ) : (
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2.5">
           <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)}
             className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
             <CreditCard className="h-4 w-4" aria-hidden="true" /> Ver abonos
@@ -410,7 +404,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
 
       {puedeVerReservas && (
         <>
-          <h3 className="mt-6 text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Últimas reservas</h3>
+          <h3 className="mt-6 text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Últimas reservas</h3>
           <div className="mt-2">
             <UltimasReservas key={id} idUsuario={id} />
           </div>
