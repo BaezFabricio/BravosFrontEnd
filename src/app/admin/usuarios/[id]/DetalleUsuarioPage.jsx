@@ -267,7 +267,8 @@ export default function DetalleUsuarioPage() {
             {getIniciales(user?.nombre)}
           </FotoAmpliable>
           <div className="min-w-0 flex-1">
-            <TituloPagina descripcion={"Usuarios / Ficha"}>{user?.nombre}</TituloPagina>
+            <TituloPagina descripcion={`Usuarios y abonos › ${user?.nombre || ""}`}>Ficha del alumno</TituloPagina>
+            <h2 className="text-[28px] font-extrabold leading-tight text-foreground">{user?.nombre}</h2>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <span className={`rounded-full border px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest ${estaInactivo ? "border-border bg-foreground/5 text-foreground/55" : "border-lime-400/30 bg-lime-400/10 text-lime-700 dark:text-lime-400"}`}>
                 {status.label}
@@ -316,13 +317,13 @@ export default function DetalleUsuarioPage() {
       </section>
 
       {/* PESTAÑAS */}
-      <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1 sm:inline-grid" role="tablist">
+      <div className="flex gap-7 border-b border-border" role="tablist">
         {[
           { key: "reservas", label: "Reservas" },
           { key: "documentos", label: "Documentos" },
         ].map(({ key, label }) => (
           <button key={key} type="button" role="tab" aria-selected={vistaActiva === key}
-            className={`min-h-[2.5rem] rounded-lg px-4 text-xs font-black uppercase tracking-widest transition-colors ${vistaActiva === key ? "bg-lime-400 text-black" : "text-foreground/55 hover:text-foreground"}`}
+            className={`relative h-12 text-[15px] font-bold transition-colors ${vistaActiva === key ? "text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-lime-400" : "text-muted-foreground hover:text-foreground"}`}
             onClick={() => setVistaActiva(key)}>
             {label}
           </button>
