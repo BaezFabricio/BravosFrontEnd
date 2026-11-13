@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
-import { AlertTriangle, Calendar, Camera, CreditCard, Eye, EyeOff, KeyRound, Lock, LogOut, Mail, Phone } from "lucide-react"
+import { AlertTriangle, Calendar, Camera, CreditCard, Eye, EyeOff, Lock, LogOut, Mail, Phone } from "lucide-react"
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { panelesPermitidos } from "@/lib/paneles"
 import { fmtFechaPlan } from "@/lib/miPlan"
@@ -481,7 +481,7 @@ function PerfilClasico() {
 
       {/* Título */}
       <div>
-        <TituloPagina descripcion={esAlumno ? "Información personal y estado de membresía" : "Información personal y estado de cuenta"}>Mi Perfil</TituloPagina>
+        <TituloPagina descripcion={"Tus datos, tu contraseña y el estado de tu membresía"}>Mi perfil</TituloPagina>
       </div>
 
       {/* Alertas de membresía */}
@@ -513,115 +513,7 @@ function PerfilClasico() {
         </div>
       )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)_440px] items-start gap-6">
-
-        {/* Columna izquierda: identidad, datos personales y contraseña */}
-        <div className="flex flex-col gap-6">
-
-          {/* Identidad */}
-          <section aria-label="Identidad" className="flex items-center gap-6 rounded-2xl border border-border bg-card p-6">
-            <FotoAmpliable src={avatarUrl} alt={nombreVisible} className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-lime-400 bg-lime-400/15 text-[28px] font-black text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400">
-              {getIniciales(nombreVisible)}
-            </FotoAmpliable>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-[28px] font-extrabold leading-tight text-foreground">{nombreVisible}</h2>
-                <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:border-lime-400/50 dark:text-lime-400">{perfilVisible}</span>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{correoVisible}</p>
-              {userData.fechaRegistro && <p className="mt-1 text-sm text-muted-foreground">Miembro desde el {new Date(userData.fechaRegistro).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</p>}
-              <label className="mt-4 inline-flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] focus-within:ring-2 focus-within:ring-ring">
-                <Camera className="h-4 w-4" aria-hidden="true" />
-                {isSavingAvatar ? "Guardando..." : "Subir foto"}
-                <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
-              </label>
-              <p className="mt-2 text-xs text-muted-foreground">JPG o PNG, hasta 5 MB. Se recorta en círculo.</p>
-            </div>
-          </section>
-          {avatarError && (
-            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-[#ff8a80]">{avatarError}</p>
-          )}
-
-          {/* Datos personales */}
-          <section aria-label="Datos personales" className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="border-b border-border px-6 py-5">
-              <h2 className="text-[17px] font-extrabold text-foreground">Datos personales</h2>
-            </div>
-            <dl className="grid grid-cols-2">
-              {[
-                { label: "DNI", value: (isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || "—") },
-                { label: "Teléfono", value: (isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || "—") },
-                { label: "Correo", value: correoVisible },
-                { label: "Nombre y apellido", value: nombreVisible },
-              ].map(({ label, value }, i) => (
-                <div key={label} className={`px-6 py-4 ${i % 2 ? "border-l border-border" : ""} ${i >= 2 ? "border-t border-border" : ""}`}>
-                  <dt className="text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">{label}</dt>
-                  <dd className="mt-1 text-[16px] font-bold text-foreground">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-
-          {/* Contraseña */}
-          <section aria-label="Contraseña" className="flex items-center gap-4 rounded-2xl border border-border bg-card px-6 py-5">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-lime-400/15 text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400" aria-hidden="true">
-              <KeyRound className="h-[18px] w-[18px]" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-extrabold text-foreground">Contraseña</p>
-              <p className="text-sm text-muted-foreground">Usá una que no uses en otras cuentas.</p>
-            </div>
-            <button onClick={() => setShowChangePassword(true)}
-              className="inline-flex h-11 items-center rounded-[10px] border border-border px-5 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
-              Cambiar contraseña
-            </button>
-          </section>
-        </div>
-
-        {/* Columna derecha: membresía (solo alumnos) y cuenta */}
-        <div className="flex flex-col gap-6">
-          {esAlumno && (
-            <section aria-label="Membresía" className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="border-b border-border px-6 py-5">
-                <h2 className="text-[17px] font-extrabold text-foreground">Tu membresía como alumno</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Para reservar clases desde el panel de alumno.</p>
-              </div>
-              <div className="divide-y divide-border">
-                <div className="flex items-center justify-between px-6 py-4">
-                  <p className="text-[15px] font-bold text-foreground">Estado</p>
-                  <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{membership?.label || "—"}</span>
-                </div>
-                {abonoData.vencimiento && (
-                  <div className="flex items-center justify-between px-6 py-4">
-                    <p className="text-sm text-muted-foreground">Vence</p>
-                    <p className="text-sm font-bold text-foreground">{new Date(abonoData.vencimiento).toLocaleDateString()}</p>
-                  </div>
-                )}
-                <div className="flex items-center justify-between px-6 py-4">
-                  <p className="text-sm text-muted-foreground">Créditos</p>
-                  <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{abonoData.creditos || 0}</p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          <section aria-label="Tu cuenta" className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="border-b border-border px-6 py-5">
-              <h2 className="text-[17px] font-extrabold text-foreground">Tu cuenta</h2>
-            </div>
-            <div className="divide-y divide-border">
-              <div className="flex items-center justify-between px-6 py-4">
-                <p className="text-sm text-muted-foreground">Estado</p>
-                <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{status.label}</span>
-              </div>
-              <div className="flex items-center justify-between px-6 py-4">
-                <p className="text-sm text-muted-foreground">Perfil</p>
-                <p className="text-sm font-bold text-lime-700 dark:text-lime-400">{userData.perfil || "Alumno"}</p>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+      <div style={{ padding: "24px 32px 48px", width: "100%", maxWidth: "1720px", boxSizing: "border-box" }}><div style={{ display: "grid", gridTemplateColumns: "minmax(0px, 1fr) 440px", gap: "20px", alignItems: "start" }}><div style={{ display: "flex", flexDirection: "column", gap: "20px", minWidth: "0px" }}><section aria-label="Tu foto y nombre" style={{ borderRadius: "16px", background: "rgb(22, 22, 22)", border: "1px solid rgb(38, 38, 38)", padding: "24px", display: "flex", alignItems: "center", gap: "22px" }}><div style={{ position: "relative", width: "96px", height: "96px", flexShrink: "0" }}><div aria-hidden="true" style={{ width: "96px", height: "96px", borderRadius: "50%", border: "3px solid rgb(155, 230, 0)", background: "url(\"about:blank\") center center / cover rgb(31, 42, 14)", display: "grid", placeItems: "center", font: "800 30px Archivo", color: "rgb(155, 230, 0)", boxSizing: "border-box" }}>{avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : <span>{getIniciales(nombreVisible)}</span>}</div></div><div style={{ flex: "1 1 0%", minWidth: "0px" }}><div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}><h2 style={{ margin: "0px", font: "800 26px Archivo" }} className="dch34"><span>{nombreVisible}</span></h2><span style={{ padding: "3px 9px", borderRadius: "6px", background: "rgb(22, 34, 10)", border: "1px solid rgb(61, 90, 16)", color: "rgb(155, 230, 0)", font: "700 12px Archivo" }}>{perfilVisible.charAt(0).toUpperCase() + perfilVisible.slice(1)}</span></div><div style={{ font: "500 14px Archivo", color: "rgb(163, 166, 152)", marginTop: "4px" }}>{userData.fechaRegistro ? `Miembro desde el ${new Date(userData.fechaRegistro).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}` : ""}</div><div style={{ display: "flex", gap: "8px", marginTop: "14px" }}><label style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "44px", padding: "0px 16px", borderRadius: "10px", border: "1px solid rgb(51, 51, 51)", background: "transparent", color: "rgb(236, 239, 228)", font: "700 14px Archivo", whiteSpace: "nowrap", cursor: "pointer", textDecoration: "none" }}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" /></svg><span>{"Subir foto"}</span><input type="file" accept="image/*" aria-label="Subir foto" onChange={handleAvatarChange} style={{ position: "absolute", width: "1px", height: "1px", opacity: "0" }} /></label></div><div style={{ font: "500 12px Archivo", color: "rgb(163, 166, 152)", marginTop: "8px" }}>{"JPG o PNG, hasta 5 MB. Se recorta en círculo."}</div></div></section><section aria-labelledby="dp-t" style={{ borderRadius: "16px", background: "rgb(22, 22, 22)", border: "1px solid rgb(38, 38, 38)", overflow: "hidden" }}><div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid rgb(38, 38, 38)" }}><h2 id="dp-t" style={{ flex: "1 1 0%", margin: "0px", font: "800 17px Archivo" }} className="dch35">{"Datos personales"}</h2></div><dl style={{ margin: "0px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0px, 1fr))" }}><div style={{ padding: "18px 24px", borderTop: "1px solid transparent", borderLeft: "1px solid transparent" }}><dt style={{ display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: "rgb(163, 166, 152)" }}><span>{"DNI"}</span></dt><dd style={{ margin: "6px 0px 0px", fontStyle: "normal", fontVariant: "tabular-nums", fontSizeAdjust: "none", fontLanguageOverride: "normal", fontKerning: "auto", fontOpticalSizing: "auto", fontFeatureSettings: "normal", fontVariationSettings: "normal", fontWeight: "700", fontStretch: "normal", fontSize: "16px", lineHeight: "normal", fontFamily: "Archivo", wordBreak: "break-word" }}><span>{(isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || "—")}</span></dd></div><div style={{ padding: "18px 24px", borderTop: "1px solid transparent", borderLeft: "1px solid rgb(34, 34, 34)" }}><dt style={{ display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: "rgb(163, 166, 152)" }}><span>{"TELÉFONO"}</span></dt><dd style={{ margin: "6px 0px 0px", fontStyle: "normal", fontVariant: "tabular-nums", fontSizeAdjust: "none", fontLanguageOverride: "normal", fontKerning: "auto", fontOpticalSizing: "auto", fontFeatureSettings: "normal", fontVariationSettings: "normal", fontWeight: "700", fontStretch: "normal", fontSize: "16px", lineHeight: "normal", fontFamily: "Archivo", wordBreak: "break-word" }}><span>{(isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || "—")}</span></dd></div><div style={{ padding: "18px 24px", borderTop: "1px solid rgb(34, 34, 34)", borderLeft: "1px solid transparent" }}><dt style={{ display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: "rgb(163, 166, 152)" }}><span>{"CORREO"}</span></dt><dd style={{ margin: "6px 0px 0px", fontStyle: "normal", fontVariant: "tabular-nums", fontSizeAdjust: "none", fontLanguageOverride: "normal", fontKerning: "auto", fontOpticalSizing: "auto", fontFeatureSettings: "normal", fontVariationSettings: "normal", fontWeight: "700", fontStretch: "normal", fontSize: "16px", lineHeight: "normal", fontFamily: "Archivo", wordBreak: "break-word" }}><span>{correoVisible}</span></dd></div><div style={{ padding: "18px 24px", borderTop: "1px solid rgb(34, 34, 34)", borderLeft: "1px solid rgb(34, 34, 34)" }}><dt style={{ display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: "rgb(163, 166, 152)" }}><span>{"NOMBRE Y APELLIDO"}</span></dt><dd style={{ margin: "6px 0px 0px", fontStyle: "normal", fontVariant: "tabular-nums", fontSizeAdjust: "none", fontLanguageOverride: "normal", fontKerning: "auto", fontOpticalSizing: "auto", fontFeatureSettings: "normal", fontVariationSettings: "normal", fontWeight: "700", fontStretch: "normal", fontSize: "16px", lineHeight: "normal", fontFamily: "Archivo", wordBreak: "break-word" }}><span>{nombreVisible}</span></dd></div></dl></section><section aria-labelledby="sg-t" style={{ borderRadius: "16px", background: "rgb(22, 22, 22)", border: "1px solid rgb(38, 38, 38)", overflow: "hidden" }}><div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "18px 24px" }}><span style={{ width: "40px", height: "40px", flexShrink: "0", borderRadius: "10px", background: "rgb(31, 42, 14)", color: "rgb(155, 230, 0)", display: "grid", placeItems: "center" }}><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 7a4 4 0 1 1-3.9 4.9L3 20v-3h3v-3h3l2.1-2.1A4 4 0 0 1 15 7z" /></svg></span><div style={{ flex: "1 1 0%" }}><h2 id="sg-t" style={{ margin: "0px", font: "800 17px Archivo" }} className="dch36">{"Contraseña"}</h2><div style={{ font: "500 14px Archivo", color: "rgb(163, 166, 152)", marginTop: "2px" }}>{"Usá una que no uses en otras cuentas."}</div></div><button style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "44px", padding: "0px 16px", borderRadius: "10px", border: "1px solid rgb(51, 51, 51)", background: "transparent", color: "rgb(236, 239, 228)", font: "700 14px Archivo", whiteSpace: "nowrap", cursor: "pointer", textDecoration: "none" }} onClick={() => setShowChangePassword(true)}>{"Cambiar contraseña"}</button></div></section></div><aside style={{ display: "flex", flexDirection: "column", gap: "20px", position: "sticky", top: "96px" }}>{esAlumno && <section aria-labelledby="mm-t" style={{ borderRadius: "16px", background: "rgb(22, 22, 22)", border: "1px solid rgb(38, 38, 38)", overflow: "hidden" }}><div style={{ padding: "18px 22px", borderBottom: "1px solid rgb(38, 38, 38)" }}><h2 id="mm-t" style={{ margin: "0px", font: "800 17px Archivo" }} className="dch37">{"Tu membresía como alumno"}</h2><div style={{ font: "500 13px Archivo", color: "rgb(163, 166, 152)", marginTop: "3px" }}>{"Para reservar clases desde el panel de alumno."}</div></div><div style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: "16px" }}><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}><span style={{ font: "800 17px Archivo" }}>{""}</span><span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "3px 10px", borderRadius: "999px", background: "rgb(22, 34, 10)", border: "1px solid rgb(61, 90, 16)", color: "rgb(155, 230, 0)", font: "700 12px Archivo" }}><span aria-hidden="true" style={{ width: "7px", height: "7px", borderRadius: "50%", background: "rgb(155, 230, 0)" }} />{membership?.label || "—"}</span></div><div><div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}><span style={{ display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: "rgb(163, 166, 152)" }}>{"CRÉDITOS"}</span><span><strong style={{ font: "900 34px / 1 \"Big Shoulders Stencil Display\"", color: "rgb(155, 230, 0)" }}>{abonoData.vencimiento ? abonoData.creditos || 0 : 0}</strong><span style={{ font: "600 14px Archivo", color: "rgb(163, 166, 152)" }}>{""}</span></span></div><div role="progressbar" aria-label="Créditos disponibles" aria-valuemin="0" aria-valuemax="20" aria-valuenow="17" style={{ marginTop: "8px", height: "8px", borderRadius: "4px", background: "rgb(42, 42, 42)", overflow: "hidden" }}><div style={{ width: "85%", height: "100%", background: "rgb(155, 230, 0)" }} /></div></div><div style={{ display: "flex", justifyContent: "space-between", gap: "12px", paddingTop: "14px", borderTop: "1px solid rgb(34, 34, 34)" }}><span style={{ font: "500 14px Archivo", color: "rgb(163, 166, 152)" }}>{"Vence"}</span><span style={{ font: "700 14px Archivo" }}>{abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : "—"}</span></div><span style={{ display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: "8px", height: "44px", padding: "0px 16px", borderRadius: "10px", border: "1px solid rgb(51, 51, 51)", background: "transparent", color: "rgb(236, 239, 228)", font: "700 14px Archivo", whiteSpace: "nowrap", cursor: "pointer", textDecoration: "none" }}>{"Ver mi membresía"}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></span></div></section>}<section aria-labelledby="cu-t" style={{ borderRadius: "16px", background: "rgb(22, 22, 22)", border: "1px solid rgb(38, 38, 38)", padding: "18px 22px", display: "flex", flexDirection: "column", gap: "12px" }}><h2 id="cu-t" style={{ margin: "0px", font: "800 17px Archivo" }} className="dch38">{"Tu cuenta"}</h2><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ font: "500 14px Archivo", color: "rgb(163, 166, 152)" }}>{"Estado"}</span><span style={{ padding: "3px 10px", borderRadius: "999px", background: "rgb(22, 34, 10)", border: "1px solid rgb(61, 90, 16)", color: "rgb(155, 230, 0)", font: "700 12px Archivo" }}>{status.label}</span></div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span style={{ font: "500 14px Archivo", color: "rgb(163, 166, 152)" }}>{"Perfil"}</span><span style={{ display: "flex", alignItems: "center", gap: "4px", minHeight: "36px", font: "700 14px Archivo", color: "rgb(155, 230, 0)", textDecoration: "none" }}>{perfilVisible}<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg></span></div></section></aside></div></div>
       </div>
 
       {/* Modal cambiar contraseña */}
