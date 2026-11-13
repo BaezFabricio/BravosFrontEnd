@@ -202,9 +202,7 @@ export default function ReportesPage() {
       {/* Encabezado */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <TituloPagina descripcion={"Ingresos, planes, ocupación y reservas."}>
-            <span className="h-2.5 w-2.5 rounded-full bg-lime-400" aria-hidden="true" /> Reportes
-          </TituloPagina>
+          <TituloPagina descripcion={"Ingresos, ocupación, planes y reservas del box"}>Reportes</TituloPagina>
         </div>
       </div>
 
@@ -220,7 +218,7 @@ export default function ReportesPage() {
         {/* Escritorio: CSV en la misma fila que los períodos, a la derecha */}
         <button type="button" onClick={exportarExcel}
           className="ml-auto hidden min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-xs font-black uppercase tracking-wide text-foreground hover:border-lime-500 sm:flex">
-          <Download className="h-3.5 w-3.5" aria-hidden="true" /> Excel
+          <Download className="h-3.5 w-3.5" aria-hidden="true" /> Descargar Excel
         </button>
         {/* Celular: CSV y Volver van en la misma fila que los períodos, para gastar menos alto */}
         <button type="button" onClick={exportarExcel}
