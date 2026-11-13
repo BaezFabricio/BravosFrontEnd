@@ -342,7 +342,7 @@ function LandingPage() {
             </div>
             <h1 id="t-hero" className="mt-[1.125rem] flex flex-col gap-3.5">
               <img src="/bravos-logo.png" alt="Bravos Box" className="landing-sube h-16 w-auto self-start md:h-[5.25rem] lg:h-24" style={{ animationDelay: '.15s' }} />
-              <span className="landing-sube font-[Archivo]! text-[1.125rem] font-extrabold tracking-[.06em] uppercase md:text-[1.25rem] lg:text-[1.5rem]" style={{ animationDelay: '.3s' }}>
+              <span className="landing-sube font-[Archivo]! text-[1.25rem] font-extrabold tracking-[.06em] uppercase md:text-[1.25rem] lg:text-[1.5rem]" style={{ animationDelay: '.3s' }}>
                 Centro de <span className="text-[#9be600]">entrenamiento</span>
               </span>
             </h1>
@@ -361,9 +361,9 @@ function LandingPage() {
         </section>
 
         {/* NOSOTROS: el lema es lo único con la tipografía stencil del logo */}
-        <section id="nosotros" aria-labelledby="t-nos" className="relative scroll-mt-20 overflow-hidden">
-          {/* Foto del box con degradé arriba y abajo: así Nosotros se separa de lo de arriba y de lo de abajo */}
-          <div aria-hidden="true" className="absolute inset-0">
+        <section id="nosotros" aria-labelledby="t-nos" className="relative scroll-mt-20 overflow-hidden border-b border-[#1f1f1f] md:border-b-0">
+          {/* Foto del box con degradé arriba y abajo (solo escritorio; en celular la sección queda como antes) */}
+          <div aria-hidden="true" className="absolute inset-0 hidden md:block">
             <ImgConSkeleton src={cfg.imagenNosotros || '/nosotros-fondo.jpg'} alt="" className="h-full w-full object-cover" containerClassName="h-full w-full" />
             <div className="absolute inset-0 bg-black/[.9]" />
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
@@ -374,11 +374,11 @@ function LandingPage() {
               "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
             </p>
             <div data-revela className="landing-revelar flex flex-col gap-3.5" style={{ animationDelay: '.15s' }}>
-              <img src="/malvinas.png" alt="" aria-hidden="true" className="mx-auto block h-auto w-[12.5rem] max-w-[60%]" />
+              <img src="/malvinas.png" alt="" aria-hidden="true" className="h-auto w-[12.5rem] max-w-[60%] md:mx-auto" />
               <h2 id="t-nos" className="m-0 font-[Archivo]! text-2xl leading-[1.25] font-extrabold text-[#ecefe4]">Honor y gloria a los Bravos de Malvinas</h2>
               <p className="m-0 text-base leading-relaxed text-[#c9ccbf]">{cfg.descripcionNosotros || TEXTO_NOSOTROS}</p>
               <p className="m-0 text-base leading-relaxed text-[#a3a698]">{cfg.mision || TEXTO_MISION}</p>
-              <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600] uppercase">{cfg.tituloNosotros || 'Sobre nosotros'}</p>
+              <p className="m-0 hidden text-xs font-bold tracking-[.12em] text-[#9be600] uppercase md:block">{cfg.tituloNosotros || 'Sobre nosotros'}</p>
             </div>
           </div>
         </section>
@@ -392,8 +392,8 @@ function LandingPage() {
               {clases.map((k, i) => (
                 <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   {/* Marco de alto fijo: la foto llena el marco (se recorta un poco en los bordes) y las dos tarjetas quedan del mismo tamaño */}
-                  <div className="relative h-[22rem] overflow-hidden">
-                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="relative h-full w-full" />
+                  <div className="relative aspect-[16/10] overflow-hidden md:aspect-auto md:h-[22rem]">
+                    <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="absolute inset-0 h-full w-full" />
                   </div>
                   <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
                     <div className="flex flex-wrap gap-2">
