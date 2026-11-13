@@ -336,7 +336,7 @@ function LandingPage() {
               </div>
             )}
             {esAlumno && (
-              <a href="#horarios" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">RESERVAR CLASE</a>
+              <Link to="/alumno" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">IR A MI PANEL</Link>
             )}
           </nav>
         )}
@@ -366,8 +366,8 @@ function LandingPage() {
 
             <div className="landing-sube mt-7 flex flex-wrap gap-3" style={{ animationDelay: '.45s' }}>
               {esAlumno && (
-                <Link to="/alumno/reservar" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
-                  RESERVAR CLASE
+                <Link to="/alumno" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
+                  IR A MI PANEL
                 </Link>
               )}
               <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] border border-[rgba(236,239,228,.45)] px-6 text-[0.9375rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] md:w-auto">

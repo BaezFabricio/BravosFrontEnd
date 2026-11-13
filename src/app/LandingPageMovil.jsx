@@ -463,7 +463,7 @@ export default function LandingPageMovil() {
               <a key={href} href={href} onClick={cerrarMenu} className="flex min-h-14 items-center border-b border-[#222] text-base font-bold text-[#ecefe4] no-underline">{label}</a>
             ))}
             {esAlumno && (
-              <Link to="/alumno/reservar" onClick={cerrarMenu} className="mt-3 flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">RESERVAR CLASE</Link>
+              <Link to="/alumno" onClick={cerrarMenu} className="mt-3 flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">IR A MI PANEL</Link>
             )}
             {logueado ? (
               <div className="mt-3.5 flex items-center gap-3 border-t border-[#262626] pt-3.5">
