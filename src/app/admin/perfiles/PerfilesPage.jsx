@@ -275,15 +275,15 @@ export default function PerfilesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <TituloPagina descripcion={"Configurá el acceso de cada rol al sistema"}>Perfiles y Permisos</TituloPagina>
+          <TituloPagina descripcion={"Qué puede ver y hacer cada rol en el sistema"}>Perfiles y permisos</TituloPagina>
         </div>
         {/* Celular: botón ancho arriba de la lista. Computadora: botón chico al lado del título */}
         <button type="button" onClick={() => openEditDialog(null)}
           className="flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-wide text-black shadow-lg shadow-lime-500/20 hover:bg-lime-300 md:hidden">
           <Plus className="h-5 w-5" /> Crear nuevo perfil
         </button>
-        <Button className="hidden md:inline-flex bg-lime-400 hover:bg-lime-300 text-black font-bold shrink-0 self-start sm:self-auto" onClick={() => openEditDialog(null)}>
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Perfil
+        <Button className="hidden md:inline-flex h-[46px] rounded-[10px] bg-lime-400 px-5 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] hover:bg-lime-300 shrink-0 self-start sm:self-auto" onClick={() => openEditDialog(null)}>
+          <Plus className="mr-2 h-4 w-4" /> NUEVO PERFIL
         </Button>
       </div>
 
