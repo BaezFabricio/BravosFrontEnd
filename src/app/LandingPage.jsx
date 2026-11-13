@@ -149,20 +149,17 @@ function LandingPage() {
     const el = fondoGimnasioRef.current
     if (!el) return
     const reducido = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let pendiente = false
     const actualizar = () => {
-      pendiente = false
       const seccion = el.parentElement
       if (!seccion || reducido.matches || !window.matchMedia('(min-width: 768px)').matches) { el.style.opacity = '0'; return }
       el.style.opacity = String(Math.min(1, Math.max(0, window.scrollY / (seccion.offsetHeight * 0.8))))
     }
-    const alCambiar = () => { if (!pendiente) { pendiente = true; requestAnimationFrame(actualizar) } }
     actualizar()
-    window.addEventListener('scroll', alCambiar, { passive: true })
-    window.addEventListener('resize', alCambiar)
+    window.addEventListener('scroll', actualizar, { passive: true })
+    window.addEventListener('resize', actualizar)
     return () => {
-      window.removeEventListener('scroll', alCambiar)
-      window.removeEventListener('resize', alCambiar)
+      window.removeEventListener('scroll', actualizar)
+      window.removeEventListener('resize', actualizar)
     }
   }, [configLoaded])
 
