@@ -233,7 +233,7 @@ export default function LandingPageMovil() {
 
       <main id="main" className="pb-[110px]">
         {/* PORTADA como la versión anterior: 85 % de la pantalla, carrusel de fotos, texto abajo a la izquierda */}
-        <section aria-labelledby="t-hero" className="relative flex min-h-[85svh] items-end overflow-hidden bg-[#0b0b0b] pb-8">
+        <section aria-labelledby="t-hero" className="relative flex min-h-[70svh] items-end overflow-hidden bg-[#0b0b0b] pb-8">
           {imagenesHero.map((src, i) => (
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
