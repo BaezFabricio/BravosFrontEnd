@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight, LogOut, Mail, MapPin, Menu, Trophy, X } from 'lucide-react'
 import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
@@ -142,6 +142,29 @@ function LandingPage() {
     const intervalo = setInterval(() => setIndiceHero((i) => (i + 1) % imagenesHero.length), 5000)
     return () => clearInterval(intervalo)
   }, [imagenesHero.length])
+
+  // Scroll en escritorio: la foto del gimnasio se va mostrando sobre la portada (completa a ~80 % de su altura)
+  const fondoGimnasioRef = useRef(null)
+  useEffect(() => {
+    const el = fondoGimnasioRef.current
+    if (!el) return
+    const reducido = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let pendiente = false
+    const actualizar = () => {
+      pendiente = false
+      const seccion = el.parentElement
+      if (!seccion || reducido.matches || !window.matchMedia('(min-width: 768px)').matches) { el.style.opacity = '0'; return }
+      el.style.opacity = String(Math.min(1, Math.max(0, window.scrollY / (seccion.offsetHeight * 0.8))))
+    }
+    const alCambiar = () => { if (!pendiente) { pendiente = true; requestAnimationFrame(actualizar) } }
+    actualizar()
+    window.addEventListener('scroll', alCambiar, { passive: true })
+    window.addEventListener('resize', alCambiar)
+    return () => {
+      window.removeEventListener('scroll', alCambiar)
+      window.removeEventListener('resize', alCambiar)
+    }
+  }, [configLoaded])
 
   // Lo que tiene data-revela aparece con un movimiento suave al entrar en pantalla (una sola vez)
   useEffect(() => {
@@ -344,8 +367,10 @@ function LandingPage() {
         {/* PORTADA: foto de Malvinas a pantalla completa */}
         <section aria-labelledby="t-hero" className="relative flex min-h-[640px] items-end overflow-hidden md:min-h-[min(calc(100vh-68px),820px)]">
           {imagenesHero.map((src, i) => (
-            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-[center_30%] ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
+            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-center ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
+          {/* Foto del gimnasio: en escritorio aparece al hacer scroll, hasta cubrir la portada */}
+          <img ref={fondoGimnasioRef} src={cfg.imagenNosotros || '/nosotros-fondo.jpg'} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-0" />
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%)' }} />
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:h-[12%]" />
