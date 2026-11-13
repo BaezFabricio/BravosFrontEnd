@@ -199,12 +199,12 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen bg-background">
       {/* Menú lateral: solo en la computadora. En el celular se usa el desplegable de arriba a la derecha */}
       <aside
-        className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${
+        className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-[272px] bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
+          <div className="flex h-[72px] items-center justify-between px-5 border-b border-sidebar-border">
             <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
               <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
@@ -231,7 +231,7 @@ export default function AdminLayout({ children }) {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className={`flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                        className={`flex min-h-[42px] items-center gap-3 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                           isActive
                             ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
                             : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
@@ -288,9 +288,9 @@ export default function AdminLayout({ children }) {
       
       
 
-      <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
+      <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-[272px]" : ""}`}>
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
-          <div className="flex items-center justify-between h-16 px-4">
+          <div className="flex items-center justify-between h-16 px-4 lg:h-[72px] lg:px-8">
             {!sidebarOpen && (
               <div className="hidden lg:block">
                 <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
