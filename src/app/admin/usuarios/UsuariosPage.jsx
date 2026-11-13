@@ -839,7 +839,7 @@ export default function UsuariosPage() {
       </div>
 
       {/* ── COMPUTADORA Y TABLET ── */}
-      <div className="hidden border border-border bg-card p-4 md:block">
+      <div className="hidden md:block">
         <div className="flex items-center gap-3">
           <div className="relative min-w-[13.75rem] flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -885,11 +885,11 @@ export default function UsuariosPage() {
           )}
           {permisos.includes("usuarios:alta") && (
             <Link
-              to="/admin/usuarios/abonos/carga-masiva"
+              to="/admin/usuarios/nuevo"
               className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-lime-300"
             >
               <Plus className="h-4 w-4" />
-              Nuevo usuario
+              NUEVO USUARIO
             </Link>
           )}
         </div>
@@ -1018,10 +1018,11 @@ export default function UsuariosPage() {
       </div>
 
       {/* ── COMPUTADORA: lista a la izquierda y ficha del usuario elegido a la derecha ── */}
-      <div className="hidden lg:grid lg:grid-cols-[minmax(20rem,25rem)_minmax(0,1fr)] lg:items-start lg:gap-5">
+      <div className="hidden lg:grid lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start lg:gap-6">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="border-b border-border px-4 py-3">
-            <h2 className="text-[17px] font-extrabold text-foreground">Usuarios ({filteredUsers.length})</h2>
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h2 className="text-[17px] font-extrabold text-foreground">Usuarios</h2>
+            <span className="text-[13px] font-semibold text-muted-foreground">{filteredUsers.length} resultados</span>
           </div>
           {isLoading ? (
             <Cargando filas={4} className="p-4" />
@@ -1036,26 +1037,20 @@ export default function UsuariosPage() {
                 return (
                   <li key={id}>
                     <button type="button" onClick={() => setSeleccionadoId(id)} aria-current={elegido ? "true" : undefined}
-                      className={`flex w-full items-start gap-3 border-l-4 px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-lime-500 ${
-                        elegido ? "border-l-lime-400 bg-lime-400/10" : "border-l-transparent hover:bg-foreground/5"
+                      className={`grid w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3.5 border-l-[3px] py-3.5 pl-4 pr-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 ${
+                        elegido ? "border-l-lime-400 bg-lime-400/10" : "border-l-transparent hover:bg-[rgba(128,128,128,.14)]"
                       }`}>
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-lime-400 text-xs font-black text-black">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-lime-400 text-[14px] font-extrabold text-[#0b0b0b]">
                         {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(user.nombre)}
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-black text-foreground">{user.nombre}</span>
-                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest ${claseEstado(user.estado)}`}>
-                            {(statusConfig[user.estado] || statusConfig.activo).label}
-                          </span>
-                        </span>
-                        <span className="block truncate text-xs text-foreground/60">{user.email || "Sin correo"}</span>
-                        <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-md bg-foreground/10 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-foreground/75">{user.nombrePerfil || user.perfil || "Sin perfil"}</span>
-                          <span className={`rounded-md border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
-                          <span className="text-[0.6875rem] font-semibold tabular-nums text-foreground/70">{Number(user.creditos) || 0} créd.</span>
-                          {user.sinAcceso && <span className="rounded-md border border-border px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-foreground/60">Sin cuenta</span>}
-                        </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[15px] font-bold text-foreground">{user.nombre}</span>
+                        <span className="block truncate text-[13px] text-muted-foreground">{user.email || "Sin correo"}</span>
+                        <span className="mt-[3px] block truncate text-[12px] font-medium text-muted-foreground">{user.nombrePerfil || user.perfil || "Sin perfil"} · {Number(user.creditos) || 0} créditos</span>
+                      </span>
+                      <span className="flex flex-col items-end gap-1.5">
+                        <span className={`whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
+                        {user.sinAcceso && <span className="whitespace-nowrap rounded-full border border-border px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">Sin cuenta</span>}
                       </span>
                     </button>
                   </li>
