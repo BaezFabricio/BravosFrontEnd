@@ -1,5 +1,5 @@
 import { cerrarSesionEnServidor } from "@/lib/sesion"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useLayoutEffect, useState, useRef } from "react"
 import { SlotTituloContext } from "@/lib/slotTitulo"
 import { EVENTO_PERMISOS } from "@/lib/sincronizarPermisos"
 import { Link, useLocation } from "react-router-dom"
@@ -32,7 +32,7 @@ import {
   UserCheck,
   Menu,
 } from "lucide-react"
-import { ModeToggle } from "@/components/ModeToggle"
+import { Moon, Sun } from "lucide-react"
 import HamburgerButton from "@/components/HamburgerButton"
 import IconoWhatsApp from "@/components/IconoWhatsApp"
 import NotificacionesBell from "@/components/NotificacionesBell"
@@ -66,6 +66,31 @@ export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+
+  // Tema del panel (oscuro, claro o automático). Se guarda en el navegador y se aplica antes del primer dibujo
+  const [modoTema, setModoTema] = useState(() => {
+    const guardado = localStorage.getItem("bravos-admin-tema-modo")
+    return guardado === "oscuro" || guardado === "claro" || guardado === "auto" ? guardado : "auto"
+  })
+  const [sistemaOscuro, setSistemaOscuro] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches)
+  useEffect(() => {
+    const consulta = window.matchMedia("(prefers-color-scheme: dark)")
+    const alCambiar = (e) => setSistemaOscuro(e.matches)
+    consulta.addEventListener("change", alCambiar)
+    return () => consulta.removeEventListener("change", alCambiar)
+  }, [])
+  const tema = modoTema === "auto" ? (sistemaOscuro ? "oscuro" : "claro") : modoTema
+  useLayoutEffect(() => {
+    const html = document.documentElement
+    html.classList.add("bv-admin")
+    html.dataset.bvTema = tema
+    localStorage.setItem("bravos-admin-tema", tema)
+    return () => { html.classList.remove("bv-admin"); delete html.dataset.bvTema }
+  }, [tema])
+  const cambiarModoTema = (nuevo) => {
+    localStorage.setItem("bravos-admin-tema-modo", nuevo)
+    setModoTema(nuevo)
+  }
   useEffect(() => {
     // Si le cambian el perfil mientras tiene el panel abierto, el menú se actualiza solo (sin volver a iniciar sesión)
     const alCambiar = () => { try { setPermisos(JSON.parse(localStorage.getItem('permisos') || '[]')) } catch { /* nada */ } }
@@ -278,7 +303,16 @@ export default function AdminLayout({ children }) {
             
             <div className="flex items-center gap-3">
 
-              <div className="hidden lg:block"><ModeToggle /></div>
+              <div className="hidden lg:block">
+                <button
+                  type="button"
+                  onClick={() => cambiarModoTema(tema === "oscuro" ? "claro" : "oscuro")}
+                  aria-label={tema === "oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                  className="grid h-11 w-11 place-items-center rounded-[10px] border border-border text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
+                >
+                  {tema === "oscuro" ? <Sun className="h-[18px] w-[18px]" aria-hidden="true" /> : <Moon className="h-[18px] w-[18px]" aria-hidden="true" />}
+                </button>
+              </div>
               <NotificacionesBell />
               
               <div className="relative" ref={menuRef}>

@@ -304,3 +304,79 @@
 @media (min-width: 1024px) {
   html { font-size: 90%; }
 }
+
+/* ── Panel de administración (rediseño): paleta propia, oscura o clara. Solo mientras se usa el admin
+   (la clase bv-admin la pone el layout del admin en <html>; así los menús y diálogos que se dibujan fuera también toman la paleta) ── */
+html.bv-admin {
+  --background: #0b0b0b;
+  --foreground: #ecefe4;
+  --card: #161616;
+  --card-foreground: #ecefe4;
+  --popover: #161616;
+  --popover-foreground: #ecefe4;
+  --primary: #9be600;
+  --primary-foreground: #0b0b0b;
+  --secondary: #1d1d1d;
+  --secondary-foreground: #ecefe4;
+  --muted: #111111;
+  --muted-foreground: #a3a698;
+  --accent: #1b1b1b;
+  --accent-foreground: #ecefe4;
+  --destructive: #ff8a80;
+  --destructive-foreground: #0b0b0b;
+  --border: #262626;
+  --input: #0e0e0e;
+  --ring: #9be600;
+  --sidebar: #0e0e0e;
+  --sidebar-foreground: #ecefe4;
+  --sidebar-primary: #9be600;
+  --sidebar-primary-foreground: #0b0b0b;
+  --sidebar-accent: #161616;
+  --sidebar-accent-foreground: #ecefe4;
+  --sidebar-border: #1f1f1f;
+  --sidebar-ring: #9be600;
+  --success: #9be600;
+  --success-foreground: #0b0b0b;
+  --warning: #e6c200;
+  --warning-foreground: #0b0b0b;
+}
+
+html.bv-admin[data-bv-tema="claro"] {
+  --background: #ecece6;
+  --foreground: #141510;
+  --card: #f6f6f1;
+  --card-foreground: #141510;
+  --popover: #ffffff;
+  --popover-foreground: #141510;
+  --primary: #9be600;
+  --primary-foreground: #0b0b0b;
+  --secondary: #e4e4dc;
+  --secondary-foreground: #141510;
+  --muted: #e2e2da;
+  --muted-foreground: #5f6156;
+  --accent: #e4e4dc;
+  --accent-foreground: #141510;
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+  --border: #e2e2da;
+  --input: #ffffff;
+  --ring: #3f6400;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #141510;
+  --sidebar-primary: #9be600;
+  --sidebar-primary-foreground: #0b0b0b;
+  --sidebar-accent: #f0f0ea;
+  --sidebar-accent-foreground: #141510;
+  --sidebar-border: #e6e6de;
+  --sidebar-ring: #3f6400;
+  --success: #3f6400;
+  --success-foreground: #ffffff;
+  --warning: #7a5d00;
+  --warning-foreground: #ffffff;
+}
+
+html.bv-admin[data-bv-tema="claro"] img[alt="Bravos Gym"] { filter: brightness(.15); }
+html.bv-admin :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  html.bv-admin *, html.bv-admin *::before, html.bv-admin *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
