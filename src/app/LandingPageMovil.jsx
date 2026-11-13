@@ -244,9 +244,9 @@ export default function LandingPageMovil() {
               <span aria-hidden="true">›</span>
               <span className="text-[#ecefe4]/70">Formosa Capital</span>
             </nav>
-            <h1 id="t-hero" className="m-0 flex flex-col gap-3">
+            <h1 id="t-hero" className="m-0 flex flex-col gap-2">
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-16 w-auto self-start" />
-              <span className="!font-[Archivo] text-[20px] font-extrabold tracking-[.04em] text-[#ecefe4]">CENTRO DE ENTRENAMIENTO</span>
+              <span className="!font-[Archivo] text-[14px] font-bold tracking-[.14em] whitespace-nowrap uppercase leading-[1.2] text-[#c9ccbf]">CENTRO DE ENTRENAMIENTO</span>
             </h1>
             {!logueado && (
               <Link to="/registro" className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#9be600] text-sm font-black tracking-widest text-[#0b0b0b] no-underline">
