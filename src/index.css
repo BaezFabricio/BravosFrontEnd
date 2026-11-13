@@ -2,7 +2,7 @@
 @import './styles/bx.css';
 @plugin '@tailwindcss/typography';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(html.bv-admin[data-bv-tema="oscuro"] *), &:is(html:not(.bv-admin).dark *));
 
 /* Tiptap editor content styles */
 .tiptap p { margin: 0 0 0.4em; }
@@ -379,4 +379,13 @@ html.bv-admin[data-bv-tema="claro"] img[alt="Bravos Gym"] { filter: brightness(.
 html.bv-admin :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   html.bv-admin *, html.bv-admin *::before, html.bv-admin *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* Verdes del panel de administración: los de la referencia (#9be600 principal, #c4ff3d al pasar el mouse, #3f6400 para texto en claro) */
+html.bv-admin {
+  --color-lime-300: #c4ff3d;
+  --color-lime-400: #9be600;
+  --color-lime-500: #9be600;
+  --color-lime-600: #7fbf00;
+  --color-lime-700: #3f6400;
 }
