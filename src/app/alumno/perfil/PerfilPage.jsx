@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { Navigate, useNavigate } from "react-router-dom"
-import { User, Mail, Phone, CreditCard, Calendar, Shield, AlertTriangle, Camera, Home, Eye, EyeOff, Lock, LogOut } from "lucide-react"
+import { AlertTriangle, Calendar, Camera, CreditCard, Eye, EyeOff, KeyRound, Lock, LogOut, Mail, Phone } from "lucide-react"
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { panelesPermitidos } from "@/lib/paneles"
 import { fmtFechaPlan } from "@/lib/miPlan"
@@ -486,145 +486,139 @@ function PerfilClasico() {
 
       {/* Alertas de membresía */}
       {esAlumno && membershipStatus === "por_vencer" && (
-        <div className="flex items-start gap-3 border border-yellow-400/20 bg-yellow-400/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-400 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-4">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-700 dark:text-yellow-400" aria-hidden="true" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-yellow-700 dark:text-yellow-400">Membresía por vencer</p>
-            <p className="text-xs text-foreground/50 mt-0.5">Vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Acercate al box para renovar.</p>
+            <p className="text-sm font-bold text-yellow-700 dark:text-yellow-400">Membresía por vencer</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Vence el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : "—"}. Acercate al box para renovar.</p>
           </div>
         </div>
       )}
       {esAlumno && membershipStatus === "vencida" && (
-        <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-[#ff8a80]" aria-hidden="true" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-red-700 dark:text-red-400">Membresía vencida</p>
-            <p className="text-xs text-foreground/50 mt-0.5">Venció el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}. Renovate para seguir reservando.</p>
+            <p className="text-sm font-bold text-red-700 dark:text-[#ff8a80]">Membresía vencida</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Venció el {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : "—"}. Renovate para seguir reservando.</p>
           </div>
         </div>
       )}
       {esAlumno && userData.estado === "suspendido" && (
-        <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-[#ff8a80]" aria-hidden="true" />
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-red-700 dark:text-red-400">Cuenta suspendida</p>
-            <p className="text-xs text-foreground/50 mt-0.5">Regularizá tu membresía para volver a reservar clases.</p>
+            <p className="text-sm font-bold text-red-700 dark:text-[#ff8a80]">Cuenta suspendida</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Regularizá tu membresía para volver a reservar clases.</p>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_440px] items-start gap-6">
 
-        {/* Columna izquierda — datos personales */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Columna izquierda: identidad, datos personales y contraseña */}
+        <div className="flex flex-col gap-6">
 
-          {/* Card avatar + nombre */}
-          <div className="border border-border bg-card p-5">
-            <div className="flex items-center gap-5">
-              <FotoAmpliable src={avatarUrl} alt={nombreVisible} className="relative h-20 w-20 shrink-0 rounded-full overflow-hidden border-2 border-lime-400/40 bg-lime-400 flex items-center justify-center text-black font-black text-2xl select-none">
-                {getIniciales(nombreVisible)}
-              </FotoAmpliable>
-              <div className="min-w-0 flex-1">
-                <span className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{perfilVisible}</span>
-                <h2 className="text-xl font-black uppercase text-foreground leading-tight truncate mt-0.5">{nombreVisible}</h2>
-                <p className="text-xs text-foreground/40 truncate">{correoVisible}</p>
-                <label className="mt-3 inline-flex cursor-pointer items-center gap-2 border border-border px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground/30 transition-colors">
-                  <Camera className="h-3.5 w-3.5" />
-                  {isSavingAvatar ? "Guardando..." : "Cambiar foto"}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                </label>
+          {/* Identidad */}
+          <section aria-label="Identidad" className="flex items-center gap-6 rounded-2xl border border-border bg-card p-6">
+            <FotoAmpliable src={avatarUrl} alt={nombreVisible} className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-lime-400 bg-lime-400/15 text-[28px] font-black text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400">
+              {getIniciales(nombreVisible)}
+            </FotoAmpliable>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-[28px] font-extrabold leading-tight text-foreground">{nombreVisible}</h2>
+                <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:border-lime-400/50 dark:text-lime-400">{perfilVisible}</span>
               </div>
+              <p className="mt-1 text-sm text-muted-foreground">{correoVisible}</p>
+              <label className="mt-4 inline-flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] focus-within:ring-2 focus-within:ring-ring">
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                {isSavingAvatar ? "Guardando..." : "Subir foto"}
+                <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarChange} />
+              </label>
+              <p className="mt-2 text-xs text-muted-foreground">JPG o PNG, hasta 5 MB. Se recorta en círculo.</p>
             </div>
-            {avatarError && (
-              <p className="mt-3 text-xs text-red-700 dark:text-red-400 border border-red-500/20 bg-red-500/5 px-3 py-2">{avatarError}</p>
-            )}
-          </div>
+          </section>
+          {avatarError && (
+            <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-[#ff8a80]">{avatarError}</p>
+          )}
 
-          {/* Card datos */}
-          <div className="border border-border bg-card">
-            <div className="border-b border-border px-5 py-3">
-              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Información Personal</p>
+          {/* Datos personales */}
+          <section aria-label="Datos personales" className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="border-b border-border px-6 py-5">
+              <h2 className="text-[17px] font-extrabold text-foreground">Datos personales</h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border">
+            <dl className="grid grid-cols-2">
               {[
-                { icon: CreditCard, label: 'DNI', value: (isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || '—') },
-                { icon: Mail, label: 'Correo', value: correoVisible },
-                { icon: Phone, label: 'Teléfono', value: (isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || '—') },
-                { icon: Calendar, label: 'Miembro desde', value: userData.fechaRegistro ? new Date(userData.fechaRegistro).toLocaleDateString() : '—' },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="px-5 py-4">
-                  <p className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    <Icon className="h-3 w-3" />{label}
-                  </p>
-                  <p className="text-sm font-semibold text-foreground">{value}</p>
+                { label: "DNI", value: (isNormalUser && !isOwner) ? maskDNI(userData.dni) : (userData.dni || "—") },
+                { label: "Teléfono", value: (isNormalUser && !isOwner) ? maskPhone(userData.telefono) : (userData.telefono || "—") },
+                { label: "Correo", value: correoVisible },
+                { label: "Nombre y apellido", value: nombreVisible },
+              ].map(({ label, value }, i) => (
+                <div key={label} className={`px-6 py-4 ${i % 2 ? "border-l border-border" : ""} ${i >= 2 ? "border-t border-border" : ""}`}>
+                  <dt className="text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">{label}</dt>
+                  <dd className="mt-1 text-[16px] font-bold text-foreground">{value}</dd>
                 </div>
               ))}
-            </div>
-          </div>
+            </dl>
+          </section>
 
-          {/* Acciones */}
-          <div className="border border-border bg-card px-5 py-4">
-            <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground mb-3">Acciones</p>
-            <div className="flex flex-wrap gap-3">
-              <button onClick={() => setShowChangePassword(true)}
-                className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
-                Cambiar Contraseña
-              </button>
-              <button onClick={handleGoHome}
-                className="ml-auto flex items-center gap-2 border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors">
-                <Home className="h-3.5 w-3.5" />Volver al inicio
-              </button>
+          {/* Contraseña */}
+          <section aria-label="Contraseña" className="flex items-center gap-4 rounded-2xl border border-border bg-card px-6 py-5">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-lime-400/15 text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400" aria-hidden="true">
+              <KeyRound className="h-[18px] w-[18px]" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-base font-extrabold text-foreground">Contraseña</p>
+              <p className="text-sm text-muted-foreground">Usá una que no uses en otras cuentas.</p>
             </div>
-          </div>
+            <button onClick={() => setShowChangePassword(true)}
+              className="inline-flex h-11 items-center rounded-[10px] border border-border px-5 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
+              Cambiar contraseña
+            </button>
+          </section>
         </div>
 
-        {/* Columna derecha — métricas */}
-        <div className="space-y-4">
-
-          {/* Estado cuenta */}
-          <div className="border border-border bg-card">
-            <div className="border-b border-border px-5 py-3">
-              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Estado de Cuenta</p>
-            </div>
-            <div className="divide-y divide-border">
-              {[
-                { label: 'Usuario', badge: status.label, style: statusBadgeStyle[userData.estado] || statusBadgeStyle.inactivo },
-                { label: 'Membresía', badge: membership?.label || '—', style: membershipBadgeStyle[membershipStatus] || 'text-muted-foreground border border-border' },
-                { label: 'Perfil', badge: userData.perfil || 'Alumno', style: 'text-foreground/60 border border-border' },
-              ].filter((f) => esAlumno || f.label !== "Membresía").map(({ label, badge, style }) => (
-                <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">{label}</p>
-                  <span className={`text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${style}`}>{badge}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Créditos / vencimiento */}
-          {esAlumno && abonoData.vencimiento && (
-            <div className="border border-border bg-card">
-              <div className="border-b border-border px-5 py-3">
-                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Membresía Activa</p>
+        {/* Columna derecha: membresía (solo alumnos) y cuenta */}
+        <div className="flex flex-col gap-6">
+          {esAlumno && (
+            <section aria-label="Membresía" className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="border-b border-border px-6 py-5">
+                <h2 className="text-[17px] font-extrabold text-foreground">Tu membresía como alumno</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Para reservar clases desde el panel de alumno.</p>
               </div>
               <div className="divide-y divide-border">
-                <div className="flex items-center justify-between px-5 py-3">
-                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">Vencimiento</p>
-                  <p className="text-xs font-bold text-foreground">{new Date(abonoData.vencimiento).toLocaleDateString()}</p>
+                <div className="flex items-center justify-between px-6 py-4">
+                  <p className="text-[15px] font-bold text-foreground">Estado</p>
+                  <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{membership?.label || "—"}</span>
                 </div>
-                <div className="flex items-center justify-between px-5 py-4">
-                  <p className="text-xs text-foreground/40 uppercase tracking-wide font-semibold">Créditos</p>
-                  <p className="text-3xl font-black text-lime-700 dark:text-lime-400 leading-none">{abonoData.creditos || 0}</p>
+                {abonoData.vencimiento && (
+                  <div className="flex items-center justify-between px-6 py-4">
+                    <p className="text-sm text-muted-foreground">Vence</p>
+                    <p className="text-sm font-bold text-foreground">{new Date(abonoData.vencimiento).toLocaleDateString()}</p>
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-6 py-4">
+                  <p className="text-sm text-muted-foreground">Créditos</p>
+                  <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{abonoData.creditos || 0}</p>
                 </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {esAlumno && membershipStatus === "vigente" && (
-            <div className="border border-lime-400/20 bg-lime-400/5 px-4 py-3">
-              <p className="text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Al día</p>
-              <p className="text-xs text-foreground/40 mt-1">Próximo vencimiento: {abonoData.vencimiento ? new Date(abonoData.vencimiento).toLocaleDateString() : '—'}</p>
+          <section aria-label="Tu cuenta" className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="border-b border-border px-6 py-5">
+              <h2 className="text-[17px] font-extrabold text-foreground">Tu cuenta</h2>
             </div>
-          )}
+            <div className="divide-y divide-border">
+              <div className="flex items-center justify-between px-6 py-4">
+                <p className="text-sm text-muted-foreground">Estado</p>
+                <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:text-lime-400">{status.label}</span>
+              </div>
+              <div className="flex items-center justify-between px-6 py-4">
+                <p className="text-sm text-muted-foreground">Perfil</p>
+                <p className="text-sm font-bold text-lime-700 dark:text-lime-400">{userData.perfil || "Alumno"}</p>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
       </div>
