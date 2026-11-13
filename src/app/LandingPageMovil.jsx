@@ -292,7 +292,7 @@ export default function LandingPageMovil() {
           <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {clases.map((k, i) => (
               <article key={i} className="w-[85%] shrink-0 snap-start overflow-hidden rounded-2xl border border-[#262626] bg-[#161616]">
-                <img src={k.img} alt={k.alt} className="block h-[170px] w-full object-cover object-[center_30%]" />
+                <img src={k.img} alt={k.alt} className="block aspect-square w-full object-cover" />
                 <div className="p-[14px_16px_16px]">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="m-0 !font-[Archivo] text-[18px] font-extrabold">{k.t}</h3>
