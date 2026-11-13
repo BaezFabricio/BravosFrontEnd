@@ -316,7 +316,7 @@ export default function AdminDashboard() {
               className={`flex h-11 items-center gap-2 whitespace-nowrap rounded-[10px] text-[13px] no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                 a.principal
                   ? "bg-lime-400 px-[18px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] hover:bg-lime-300"
-                  : "border border-border px-4 font-bold text-foreground hover:bg-[rgba(128,128,128,.14)]"
+                  : "border border-[#cfcfc4] px-4 font-bold text-foreground hover:bg-[rgba(128,128,128,.14)] dark:border-[#333]"
               }`}
             >
               {a.principal && <Plus className="h-4 w-4" aria-hidden="true" />}
