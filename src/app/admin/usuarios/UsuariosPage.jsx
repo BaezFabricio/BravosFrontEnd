@@ -271,7 +271,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
   return (
     <section aria-label={`Ficha de ${user.nombre}`} className={`rounded-2xl border bg-card p-6 ${editando ? "border-lime-500/50" : "border-border"}`}>
       <div className="flex items-start gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-lime-400 text-xl font-black text-black">
+        <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center overflow-hidden rounded-[18px] bg-lime-400 text-[30px] font-black text-[#0b0b0b]" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>
           {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(user.nombre)}
         </div>
         <div className="min-w-0 flex-1">
