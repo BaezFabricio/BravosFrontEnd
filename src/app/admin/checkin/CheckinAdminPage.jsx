@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
 import { useConfirmar } from "@/components/useConfirmar"
-import { Copy, KeyRound } from "lucide-react"
+import { Copy, Eye, EyeOff, ExternalLink, KeyRound, UserCheck } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
 import { getPermisos } from "@/lib/paneles"
-import { Card } from "@/components/ui/card"
 import { TituloPagina } from "@/components/TituloPagina"
-import { Cargando } from "@/components/Cargando"
+import { EsqueletoAdmin, EstadoVacio, BotonAdmin, TarjetaAdmin } from "@/components/admin/kit"
 
 /*
  * Check-in: la pantalla de la recepción donde el alumno escribe su DNI para registrar su asistencia.
@@ -31,6 +30,7 @@ export default function CheckinAdminPage() {
   const puedeEditar = getPermisos().includes("configuracion:modificacion")
   const [estado, setEstado] = useState(null)
   const [clave, setClave] = useState("")
+  const [verClave, setVerClave] = useState(false)
   const [guardando, setGuardando] = useState(false)
   // Siempre con https: el sistema no acepta cambios desde una dirección http
   const enlace = window.location.hostname === "localhost" ? `${window.location.origin}/check-in` : "https://bravosbox.com.ar/check-in"
@@ -75,127 +75,151 @@ export default function CheckinAdminPage() {
   return (
     <>
       {dialogoConfirmar}
-    <div className="space-y-4">
-      <TituloPagina descripcion={"La pantalla donde el alumno escribe su DNI para registrar su asistencia al llegar."}>Check-in</TituloPagina>
+      <div className="space-y-6">
+        <TituloPagina descripcion={"La pantalla donde el alumno escribe su DNI para registrar su asistencia al llegar."}>Check-in</TituloPagina>
 
-      {!estado ? (
-        <Cargando filas={2} />
-      ) : (
-        <>
-          <Card className="gap-4 rounded-2xl border-border bg-card p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">Enlace para el equipo de recepción</p>
-                <p className="mt-1 break-all font-mono text-sm text-foreground">{enlace}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <a href={enlace} target="_blank" rel="noopener noreferrer"
-                  className="flex h-11 items-center gap-2 rounded-xl border border-lime-500/50 px-4 text-sm font-bold text-lime-700 hover:bg-lime-400/10 dark:text-lime-400">
-                  Abrir en pantalla completa
-                </a>
-                <button type="button" onClick={copiarEnlace}
-                  className="flex h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold text-foreground hover:bg-foreground/5">
-                  <Copy className="h-4 w-4" aria-hidden="true" /> Copiar
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-6 text-sm">
-              <p><span className="text-muted-foreground">Clave configurada: </span><strong className="text-foreground">{estado.configurado ? "Sí" : "No"}</strong></p>
-              <p><span className="text-muted-foreground">Registrados hoy: </span><strong className="tabular-nums text-foreground">{estado.registradosHoy}</strong></p>
-            </div>
-          </Card>
-
-          <Card className="gap-5 rounded-2xl border-border bg-card p-5">
-            {hayTipoConVariasClases(estado.clasesHoy) && (
-              <div>
-                <p className="font-bold text-foreground">Hoy por tipo de clase</p>
-                {(estado.porTipo?.length ?? 0) === 0 ? (
-                  <p className="mt-1 text-sm text-muted-foreground">Hoy no hay clases.</p>
-                ) : (
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {estado.porTipo.map((t) => (
-                      <div key={t.tipo} className="rounded-xl border border-border p-3">
-                        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-muted-foreground">{t.tipo}</p>
-                        <p className="mt-1 text-sm text-foreground">
-                          <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div>
-              <p className="font-bold text-foreground">Clases de hoy</p>
-              {(estado.clasesHoy?.length ?? 0) === 0 ? (
-                <p className="mt-1 text-sm text-muted-foreground">Sin clases programadas para hoy.</p>
-              ) : (
-                <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border">
-                  {estado.clasesHoy.map((c) => (
-                    <li key={c.idHorario} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-                      <div className="min-w-0">
-                        <p className="font-bold text-foreground">{c.inicio} a {c.fin} · {c.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{c.tipo}</p>
-                      </div>
-                      <p className="tabular-nums text-foreground">
-                        <strong>{c.registrados}</strong> <span className="text-muted-foreground">registrados de {c.reservados} reservados</span>
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div>
-              <p className="font-bold text-foreground">Quién se registró hoy</p>
-              {(estado.registrados?.length ?? 0) === 0 ? (
-                <p className="mt-1 text-sm text-muted-foreground">Todavía nadie se registró hoy.</p>
-              ) : (
-                <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border">
-                  {estado.registrados.map((r, i) => (
-                    <li key={`${r.nombre}-${r.inicio}-${i}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
-                      <span className="font-bold text-foreground">{r.nombre}</span>
-                      <span className="text-xs text-muted-foreground">{r.inicio} · {r.clase} · {r.origen}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </Card>
-
-          {puedeEditar && (
-            <Card className="gap-4 rounded-2xl border-border bg-card p-5">
-              <div className="flex items-start gap-3">
-                <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
-                <div>
-                  <p className="font-bold text-foreground">Clave del equipo de recepción</p>
-                  <p className="text-sm text-muted-foreground">
-                    Elegí una frase que reconozcas, de al menos {MINIMO} caracteres. Por ejemplo: Recepcion-Bravos-2026.
-                    Se la ponés una sola vez al equipo de la recepción.
-                  </p>
+        {!estado ? (
+          <EsqueletoAdmin filas={3} />
+        ) : (
+          <>
+            {/* Enlace para la recepción */}
+            <TarjetaAdmin className="p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Enlace para el equipo de recepción</p>
+                  <p className="mt-1 break-all font-mono text-sm text-foreground">{enlace}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <a href={enlace} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground no-underline hover:bg-[rgba(128,128,128,.14)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" /> Abrir pantalla de check-in
+                  </a>
+                  <BotonAdmin onClick={copiarEnlace} aria-label="Copiar enlace">
+                    <Copy className="h-4 w-4" aria-hidden="true" /> Copiar
+                  </BotonAdmin>
                 </div>
               </div>
-              <form onSubmit={guardar} className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="text"
-                  value={clave}
-                  onChange={(e) => setClave(e.target.value)}
-                  autoComplete="off"
-                  placeholder={`Mínimo ${MINIMO} caracteres`}
-                  aria-label="Nueva clave del equipo"
-                  className="h-12 min-w-0 flex-1 rounded-xl border border-border bg-background/60 px-4 font-mono text-base text-foreground outline-none focus:border-lime-500"
-                />
-                <button type="submit" disabled={guardando || clave.trim().length < MINIMO}
-                  className="h-12 rounded-xl bg-lime-400 px-6 text-sm font-black uppercase tracking-wide text-black hover:bg-lime-300 disabled:opacity-40">
-                  {guardando ? "Guardando…" : estado.configurado ? "Cambiar clave" : "Guardar clave"}
-                </button>
-              </form>
-            </Card>
-          )}
-        </>
-      )}
-    </div>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <span className="rounded-[10px] border border-border px-3.5 py-2 text-sm">
+                  <span className="text-muted-foreground">Clave configurada: </span>
+                  <strong className="text-foreground">{estado.configurado ? "Sí" : "No"}</strong>
+                </span>
+                <span className="rounded-[10px] border border-border px-3.5 py-2 text-sm">
+                  <span className="text-muted-foreground">Registrados hoy: </span>
+                  <strong className="tabular-nums text-foreground">{estado.registradosHoy}</strong>
+                </span>
+              </div>
+            </TarjetaAdmin>
+
+            {/* Clases de hoy y registros */}
+            <TarjetaAdmin>
+              {hayTipoConVariasClases(estado.clasesHoy) && (
+                <div className="border-b border-border p-5">
+                  <h2 className="text-[17px] font-extrabold text-foreground">Hoy por tipo de clase</h2>
+                  {(estado.porTipo?.length ?? 0) === 0 ? (
+                    <p className="mt-2 text-sm text-muted-foreground">Hoy no hay clases.</p>
+                  ) : (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {estado.porTipo.map((t) => (
+                        <div key={t.tipo} className="rounded-xl border border-border p-3">
+                          <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">{t.tipo}</p>
+                          <p className="mt-1 text-sm text-foreground">
+                            <strong className="tabular-nums">{t.registrados}</strong> de <span className="tabular-nums">{t.reservados}</span> reservados se registraron
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="border-b border-border p-5">
+                <h2 id="ch-t" className="text-[17px] font-extrabold text-foreground">Clases de hoy</h2>
+                {(estado.clasesHoy?.length ?? 0) === 0 ? (
+                  <p className="mt-2 text-sm text-muted-foreground">Sin clases programadas para hoy.</p>
+                ) : (
+                  <ul aria-labelledby="ch-t" className="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border">
+                    {estado.clasesHoy.map((c) => (
+                      <li key={c.idHorario} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                        <div className="min-w-0">
+                          <p className="font-bold text-foreground">{c.inicio} a {c.fin} · {c.nombre}</p>
+                          <p className="text-xs text-muted-foreground">{c.tipo}</p>
+                        </div>
+                        <p className="tabular-nums text-foreground">
+                          <strong>{c.registrados}</strong> <span className="text-muted-foreground">registrados de {c.reservados} reservados</span>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div>
+                <h2 id="rg-t" className="border-b border-border px-5 py-4 text-[17px] font-extrabold text-foreground">Quién se registró hoy</h2>
+                {(estado.registrados?.length ?? 0) === 0 ? (
+                  <EstadoVacio
+                    icono={UserCheck}
+                    titulo="Todavía nadie se registró hoy"
+                    texto="Cuando un alumno escriba su DNI en recepción, aparece acá."
+                  />
+                ) : (
+                  <ul aria-labelledby="rg-t" className="divide-y divide-border">
+                    {estado.registrados.map((r, i) => (
+                      <li key={`${r.nombre}-${r.inicio}-${i}`} className="flex min-h-[52px] flex-wrap items-center justify-between gap-2 px-5 py-2.5 text-sm">
+                        <span className="font-bold text-foreground">{r.nombre}</span>
+                        <span className="text-xs text-muted-foreground">{r.inicio} · {r.clase} · {r.origen}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </TarjetaAdmin>
+
+            {/* Clave del equipo (solo quien puede modificar la configuración) */}
+            {puedeEditar && (
+              <TarjetaAdmin className="p-5">
+                <div className="flex items-start gap-3">
+                  <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+                  <div>
+                    <h2 id="cl-t" className="text-[17px] font-extrabold text-foreground">Clave del equipo de recepción</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Elegí una frase que reconozcas, de al menos {MINIMO} caracteres. Por ejemplo: Recepcion-Bravos-2026.
+                      Se la ponés una sola vez al equipo de la recepción.
+                    </p>
+                  </div>
+                </div>
+                <form onSubmit={guardar} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end" aria-labelledby="cl-t">
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="clave-equipo" className="mb-2 block text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">Nueva clave</label>
+                    <div className="relative">
+                    <input
+                      id="clave-equipo"
+                      type={verClave ? "text" : "password"}
+                      value={clave}
+                      onChange={(e) => setClave(e.target.value)}
+                      autoComplete="off"
+                      placeholder={`Mínimo ${MINIMO} caracteres`}
+                      className="h-12 w-full rounded-[10px] border border-border bg-background px-3.5 pr-12 font-mono text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setVerClave((v) => !v)}
+                      aria-label={verClave ? "Ocultar la clave" : "Mostrar la clave"}
+                      className="absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                    >
+                      {verClave ? <EyeOff className="h-[18px] w-[18px]" aria-hidden="true" /> : <Eye className="h-[18px] w-[18px]" aria-hidden="true" />}
+                    </button>
+                    </div>
+                  </div>
+                  <BotonAdmin variante="principal" type="submit" disabled={guardando || clave.trim().length < MINIMO} className="h-12 sm:w-auto">
+                    {guardando ? "Guardando…" : estado.configurado ? "CAMBIAR CLAVE" : "GUARDAR CLAVE"}
+                  </BotonAdmin>
+                </form>
+              </TarjetaAdmin>
+            )}
+          </>
+        )}
+      </div>
     </>
   )
 }
