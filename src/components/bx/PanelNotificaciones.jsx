@@ -89,7 +89,7 @@ export function PanelNotificaciones({ notifs, noLeidas, limpiando, onCerrar, onC
           disabled={noLeidas === 0}
           className={`h-9 px-2.5 text-[0.8125rem] font-bold ${noLeidas ? "cursor-pointer text-bx-ok-fg" : "cursor-default text-bx-muted"}`}
         >
-          Marcar todo como leído
+          Marcar todas como leídas
         </button>
       </div>
 
