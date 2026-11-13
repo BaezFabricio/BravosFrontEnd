@@ -15,6 +15,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&family=Archivo:wdth,wght@62..125,100..900&family=Big+Shoulders+Stencil+Display:wght@700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Panel de administración: aplica el modo guardado antes de dibujar la página (sin parpadeo) -->
+    <script>
+      (function () {
+        try {
+          if (!location.pathname.startsWith("/admin")) return;
+          var modo = localStorage.getItem("bravos-admin-tema-modo");
+          var sistemaOscuro = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var oscuro = modo === "oscuro" ? true : modo === "claro" ? false : sistemaOscuro;
+          var tema = oscuro ? "oscuro" : "claro";
+          document.documentElement.classList.add("bv-admin");
+          document.documentElement.setAttribute("data-bv-tema", tema);
+        } catch (e) { /* sin acceso al almacenamiento: se usa el modo oscuro por defecto */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

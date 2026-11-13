@@ -209,7 +209,7 @@ export default function AdminLayout({ children }) {
               <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </Link>
-            <button className="text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors p-1" onClick={() => setSidebarOpen(false)}>
+            <button aria-label="Ocultar menú lateral" className="grid h-11 w-11 place-items-center rounded-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -231,6 +231,7 @@ export default function AdminLayout({ children }) {
                       <Link
                         key={item.name}
                         to={item.href}
+                        aria-current={isActive ? "page" : undefined}
                         className={`flex min-h-[42px] items-center gap-3 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                           isActive
                             ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
