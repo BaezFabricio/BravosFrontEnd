@@ -319,17 +319,17 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
-        <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Membresía</p>
+      <div className="mt-6 grid grid-cols-3 gap-3.5">
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Membresía</p>
           <span className={`mt-1.5 inline-block rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
         </div>
-        <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Créditos disponibles</p>
-          <p className="mt-0.5 text-3xl font-black leading-none tabular-nums text-lime-700 dark:text-lime-400">{Number(user.creditos) || 0}</p>
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Créditos disponibles</p>
+          <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{Number(user.creditos) || 0}</p>
         </div>
-        <div className="rounded-xl border border-border px-4 py-3">
-          <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Estado general</p>
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Estado general</p>
           {editando && !ed.propia ? (
             <div className="mt-1.5">
               {lista(
