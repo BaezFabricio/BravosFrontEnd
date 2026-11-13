@@ -514,7 +514,7 @@ export default function GestionAbonosPage() {
       <BotonVolver a={destinoVolver} texto="Volver" />
       <div className="flex items-start gap-4">
         <div className="flex-1">
-          <TituloPagina descripcion={"Cargá y administrá los abonos de los alumnos."}>Gestión de Abonos</TituloPagina>
+          <TituloPagina descripcion={"Cargá pagos y revisá las membresías de cada mes"}>Abonos</TituloPagina>
         </div>
       </div>
 
@@ -534,7 +534,8 @@ export default function GestionAbonosPage() {
       <div id="nueva-carga" className="hidden scroll-mt-24 space-y-3 md:block">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-widest text-foreground">Nueva Carga</p>
+            <h2 className="text-[17px] font-extrabold text-foreground">Cargar abono</h2>
+            <p className="text-sm text-muted-foreground">Al elegir el plan se completan los créditos, el vencimiento y el monto. Podés cargar varios alumnos a la vez.</p>
           </div>
           <button
             onClick={enviar}
