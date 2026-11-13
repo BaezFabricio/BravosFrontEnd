@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react"
-import { Users, Calendar, AlertTriangle, TrendingUp, UserCheck, Clock, DollarSign, Dumbbell } from "lucide-react"
+import { Users, Calendar, TrendingUp, UserCheck, Clock, DollarSign, Dumbbell, Plus } from "lucide-react"
+import { Link } from "react-router-dom"
 import apiClient from "@/api"
 import { Cargando } from '@/components/Cargando'
 import { TituloPagina } from "@/components/TituloPagina"
@@ -53,6 +54,7 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [pestana, setPestana] = useState("actividad")
+  const [filtroActividad, setFiltroActividad] = useState("todo")
   const [ahora, setAhora] = useState(0) // momento en que llegaron los datos (para filtrar por hoy, semana y mes)
   const permisos = JSON.parse(localStorage.getItem('permisos') || '[]');
   // Solo oculta la pantalla: el permiso real lo controla el servidor en /dashboard/metrics
@@ -140,15 +142,16 @@ export default function AdminDashboard() {
   // Grupos de actividad por período, en orden: hoy, semana pasada, mes pasado y el resto
   const grupoDe = (a) => (filtrosActividad.hoy(a) ? "hoy" : filtrosActividad.semana(a) ? "semana" : filtrosActividad.mes(a) ? "mes" : "antes")
   const ROTULO_GRUPO = { hoy: "Hoy", semana: "Semana pasada", mes: "Mes pasado", antes: "Anteriores" }
+  const actividadFiltrada = recentActivity.filter((a) => filtroActividad === "todo" || String(a.action || "").toLowerCase().includes(filtroActividad === "pagos" ? "pago" : "reserv"))
   const grupos = ["hoy", "semana", "mes", "antes"]
-    .map((k) => ({ k, label: ROTULO_GRUPO[k], items: recentActivity.filter((a) => grupoDe(a) === k) }))
+    .map((k) => ({ k, label: ROTULO_GRUPO[k], items: actividadFiltrada.filter((a) => grupoDe(a) === k) }))
     .filter((g) => g.items.length > 0)
 
   // Contenido de las tres listas: en el celular van en pestañas y en la computadora, en tarjetas
   const listaActividad = (
     <>{loading ? (
       <Cargando filas={2} className="py-2" />
-    ) : recentActivity.length === 0 ? (
+    ) : actividadFiltrada.length === 0 ? (
       <p className="text-sm text-foreground/40 text-center py-8">Sin actividad reciente.</p>
     ) : (
       <div className="pt-2">
@@ -264,6 +267,14 @@ export default function AdminDashboard() {
       return ""
     }
   })()
+  const ACCESOS = [
+    { label: "Cargar abono", href: "/admin/usuarios", permiso: "usuarios:consulta", principal: true },
+    { label: "Nuevo usuario", href: "/admin/usuarios/nuevo", permiso: "usuarios:consulta" },
+    { label: "Crear clase", href: "/admin/clases/nueva", permiso: "clases:consulta" },
+    { label: "Abrir check-in", href: "/admin/check-in", permiso: "configuracion:consulta" },
+  ]
+  const accesosVisibles = ACCESOS.filter((a) => permisos.includes(a.permiso))
+
   return (
     <div className="space-y-6">
       <div>
@@ -277,111 +288,167 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6 items-start">
-        {/* ── Columna izquierda: stats + actividad ── */}
-        <div className="space-y-6">
-          {/* STAT CARDS */}
-          <div className="grid grid-cols-2 gap-3">
-            {statsLayout.map((stat) => {
-              const s = statStyle[stat.type]
-              return (
-                <div key={stat.title} className={`rounded-xl border border-border border-l-2 ${s.border} bg-card px-5 py-4`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-[0.625rem] font-bold uppercase tracking-widest text-muted-foreground leading-tight">{stat.title}</p>
-                      <p className="text-4xl font-black text-foreground mt-2 leading-none">{stat.value}</p>
-                      <p className={`text-[0.6875rem] font-semibold mt-2 ${s.sub}`}>{stat.sub}</p>
-                    </div>
-                    <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${s.badgeBg}`}>
-                      <stat.icon className={`h-4 w-4 ${s.icon}`} />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+      {/* Accesos rápidos (computadora) */}
+      {accesosVisibles.length > 0 && (
+        <div role="group" aria-label="Accesos rápidos" className="hidden flex-wrap gap-2.5 lg:flex">
+          {accesosVisibles.map((a) => (
+            <Link
+              key={a.href}
+              to={a.href}
+              className={`flex h-11 items-center gap-2 rounded-[10px] px-4 text-[13px] font-bold tracking-wide no-underline transition-colors ${
+                a.principal ? "bg-lime-400 text-black hover:bg-lime-300" : "border border-border text-foreground hover:border-lime-500"
+              }`}
+            >
+              {a.principal && <Plus className="h-4 w-4" aria-hidden="true" />}
+              {a.label}
+            </Link>
+          ))}
+        </div>
+      )}
 
-          {/* CELULAR: las tres listas en pestañas */}
-          <div className="lg:hidden">
-            <div role="tablist" aria-label="Detalle del resumen" className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1">
-              {PESTANAS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={pestana === p.id}
-                  onClick={() => setPestana(p.id)}
-                  className={`flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-lg px-1 text-center text-[0.625rem] font-black uppercase leading-tight tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
-                    pestana === p.id ? "bg-foreground/10 text-foreground" : "text-foreground/55 hover:text-foreground"
-                  }`}
-                >
-                  {p.label}
-                  {!loading && p.cantidad > 0 && (
-                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[0.5625rem] text-white">{p.cantidad}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div role="tabpanel" className="mt-4">
-              <div className="mb-2 flex items-center justify-between px-1">
-                <p className="text-sm font-black uppercase tracking-wide text-foreground">
-                  {pestana === "sinPago" ? "Usuarios sin pago" : pestana === "clases" ? "Clases de hoy" : "Actividad reciente"}
-                </p>
-                {pestana === "sinPago" && !loading && suspendedUsers.length > 0 && (
-                  <span className="rounded-full bg-red-600 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-white">
-                    {suspendedUsers.length} {suspendedUsers.length === 1 ? "usuario" : "usuarios"}
-                  </span>
-                )}
+      {/* Indicadores */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {statsLayout.map((stat) => {
+          const s = statStyle[stat.type]
+          return (
+            <div key={stat.title} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card px-5 py-5">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground leading-tight">{stat.title}</p>
+                <span className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[9px] ${s.badgeBg}`}>
+                  <stat.icon className={`h-[17px] w-[17px] ${s.icon}`} aria-hidden="true" />
+                </span>
               </div>
-              <div className="overflow-hidden rounded-xl border border-border bg-card">
-                {pestana === "sinPago" ? listaSinPago : pestana === "clases" ? listaClases : listaActividad}
-              </div>
+              <p className="text-[44px] font-black leading-none text-foreground" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{stat.value}</p>
+              <p className={`text-[13px] font-semibold ${s.sub}`}>{stat.sub}</p>
             </div>
-          </div>
+          )
+        })}
+      </div>
 
-          {/* ACTIVIDAD RECIENTE (computadora) */}
-          <div className="hidden rounded-xl border border-border bg-card lg:block">
-            <div className="border-b border-border px-5 py-3 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-foreground/40" />
-              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Actividad Reciente</p>
-            </div>
-
-            {listaActividad}
-          </div>
+      {/* CELULAR: las tres listas en pestañas */}
+      <div className="lg:hidden">
+        <div role="tablist" aria-label="Detalle del resumen" className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1">
+          {PESTANAS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={pestana === p.id}
+              onClick={() => setPestana(p.id)}
+              className={`flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-lg px-1 text-center text-[0.625rem] font-black uppercase leading-tight tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+                pestana === p.id ? "bg-foreground/10 text-foreground" : "text-foreground/55 hover:text-foreground"
+              }`}
+            >
+              {p.label}
+              {!loading && p.cantidad > 0 && (
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[0.5625rem] text-white">{p.cantidad}</span>
+              )}
+            </button>
+          ))}
         </div>
 
-        {/* ── Columna derecha (computadora): sin pago + clases de hoy ── */}
-        <div className="hidden space-y-6 lg:block">
-          {/* SIN PAGO */}
-          <div className="rounded-xl border border-border bg-card">
-            <div className="border-b border-border px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-400" />
-                <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Sin pago</p>
+        <div role="tabpanel" className="mt-4">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <p className="text-sm font-black uppercase tracking-wide text-foreground">
+              {pestana === "sinPago" ? "Usuarios sin pago" : pestana === "clases" ? "Clases de hoy" : "Actividad reciente"}
+            </p>
+            {pestana === "sinPago" && !loading && suspendedUsers.length > 0 && (
+              <span className="rounded-full bg-red-600 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wider text-white">
+                {suspendedUsers.length} {suspendedUsers.length === 1 ? "usuario" : "usuarios"}
+              </span>
+            )}
+          </div>
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            {pestana === "sinPago" ? listaSinPago : pestana === "clases" ? listaClases : listaActividad}
+          </div>
+        </div>
+      </div>
+
+      {/* COMPUTADORA: actividad con filtros a la izquierda; clases de hoy, pendientes y sin pago a la derecha */}
+      <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start lg:gap-6">
+        <section aria-labelledby="t-act-d" className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+            <h2 id="t-act-d" className="flex-1 text-[17px] font-extrabold text-foreground">Actividad reciente</h2>
+            <div role="group" aria-label="Filtrar actividad" className="flex gap-1.5">
+              {[["todo", "Todo"], ["pagos", "Pagos"], ["reservas", "Reservas"]].map(([id, label]) => {
+                const activo = filtroActividad === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={activo}
+                    onClick={() => setFiltroActividad(id)}
+                    className={`h-9 rounded-full border px-3.5 text-[13px] font-bold transition-colors ${
+                      activo ? "border-foreground bg-foreground text-background" : "border-border text-foreground hover:bg-[rgba(128,128,128,.14)]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          {listaActividad}
+        </section>
+
+        <div className="flex flex-col gap-6">
+          <section aria-labelledby="t-clases-d" className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+              <h2 id="t-clases-d" className="whitespace-nowrap text-[17px] font-extrabold text-foreground">Clases de hoy</h2>
+              {permisos.includes("clases:consulta") && (
+                <Link to="/admin/clases" className="whitespace-nowrap text-[13px] font-bold text-foreground no-underline hover:text-lime-600 dark:hover:text-lime-400">Ver clases</Link>
+              )}
+            </div>
+            {!loading && clasesHoy.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
+                <span className="grid h-[52px] w-[52px] place-items-center rounded-[14px] bg-lime-400/10 text-lime-700 dark:text-lime-400">
+                  <Calendar className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-base font-bold text-foreground">No hay clases para hoy</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Los alumnos no pueden reservar hasta que crees una.</p>
+                </div>
+                {permisos.includes("clases:consulta") && (
+                  <Link to="/admin/clases/nueva" className="flex h-11 items-center gap-2 rounded-[10px] border border-lime-600/40 bg-lime-400/10 px-4 text-[13px] font-extrabold tracking-wide text-lime-700 no-underline hover:border-lime-500 dark:text-lime-400">
+                    <Plus className="h-4 w-4" aria-hidden="true" /> CREAR CLASE
+                  </Link>
+                )}
               </div>
+            ) : listaClases}
+          </section>
+
+          <section aria-labelledby="t-atencion" className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-4">
+              <h2 id="t-atencion" className="text-[17px] font-extrabold text-foreground">Requiere atención</h2>
+            </div>
+            <ul className="m-0 list-none p-0">
+              {[
+                { t: "Usuarios sin pago", n: loading ? null : suspendedUsers.length },
+                { t: "Membresías por vencer", n: loading ? null : Number(tarjetas.membresiasPorVencer) || 0 },
+              ].map((fila, i) => (
+                <li key={fila.t} className={`flex min-h-[58px] items-center gap-3 px-5 ${i ? "border-t border-border" : ""}`}>
+                  <span className="flex-1 text-sm font-semibold text-foreground">{fila.t}</span>
+                  <span className={`min-w-[30px] rounded-full border px-2.5 py-0.5 text-center text-[13px] font-extrabold ${fila.n > 0 ? "border-yellow-500/30 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400" : "border-border bg-muted text-muted-foreground"}`}>
+                    {fila.n === null ? "…" : fila.n}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="t-sinpago-d" className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 id="t-sinpago-d" className="text-[17px] font-extrabold text-foreground">Sin pago</h2>
               {!loading && (
-                <span className="text-[0.625rem] font-black uppercase tracking-widest px-2 py-0.5 bg-yellow-400/10 text-yellow-700 dark:text-yellow-400 border border-yellow-400/20 rounded-md">
-                  {suspendedUsers.length} {suspendedUsers.length === 1 ? 'usuario' : 'usuarios'}
+                <span className="rounded-md border border-yellow-400/20 bg-yellow-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-yellow-700 dark:text-yellow-400">
+                  {suspendedUsers.length} {suspendedUsers.length === 1 ? "usuario" : "usuarios"}
                 </span>
               )}
             </div>
-
             {listaSinPago}
-          </div>
-
-          {/* CLASES DE HOY */}
-          <div className="rounded-xl border border-border bg-card">
-            <div className="border-b border-border px-5 py-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-foreground/40" />
-              <p className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Clases de hoy</p>
-            </div>
-
-            {listaClases}
-          </div>
+          </section>
         </div>
       </div>
     </div>
   )
 }
-
