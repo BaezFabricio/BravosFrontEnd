@@ -233,7 +233,7 @@ export default function AdminLayout({ children }) {
                         aria-current={isActive ? "page" : undefined}
                         className={`flex min-h-[42px] items-center gap-3 py-2 rounded-[10px] text-sm font-semibold transition-all ${
                           isActive
-                            ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                            ? "px-3 bg-lime-400/15 text-lime-700 dark:bg-[#16220a] dark:text-lime-400"
                             : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                         }`}
                         onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
