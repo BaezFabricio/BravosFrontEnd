@@ -206,8 +206,7 @@ export default function AdminLayout({ children }) {
         <div className="flex flex-col h-full">
           <div className="flex h-[72px] items-center justify-between px-5 border-b border-sidebar-border">
             <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
-              <img src="/logo.jpg" alt="Bravos Gym" width={40} height={40} className="rounded-lg" />
-              <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
+              <img src="/bravos-logo.png" alt="Bravos Box" className="h-[30px] w-auto" />
             </Link>
             <button aria-label="Ocultar menú lateral" className="grid h-11 w-11 place-items-center rounded-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
@@ -260,17 +259,14 @@ export default function AdminLayout({ children }) {
                 onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
               >
-                <div className="h-10 w-10 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-sm overflow-hidden">
-                  {avatarUrl
-                    ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                    : avatarFallback
-                  }
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-lime-500 bg-lime-400/15 text-[13px] font-extrabold text-lime-700 dark:border-lime-400 dark:text-lime-400">
+                  {avatarFallback}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-sidebar-foreground truncate">
                     {userData.nombrecompleto}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{userData.correo}</p>
+                  <p className="text-xs font-medium text-lime-700 dark:text-lime-400 truncate">Administrador</p>
                 </div>
               </Link>
               <button
@@ -318,11 +314,8 @@ export default function AdminLayout({ children }) {
               
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none">
-                  <div className="h-9 w-9 shrink-0 bg-lime-400 rounded-full flex items-center justify-center text-black font-black text-xs overflow-hidden">
-                    {avatarUrl
-                      ? <img src={avatarUrl} alt={userData.nombrecompleto} className="h-full w-full object-cover" />
-                      : avatarFallback
-                    }
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-lime-500 bg-lime-400/15 text-xs font-extrabold text-lime-700 dark:border-lime-400 dark:text-lime-400">
+                    {avatarFallback}
                   </div>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
