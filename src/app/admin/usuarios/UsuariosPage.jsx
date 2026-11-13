@@ -1,3 +1,4 @@
+import { EstadoVacio } from "@/components/admin/kit"
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import {
@@ -670,7 +671,7 @@ export default function UsuariosPage() {
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
-          <TituloPagina descripcion={"Administra los usuarios del sistema"}>Gestión de Usuarios</TituloPagina>
+          <TituloPagina descripcion={"Alumnos, profesores y administradores del box"}>Usuarios y abonos</TituloPagina>
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2 md:hidden">
@@ -844,7 +845,7 @@ export default function UsuariosPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, DNI o email..."
-              className="pl-9 bg-secondary border-border"
+              className="h-11 rounded-[10px] pl-9 bg-background border-border text-[15px]"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -853,7 +854,7 @@ export default function UsuariosPage() {
             type="button"
             onClick={() => setVerFiltros((v) => !v)}
             aria-expanded={verFiltros}
-            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+            className={`flex h-11 items-center gap-2 rounded-[10px] border px-4 text-[13px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
               verFiltros || filtrosActivos > 0 ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
             }`}
           >
@@ -864,7 +865,7 @@ export default function UsuariosPage() {
 
           {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
           {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-            <button type="button" onClick={exportarUsuarios} className="rounded-full border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-2">
+            <button type="button" onClick={exportarUsuarios} className="flex h-11 items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
               <Download className="h-4 w-4" />
               Exportar
             </button>
@@ -876,7 +877,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               Alumno sin cuenta
@@ -884,8 +885,8 @@ export default function UsuariosPage() {
           )}
           {permisos.includes("usuarios:alta") && (
             <Link
-              to="/admin/usuarios/nuevo"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-lime-400 px-4 py-2 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300"
+              to="/admin/usuarios/abonos/carga-masiva"
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-lime-300"
             >
               <Plus className="h-4 w-4" />
               Nuevo usuario
@@ -917,14 +918,14 @@ export default function UsuariosPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Usuario</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">DNI</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Teléfono</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Perfil</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Estado</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden sm:table-cell">Membresía</th>
-                    <th className="text-left px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Créditos</th>
-                    <th className="text-right px-4 py-2.5 text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Acciones</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Usuario</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground hidden md:table-cell">DNI</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground hidden lg:table-cell">Teléfono</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground hidden sm:table-cell">Perfil</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Estado</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground hidden sm:table-cell">Membresía</th>
+                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground hidden lg:table-cell">Créditos</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -1020,12 +1021,12 @@ export default function UsuariosPage() {
       <div className="hidden lg:grid lg:grid-cols-[minmax(20rem,25rem)_minmax(0,1fr)] lg:items-start lg:gap-5">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="border-b border-border px-4 py-3">
-            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">Usuarios ({filteredUsers.length})</p>
+            <h2 className="text-[17px] font-extrabold text-foreground">Usuarios ({filteredUsers.length})</h2>
           </div>
           {isLoading ? (
             <Cargando filas={4} className="p-4" />
           ) : filteredUsers.length === 0 ? (
-            <p className="px-4 py-10 text-center text-sm text-foreground/60">No hay usuarios con esos filtros.</p>
+            <EstadoVacio titulo="No hay usuarios con estos filtros" accion={<button type="button" onClick={limpiarFiltros} className="inline-flex min-h-11 items-center rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground hover:bg-[rgba(128,128,128,.14)]">Limpiar filtros</button>} />
           ) : (
             <ul className="max-h-[calc(100vh-17rem)] divide-y divide-border overflow-y-auto">
               {filteredUsers.map((user) => {
