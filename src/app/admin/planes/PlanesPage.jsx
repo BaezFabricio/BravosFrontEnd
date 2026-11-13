@@ -118,7 +118,7 @@ export default function PlanesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <TituloPagina descripcion={"Gestioná los planes de abono disponibles para los alumnos."}>Planes y Membresías</TituloPagina>
+          <TituloPagina descripcion={"Los planes de abono que pueden comprar los alumnos"}>Planes y membresías</TituloPagina>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:self-start">
           <button
@@ -134,7 +134,7 @@ export default function PlanesPage() {
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] transition-colors hover:bg-lime-300 sm:w-auto"
             >
               <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-              CREAR PLAN
+              NUEVO PLAN
             </button>
           )}
         </div>
