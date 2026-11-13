@@ -245,6 +245,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] text-[#ecefe4] selection:bg-[#9be600] selection:text-[#0b0b0b]" style={{ fontFamily: 'Archivo, sans-serif' }}>
       <style>{ANIMACIONES}</style>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&display=swap" precedence="default" />
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:bg-[#9be600] focus:px-3.5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-[#0b0b0b]">
         Saltar al contenido
       </a>
@@ -386,8 +387,8 @@ function LandingPage() {
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
           <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
-            <p data-revela className="landing-revelar m-0 font-[Big_Shoulders_Stencil_Display]! text-[2.75rem] leading-[.95] font-black text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]">
-              "El único entrenamiento malo <span className="text-[#9be600]">es el que no hiciste"</span>
+            <p data-revela className="landing-revelar m-0 font-[Barlow_Semi_Condensed]! text-[2.75rem] leading-[1.05] font-extrabold tracking-normal text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]" style={{ textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
+              "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
             </p>
             <div data-revela className="landing-revelar flex flex-col gap-3.5" style={{ animationDelay: '.15s' }}>
               <img src="/malvinas.png" alt="" aria-hidden="true" className="h-auto w-[12.5rem] max-w-[60%] md:mx-auto" />
