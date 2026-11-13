@@ -310,7 +310,7 @@ export default function AdminLayout({ children }) {
                   {tema === "oscuro" ? <Sun className="h-[18px] w-[18px]" aria-hidden="true" /> : <Moon className="h-[18px] w-[18px]" aria-hidden="true" />}
                 </button>
               </div>
-              <NotificacionesBell />
+              <NotificacionesBell variante="bx" />
               
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none">
