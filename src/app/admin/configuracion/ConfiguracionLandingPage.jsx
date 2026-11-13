@@ -324,7 +324,8 @@ function ConfiguracionLandingPage() {
         </div>
         <div>
           <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">{seccion.grupo}</p>
-          <TituloPagina descripcion={seccion.detalle}>{seccion.titulo}</TituloPagina>
+          <TituloPagina descripcion={"Lo que ven los visitantes en la web y los alumnos al pagar"}>Configuración del box</TituloPagina>
+          <div className="mb-4"><h2 className="text-[22px] font-extrabold text-foreground">{seccion.titulo}</h2><p className="mt-1 text-sm text-muted-foreground">{seccion.detalle}</p></div>
         </div>
         {!puedeModificar && (
           <p className="rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground/60">Tu perfil puede ver esta sección pero no cambiarla.</p>
