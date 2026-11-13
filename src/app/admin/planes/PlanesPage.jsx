@@ -1,3 +1,4 @@
+import { EstadoVacio } from "@/components/admin/kit"
 import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
 import { Plus, Edit2, Trash2, Loader2, CreditCard, Users, Layers } from "lucide-react"
@@ -122,7 +123,7 @@ export default function PlanesPage() {
         <div className="grid grid-cols-2 gap-2 sm:flex sm:self-start">
           <button
             onClick={() => setTiposAbierto(true)}
-            className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] sm:w-auto"
           >
             <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
             Tipos de clase
@@ -130,10 +131,10 @@ export default function PlanesPage() {
           {permisos.includes("membresias:alta") && (
             <button
               onClick={abrirNuevo}
-              className="flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-full bg-lime-400 px-3 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-lime-500/20 transition-colors hover:bg-lime-300 sm:w-auto sm:rounded-xl sm:px-5 sm:text-sm"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] transition-colors hover:bg-lime-300 sm:w-auto"
             >
               <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-              Nuevo plan
+              CREAR PLAN
             </button>
           )}
         </div>
@@ -154,23 +155,23 @@ export default function PlanesPage() {
             const activos = Number(plan.alumnosActivos) || 0
             const hayDatoActivos = plan.alumnosActivos !== undefined // si el servidor no lo manda, no se muestra un 0 falso
             return (
-              <article key={plan.idPlan} className="flex flex-col rounded-2xl border border-border bg-card p-4">
+              <article key={plan.idPlan} className="flex flex-col rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Plan</p>
+                  <p className="text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Plan</p>
                   <span className="shrink-0 rounded-md border border-border bg-foreground/5 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">
                     {plan.nombreTipo || plan.tipo}
                   </span>
                 </div>
-                <h2 className="mt-1 text-xl font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
+                <h2 className="mt-1 text-[18px] font-extrabold leading-tight text-foreground">{plan.nombre}</h2>
                 {corta && <p className="mt-1.5 text-sm leading-relaxed text-foreground/60">{corta}</p>}
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                    <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Precio</p>
+                  <div className="rounded-xl bg-muted px-3.5 py-3">
+                    <p className="text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Precio</p>
                     <p className="mt-0.5 text-xl font-black tabular-nums text-foreground">{formatearPrecio(plan.precio)}</p>
                   </div>
-                  <div className="rounded-xl bg-foreground/5 px-3 py-2.5">
-                    <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">Créditos</p>
+                  <div className="rounded-xl bg-muted px-3.5 py-3">
+                    <p className="text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">Créditos</p>
                     <p className="mt-0.5 text-xl font-black tabular-nums text-lime-700 dark:text-lime-400">{plan.cantidadCreditos} <span className="text-xs font-bold text-foreground/55">clases{plan.creditosPorSemana ? ` · ${plan.creditosPorSemana} por semana` : ""}</span></p>
                   </div>
                 </div>
@@ -186,7 +187,7 @@ export default function PlanesPage() {
                   {permisos.includes("membresias:modificacion") && (
                     <button
                       onClick={() => abrirEditar(plan)}
-                      className="flex min-h-[2.75rem] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background/60 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500"
+                      className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[10px] border border-border text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
                     >
                       <Edit2 className="h-4 w-4" />
                       Editar
@@ -196,7 +197,7 @@ export default function PlanesPage() {
                     <button
                       onClick={() => setDeleteDialog({ open: true, plan })}
                       aria-label={`Eliminar el plan ${plan.nombre}`}
-                      className="flex min-h-[2.75rem] w-12 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-700 transition-colors hover:bg-red-500/20 dark:text-red-400"
+                      className="flex min-h-11 w-11 items-center justify-center rounded-[10px] border border-red-500/30 text-red-700 transition-colors hover:bg-red-500/10 dark:text-[#ff8a80]"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -209,16 +210,13 @@ export default function PlanesPage() {
       )}
 
       {!loading && !error && planes.length === 0 && (
-        <div className="border border-border bg-card p-12 text-center">
-          <CreditCard className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-          <p className="text-foreground/40 mb-4">Todavía no hay planes cargados.</p>
-          <button
-            onClick={abrirNuevo}
-            className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-4 py-2 hover:bg-lime-300 transition-colors inline-flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Crear Primer Plan
-          </button>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <EstadoVacio
+            icono={CreditCard}
+            titulo="Todavía no hay planes cargados"
+            texto="Sin un plan, los alumnos no pueden reservar sus clases."
+            accion={<button type="button" onClick={abrirNuevo} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] hover:bg-lime-300"><Plus className="h-4 w-4" aria-hidden="true" /> CREAR PLAN</button>}
+          />
         </div>
       )}
 

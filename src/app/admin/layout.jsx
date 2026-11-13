@@ -206,7 +206,7 @@ export default function AdminLayout({ children }) {
         <div className="flex flex-col h-full">
           <div className="flex h-[72px] items-center justify-between px-5 border-b border-sidebar-border">
             <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
-              <img src="/bravos-logo.png" alt="Bravos Box" className="h-[30px] w-auto" />
+              <img src={tema === "claro" ? "/bravos-logo-claro.png" : "/bravos-logo.png"} alt="Bravos Box" className="h-[30px] w-auto" />
             </Link>
             <button aria-label="Ocultar menú lateral" className="grid h-11 w-11 place-items-center rounded-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
