@@ -272,7 +272,7 @@ export default function LandingPageMovil() {
           <p className="m-0 text-center text-[27px] leading-[1.15] font-extrabold tracking-normal uppercase" style={{ fontFamily: "'Barlow Semi Condensed', Archivo, sans-serif", textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
             "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
           </p>
-          <div className="mt-[18px] flex items-center gap-3 border-t border-[#262626] pt-4">
+          <div className="mt-14 flex items-center gap-3 border-t border-[#262626] pt-8">
             <img src="/malvinas.png" alt="" aria-hidden="true" className="h-16 w-auto" />
             <span className="text-[15px] leading-[1.3] font-bold">Honor y gloria a los Bravos de Malvinas</span>
           </div>
