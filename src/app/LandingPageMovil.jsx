@@ -255,11 +255,7 @@ export default function LandingPageMovil() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
               </Link>
             )}
-            <div className="flex items-center justify-between">
-              <a href="#nosotros" className="mt-1 -ml-1 flex min-h-11 items-center gap-2 rounded-md px-1 text-xs font-black tracking-widest text-[#ecefe4]/70 no-underline">
-                MÁS INFO
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-              </a>
+            <div className="flex items-center justify-end">
               <span className="flex items-center gap-1.5" aria-hidden={imagenesHero.length <= 1 ? 'true' : undefined}>
                 {imagenesHero.map((_, i) => (
                   <button key={i} type="button" onClick={() => setIndiceHero(i)} aria-label={`Ver foto ${i + 1} de ${imagenesHero.length}`} aria-current={i === indiceHero ? 'true' : undefined} className="grid h-5 place-items-center">
