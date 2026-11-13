@@ -17,6 +17,7 @@ import {
   CreditCard,
   SlidersHorizontal,
   ChevronRight,
+  CalendarDays,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { HelpTooltip } from "@/components/ui/help-tooltip"
@@ -211,7 +212,7 @@ function UltimasReservas({ idUsuario }) {
   }, [idUsuario])
 
   if (reservas === null) return <Cargando filas={2} className="py-2" />
-  if (reservas.length === 0) return <p className="rounded-xl border border-dashed border-border px-4 py-5 text-center text-sm text-foreground/60">Todavía no tiene reservas.</p>
+  if (reservas.length === 0) return <p className="flex items-center gap-3 rounded-xl border border-dashed border-border px-[18px] py-[18px] text-[14px] font-medium text-muted-foreground"><CalendarDays className="h-5 w-5 shrink-0" aria-hidden="true" />Todavía no reservó ninguna clase.</p>
   return (
     <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
       {reservas.map((r) => {
@@ -385,7 +386,7 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
         <div className="mt-6 flex flex-wrap gap-2.5">
           <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)}
             className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-            <CreditCard className="h-4 w-4" aria-hidden="true" /> Ver abonos
+            <Plus className="h-4 w-4" aria-hidden="true" /> CARGAR ABONO
           </button>
           {puedeVerDetalle && (
             <button type="button" onClick={() => navigate(`/admin/usuarios/${id}`)}
