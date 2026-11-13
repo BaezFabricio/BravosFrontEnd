@@ -259,7 +259,7 @@ export default function AdminLayout({ children }) {
                 onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
                 className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500"
               >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-lime-500 bg-lime-400/15 text-[13px] font-extrabold text-lime-700 dark:border-lime-400 dark:text-lime-400">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-lime-400 bg-lime-400/15 text-[13px] font-extrabold text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400">
                   {avatarFallback}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -305,7 +305,7 @@ export default function AdminLayout({ children }) {
                   type="button"
                   onClick={() => cambiarModoTema(tema === "oscuro" ? "claro" : "oscuro")}
                   aria-label={tema === "oscuro" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-                  className="grid h-11 w-11 place-items-center rounded-[10px] border border-border text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
+                  className="grid h-11 w-11 place-items-center rounded-[10px] border border-[#cfcfc4] text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] dark:border-[#262626]"
                 >
                   {tema === "oscuro" ? <Sun className="h-[18px] w-[18px]" aria-hidden="true" /> : <Moon className="h-[18px] w-[18px]" aria-hidden="true" />}
                 </button>
@@ -314,7 +314,7 @@ export default function AdminLayout({ children }) {
               
               <div className="relative" ref={menuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-1 focus:outline-none">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-lime-500 bg-lime-400/15 text-xs font-extrabold text-lime-700 dark:border-lime-400 dark:text-lime-400">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-lime-400 bg-lime-400/15 text-xs font-extrabold text-lime-700 dark:bg-[#1f2a0e] dark:text-lime-400">
                     {avatarFallback}
                   </div>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />

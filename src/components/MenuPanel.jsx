@@ -10,7 +10,7 @@ import { useTheme } from "@/components/theme-provider"
 // Título de cada grupo (mismo estilo en el menú lateral y en el desplegable del celular)
 export const TituloGrupo = ({ titulo }) =>
   titulo ? (
-    <p className="px-3 pb-1 pt-3 text-[0.625rem] font-black uppercase tracking-widest text-sidebar-foreground/30">{titulo}</p>
+    <p className="px-3 pb-1.5 pt-[18px] text-[11px] font-bold uppercase tracking-[.12em] text-[#7d8073]">{titulo}</p>
   ) : null
 
 const claseItem = (activo, extra = "") =>
