@@ -284,7 +284,7 @@ export default function ClasesPage() {
       {/* Encabezado */}
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <TituloPagina descripcion={"Clases organizadas por tipo de clase. Para crear una, usá \"Crear clase\" en su tipo."}>Gestión de Clases</TituloPagina>
+          <TituloPagina descripcion={"Las próximas clases, por tipo. Cuando pasan, se mueven al Historial."}>Clases</TituloPagina>
         </div>
       </div>
 
@@ -368,7 +368,7 @@ export default function ClasesPage() {
                   {permisos.includes("clases:alta") && plan.idPlan && (
                     <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`}
                       className="inline-flex min-h-[2.5rem] shrink-0 items-center gap-1 rounded-lg border border-border bg-background/60 px-3 text-[0.6875rem] font-black uppercase tracking-wider text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
-                      <Plus className="h-3.5 w-3.5" /> Crear clase
+                      <Plus className="h-3.5 w-3.5" /> CREAR CLASE
                     </Link>
                   )}
                 </div>
