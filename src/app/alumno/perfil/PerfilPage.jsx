@@ -529,6 +529,7 @@ function PerfilClasico() {
                 <span className="inline-flex items-center rounded-md border border-lime-600/40 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-lime-700 dark:border-lime-400/50 dark:text-lime-400">{perfilVisible}</span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{correoVisible}</p>
+              {userData.fechaRegistro && <p className="mt-1 text-sm text-muted-foreground">Miembro desde el {new Date(userData.fechaRegistro).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}</p>}
               <label className="mt-4 inline-flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] focus-within:ring-2 focus-within:ring-ring">
                 <Camera className="h-4 w-4" aria-hidden="true" />
                 {isSavingAvatar ? "Guardando..." : "Subir foto"}
