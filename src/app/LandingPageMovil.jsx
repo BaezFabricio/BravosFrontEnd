@@ -267,11 +267,11 @@ export default function LandingPageMovil() {
         </section>
 
         {/* FRASE (primero) y luego el bloque de Malvinas, dentro del mismo recuadro */}
-        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-6 scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
+        <section id="nosotros" aria-label="Nosotros" className="relative mx-4 mt-[84px] scroll-mt-16 overflow-hidden rounded-[18px] border border-[#262626] bg-[#0e0e0e] px-4 pt-6 pb-[18px]">
           <p className="m-0 text-center text-[27px] leading-[1.15] font-extrabold tracking-normal uppercase" style={{ fontFamily: "'Barlow Semi Condensed', Archivo, sans-serif", textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
             "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
           </p>
-          <div className="mt-24 flex items-center gap-3 border-t border-[#262626] pt-8">
+          <div className="mt-[18px] flex items-center gap-3 border-t border-[#262626] pt-4">
             <img src="/malvinas.png" alt="" aria-hidden="true" className="h-16 w-auto" />
             <span className="text-[15px] leading-[1.3] font-bold">Honor y gloria a los Bravos de Malvinas</span>
           </div>
