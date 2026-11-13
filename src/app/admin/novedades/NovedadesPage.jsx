@@ -9,6 +9,7 @@ import { Cargando } from "@/components/Cargando"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FilaNovedad, TarjetaNovedad } from "@/components/Novedades"
 import { TIPOS_NOVEDAD, colorDe } from "@/lib/novedades"
+import { BotonAdmin, EstadoVacio, TarjetaAdmin } from "@/components/admin/kit"
 
 /*
  * Novedades del box: se cargan con foto y tipo. Tocar una tarjeta abre la ventana para editarla (no cambia de pantalla).
@@ -138,17 +139,18 @@ export default function NovedadesPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <TituloPagina descripcion={"Comunicados, eventos y promos que se ven en la portada de los alumnos con sesión iniciada."}>Novedades</TituloPagina>
           {puedeEditar && (
-            <button type="button" onClick={() => setEditando({ ...VACIO })}
-              className="ml-auto flex min-h-[2.75rem] items-center gap-2 rounded-full bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black hover:bg-lime-300 md:rounded-xl">
-              <Plus className="h-4 w-4" aria-hidden="true" /> Nueva novedad
-            </button>
+            <BotonAdmin variante="principal" onClick={() => setEditando({ ...VACIO })} className="ml-auto">
+              <Plus className="h-4 w-4" aria-hidden="true" /> NUEVA NOVEDAD
+            </BotonAdmin>
           )}
         </div>
 
         {lista === null ? (
           <Cargando filas={3} />
         ) : lista.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Todavía no hay novedades. Creá la primera con el botón de arriba.</p>
+          <TarjetaAdmin>
+            <EstadoVacio icono={ImagePlus} titulo="Todavía no hay novedades" texto="Los alumnos no están viendo ninguna novedad en su portada. Todas vencieron o están en borrador." />
+          </TarjetaAdmin>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {lista.map((n) => {
@@ -160,7 +162,7 @@ export default function NovedadesPage() {
                     <span className={`rounded-full px-2.5 py-1 text-[0.625rem] font-black uppercase tracking-[0.12em] ${estado.clase}`}>{estado.texto}</span>
                     {puedeEditar && (
                       <button type="button" onClick={() => borrarDesdeTarjeta(n)} aria-label={`Eliminar ${n.titulo}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white hover:bg-red-600">
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-black/70 text-white hover:bg-red-600">
                         <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </button>
                     )}
