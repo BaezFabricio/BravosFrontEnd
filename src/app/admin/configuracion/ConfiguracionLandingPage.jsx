@@ -20,7 +20,7 @@ const SECCIONES = {
 
 const Field = ({ label, hint, children }) => (
   <div className="space-y-1.5">
-    <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">{label}</label>
+    <label className="block text-xs font-bold uppercase tracking-[.1em] text-foreground/60">{label}</label>
     {children}
     {hint && <p className="text-xs text-foreground/50">{hint}</p>}
   </div>
@@ -32,10 +32,10 @@ const textareaCls = inputCls + " resize-y leading-relaxed"
 const SectionCard = ({ title, subtitle, children }) => (
   <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
     <div>
-      <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground">
+      <h2 className="flex items-center gap-2 text-base font-extrabold text-foreground">
         <span className="h-3.5 w-1 rounded-full bg-lime-400" aria-hidden="true" /> {title}
       </h2>
-      {subtitle && <p className="mt-1 text-xs text-foreground/55">{subtitle}</p>}
+      {subtitle && <p className="mt-1 text-sm text-foreground/55">{subtitle}</p>}
     </div>
     {children}
   </section>
@@ -49,7 +49,7 @@ const ImageUpload = ({ preview, onChange, label, aspect = 'aspect-video', disabl
       : <div className="flex h-full items-center justify-center"><ImageIcon className="h-8 w-8 text-foreground/25" /></div>
     }
     {!disabled && (
-      <label className="absolute bottom-2 right-2 flex min-h-[2.25rem] cursor-pointer items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-bold text-white backdrop-blur transition-colors hover:bg-black/85 focus-within:ring-2 focus-within:ring-lime-400">
+      <label className="absolute bottom-2.5 right-2.5 flex h-10 cursor-pointer items-center gap-2 rounded-full border border-border bg-background/85 px-3.5 text-[13px] font-bold text-foreground backdrop-blur transition-colors hover:bg-background focus-within:ring-2 focus-within:ring-lime-400">
         <Camera className="h-3.5 w-3.5" aria-hidden="true" />
         {label}
         <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onChange} className="sr-only" />
@@ -397,6 +397,7 @@ function ConfiguracionLandingPage() {
                       preview={preview}
                       onChange={e => handleFileChange(e, tipo)}
                       label="Cambiar"
+                      aspect="aspect-[16/10]"
                       disabled={!puedeModificar}
                     />
                   </div>
@@ -415,6 +416,7 @@ function ConfiguracionLandingPage() {
                   preview={imagenNosotrosPreview}
                   onChange={e => handleFileChange(e, 'nosotros')}
                   label="Cambiar foto"
+                  aspect="aspect-video"
                   disabled={!puedeModificar}
                 />
               </div>
