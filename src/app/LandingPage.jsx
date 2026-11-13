@@ -366,8 +366,8 @@ function LandingPage() {
           {imagenesHero.map((src, i) => (
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-center ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
-          {/* Foto del gimnasio: en escritorio aparece al hacer scroll, hasta cubrir la portada */}
-          <img ref={fondoGimnasioRef} src={cfg.imagenNosotros || '/nosotros-fondo.jpg'} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-0" />
+          {/* Foto del gimnasio solo en la franja de abajo: en escritorio aparece al hacer scroll y se funde hacia arriba; el carrusel no cambia */}
+          <img ref={fondoGimnasioRef} src={cfg.imagenNosotros || '/nosotros-fondo.jpg'} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-0" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 50%, #000 100%)', maskImage: 'linear-gradient(to bottom, transparent 50%, #000 100%)' }} />
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%)' }} />
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:h-[12%]" />
