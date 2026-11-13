@@ -237,7 +237,7 @@ export default function LandingPageMovil() {
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
-          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-black/70 to-black" />
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-b from-transparent via-[#0b0b0b]/80 to-[#0b0b0b]" />
           <div className="relative flex w-full flex-col gap-3 px-4 pb-6">
             <nav aria-label="Ubicación" className="flex items-center gap-1.5 text-xs text-[#ecefe4]/50">
               <span>Argentina</span>
