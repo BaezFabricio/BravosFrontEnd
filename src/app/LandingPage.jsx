@@ -132,6 +132,17 @@ function LandingPage() {
 
   const logueado = !!sesion
 
+  // Carrusel de la portada: las fotos hero1..hero3 del admin, cambian cada 5 s con fundido.
+  // Sin fotos cargadas queda la foto de Malvinas.
+  const fotosHero = Object.values(cfg.heroImages || {}).filter(Boolean)
+  const imagenesHero = fotosHero.length ? fotosHero : ['/hero-malvinas.png']
+  const [indiceHero, setIndiceHero] = useState(0)
+  useEffect(() => {
+    if (imagenesHero.length <= 1) return
+    const intervalo = setInterval(() => setIndiceHero((i) => (i + 1) % imagenesHero.length), 5000)
+    return () => clearInterval(intervalo)
+  }, [imagenesHero.length])
+
   // Lo que tiene data-revela aparece con un movimiento suave al entrar en pantalla (una sola vez)
   useEffect(() => {
     if (!configLoaded) return
@@ -332,7 +343,9 @@ function LandingPage() {
       <main id="main">
         {/* PORTADA: foto de Malvinas a pantalla completa */}
         <section aria-labelledby="t-hero" className="relative flex min-h-[640px] items-end overflow-hidden md:min-h-[min(calc(100vh-68px),820px)]">
-          <img src="/hero-malvinas.png" alt="Soldados argentinos en Malvinas" className="absolute inset-0 h-full w-full object-cover object-[62%_center] lg:object-[center_30%]" />
+          {imagenesHero.map((src, i) => (
+            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-[center_30%] ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
+          ))}
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%)' }} />
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio no se muestra, así la foto se ve completa */}
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:hidden" />
