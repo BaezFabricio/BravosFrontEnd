@@ -5,7 +5,7 @@ import AvisosPublicos from './components/AvisosPublicos'
 import { iniciarSincronizacionDePermisos, usePermisosVivos } from './lib/sincronizarPermisos'
 import { useEffect } from 'react'
 
-import LandingPage from './app/LandingPage.jsx'
+import LandingPage from './app/LandingPageSegunPantalla.jsx'
 import RankingPublicoPage from './app/RankingPublicoPage.jsx'
 import LoginPage from './app/login/LoginPage.jsx'
 import RegistroPage from './app/registro/RegistroPage.jsx'
