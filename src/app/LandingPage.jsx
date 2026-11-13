@@ -347,8 +347,8 @@ function LandingPage() {
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-[center_30%] ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%)' }} />
-          {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio no se muestra, así la foto se ve completa */}
-          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:hidden" />
+          {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:h-[12%]" />
 
           <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 md:px-10 md:pb-16">
             <div className="landing-entra inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
