@@ -604,9 +604,12 @@ function LandingPage() {
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-[1.875rem] w-auto self-start" />
               <span className="text-sm text-[#a3a698]">Centro de entrenamiento funcional · Formosa</span>
             </div>
+            <Link to="/arrepentimiento" className="flex h-11 items-center rounded-[10px] border border-[#333] px-[1.125rem] text-[0.8125rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:text-[#ecefe4]">
+              Botón de arrepentimiento
+            </Link>
           </div>
           <nav aria-label="Legal" className="flex flex-wrap gap-x-5 gap-y-1">
-            {[['Términos y condiciones', '/terminos'], ['Privacidad', '/privacidad'], ['Cookies', '/cookies'], ['Reembolsos', '/reembolsos'], ['Botón de arrepentimiento', '/arrepentimiento']].map(([label, to]) => (
+            {[['Términos y condiciones', '/terminos'], ['Privacidad', '/privacidad'], ['Cookies', '/cookies'], ['Reembolsos', '/reembolsos']].map(([label, to]) => (
               <Link key={to} to={to} className="flex min-h-11 items-center text-sm font-medium text-[#c9ccbf] no-underline hover:text-[#ecefe4]">{label}</Link>
             ))}
           </nav>
