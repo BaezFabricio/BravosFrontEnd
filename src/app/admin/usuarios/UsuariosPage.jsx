@@ -845,7 +845,7 @@ export default function UsuariosPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, DNI o email..."
-              className="h-11 rounded-[10px] pl-9 bg-background border-border text-[15px]"
+              className="h-[46px] rounded-[10px] pl-9 bg-background border-border text-[15px]"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -854,7 +854,7 @@ export default function UsuariosPage() {
             type="button"
             onClick={() => setVerFiltros((v) => !v)}
             aria-expanded={verFiltros}
-            className={`flex h-11 items-center gap-2 rounded-[10px] border px-4 text-[13px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
+            className={`flex h-[46px] items-center gap-2 rounded-[10px] border px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
               verFiltros || filtrosActivos > 0 ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
             }`}
           >
@@ -865,7 +865,7 @@ export default function UsuariosPage() {
 
           {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
           {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-            <button type="button" onClick={exportarUsuarios} className="flex h-11 items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
+            <button type="button" onClick={exportarUsuarios} className="flex h-[46px] items-center gap-2 rounded-[10px] border border-border px-4 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
               <Download className="h-4 w-4" />
               Exportar
             </button>
@@ -877,7 +877,7 @@ export default function UsuariosPage() {
               type="button"
               onClick={() => setSinCuentaAbierto(true)}
               title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
+              className="inline-flex h-[46px] shrink-0 items-center gap-2 rounded-[10px] border border-border px-4 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
             >
               <UserRound className="h-4 w-4" aria-hidden="true" />
               Alumno sin cuenta
@@ -886,7 +886,7 @@ export default function UsuariosPage() {
           {permisos.includes("usuarios:alta") && (
             <Link
               to="/admin/usuarios/nuevo"
-              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] bg-lime-400 px-4 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-lime-300"
+              className="inline-flex h-[46px] shrink-0 items-center gap-2 rounded-[10px] bg-lime-400 px-5 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-lime-300"
             >
               <Plus className="h-4 w-4" />
               NUEVO USUARIO

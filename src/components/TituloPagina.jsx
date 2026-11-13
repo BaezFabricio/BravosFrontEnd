@@ -23,8 +23,8 @@ export function TituloPagina({ children, descripcion, className = "text-2xl font
   if (slot === null) return null
   return createPortal(
     <div className="min-w-0">
-      <h1 className="truncate text-lg font-black uppercase leading-tight tracking-tight text-foreground sm:text-xl">{children}</h1>
-      {descripcion && <p className="hidden truncate text-xs leading-tight text-foreground/55 sm:block">{descripcion}</p>}
+      <h1 className="truncate text-[22px] font-extrabold leading-tight text-foreground">{children}</h1>
+      {descripcion && <p className="truncate text-[13px] font-medium leading-tight text-muted-foreground">{descripcion}</p>}
     </div>,
     slot
   )
