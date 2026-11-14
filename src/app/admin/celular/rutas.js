@@ -3,6 +3,7 @@ import { useAnchoCelular } from "@/lib/useEscritorio"
 
 // Pantallas del admin que ya tienen el diseño nuevo para celular (menos de 768 px). El resto sigue como estaba.
 const LISTAS = [
+  /^\/admin\/usuarios\/\d+\/editar\/?$/,
   /^\/admin\/usuarios\/nuevo\/?$/,
   /^\/admin\/clases\/?$/,
   /^\/admin\/planes\/?$/,
@@ -13,6 +14,7 @@ const LISTAS = [
 
 // Pantallas de formulario: sin menú inferior ni mascota (el botón principal queda abajo)
 const SIN_MENU = [
+  /^\/admin\/usuarios\/\d+\/editar\/?$/,
   /^\/admin\/usuarios\/nuevo\/?$/,
 ]
 export const sinMenuCelular = (pathname) => SIN_MENU.some((x) => x.test(pathname))
