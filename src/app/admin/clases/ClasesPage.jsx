@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
-  Plus,
-  Search,
   MoreVertical,
   Edit,
   Trash2,
   Clock,
-  Users,
   User,
-  History,
   CalendarDays,
-  Eye,
+  ChevronRight,
+  Users,
+  Copy,
+  X,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -24,6 +23,18 @@ import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 import { TituloPagina } from "@/components/TituloPagina"
 import DetalleClaseDialog from "./DetalleClaseDialog"
+import PestanasClases from "./PestanasClases"
+import { ConfirmarAdmin } from "@/components/ModalAdmin"
+import { yaTermino, fechaDeClase } from "./utilClases"
+
+// Marcación de la referencia (pantalla 03). Colores de los tokens del tema; sin datos de anotados ni cupos
+// (la lista de clases no los trae). En el historial y en los diálogos se mantienen los estilos actuales.
+const CARD = { borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)" }
+const BOTON_LIMA = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", height: "44px", padding: "0px 18px", borderRadius: "10px", border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 14px Archivo", letterSpacing: "0.03em", whiteSpace: "nowrap", textDecoration: "none", cursor: "pointer" }
+
+const IconoMas = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+)
 
 export default function ClasesPage() {
   const [search, setSearch] = useState("")
@@ -32,7 +43,8 @@ export default function ClasesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [permisos, setPermisos] = useState([])
-  const [pestana, setPestana] = useState("clases")
+  const [parametros] = useSearchParams()
+  const [pestana, setPestana] = useState(parametros.get("pestana") === "historial" ? "historial" : "clases")
   const [planFiltro, setPlanFiltro] = useState("all")
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, clase: null })
@@ -62,12 +74,9 @@ export default function ClasesPage() {
     obtenerDatos()
     const storedPermisos = localStorage.getItem("permisos")
     if (storedPermisos) {
-      try { setPermisos(JSON.parse(storedPermisos)) } catch { }
+      try { setPermisos(JSON.parse(storedPermisos)) } catch { /* nada: sin permisos guardados */ }
     }
   }, [])
-
-  const ahora = new Date()
-  const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}`
 
   const DIAS_NUM = { DOMINGO:0, LUNES:1, MARTES:2, MIERCOLES:3, JUEVES:4, VIERNES:5, SABADO:6 }
 
@@ -94,20 +103,6 @@ export default function ClasesPage() {
     return f
   }
 
-  // Una clase única "ya pasó" si su fecha es anterior a hoy,
-  // o si es hoy pero su hora de fin ya transcurrió.
-  const yaTermino = (clase) => {
-    if (!clase.fechaEspecifica) return false
-    const fecha = clase.fechaEspecifica.split('T')[0]
-    if (fecha < hoy) return true
-    if (fecha === hoy && clase.horaFin) {
-      const [h, m] = clase.horaFin.split(':').map(Number)
-      const fin = new Date(); fin.setHours(h, m, 0, 0)
-      return ahora > fin
-    }
-    return false
-  }
-
   const clasesFiltradas = clases.filter((clase) => {
     const matchBusqueda =
       clase.nombreClase?.toLowerCase().includes(search.toLowerCase()) ||
@@ -125,6 +120,15 @@ export default function ClasesPage() {
       return matchBusqueda && yaTermino(clase)
     })
     .sort((a, b) => b.fechaEspecifica.localeCompare(a.fechaEspecifica))
+  const totalHistorial = clases.filter((c) => yaTermino(c)).length
+  const historialFiltrado = historialClasesUnicas.filter((c) => planFiltro === "all" || (c.tipoPlan ?? "sin-plan") === planFiltro)
+  const historialPorMes = []
+  for (const c of historialFiltrado) {
+    const etiqueta = fechaDeClase(c.fechaEspecifica).toLocaleDateString("es-AR", { month: "long", year: "numeric" }).replace(" de ", " ").toUpperCase()
+    let g = historialPorMes.find((x) => x.etiqueta === etiqueta)
+    if (!g) { g = { etiqueta, clases: [] }; historialPorMes.push(g) }
+    g.clases.push(c)
+  }
 
   const clasesAgrupadas = useMemo(() => {
     const grupos = {}
@@ -148,20 +152,17 @@ export default function ClasesPage() {
       .map(([key, g]) => ({ key, ...g }))
   }, [planes, clasesFiltradas])
 
-  // Días en que hay clases del plan, abreviados (ej. "L-M-V"); las clases únicas no suman días fijos
-  const INICIAL_DIA = { LUNES: "L", MARTES: "M", MIERCOLES: "X", JUEVES: "J", VIERNES: "V", SABADO: "S", DOMINGO: "D" }
-  const ORDEN_DIAS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"]
-  const diasDelPlan = (lista) => {
-    const dias = new Set()
-    lista.forEach((c) => (c.diasSemana || "").split(",").map((d) => d.trim().toUpperCase()).forEach((d) => d && dias.add(d)))
-    return ORDEN_DIAS.filter((d) => dias.has(d)).map((d) => INICIAL_DIA[d]).join("-")
-  }
-  const etiquetaTipo = (tipo) => (tipo === "PlanificacionAtleta" ? "Planificación" : tipo ? "CrossFit" : null)
-  const iniciales = (nombre = "") => nombre.trim().split(/\s+/).slice(0, 2).map((p) => p[0] || "").join("").toUpperCase() || "—"
-  const fechaCorta = (fechaISO) => {
-    if (!fechaISO) return "—"
-    const [y, m, d] = fechaISO.split("T")[0].split("-").map(Number)
-    return new Date(y, m - 1, d).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+  // Fecha de la caja de cada clase: la próxima (si es semanal) o la única
+  const fechaDeCaja = (clase) => {
+    const f = clase.fechaEspecifica
+      ? (() => { const [y, m, d] = clase.fechaEspecifica.split("T")[0].split("-").map(Number); return new Date(y, m - 1, d) })()
+      : proximaFecha(clase.diasSemana, clase.horaInicio)
+    if (!f) return null
+    return {
+      dia: f.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "").toUpperCase(),
+      numero: f.getDate(),
+      mes: f.toLocaleDateString("es-AR", { month: "short" }).replace(".", "").toUpperCase(),
+    }
   }
   const gruposVisibles = clasesAgrupadas.filter((g) => planFiltro === "all" || g.key === planFiltro)
 
@@ -177,147 +178,171 @@ export default function ClasesPage() {
     }
   }
 
-  // Fila de una clase (horario, profesor, cupos, días) con su menú de acciones
-  const FilaClase = ({ clase }) => (
-    <div className="flex items-start gap-3 px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate text-sm font-black uppercase tracking-wide text-foreground">{clase.nombreClase}</h3>
-          <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest ${
-            clase.estado === "Activo"
-              ? "border-lime-400/20 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-              : "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-400"
-          }`}>
-            {clase.estado === "Activo" ? "Activa" : "Inactiva"}
+  // Fila de una clase de la referencia: caja con la fecha, nombre, estado, horario y coach, y su menú
+  const FilaClase = ({ clase }) => {
+    const caja = fechaDeCaja(clase)
+    const activa = clase.estado === "Activo"
+    // Anotados de la próxima fecha (los trae el backend: reservas activas). Sin lugares = cupo lleno
+    const anotados = Number(clase.anotados) || 0
+    const cupo = Number(clase.cupoMaximo) || 0
+    const libres = Math.max(0, cupo - anotados)
+    const llena = cupo > 0 && libres === 0
+    const porcentaje = cupo > 0 ? Math.min(100, Math.round(anotados / cupo * 100)) : 0
+    return (
+      <li style={{ display: "flex", alignItems: "center", gap: "18px", padding: "16px 16px 16px 22px", borderTop: "1px solid var(--border)" }}>
+        <span style={{ width: "56px", height: "60px", flexShrink: 0, borderRadius: "12px", border: "1px solid rgba(155, 230, 0, 0.3)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ font: "700 10px Archivo", letterSpacing: "0.08em", color: "var(--primary)" }}>{caja?.dia ?? "—"}</span>
+          <span style={{ font: "900 26px / 1 \"Big Shoulders Stencil Display\"", color: "var(--foreground)" }}>{caja?.numero ?? "—"}</span>
+          <span style={{ font: "600 10px Archivo", color: "var(--muted-foreground)" }}>{caja?.mes ?? ""}</span>
+        </span>
+        <span style={{ flex: "1 1 0%", minWidth: "0px" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{ font: "800 16px Archivo" }}>{clase.nombreClase}</span>
+            <span style={{ padding: "2px 8px", borderRadius: "999px", background: !activa ? "var(--sh-track)" : llena ? "var(--sh-warn-bg)" : "var(--sh-active-bg)", border: `1px solid ${!activa ? "var(--sh-control-line)" : llena ? "var(--sh-warn-line)" : "rgba(155, 230, 0, 0.3)"}`, color: !activa ? "var(--muted-foreground)" : llena ? "var(--sh-warn)" : "var(--primary)", font: "700 11px Archivo" }}>
+              {!activa ? "Inactiva" : llena ? "Llena" : "Activa"}
+            </span>
           </span>
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foreground/65">
-          {clase.horaInicio && clase.horaFin && (
-            <span className="flex items-center gap-1"><Clock className="h-3 w-3" aria-hidden="true" />{clase.horaInicio.substring(0, 5)} – {clase.horaFin.substring(0, 5)}</span>
-          )}
-          {clase.nombreProfesor && (
-            <span className="flex items-center gap-1"><User className="h-3 w-3" aria-hidden="true" />{clase.nombreProfesor}</span>
-          )}
-          <span className="flex items-center gap-1">
-            <Users className="h-3 w-3" aria-hidden="true" />
-            {/* Cupo de la clase (límite de reservas). cupoDisponible es un campo fijo que no baja con las reservas: no se muestra */}
-            <span className="text-lime-700 dark:text-lime-400">{clase.cupoMaximo}</span>
-            <span className="text-foreground/40">lugares</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap", marginTop: "6px", font: "500 14px Archivo", color: "var(--sh-link)" }}>
+            {clase.horaInicio && clase.horaFin && (
+              <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--foreground)", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                <Clock className="h-[15px] w-[15px]" aria-hidden="true" />
+                {`${clase.horaInicio.substring(0, 5)} – ${clase.horaFin.substring(0, 5)}`}
+              </span>
+            )}
+            {clase.nombreProfesor && (
+              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <User className="h-[15px] w-[15px]" aria-hidden="true" />
+                {`Coach ${clase.nombreProfesor}`}
+              </span>
+            )}
           </span>
-        </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1">
-          {clase.fechaEspecifica ? (
-            <>
-              <span className="rounded border border-lime-400/25 bg-lime-400/5 px-1.5 py-px text-[0.625rem] font-bold uppercase text-lime-700 dark:text-lime-400">{fechaCorta(clase.fechaEspecifica)}</span>
-              <span className="rounded border border-border px-1.5 py-px text-[0.625rem] font-bold uppercase text-foreground/50">Única</span>
-            </>
-          ) : clase.diasSemana && (
-            <>
-              {clase.diasSemana.split(",").map((dia) => (
-                <span key={dia} className="rounded border border-border px-1.5 py-px text-[0.625rem] font-bold uppercase text-foreground/60">{dia.trim().substring(0, 3)}</span>
-              ))}
-              {(() => { const p = proximaFecha(clase.diasSemana, clase.horaInicio); return p ? <span className="text-[0.625rem] text-foreground/45">· próxima {p.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}</span> : null })()}
-            </>
-          )}
-        </div>
-      </div>
+        </span>
 
-      {(permisos.includes("clases:modificacion") || permisos.includes("clases:baja")) && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button type="button" aria-label={`Acciones de ${clase.nombreClase}`}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-foreground/55 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-              <MoreVertical className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            {permisos.includes("clases:modificacion") && (
-              <DropdownMenuItem asChild>
-                <Link to={`/admin/clases/editar/${clase.idClase}`}>
-                  <Edit className="mr-2 h-4 w-4" /> Editar
-                </Link>
-              </DropdownMenuItem>
-            )}
-            {permisos.includes("clases:baja") && (
-              <DropdownMenuItem onClick={() => setDeleteDialog({ open: true, clase })} className="text-red-700 dark:text-red-400">
-                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </div>
-  )
+        <span style={{ width: "190px", flexShrink: 0 }}>
+          <span style={{ display: "flex", justifyContent: "space-between", gap: "8px", font: "600 13px Archivo", color: "var(--sh-link)" }}>
+            <span>{`${anotados} anotados`}</span>
+            <span style={{ color: llena ? "var(--sh-warn)" : "var(--sh-link)" }}>{llena ? "Sin lugares" : `${libres} libres de ${cupo}`}</span>
+          </span>
+          <span style={{ display: "block", marginTop: "6px", height: "6px", borderRadius: "3px", background: "var(--sh-track)", overflow: "hidden" }}>
+            <span style={{ display: "block", height: "100%", width: `${porcentaje}%`, background: llena ? "var(--sh-warn)" : "var(--primary)" }} />
+          </span>
+        </span>
 
-  // Una clase única ya realizada (historial)
-  const FilaRealizada = ({ clase }) => (
-    <div className="flex items-center gap-1 pr-2 transition-colors hover:bg-foreground/[0.03]">
-      <button type="button" onClick={() => setClaseDetalle(clase)} aria-label={`Ver el detalle de ${clase.nombreClase}`}
-        className="flex min-h-[3.5rem] min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground/5 text-xs font-black text-foreground/70" aria-hidden="true">
-        {iniciales(clase.nombreProfesor || clase.nombreClase)}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-black uppercase text-foreground">{clase.nombreClase}</p>
-          <span className="shrink-0 rounded-md bg-lime-400/15 px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Realizada</span>
-        </div>
-        <p className="mt-0.5 truncate text-xs text-foreground/60">
-          {fechaCorta(clase.fechaEspecifica)}
-          {clase.horaInicio && clase.horaFin && ` · ${clase.horaInicio.substring(0, 5)} – ${clase.horaFin.substring(0, 5)}`}
-          {clase.nombreProfesor && ` · Coach ${clase.nombreProfesor}`}
-        </p>
-      </div>
-      <span className="hidden shrink-0 items-center gap-1 text-xs font-bold text-lime-700 dark:text-lime-400 sm:inline-flex"><Eye className="h-4 w-4" aria-hidden="true" /> Ver detalle</span>
-      </button>
-      {permisos.includes("clases:baja") && (
-        <button type="button" onClick={() => setDeleteDialog({ open: true, clase })} aria-label={`Eliminar ${clase.nombreClase} del historial`}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-foreground/40 transition-colors hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-400">
-          <Trash2 className="h-4 w-4" />
+        {(permisos.includes("clases:modificacion") || permisos.includes("clases:baja") || permisos.includes("clases:alta")) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" aria-label={`Acciones de ${clase.nombreClase}`}
+                style={{ width: "44px", height: "44px", flexShrink: 0, borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", display: "grid", placeItems: "center", cursor: "pointer" }}>
+                <MoreVertical className="h-[18px] w-[18px]" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[232px] p-1.5" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px" }}>
+              <DropdownMenuItem onClick={() => setClaseDetalle(clase)} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold">
+                <Users className="h-4 w-4" aria-hidden="true" /> Ver anotados
+              </DropdownMenuItem>
+              {permisos.includes("clases:modificacion") && (
+                <DropdownMenuItem asChild>
+                  <Link to={`/admin/clases/editar/${clase.idClase}`} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold">
+                    <Edit className="h-4 w-4" aria-hidden="true" /> Editar clase
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {permisos.includes("clases:alta") && (
+                <DropdownMenuItem asChild>
+                  <Link to={`/admin/clases/nueva?duplicar=${clase.idClase}`} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold">
+                    <Copy className="h-4 w-4" aria-hidden="true" /> Duplicar
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {permisos.includes("clases:baja") && (
+                <DropdownMenuItem onClick={() => setDeleteDialog({ open: true, clase })} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold" style={{ color: "var(--sh-danger)" }}>
+                  <X className="h-4 w-4" aria-hidden="true" /> Cancelar clase
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </li>
+    )
+  }
+
+  // Una clase ya realizada (historial): fecha en caja, nombre, "Realizada", horario y coach, asistencia y "Ver detalle"
+  const FilaRealizada = ({ clase, primera }) => {
+    const d = fechaDeClase(clase.fechaEspecifica)
+    const dia = d.getDate()
+    const mes = d.toLocaleDateString("es-AR", { month: "short" }).replace(".", "").toUpperCase()
+    const corta = d.toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", "")
+    const asistieron = Number(clase.asistieron) || 0
+    const cupo = Number(clase.cupoMaximo) || 0
+    const partes = [corta]
+    if (clase.horaInicio && clase.horaFin) partes.push(clase.horaInicio.substring(0, 5) + " a " + clase.horaFin.substring(0, 5))
+    if (clase.nombreProfesor) partes.push("Coach " + clase.nombreProfesor)
+    return (
+      <li style={{ display: "flex", alignItems: "center", gap: "18px", padding: "14px 16px 14px 22px", borderTop: primera ? 0 : "1px solid var(--border)" }}>
+        <span style={{ width: "48px", height: "52px", flexShrink: 0, borderRadius: "10px", border: "1px solid var(--sh-control-line)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ font: "900 22px / 1 \"Big Shoulders Stencil Display\"", color: "var(--foreground)" }}>{dia}</span>
+          <span style={{ font: "600 10px Archivo", color: "var(--muted-foreground)" }}>{mes}</span>
+        </span>
+        <span style={{ flex: "1 1 0%", minWidth: "0px" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{ font: "800 16px Archivo" }}>{clase.nombreClase}</span>
+            <span style={{ padding: "2px 8px", borderRadius: "999px", background: "var(--sh-active-bg)", border: "1px solid rgba(155, 230, 0, 0.3)", color: "var(--primary)", font: "700 11px Archivo" }}>Realizada</span>
+          </span>
+          <span style={{ display: "block", marginTop: "3px", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{partes.join(" · ")}</span>
+        </span>
+        <span style={{ font: "600 13px Archivo", color: "var(--sh-link)", whiteSpace: "nowrap" }}>{`${asistieron} de ${cupo} asistieron`}</span>
+        <button type="button" onClick={() => setClaseDetalle(clase)} aria-label={`Ver el detalle de ${clase.nombreClase}`}
+          style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "transparent", border: "none", color: "var(--primary)", font: "700 13px Archivo", cursor: "pointer", whiteSpace: "nowrap", padding: "0px 8px" }}>
+          Ver detalle <ChevronRight className="h-[14px] w-[14px]" aria-hidden="true" />
         </button>
-      )}
-    </div>
-  )
+        {permisos.includes("clases:baja") && (
+          <button type="button" onClick={() => setDeleteDialog({ open: true, clase })} aria-label={`Eliminar ${clase.nombreClase} del historial`}
+            style={{ width: "40px", height: "40px", flexShrink: 0, borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--muted-foreground)", display: "grid", placeItems: "center", cursor: "pointer" }}>
+            <Trash2 className="h-[16px] w-[16px]" aria-hidden="true" />
+          </button>
+        )}
+      </li>
+    )
+  }
 
   return (
-    <div className="space-y-5">
-      {/* Encabezado */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <TituloPagina descripcion={"Las próximas clases, por tipo. Cuando pasan, se mueven al Historial."}>Clases</TituloPagina>
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <TituloPagina descripcion={pestana === "historial" ? "Clases que ya se dictaron" : "Las próximas clases, por tipo. Cuando pasan, se mueven al Historial."}>Clases</TituloPagina>
 
-      {/* Pestañas */}
-      <div className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Secciones de clases">
-        <button type="button" role="tab" aria-selected={pestana === "clases"} onClick={() => setPestana("clases")}
-          className={`flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider transition-colors ${pestana === "clases" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
-          <CalendarDays className="h-4 w-4" aria-hidden="true" /> Clases
-        </button>
-        <Link to="/admin/clases/turnos" role="tab" aria-selected={false}
-          className="flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider text-foreground/60 transition-colors hover:text-foreground">
-          <Clock className="h-4 w-4" aria-hidden="true" /> Turnos
-        </Link>
-        <button type="button" role="tab" aria-selected={pestana === "historial"} onClick={() => setPestana("historial")}
-          className={`flex min-h-[2.5rem] items-center justify-center gap-1.5 rounded-lg text-[0.6875rem] font-black uppercase tracking-wider transition-colors ${pestana === "historial" ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "text-foreground/60 hover:text-foreground"}`}>
-          <History className="h-4 w-4" aria-hidden="true" /> Historial
-          {historialClasesUnicas.length > 0 && (
-            <span className="rounded-full bg-foreground/10 px-1.5 text-[0.625rem] text-foreground/70">{historialClasesUnicas.length}</span>
-          )}
-        </button>
-      </div>
+      <PestanasClases activa={pestana} cantidad={totalHistorial} onCambiar={setPestana} />
 
       {/* Buscador */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <input
-          type="text"
-          aria-label="Buscar clases"
-          placeholder={pestana === "historial" ? "Buscar por nombre o profesor..." : "Buscar por nombre, tipo, profesor o estado..."}
-          className="h-11 w-full rounded-xl border border-border bg-card pl-9 pr-4 text-sm text-foreground outline-none transition-colors focus:border-lime-500"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+        <label style={{ position: "relative", flex: "1 1 0%", minWidth: "320px", maxWidth: "560px" }}>
+          <span style={{ position: "absolute", left: "14px", top: "14px", color: "var(--muted-foreground)", display: "flex" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4" /></svg>
+          </span>
+          <input
+            type="search"
+            aria-label="Buscar clases"
+            placeholder="Buscar por nombre o coach"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", boxSizing: "border-box", height: "46px", padding: "0px 14px 0px 42px", borderRadius: "10px", border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }}
+          />
+        </label>
+        {clasesAgrupadas.length > 1 && (
+          <div role="group" aria-label="Filtrar por tipo de clase" style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            {(pestana === "historial"
+              ? [{ key: "all", nombre: "Todos", cantidad: historialClasesUnicas.length }, ...clasesAgrupadas.map((g) => ({ key: g.key, nombre: g.plan.nombre, cantidad: historialClasesUnicas.filter((c) => (c.tipoPlan ?? "sin-plan") === g.key).length }))]
+              : [{ key: "all", nombre: "Todos", cantidad: clasesFiltradas.length }, ...clasesAgrupadas.map((g) => ({ key: g.key, nombre: g.plan.nombre, cantidad: g.clases.length }))]
+            ).map((op) => {
+              const elegido = planFiltro === op.key
+              return (
+                <button key={op.key} type="button" onClick={() => setPlanFiltro(op.key)} aria-pressed={elegido}
+                  style={{ height: "40px", padding: "0px 14px", borderRadius: "999px", border: `1px solid ${elegido ? "var(--foreground)" : "var(--sh-control-line)"}`, background: elegido ? "var(--foreground)" : "transparent", color: elegido ? "var(--background)" : "var(--foreground)", font: "700 13px Archivo", whiteSpace: "nowrap", cursor: "pointer" }}>
+                  <span>{op.nombre}</span>{" · "}<span>{op.cantidad}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        {pestana === "historial" && <span style={{ font: "500 15px Archivo", color: "var(--muted-foreground)" }}>{historialFiltrado.length + (historialFiltrado.length === 1 ? " clase" : " clases")}</span>}
       </div>
 
       {loading && (
@@ -330,79 +355,73 @@ export default function ClasesPage() {
 
       {/* ── PESTAÑA CLASES ── */}
       {!loading && !error && pestana === "clases" && (
-        <div className="space-y-4">
-          {/* Filtro por plan */}
-          {clasesAgrupadas.length > 1 && (
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar por tipo de clase">
-              {[{ key: "all", nombre: "Todos", cantidad: clasesFiltradas.length }, ...clasesAgrupadas.map((g) => ({ key: g.key, nombre: g.plan.nombre, cantidad: g.clases.length }))].map((op) => (
-                <button key={op.key} type="button" onClick={() => setPlanFiltro(op.key)} aria-pressed={planFiltro === op.key}
-                  className={`flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black uppercase tracking-wide transition-colors ${
-                    planFiltro === op.key ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"
-                  }`}>
-                  {op.nombre}
-                  <span className={`rounded-full px-1.5 text-[0.625rem] ${planFiltro === op.key ? "bg-black/15" : "bg-foreground/10"}`}>{op.cantidad}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {clasesAgrupadas.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-10 text-center">
-              <p className="text-foreground/55">No hay tipos de clase creados. Creá uno desde Planes y Membresías &gt; Tipos de clase.</p>
+            <div style={{ ...CARD, padding: "40px", textAlign: "center" }}>
+              <p style={{ margin: 0, color: "var(--muted-foreground)" }}>No hay tipos de clase creados. Creá uno desde Planes y Membresías &gt; Tipos de clase.</p>
             </div>
           ) : gruposVisibles.map(({ key, plan, clases: clasesDelPlan }) => {
             const activas = clasesDelPlan.filter((c) => c.estado === "Activo").length
-            const dias = diasDelPlan(clasesDelPlan)
             return (
-              <section key={key} className="overflow-hidden rounded-2xl border border-border bg-card" aria-label={`Tipo de clase ${plan.nombre}`}>
-                <div className="flex items-start justify-between gap-3 px-4 pb-3 pt-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {etiquetaTipo(plan.tipo) && (
-                        <span className="rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">{etiquetaTipo(plan.tipo)}</span>
-                      )}
-                      <span className="text-[0.6875rem] font-semibold text-lime-700 dark:text-lime-400">{activas} {activas === 1 ? "clase activa" : "clases activas"}</span>
+              <section key={key} aria-label={`Tipo de clase ${plan.nombre}`} style={{ ...CARD, overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ flex: "1 1 0%", minWidth: "0px" }}>
+                    <h2 className="bv-admin-titulo" style={{ margin: "0px", font: "800 18px Archivo" }}>{plan.nombre}</h2>
+                    <div style={{ font: "600 13px Archivo", color: activas > 0 ? "var(--primary)" : "var(--muted-foreground)", marginTop: "3px" }}>
+                      {`${activas} ${activas === 1 ? "clase activa" : "clases activas"}`}
                     </div>
-                    <h2 className="mt-1.5 text-base font-black uppercase leading-tight text-foreground">{plan.nombre}</h2>
                   </div>
-                  {permisos.includes("clases:alta") && plan.idPlan && (
-                    <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`}
-                      className="inline-flex min-h-[2.5rem] shrink-0 items-center gap-1 rounded-lg border border-border bg-background/60 px-3 text-[0.6875rem] font-black uppercase tracking-wider text-foreground transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
-                      <Plus className="h-3.5 w-3.5" /> CREAR CLASE
+                  {clasesDelPlan.length > 0 && permisos.includes("clases:alta") && plan.idPlan && (
+                    <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`} style={{ ...BOTON_LIMA, height: "44px" }}>
+                      <IconoMas /> CREAR CLASE
                     </Link>
                   )}
                 </div>
 
                 {clasesDelPlan.length > 0 ? (
-                  <div className="divide-y divide-border border-t border-border">
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                     {clasesDelPlan.map((clase) => <FilaClase key={clase.idClase} clase={clase} />)}
-                  </div>
+                  </ul>
                 ) : (
-                  <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
-                    <span className="flex items-center gap-2 text-xs text-foreground/55">
-                      <span className="h-1.5 w-1.5 rounded-full bg-foreground/30" aria-hidden="true" /> Sin clases creadas todavía
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px" }}>
+                    <span style={{ width: "48px", height: "48px", flexShrink: 0, borderRadius: "12px", background: "var(--sh-avatar)", color: "var(--primary)", display: "grid", placeItems: "center" }}>
+                      <CalendarDays className="h-[22px] w-[22px]" aria-hidden="true" />
                     </span>
+                    <div style={{ flex: "1 1 0%", minWidth: "0px" }}>
+                      <div style={{ font: "700 15px Archivo" }}>{`Todavía no hay clases de ${plan.nombre}`}</div>
+                      <div style={{ font: "400 14px Archivo", color: "var(--muted-foreground)", marginTop: "2px" }}>Creala y los alumnos ya pueden reservarla.</div>
+                    </div>
+                    {permisos.includes("clases:alta") && plan.idPlan && (
+                      <Link to={`/admin/clases/nueva?tipo=${encodeURIComponent(plan.idPlan)}`} style={{ ...BOTON_LIMA, height: "46px", padding: "0px 20px" }}>
+                        <IconoMas /> CREAR CLASE
+                      </Link>
+                    )}
                   </div>
-                )}
-                {dias && (
-                  <p className="border-t border-border px-4 py-2 text-[0.6875rem] font-semibold text-foreground/50">Días: {dias}</p>
                 )}
               </section>
             )
           })}
-
         </div>
       )}
 
       {/* ── PESTAÑA HISTORIAL ── */}
       {!loading && !error && pestana === "historial" && (
-        historialClasesUnicas.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-10 text-center">
-            <p className="text-foreground/55">Todavía no hay clases únicas realizadas.</p>
+        historialFiltrado.length === 0 ? (
+          <div style={{ ...CARD, padding: "40px", textAlign: "center" }}>
+            <p style={{ margin: 0, color: "var(--muted-foreground)" }}>
+              {historialClasesUnicas.length === 0 ? "Todavía no hay clases realizadas." : "No hay clases que coincidan con la búsqueda."}
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-            {historialClasesUnicas.map((clase) => <FilaRealizada key={clase.idClase} clase={clase} />)}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {historialPorMes.map((grupo) => (
+              <section key={grupo.etiqueta} aria-label={grupo.etiqueta}>
+                <h2 className="bv-admin-titulo" style={{ margin: "0px 0px 10px", font: "700 11px Archivo", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>{grupo.etiqueta}</h2>
+                <ul style={{ ...CARD, listStyle: "none", margin: 0, padding: 0, overflow: "hidden" }}>
+                  {grupo.clases.map((clase, i) => <FilaRealizada key={clase.idClase} clase={clase} primera={i === 0} />)}
+                </ul>
+              </section>
+            ))}
           </div>
         )
       )}
@@ -410,34 +429,22 @@ export default function ClasesPage() {
       {/* Detalle de una clase realizada: datos, rutina y quiénes reservaron */}
       <DetalleClaseDialog key={claseDetalle?.idClase ?? "ninguna"} clase={claseDetalle} onCerrar={() => setClaseDetalle(null)} />
 
-      {/* Modal de eliminar */}
-      {deleteDialog.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-sm font-black uppercase tracking-widest text-red-700 dark:text-red-400">Eliminar Clase</h2>
-            <p className="mt-3 text-sm text-foreground/60">
-              ¿Estás seguro de eliminar la clase{" "}
-              <strong className="text-foreground">{deleteDialog.clase?.nombreClase}</strong>? Esta acción no se puede deshacer.
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setDeleteDialog({ open: false, clase: null })}
-                className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
-              >
-                Cancelar
-              </button>
-              {permisos.includes("clases:baja") && (
-                <button
-                  onClick={() => deleteDialog.clase && handleDelete(deleteDialog.clase.idClase)}
-                  className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors"
-                >
-                  Eliminar
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirmar: cancelar una clase próxima o eliminar una ya realizada del historial */}
+      {(() => {
+        const c = deleteDialog.clase
+        const realizada = c ? yaTermino(c) : false
+        const hora = c?.horaInicio && c?.horaFin ? c.horaInicio.substring(0, 5) + " a " + c.horaFin.substring(0, 5) : ""
+        const dia = c?.fechaEspecifica ? fechaDeClase(c.fechaEspecifica).toLocaleDateString("es-AR", { day: "numeric", month: "short" }).replace(".", "") : ""
+        const texto = !c ? "" : realizada
+          ? c.nombreClase + " · " + dia + (hora ? ", " + hora : "") + ". Se borra también su registro de asistencia. No se puede deshacer."
+          : c.nombreClase + (hora ? " · " + hora : "") + ". Se cancelan las reservas y les avisamos a los anotados. No se puede deshacer."
+        return (
+          <ConfirmarAdmin abierto={deleteDialog.open} onCerrar={() => setDeleteDialog({ open: false, clase: null })}
+            titulo={realizada ? "¿Eliminar esta clase del historial?" : "¿Cancelar esta clase?"} texto={texto}
+            textoAccion={realizada ? "Eliminar" : "Cancelar clase"}
+            onConfirmar={() => c && handleDelete(c.idClase)} />
+        )
+      })()}
     </div>
   )
 }

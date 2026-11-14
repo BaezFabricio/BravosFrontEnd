@@ -1,14 +1,9 @@
 import { EstadoVacio } from "@/components/admin/kit"
 import { Cargando } from '@/components/Cargando'
 import { useEffect, useState } from "react"
-import { Plus, Edit2, Trash2, Loader2, CreditCard, Users, Layers } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Plus, Edit2, Trash2, CreditCard, Users, Layers, MoreVertical, Copy } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ConfirmarAdmin } from "@/components/ModalAdmin"
 import apiClient from "@/api"
 import { toast } from '@/lib/notificar'
 import { partesDescripcion } from "@/lib/planes"
@@ -28,10 +23,10 @@ export default function PlanesPage() {
   const [tiposAbierto, setTiposAbierto] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [planEditando, setPlanEditando] = useState(null)
+  const [plantilla, setPlantilla] = useState(null) // Duplicar: datos de otro plan para crear uno nuevo
   const [guardando, setGuardando] = useState(false)
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, plan: null })
-  const [eliminando, setEliminando] = useState(false)
 
   const cargarPlanes = async () => {
     try {
@@ -58,12 +53,21 @@ export default function PlanesPage() {
 
   const abrirNuevo = () => {
     setPlanEditando(null)
+    setPlantilla(null)
+    setApertura(a => a + 1)
+    setDialogOpen(true)
+  }
+
+  const abrirDuplicar = (plan) => {
+    setPlanEditando(null)
+    setPlantilla({ ...plan, nombre: plan.nombre + " (copia)" })
     setApertura(a => a + 1)
     setDialogOpen(true)
   }
 
   const abrirEditar = (plan) => {
     setPlanEditando(plan)
+    setPlantilla(null)
     setApertura(a => a + 1)
     setDialogOpen(true)
   }
@@ -114,12 +118,42 @@ export default function PlanesPage() {
   const formatearPrecio = (precio) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(precio)
 
+  const totalAlumnosActivos = planes.reduce((t, p) => t + (Number(p.alumnosActivos) || 0), 0)
+  const grupos = Object.values(planes.reduce((acc, p) => {
+    const clave = p.tipo || "sin-tipo"
+    if (!acc[clave]) acc[clave] = { clave, nombre: p.nombreTipo || p.tipo || "Sin tipo asignado", planes: [] }
+    acc[clave].planes.push(p)
+    return acc
+  }, {}))
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <TituloPagina descripcion={"Los planes de abono que pueden comprar los alumnos"}>Planes y membresías</TituloPagina>
+      <TituloPagina descripcion={"Los planes de abono que pueden comprar los alumnos"}>Planes y membresías</TituloPagina>
+      <div className="hidden lg:block">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{`${planes.length} ${planes.length === 1 ? "plan" : "planes"} · ${totalAlumnosActivos} ${totalAlumnosActivos === 1 ? "alumno activo" : "alumnos activos"}`}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTiposAbierto(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", whiteSpace: "nowrap", cursor: "pointer" }}
+            >
+              <Layers className="h-4 w-4" />
+              Tipos de clase
+            </button>
+            {permisos.includes("membresias:alta") && (
+              <button
+                onClick={abrirNuevo}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 20px", borderRadius: 10, border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", whiteSpace: "nowrap", cursor: "pointer" }}
+              >
+                <Plus className="h-4 w-4" />
+                NUEVO PLAN
+              </button>
+            )}
+          </div>
         </div>
+      </div>
+      <div className="lg:hidden">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="grid grid-cols-2 gap-2 sm:flex sm:self-start">
           <button
             onClick={() => setTiposAbierto(true)}
@@ -140,6 +174,8 @@ export default function PlanesPage() {
         </div>
       </div>
 
+      </div>
+
       {error && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
@@ -149,6 +185,86 @@ export default function PlanesPage() {
       {loading ? (
         <Cargando filas={3} className="py-4" />
       ) : (
+        <>
+          <div className="hidden lg:block">
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {grupos.map((grupo) => (
+            <section key={grupo.clave} aria-label={`Tipo de clase ${grupo.nombre}`} style={{ borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}>
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
+                <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 18px Archivo" }}>{grupo.nombre}</h2>
+                <div style={{ marginTop: 2, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{`${grupo.planes.length} ${grupo.planes.length === 1 ? "plan" : "planes"}`}</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 190px 190px 190px 200px", gap: 16, padding: "12px 22px", borderBottom: "1px solid var(--sh-line)", font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+                <span>Plan</span><span>Precio</span><span>Créditos</span><span>Alumnos activos</span><span />
+              </div>
+              {grupo.planes.map((plan) => {
+                const corta = partesDescripcion(plan.descripcion).corta
+                const activos = Number(plan.alumnosActivos) || 0
+                const creditos = Number(plan.cantidadCreditos) || 0
+                const porClase = creditos > 0 ? Math.round(Number(plan.precio) / creditos) : null
+                return (
+                  <div key={plan.idPlan} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 190px 190px 190px 200px", alignItems: "center", gap: 16, padding: "16px 22px", borderTop: "1px solid var(--sh-line)" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ font: "800 17px Archivo" }}>{plan.nombre}</div>
+                      {corta && <div style={{ marginTop: 2, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{corta}</div>}
+                    </div>
+                    <div>
+                      <div style={{ font: "800 22px Archivo", fontVariantNumeric: "tabular-nums" }}>{formatearPrecio(plan.precio)}</div>
+                      {porClase !== null && <div style={{ font: "500 12px Archivo", color: "var(--muted-foreground)" }}>{`≈ ${formatearPrecio(porClase)} por clase`}</div>}
+                    </div>
+                    <div>
+                      <div style={{ font: "800 22px Archivo", color: "var(--primary)" }}>
+                        {creditos} <span style={{ font: "700 13px Archivo", color: "var(--foreground)" }}>créditos</span>
+                      </div>
+                      <div style={{ font: "500 12px Archivo", color: "var(--muted-foreground)" }}>{plan.creditosPorSemana ? `Hasta ${plan.creditosPorSemana} por semana` : "Sin tope semanal"}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, font: "600 14px Archivo", color: activos > 0 ? "var(--foreground)" : "var(--muted-foreground)" }}>
+                      <Users className="h-4 w-4" aria-hidden="true" />
+                      {activos > 0 ? activos : "Ninguno"}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                      {permisos.includes("membresias:modificacion") && (
+                        <button
+                          onClick={() => abrirEditar(plan)}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 40, padding: "0px 14px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer" }}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                          Editar
+                        </button>
+                      )}
+                      {(permisos.includes("membresias:alta") || permisos.includes("membresias:baja")) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              aria-label={`Más acciones de ${plan.nombre}`}
+                              style={{ width: 40, height: 40, display: "grid", placeItems: "center", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", cursor: "pointer" }}
+                            >
+                              <MoreVertical className="h-[18px] w-[18px]" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-[232px] p-1.5" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px" }}>
+                            {permisos.includes("membresias:alta") && (
+                              <DropdownMenuItem onClick={() => abrirDuplicar(plan)} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold">
+                                <Copy className="h-4 w-4" aria-hidden="true" /> Duplicar
+                              </DropdownMenuItem>
+                            )}
+                            {permisos.includes("membresias:baja") && (
+                              <DropdownMenuItem onClick={() => setDeleteDialog({ open: true, plan })} className="min-h-[40px] gap-3 px-3 text-[14px] font-bold" style={{ color: "var(--sh-danger)" }}>
+                                <Trash2 className="h-4 w-4" aria-hidden="true" /> Eliminar plan
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </section>
+          ))}
+        </div>
+          </div>
+          <div className="lg:hidden">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {planes.map((plan) => {
             const corta = partesDescripcion(plan.descripcion).corta
@@ -207,6 +323,8 @@ export default function PlanesPage() {
             )
           })}
         </div>
+          </div>
+        </>
       )}
 
       {!loading && !error && planes.length === 0 && (
@@ -225,6 +343,7 @@ export default function PlanesPage() {
         key={apertura}
         open={dialogOpen}
         plan={planEditando}
+        plantilla={plantilla}
         tipos={tipos}
         onClose={() => setDialogOpen(false)}
         onGuardar={guardarPlan}
@@ -244,33 +363,13 @@ export default function PlanesPage() {
         puedeBorrar={permisos.includes("membresias:baja")}
       />
 
-      {/* Dialog eliminar */}
-      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, plan: open ? deleteDialog.plan : null })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar plan</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            ¿Seguro que querés eliminar el plan <strong>{deleteDialog.plan?.nombre}</strong>? Esta acción no se puede deshacer.
-          </p>
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setDeleteDialog({ open: false, plan: null })}
-              className="border border-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-foreground/60 hover:text-foreground hover:border-foreground/30 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={confirmarEliminar}
-              disabled={eliminando}
-              className="border border-red-500/20 px-4 py-2 text-xs font-bold uppercase tracking-widest text-red-700 dark:text-red-400 hover:bg-red-500/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {eliminando ? "Eliminando..." : "Eliminar"}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Confirmar: eliminar un plan */}
+      <ConfirmarAdmin abierto={deleteDialog.open} onCerrar={() => setDeleteDialog({ open: false, plan: null })}
+        titulo={deleteDialog.plan ? "¿Eliminar " + deleteDialog.plan.nombre + "?" : ""} textoAccion="Eliminar plan" onConfirmar={confirmarEliminar}
+        texto={(() => {
+          const n = Number(deleteDialog.plan?.alumnosActivos) || 0
+          return (n === 0 ? "Ningún alumno lo tiene activo." : n + (n === 1 ? " alumno lo tiene activo." : " alumnos lo tienen activo.")) + " No se puede deshacer."
+        })()} />
     </div>
   )
 }

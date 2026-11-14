@@ -102,6 +102,7 @@ export default function PerfilesPage() {
   const [pestanaEditor, setPestanaEditor] = useState("admin")
   const [abierto, setAbierto] = useState(null) // perfil desplegado en el celular
   const [filtroPerfil, setFiltroPerfil] = useState("all")
+  const [baseForm, setBaseForm] = useState("") // cómo estaba el formulario al abrir el perfil: sirve para avisar "Cambios sin guardar"
 
   const cargarPerfiles = async () => {
     setIsLoading(true)
@@ -169,10 +170,14 @@ export default function PerfilesPage() {
       const m = perfil.modulos || {}
       const tiene = (lista) => lista.some(x => Object.values(m[x.id]?.permisos || {}).some(Boolean))
       setPestanaEditor(tiene(modulosAdminConfig) ? "admin" : tiene(modulosAlumnoConfig) ? "alumno" : tiene(modulosProfesorConfig) ? "profesor" : "admin")
-      setFormData({ nombre: perfil.nombrePerfil || perfil.nombre || "", descripcion: perfil.descripcion || "", modulos: JSON.parse(JSON.stringify(perfil.modulos || crearModulosVacios())) })
+      const inicial = { nombre: perfil.nombrePerfil || perfil.nombre || "", descripcion: perfil.descripcion || "", modulos: JSON.parse(JSON.stringify(perfil.modulos || crearModulosVacios())) }
+      setFormData(inicial)
+      setBaseForm(JSON.stringify(inicial))
       setEditDialog({ open: true, perfil, isNew: false })
     } else {
-      setFormData({ nombre: "", descripcion: "", modulos: crearModulosVacios() })
+      const vacio = { nombre: "", descripcion: "", modulos: crearModulosVacios() }
+      setFormData(vacio)
+      setBaseForm(JSON.stringify(vacio))
       setPestanaEditor("admin")
       setEditDialog({ open: true, perfil: null, isNew: true })
     }
@@ -273,7 +278,7 @@ export default function PerfilesPage() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 lg:hidden">
         <div>
           <TituloPagina descripcion={"Qué puede ver y hacer cada rol en el sistema"}>Perfiles y permisos</TituloPagina>
         </div>
@@ -287,6 +292,160 @@ export default function PerfilesPage() {
         </Button>
       </div>
 
+      {/* ESCRITORIO: lista de perfiles a la izquierda y editor a la derecha, como la referencia. Mismos datos y acciones. */}
+      {(() => {
+        const idDe = (p) => p?.idPerfil ?? p?.id_perfil
+        const seleccionadoId = editDialog.isNew ? "nuevo" : idDe(editDialog.perfil)
+        const panel = pestanaEditor === "alumno" ? modulosAlumnoConfig : pestanaEditor === "profesor" ? modulosProfesorConfig : modulosAdminConfig
+        const activosDe = (lista) => lista.filter((m) => formData.modulos[m.id]?.activo).length
+        const editando = editDialog.isNew || !!editDialog.perfil
+        const puedeEliminar = (() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]").includes("membresias:baja") } catch { return false } })()
+        const miPerfil = (() => { try { const u = JSON.parse(localStorage.getItem("usuario") || "{}"); return String(u.perfil || u.nombrePerfil || u.rol || "").trim().toLowerCase() } catch { return "" } })()
+        const hayCambios = JSON.stringify(formData) !== baseForm
+        const etiquetas = [["consulta", "Ver"], ["alta", "Crear"], ["modificacion", "Editar"], ["baja", "Eliminar"]]
+        const tarjeta = { borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)" }
+        const rotulo = { font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }
+        const campo = { width: "100%", boxSizing: "border-box", height: 46, padding: "0px 14px", borderRadius: 10, border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }
+        return (
+          <div className="hidden lg:grid lg:items-start" style={{ gridTemplateColumns: "380px minmax(0, 1fr)", gap: 21 }}>
+            {/* Lista de perfiles */}
+            <section aria-label="Perfiles" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 17px Archivo" }}>{`Perfiles · ${perfiles.length}`}</h2>
+                <button type="button" onClick={() => { openEditDialog(null); setEditDialog((p) => ({ ...p, open: false })) }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 18px", borderRadius: 10, border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer" }}>
+                  <Plus className="h-4 w-4" aria-hidden="true" /> Nuevo perfil
+                </button>
+              </div>
+              {perfiles.map((p) => {
+                const activos = Object.values(p.modulos || {}).filter((m) => m.activo).length
+                const total = modulosConfig.length
+                const sel = String(seleccionadoId) === String(idDe(p))
+                return (
+                  <button key={idDe(p)} type="button" aria-pressed={sel}
+                    onClick={() => { openEditDialog(p); setEditDialog((prev) => ({ ...prev, open: false })) }}
+                    style={{ ...tarjeta, padding: 16, display: "flex", alignItems: "flex-start", gap: 14, textAlign: "left", cursor: "pointer", borderColor: sel ? "var(--primary)" : "var(--border)", background: sel ? "var(--sh-active-bg)" : "var(--card)", color: "var(--foreground)" }}>
+                    <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 10, background: "var(--sh-avatar)", color: "var(--primary)", display: "grid", placeItems: "center" }}><Shield className="h-5 w-5" aria-hidden="true" /></span>
+                    <span style={{ minWidth: 0, flex: "1 1 0%" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ font: "800 16px Archivo" }}>{p.nombre}</span>
+                        {String(p.nombre || "").trim().toLowerCase() === miPerfil && <span style={{ padding: "1px 8px", borderRadius: 6, border: "1px solid var(--sh-control-line)", color: "var(--muted-foreground)", font: "700 11px Archivo" }}>Tu perfil</span>}
+                      </span>
+                      <span style={{ display: "block", marginTop: 2, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{p.descripcion || "Sin descripción"}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, font: "600 13px Archivo", color: "var(--foreground)" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Users className="h-3.5 w-3.5" aria-hidden="true" />{`${p.usuarios || 0} ${Number(p.usuarios) === 1 ? "usuario" : "usuarios"}`}</span>
+                        <span>{activos === total ? "Acceso total" : `${activos} módulos`}</span>
+                      </span>
+                    </span>
+                  </button>
+                )
+              })}
+              <button type="button" onClick={() => { openEditDialog(null); setEditDialog((p) => ({ ...p, open: false })) }} style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+            </section>
+
+            {/* Editor */}
+            {!editando ? (
+              <div style={{ ...tarjeta, padding: 40, textAlign: "center", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Elegí un perfil de la lista para ver y editar sus permisos.</div>
+            ) : (
+              <section aria-label="Editor de perfil" style={{ ...tarjeta, overflow: "hidden" }}>
+                <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 20px Archivo" }}>{editDialog.isNew ? "Nuevo perfil" : `Editar ${formData.nombre || ""}`}</h2>
+                  {hayCambios && <span role="status" style={{ display: "inline-flex", alignItems: "center", gap: 8, font: "700 13px Archivo", color: "var(--sh-warn)" }}><span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--sh-warn)" }} />Cambios sin guardar</span>}
+                </div>
+                <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.4fr)", gap: 16 }}>
+                    <div>
+                      <label htmlFor="perfil-nombre-esc" style={{ display: "block", marginBottom: 8, ...rotulo }}>Nombre *</label>
+                      <input id="perfil-nombre-esc" maxLength={60} value={formData.nombre} onChange={(e) => setFormData((prev) => ({ ...prev, nombre: e.target.value }))} style={campo} />
+                    </div>
+                    <div>
+                      <label htmlFor="perfil-desc-esc" style={{ display: "block", marginBottom: 8, ...rotulo }}>Para qué sirve <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(opcional)</span></label>
+                      <input id="perfil-desc-esc" maxLength={255} value={formData.descripcion} onChange={(e) => setFormData((prev) => ({ ...prev, descripcion: e.target.value }))} style={campo} />
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const completo = todosMarcados(modulosConfig)
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--muted)" }}>
+                        <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 10, background: "var(--sh-avatar)", color: "var(--primary)", display: "grid", placeItems: "center" }}><Sparkles className="h-5 w-5" aria-hidden="true" /></span>
+                        <div style={{ minWidth: 0, flex: "1 1 0%" }}>
+                          <div style={{ font: "800 15px Archivo" }}>Acceso total</div>
+                          <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>Todos los permisos en los tres paneles. Al activarlo no hace falta marcar nada abajo.</div>
+                        </div>
+                        <button type="button" role="switch" aria-checked={completo} aria-label="Acceso total" onClick={() => marcarModulos(modulosConfig, !completo)}
+                          style={{ position: "relative", width: 52, height: 28, borderRadius: 14, border: "none", background: completo ? "var(--primary)" : "var(--sh-track-strong)", cursor: "pointer", flexShrink: 0 }}>
+                          <span style={{ position: "absolute", top: 3, left: completo ? 27 : 3, width: 22, height: 22, borderRadius: 11, background: "#fff", transition: "left .15s" }} />
+                        </button>
+                      </div>
+                    )
+                  })()}
+
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+                      <h3 className="bv-admin-titulo" style={{ margin: 0, font: "800 16px Archivo" }}>Permisos por módulo</h3>
+                      <span style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>Para crear, editar o eliminar hace falta poder ver.</span>
+                    </div>
+                    <div role="tablist" aria-label="Panel" style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--border)" }}>
+                      {[["admin", "Administración", modulosAdminConfig], ["alumno", "Alumno", modulosAlumnoConfig], ["profesor", "Profesor", modulosProfesorConfig]].map(([id, texto, lista]) => (
+                        <button key={id} type="button" role="tab" aria-selected={pestanaEditor === id} onClick={() => setPestanaEditor(id)}
+                          style={{ minHeight: 46, marginBottom: -1, padding: "0px 16px", border: "none", borderBottom: `3px solid ${pestanaEditor === id ? "var(--primary)" : "transparent"}`, background: "transparent", color: pestanaEditor === id ? "var(--foreground)" : "var(--muted-foreground)", font: "700 15px Archivo", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                          {texto}
+                          <span style={{ padding: "2px 8px", borderRadius: 999, background: "var(--sh-active-bg)", color: "var(--primary)", font: "700 12px Archivo" }}>{`${activosDe(lista)} de ${lista.length}`}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {todosMarcados(panel) && (
+                      <div style={{ margin: "14px 0", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--primary)", background: "var(--sh-active-bg)", font: "700 14px Archivo", color: "var(--primary)" }}>
+                        {`Acceso total activado: este perfil tiene todos los permisos${pestanaEditor === "admin" ? "" : " de este panel"}.`}
+                      </div>
+                    )}
+                    <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) repeat(4, 84px)", alignItems: "center", gap: 8, padding: "14px 4px 10px", borderBottom: "1px solid var(--border)", ...rotulo }}>
+                      <span>Módulo</span>
+                      {etiquetas.map(([, t]) => <span key={t} style={{ textAlign: "center" }}>{t}</span>)}
+                    </div>
+                    {panel.map((m) => {
+                      const per = formData.modulos[m.id]?.permisos || {}
+                      return (
+                        <div key={m.id} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) repeat(4, 84px)", alignItems: "center", gap: 8, padding: "14px 4px", borderBottom: "1px solid var(--sh-line)" }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ font: "700 15px Archivo" }}>{m.nombre.replace(/^Panel (Alumno|Profesor): /, "")}</div>
+                            <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{DETALLE_MODULO[m.id]}</div>
+                          </div>
+                          {etiquetas.map(([id, t]) => {
+                            const vale = aplica(m.id, id)
+                            const activo = vale && !!per[id]
+                            return (
+                              <span key={id} style={{ display: "flex", justifyContent: "center" }}>
+                                <button type="button" disabled={!vale} onClick={() => togglePermiso(m.id, id)} aria-pressed={activo} aria-label={`${t} en ${m.nombre}${vale ? "" : " (no aplica)"}`} title={vale ? PERMISOS_POR_MODULO[m.id]?.[id] : "No aplica"}
+                                  style={{ width: 44, height: 44, borderRadius: 10, border: activo ? "none" : "1px solid var(--sh-control-line)", background: activo ? "var(--primary)" : "transparent", color: activo ? "var(--primary-foreground)" : "var(--muted-foreground)", display: "grid", placeItems: "center", cursor: vale ? "pointer" : "not-allowed", opacity: vale ? 1 : 0.35 }}>
+                                  {activo ? <Check className="h-5 w-5" strokeWidth={3} aria-hidden="true" /> : (vale ? null : <span aria-hidden="true">—</span>)}
+                                </button>
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 24px", borderTop: "1px solid var(--border)" }}>
+                  {!editDialog.isNew && puedeEliminar && editDialog.perfil ? (
+                    <button type="button" onClick={() => setDeleteDialog({ open: true, perfil: editDialog.perfil })}
+                      style={{ height: 46, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-danger-line)", background: "transparent", color: "var(--destructive)", font: "700 14px Archivo", cursor: "pointer" }}>Eliminar perfil</button>
+                  ) : <span />}
+                  <button type="button" onClick={handleSave} disabled={isLoading || !formData.nombre.trim()}
+                    style={{ height: 46, padding: "0px 22px", borderRadius: 10, border: "none", background: formData.nombre.trim() && !isLoading ? "var(--primary)" : "var(--sh-track-strong)", color: formData.nombre.trim() && !isLoading ? "var(--primary-foreground)" : "var(--muted-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", textTransform: "uppercase", cursor: formData.nombre.trim() && !isLoading ? "pointer" : "not-allowed" }}>
+                    {editDialog.isNew ? "Crear perfil" : "Guardar cambios"}
+                  </button>
+                </div>
+              </section>
+            )}
+          </div>
+        )
+      })()}
+
+      <div className="space-y-6 lg:hidden">
       {/* Loading */}
       {isLoading && perfiles.length === 0 && (
         <Cargando filas={3} className="py-4" />
@@ -498,6 +657,8 @@ export default function PerfilesPage() {
             )
           })}
         </div>
+      </div>
+
       </div>
 
       {/* Modal Crear/Editar */}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, Check, Settings, ChevronDown } from 'lucide-react';
 import { PANELES, panelesPermitidos } from '@/lib/paneles';
+import { useAnchoPanel } from '@/lib/useEscritorio';
 
 function Iniciales({ nombre }) {
   const partes = (nombre || '').trim().split(' ');
@@ -14,10 +15,11 @@ function RolBadge({ tieneModulosAdmin, tieneModulosProfesor }) {
   return <span className="text-[0.625rem] font-black uppercase tracking-widest text-muted-foreground">Alumno</span>;
 }
 
-export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual, sinAcordeon = false }) {
+export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMenuOpen, handleLogout, tieneModulosAdmin, tieneModulosAlumno, tieneModulosProfesor, puedeAccederPanel, panelActual, sinAcordeon = false, variante }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [verPaneles, setVerPaneles] = useState(false);
+  const escritorio = useAnchoPanel();
   if (!userMenuOpen) return null;
 
   // "Mi Perfil" se abre dentro del panel en el que está la persona (alumno o profesor);
@@ -44,6 +46,53 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
   const rutaMiConfiguracion = pathname.startsWith('/alumno') ? '/alumno/configuracion'
     : pathname.startsWith('/profesor') ? '/profesor/configuracion'
     : '/mi-configuracion';
+
+  // Panel admin en escritorio (referencia 14): avatar y correo, "Ver como", Mi perfil, Preferencias y Cerrar sesión
+  if (variante === "admin" && escritorio) {
+    const fila = (activo) => ({ display: "flex", alignItems: "center", gap: "12px", width: "100%", boxSizing: "border-box", height: "44px", padding: "0px 12px", border: "none", borderRadius: "10px", background: activo ? "var(--sh-active-bg)" : "transparent", color: activo ? "var(--sh-accent)" : "var(--foreground)", font: "700 14px Archivo", textAlign: "left", cursor: "pointer", textDecoration: "none" });
+    const linea = { borderTop: "1px solid var(--border)" };
+    return (
+      <>
+        <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+        <div style={{ position: "absolute", right: 0, top: "100%", marginTop: "12px", zIndex: 50, width: "304px", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", overflow: "hidden", color: "var(--foreground)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "18px" }}>
+            <span style={{ width: "52px", height: "52px", flexShrink: 0, borderRadius: "50%", background: "var(--sh-avatar)", border: "2px solid var(--sh-accent)", color: "var(--sh-accent)", font: "800 17px Archivo", display: "grid", placeItems: "center", overflow: "hidden" }}>
+              {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Iniciales nombre={userData.nombrecompleto} />}
+            </span>
+            <div style={{ minWidth: 0, flex: "1 1 0%" }}>
+              <div style={{ font: "800 16px Archivo", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userData.nombrecompleto}</div>
+              {userData.correo && <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userData.correo}</div>}
+              {tieneModulosAdmin && <span style={{ display: "inline-block", marginTop: "6px", padding: "1px 8px", borderRadius: "6px", background: "var(--sh-active-bg)", border: "1px solid var(--sh-accent)", color: "var(--sh-accent)", font: "700 11px Archivo" }}>Admin</span>}
+            </div>
+          </div>
+          {mostrarPaneles && (
+            <div style={{ ...linea, padding: "12px 12px 8px" }}>
+              <div style={{ padding: "0px 12px 6px", font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Ver como</div>
+              {paneles.map((panel) => {
+                const esActual = panel.key === panelActual;
+                const IconoPanel = panel.key === 'alumno' ? User : panel.icon;
+                return (
+                  <button key={panel.key} type="button" aria-current={esActual ? "page" : undefined} style={fila(esActual)}
+                    onClick={() => { setUserMenuOpen(false); setVerPaneles(false); if (!esActual) navigate(panel.href); }}>
+                    <IconoPanel className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    <span style={{ flex: "1 1 0%" }}>{panel.label}</span>
+                    {esActual && <Check className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ ...linea, padding: "8px 12px" }}>
+            <Link to={rutaPerfil} onClick={() => setUserMenuOpen(false)} style={fila(false)}><User className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />Mi perfil</Link>
+            <Link to={rutaMiConfiguracion} onClick={() => setUserMenuOpen(false)} style={fila(false)}><Settings className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />Preferencias de mi cuenta</Link>
+          </div>
+          <div style={{ ...linea, padding: "8px 12px" }}>
+            <button type="button" onClick={() => { setUserMenuOpen(false); handleLogout(); }} style={{ ...fila(false), color: "var(--sh-danger)" }}><LogOut className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />Cerrar sesión</button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

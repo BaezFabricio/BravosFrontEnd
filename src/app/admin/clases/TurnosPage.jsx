@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "@/lib/notificar"
 import { useTiposClase } from "@/lib/tiposClase"
+import { useAnchoPanel } from "@/lib/useEscritorio"
+import PestanasClases from "./PestanasClases"
+import { ModalAdmin, ConfirmarAdmin } from "@/components/ModalAdmin"
+import { BOTON_SECUNDARIO, BOTON_PRINCIPAL } from "@/components/estilosModal"
 
 /*
  * Horarios de los turnos del box (los de Instagram: "Turno mañana 8:00", "Turno siesta 13:10, 14:10, 15:10"…), separados por
@@ -15,7 +19,18 @@ import { useTiposClase } from "@/lib/tiposClase"
  * prepara sin escribir cada hora. Cambiar o borrar un horario de acá no modifica las clases que ya están creadas.
  */
 const SUGERENCIAS_TURNO = ["Mañana", "Siesta", "Noche"]
-const VACIO = { turno: "Siesta", etiqueta: "", horaInicio: "", horaFin: "" }
+const VACIO = { turno: "Mañana", etiqueta: "", horaInicio: "", horaFin: "" }
+
+// "60 min" o, si son horas justas desde las 2, "2 h"
+const duracionTurno = (ini, fin) => {
+  const [h1, m1] = String(ini).split(":").map(Number)
+  const [h2, m2] = String(fin).split(":").map(Number)
+  const m = h2 * 60 + m2 - (h1 * 60 + m1)
+  return m >= 120 && m % 60 === 0 ? (m / 60) + " h" : m + " min"
+}
+
+// El turno se elige solo según la hora de inicio: antes de las 12 Mañana, hasta las 18 Siesta, después Noche
+const turnoPorHora = (hora) => { const h = Number(String(hora).split(":")[0]); return h < 12 ? "Mañana" : h < 18 ? "Siesta" : "Noche" }
 
 const permisosGuardados = () => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }
 
@@ -29,6 +44,7 @@ export default function TurnosPage() {
   const [aBorrar, setABorrar] = useState(null)
   const [borrando, setBorrando] = useState(false)
   const { tipos } = useTiposClase()
+  const escritorio = useAnchoPanel()
   const permisos = permisosGuardados()
   const puedeAgregar = permisos.includes("clases:alta")
   const puedeModificar = permisos.includes("clases:modificacion")
@@ -59,8 +75,14 @@ export default function TurnosPage() {
   }), [horarios, tipos])
 
   const abrirNuevo = (tipoPlan) => { setErrorEditor(""); setEditor({ id: null, ...VACIO, tipoPlan }) }
-  const abrirEditar = (h) => { setErrorEditor(""); setEditor({ id: h.idTurnoHorario, tipoPlan: h.tipoPlan, turno: h.turno, etiqueta: h.etiqueta || "", horaInicio: h.horaInicio, horaFin: h.horaFin }) }
-  const cambiar = (campo) => (e) => setEditor((prev) => ({ ...prev, [campo]: e.target.value }))
+  const abrirEditar = (h) => { setErrorEditor(""); setEditor({ turnoManual: true, id: h.idTurnoHorario, tipoPlan: h.tipoPlan, turno: h.turno, etiqueta: h.etiqueta || "", horaInicio: h.horaInicio, horaFin: h.horaFin }) }
+  const cambiar = (campo) => (e) => setEditor((prev) => ({ ...prev, [campo]: e.target.value, ...(campo === "turno" ? { turnoManual: true } : {}) }))
+  // Al cambiar la hora de inicio el turno se elige solo, mientras la persona no lo haya cambiado a mano
+  const cambiarHora = (campo) => (e) => setEditor((prev) => {
+    const nuevo = { ...prev, [campo]: e.target.value }
+    if (campo === "horaInicio" && !prev.turnoManual && e.target.value) nuevo.turno = turnoPorHora(e.target.value)
+    return nuevo
+  })
 
   const guardar = async (e) => {
     e.preventDefault()
@@ -98,8 +120,16 @@ export default function TurnosPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <TituloPagina descripcion={"Los horarios de cada turno. Al crear una clase se eligen de esta lista."}>Gestión de Turnos</TituloPagina>
+    <div className={escritorio ? "space-y-5" : "space-y-8"}>
+      {escritorio ? (
+        <>
+          <TituloPagina descripcion="Horarios fijos de cada tipo de clase">Clases</TituloPagina>
+          <PestanasClases activa="turnos" />
+          <p style={{ margin: 0, font: "500 15px Archivo", color: "var(--muted-foreground)" }}>Son los horarios fijos de cada tipo. Al crear una clase se eligen de esta lista; si los cambiás, las clases ya creadas no cambian.</p>
+        </>
+      ) : (
+        <TituloPagina descripcion={"Los horarios de cada turno. Al crear una clase se eligen de esta lista."}>Gestión de Turnos</TituloPagina>
+      )}
 
       {cargando && <Cargando filas={3} className="py-4" />}
 
@@ -107,7 +137,70 @@ export default function TurnosPage() {
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
       )}
 
-      {!cargando && !error && (
+      {/* ESCRITORIO: Turnos como la referencia (tarjeta por tipo de clase, agrupada por turno) */}
+      {!cargando && !error && escritorio && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "20px", alignItems: "start" }}>
+          {grupos.map((g) => {
+            const total = g.turnos.reduce((n, t) => n + t.horarios.length, 0)
+            return (
+              <section key={g.id} aria-label={g.titulo} style={{ borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ flex: "1 1 0%", minWidth: "0px" }}>
+                    <h2 className="bv-admin-titulo" style={{ margin: "0px", font: "800 18px Archivo" }}>{g.titulo}</h2>
+                    <div style={{ marginTop: "3px", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{total + (total === 1 ? " horario" : " horarios")}</div>
+                  </div>
+                  {puedeAgregar && g.activo && (
+                    <button type="button" onClick={() => abrirNuevo(g.id)}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "8px", height: "44px", padding: "0px 16px", borderRadius: "10px", border: "1px solid var(--sh-accent)", background: "transparent", color: "var(--sh-accent)", font: "800 14px Archivo", whiteSpace: "nowrap", cursor: "pointer" }}>
+                      <Plus className="h-4 w-4" aria-hidden="true" /> Agregar horario
+                    </button>
+                  )}
+                </div>
+
+                {g.turnos.length === 0 && (
+                  <p style={{ margin: 0, padding: "22px", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Todavía no hay horarios cargados para este tipo de clase.</p>
+                )}
+
+                {g.turnos.map((t) => (
+                  <div key={t.nombre}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 22px 8px" }}>
+                      <Clock className="h-[15px] w-[15px]" style={{ color: "var(--sh-accent)" }} aria-hidden="true" />
+                      <span style={{ font: "800 12px Archivo", letterSpacing: "0.1em", color: "var(--sh-accent)" }}>{"TURNO " + t.nombre.toUpperCase()}</span>
+                      <span style={{ font: "500 12px Archivo", color: "var(--muted-foreground)" }}>{"· " + t.horarios.length + (t.horarios.length === 1 ? " horario" : " horarios")}</span>
+                    </div>
+                    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                      {t.horarios.map((h) => (
+                        <li key={h.idTurnoHorario} style={{ display: "flex", alignItems: "center", gap: "14px", minHeight: "60px", padding: "10px 16px 10px 22px", borderTop: "1px solid var(--border)" }}>
+                          <span style={{ flex: "1 1 0%", minWidth: "0px", display: "flex", alignItems: "baseline", gap: "10px" }}>
+                            <span style={{ font: "800 18px Archivo", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{h.horaInicio + " – " + h.horaFin}</span>
+                            <span style={{ font: "500 12px Archivo", color: "var(--muted-foreground)", whiteSpace: "nowrap" }}>{duracionTurno(h.horaInicio, h.horaFin)}</span>
+                            {h.etiqueta && <span style={{ font: "500 13px Archivo", color: "var(--sh-link)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.etiqueta}</span>}
+                          </span>
+                          {puedeModificar && (
+                            <button type="button" onClick={() => abrirEditar(h)} aria-label={"Modificar el horario de las " + h.horaInicio}
+                              style={{ width: "40px", height: "40px", borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", display: "grid", placeItems: "center", cursor: "pointer" }}>
+                              <Pencil className="h-[15px] w-[15px]" aria-hidden="true" />
+                            </button>
+                          )}
+                          {puedeBorrar && (
+                            <button type="button" onClick={() => setABorrar(h)} aria-label={"Eliminar el horario de las " + h.horaInicio}
+                              style={{ width: "40px", height: "40px", borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--sh-danger)", display: "grid", placeItems: "center", cursor: "pointer" }}>
+                              <Trash2 className="h-[15px] w-[15px]" aria-hidden="true" />
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                <div style={{ height: "8px" }} />
+              </section>
+            )
+          })}
+        </div>
+      )}
+
+      {!cargando && !error && !escritorio && (
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
           {grupos.map((g) => (
             <section key={g.id} aria-label={g.titulo} className="space-y-3">
@@ -161,6 +254,59 @@ export default function TurnosPage() {
         </div>
       )}
 
+
+      {/* ESCRITORIO: agregar / editar / eliminar un horario, como la referencia */}
+      {escritorio && (() => {
+        const etq = { display: "block", marginBottom: "8px", font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }
+        const campo = { width: "100%", boxSizing: "border-box", height: "46px", padding: "0px 14px", borderRadius: "10px", border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }
+        const tipoNombre = (id) => grupos.find((t) => t.id === id)?.titulo || ""
+        const opcionesTurno = editor && !["Mañana", "Siesta", "Noche"].includes(editor.turno) ? [editor.turno, "Mañana", "Siesta", "Noche"] : ["Mañana", "Siesta", "Noche"]
+        const minutosEditor = editor && editor.horaInicio && editor.horaFin && editor.horaInicio < editor.horaFin ? duracionTurno(editor.horaInicio, editor.horaFin) : ""
+        return (
+          <>
+            <ModalAdmin abierto={Boolean(editor)} onCerrar={() => setEditor(null)} titulo={editor?.id ? "Editar horario" : "Agregar horario"}
+              subtitulo={editor ? tipoNombre(editor.tipoPlan) + " · Las clases que ya creaste no cambian." : ""}>
+              {editor && (
+                <form onSubmit={guardar} noValidate style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div>
+                    <label htmlFor="th-turno" style={etq}>Turno</label>
+                    <select id="th-turno" value={editor.turno} onChange={cambiar("turno")} style={campo}>
+                      {opcionesTurno.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div>
+                        <label htmlFor="th-inicio" style={etq}>Desde *</label>
+                        <input id="th-inicio" type="time" value={editor.horaInicio} onChange={cambiarHora("horaInicio")} style={campo} />
+                      </div>
+                      <div>
+                        <label htmlFor="th-fin" style={etq}>Hasta *</label>
+                        <input id="th-fin" type="time" value={editor.horaFin} onChange={cambiarHora("horaFin")} style={campo} />
+                      </div>
+                    </div>
+                    {minutosEditor && <p style={{ margin: "8px 0 0", font: "500 13px Archivo", color: "var(--sh-link)" }}>{"Dura " + minutosEditor + ". El turno se elige solo según la hora; podés cambiarlo."}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="th-etiqueta" style={etq}>Aclaración <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(opcional)</span></label>
+                    <input id="th-etiqueta" value={editor.etiqueta} onChange={cambiar("etiqueta")} maxLength={60} autoComplete="off" placeholder="Ej: Entrenamiento funcional" style={campo} />
+                  </div>
+                  {errorEditor && <p role="alert" style={{ margin: 0, font: "600 13px Archivo", color: "var(--destructive)" }}>{errorEditor}</p>}
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "4px" }}>
+                    <button type="button" onClick={() => setEditor(null)} disabled={guardando} style={BOTON_SECUNDARIO}>Cancelar</button>
+                    <button type="submit" disabled={guardando} style={{ ...BOTON_PRINCIPAL, opacity: guardando ? 0.6 : 1 }}>{guardando ? "GUARDANDO..." : "GUARDAR"}</button>
+                  </div>
+                </form>
+              )}
+            </ModalAdmin>
+            <ConfirmarAdmin abierto={Boolean(aBorrar)} onCerrar={() => setABorrar(null)} titulo="¿Eliminar este horario?" ocupado={borrando} onConfirmar={confirmarBorrar}
+              texto={aBorrar ? tipoNombre(aBorrar.tipoPlan) + " · Turno " + aBorrar.turno.toLowerCase() + ", de " + aBorrar.horaInicio + " a " + aBorrar.horaFin + ". Las clases que ya creaste con este horario no cambian." : ""} />
+          </>
+        )
+      })()}
+
+      {/* Celular y tableta: ventanas de siempre */}
+      {!escritorio && <>
       {/* Agregar o modificar un horario */}
       <Dialog open={Boolean(editor)} onOpenChange={(abierto) => { if (!abierto) setEditor(null) }}>
         <DialogContent className="max-w-md">
@@ -220,6 +366,7 @@ export default function TurnosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </>}
     </div>
   )
 }

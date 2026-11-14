@@ -305,6 +305,67 @@
   html { font-size: 90%; }
 }
 
+/* ── Menú lateral y barra de arriba del admin (marcación de la referencia). Oscuro = valores exactos de la referencia;
+   claro = colores del tema claro del panel. Se usan con var(--sh-…) en layout.jsx ── */
+html.bv-admin {
+  --sh-bg: rgb(14, 14, 14);
+  --sh-line: rgb(31, 31, 31);
+  --sh-link: rgb(201, 204, 191);
+  --sh-active-bg: rgb(22, 34, 10);
+  --sh-accent: rgb(155, 230, 0);
+  --sh-label: rgb(125, 128, 115);
+  --sh-avatar: rgb(31, 42, 14);
+  --sh-head: rgb(163, 166, 152);
+  --sh-ink: rgb(236, 239, 228);
+  --sh-btn-line: rgb(38, 38, 38);
+  --sh-header-bg: rgba(11, 11, 11, 0.92);
+  --sh-badge-bg: rgb(155, 230, 0);
+  --sh-badge-ink: rgb(11, 11, 11);
+  --sh-badge-line: rgb(11, 11, 11);
+  --sh-control-line: rgb(51, 51, 51);
+  --sh-track: rgb(42, 42, 42);
+  --sh-track-strong: rgb(38, 38, 38);
+  --input-line: rgb(42, 42, 42);
+  --sh-warn: rgb(230, 194, 0);
+  --sh-warn-bg: rgb(42, 35, 10);
+  --sh-warn-line: rgb(90, 74, 18);
+  --sh-danger-bg: rgb(42, 18, 16);
+  --sh-danger-line: rgb(107, 42, 36);
+  --sh-danger: rgb(255, 138, 128);
+}
+
+html.bv-admin[data-bv-tema="claro"] {
+  --sh-bg: #f6f6f1;
+  --sh-line: #dcdcd3;
+  --sh-link: #5f6156;
+  --sh-active-bg: #e6f1c9;
+  --sh-accent: #3f6400;
+  --sh-label: #5f6156;
+  --sh-avatar: #e6f1c9;
+  --sh-head: #5f6156;
+  --sh-ink: #141510;
+  --sh-btn-line: #cfcfc4;
+  --sh-header-bg: rgba(236, 236, 230, 0.92);
+  --sh-badge-bg: #3f6400;
+  --sh-badge-ink: #f6f6f1;
+  --sh-badge-line: #f6f6f1;
+  --sh-control-line: #cfcfc4;
+  --sh-track: #dcdcd3;
+  --sh-track-strong: #dcdcd3;
+  --input-line: #cfcfc4;
+  --sh-warn: #8a6d00;
+  --sh-warn-bg: #f6efd0;
+  --sh-warn-line: #d9c77a;
+  --sh-danger-bg: #fbe3e0;
+  --sh-danger-line: #e8a9a2;
+  --sh-danger: #9a2a20;
+}
+
+/* Títulos del admin en la tipografía de la referencia (Archivo): gana sobre la regla global de h1 */
+@layer base {
+  html.bv-admin .bv-admin-titulo { font-family: Archivo, sans-serif !important; letter-spacing: normal !important; }
+}
+
 /* ── Panel de administración (rediseño): paleta propia, oscura o clara. Solo mientras se usa el admin
    (la clase bv-admin la pone el layout del admin en <html>; así los menús y diálogos que se dibujan fuera también toman la paleta) ── */
 html.bv-admin {
@@ -389,3 +450,10 @@ html.bv-admin {
   --color-lime-600: #7fbf00;
   --color-lime-700: #3f6400;
 }
+
+/* Menú lateral del admin: fondo gris al pasar el mouse (referencia), sin tocar el ítem activo */
+html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(128, 128, 128, 0.14) !important; color: inherit !important; }
+
+/* Menús, listas y ventanas montados en el anfitrión de portales (zoom inverso): el contenido recupera el zoom del panel */
+[data-anfitrion-portales] [data-radix-popper-content-wrapper] > *,
+[data-anfitrion-portales] [data-slot="dialog-content"] { zoom: var(--bv-zoom, 1); }

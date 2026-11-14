@@ -1,4 +1,6 @@
 import * as SelectPrimitive from '@radix-ui/react-select'
+import { useContext } from 'react'
+import { ContenedorPortal } from '@/lib/contenedorPortal'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -51,8 +53,9 @@ function SelectContent({
   position = 'popper',
   ...props
 }) {
+  const contenedor = useContext(ContenedorPortal)
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={contenedor || undefined}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(

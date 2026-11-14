@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Loader2, CheckCircle2, UserRound } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 /*
@@ -13,11 +12,13 @@ import { Button } from "@/components/ui/button"
  */
 const VACIO = { nombrecompleto: "", dni: "", telefono: "", correo: "" }
 
-function Campo({ id, etiqueta, opcional, children }) {
+const estiloInput = { width: "100%", boxSizing: "border-box", height: 46, padding: "0px 14px", borderRadius: 10, border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }
+
+function Campo({ id, etiqueta, opcional, obligatorio, children }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="text-xs font-black uppercase tracking-widest text-foreground/70">
-        {etiqueta} {opcional && <span className="font-medium normal-case tracking-normal text-foreground/50">(opcional)</span>}
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <label htmlFor={id} style={{ font: "700 13px Archivo", color: "var(--foreground)" }}>
+        {etiqueta}{obligatorio && " *"} {opcional && <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>(opcional)</span>}
       </label>
       {children}
     </div>
@@ -63,7 +64,7 @@ export default function AlumnoSinCuentaDialog({ open, onOpenChange, onCreado }) 
 
   return (
     <Dialog open={open} onOpenChange={cerrar}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, padding: 24 }}>
         {creado ? (
           <div className="space-y-4 py-2 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-lime-600 dark:text-lime-400" aria-hidden="true" />
@@ -82,40 +83,43 @@ export default function AlumnoSinCuentaDialog({ open, onOpenChange, onCreado }) 
             </div>
           </div>
         ) : (
-          <form onSubmit={guardar} className="space-y-4" noValidate>
+          <form onSubmit={guardar} style={{ display: "flex", flexDirection: "column", gap: 16 }} noValidate>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><UserRound className="h-5 w-5" aria-hidden="true" /> Alumno sin cuenta</DialogTitle>
-              <DialogDescription>
-                Para quien va al gimnasio pero no usa el sistema. Queda registrado con sus datos, sin contraseña ni acceso, y vos le gestionás las membresías y los pagos.
+              <DialogTitle className="bv-admin-titulo" style={{ font: "800 20px Archivo", margin: 0 }}>Alumno sin cuenta</DialogTitle>
+              <DialogDescription style={{ font: "500 14px / 1.5 Archivo", color: "var(--muted-foreground)" }}>
+                Para quien entrena en el box pero no usa la app. Queda registrado sin contraseña y vos gestionás las membresías y los pagos.
               </DialogDescription>
             </DialogHeader>
 
-            <Campo id="sc-nombre" etiqueta="Nombre y apellido">
-              <Input id="sc-nombre" value={form.nombrecompleto} onChange={cambiar("nombrecompleto")} maxLength={100} autoComplete="off" autoFocus placeholder="Ej: Rosa Gómez" />
+            <Campo id="sc-nombre" etiqueta="Nombre y apellido" obligatorio>
+              <input id="sc-nombre" value={form.nombrecompleto} onChange={cambiar("nombrecompleto")} maxLength={100} autoComplete="off" autoFocus placeholder="Ej: Rosa Gómez" style={estiloInput} />
             </Campo>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Campo id="sc-dni" etiqueta="DNI">
-                <Input id="sc-dni" value={form.dni} onChange={cambiar("dni")} inputMode="numeric" maxLength={10} autoComplete="off" placeholder="Sin puntos" />
+            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+              <Campo id="sc-dni" etiqueta="DNI" obligatorio>
+                <input id="sc-dni" value={form.dni} onChange={cambiar("dni")} inputMode="numeric" maxLength={10} autoComplete="off" placeholder="Sin puntos" style={estiloInput} />
               </Campo>
               <Campo id="sc-tel" etiqueta="Teléfono" opcional>
-                <Input id="sc-tel" value={form.telefono} onChange={cambiar("telefono")} inputMode="tel" maxLength={30} autoComplete="off" placeholder="Ej: 3704 123456" />
+                <input id="sc-tel" value={form.telefono} onChange={cambiar("telefono")} inputMode="tel" maxLength={30} autoComplete="off" placeholder="Ej: 3704 123456" style={estiloInput} />
               </Campo>
             </div>
             <Campo id="sc-correo" etiqueta="Correo" opcional>
-              <Input id="sc-correo" type="email" value={form.correo} onChange={cambiar("correo")} maxLength={100} autoComplete="off" placeholder="Le llegan los comprobantes y puede activar su cuenta" aria-describedby="sc-correo-ayuda" />
-              <p id="sc-correo-ayuda" className="text-xs leading-snug text-foreground/60">
-                Con este correo la persona puede activar su propia cuenta cuando quiera: en el inicio de sesión toca "Olvidé mi contraseña" y le llega un enlace para crear su contraseña. Conserva sus membresías.
-                <strong className="font-bold text-foreground/80"> Poné solo el correo de la persona misma.</strong> Si no usa correo, dejalo vacío.
+              <input id="sc-correo" type="email" value={form.correo} onChange={cambiar("correo")} maxLength={100} autoComplete="off" placeholder="correo@ejemplo.com" aria-describedby="sc-correo-ayuda" style={estiloInput} />
+              <p id="sc-correo-ayuda" style={{ margin: 0, font: "500 12px / 1.5 Archivo", color: "var(--muted-foreground)" }}>
+                Le llegan los comprobantes. Si algún día quiere usar la app, toca "Olvidé mi contraseña" con este correo y conserva sus membresías. Poné solo el correo de la persona.
               </p>
             </Campo>
 
-            {error && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>}
+            {error && <p role="alert" style={{ margin: 0, borderRadius: 10, border: "1px solid var(--sh-danger-line)", background: "var(--sh-danger-bg)", padding: "8px 12px", font: "600 13px Archivo", color: "var(--sh-danger)" }}>{error}</p>}
 
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={() => cerrar(false)} disabled={enviando}>Cancelar</Button>
-              <Button type="submit" disabled={enviando} className="bg-lime-400 font-black uppercase tracking-wide text-black hover:bg-lime-300">
-                {enviando ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> Registrando...</> : "Registrar alumno"}
-              </Button>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button type="button" onClick={() => cerrar(false)} disabled={enviando}
+                style={{ height: 40, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer" }}>
+                Cancelar
+              </button>
+              <button type="submit" disabled={enviando}
+                style={{ height: 40, padding: "0px 18px", borderRadius: 10, border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", textTransform: "uppercase", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.6 : 1 }}>
+                {enviando ? "Registrando…" : "Registrar alumno"}
+              </button>
             </div>
           </form>
         )}

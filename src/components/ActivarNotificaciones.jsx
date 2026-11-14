@@ -21,7 +21,7 @@ export default function ActivarNotificaciones({ variante = "pie" }) {
   // Sin service worker (por ejemplo, en desarrollo) o navegador sin soporte: no se muestra nada
   if (!estado || estado === "sin-app" || estado === "no-soportado") {
     // En Mi configuración se explica por qué no aparece la opción
-    if (variante !== "tarjeta" || !estado) return null
+    if (!["tarjeta", "escritorio"].includes(variante) || !estado) return null
     return (
       <p className="rounded-2xl border border-border bg-card px-4 py-3 text-xs leading-relaxed text-foreground/60">
         {estado === "sin-app"
@@ -47,7 +47,7 @@ export default function ActivarNotificaciones({ variante = "pie" }) {
     }
   }
 
-  const pie = variante === "tarjeta"
+  const pie = variante === "tarjeta" || variante === "escritorio"
     ? "flex items-start gap-3 rounded-2xl border border-border bg-card px-4 py-3.5"
     : "flex items-start gap-3 border-t border-border bg-muted/30 px-4 py-3"
 
@@ -74,9 +74,10 @@ export default function ActivarNotificaciones({ variante = "pie" }) {
   }
 
   const activas = estado === "activas"
+  const esEscritorio = variante === "escritorio"
 
   // En Mi configuración: fila con interruptor (como el de modo oscuro), toda la fila se puede tocar
-  if (variante === "tarjeta") {
+  if (variante === "tarjeta" || esEscritorio) {
     return (
       <button type="button" role="switch" aria-checked={activas} onClick={() => cambiar(!activas)} disabled={trabajando}
         className="flex min-h-[4rem] w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 text-left transition-colors hover:border-lime-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-70">
@@ -84,8 +85,8 @@ export default function ActivarNotificaciones({ variante = "pie" }) {
           {activas ? <BellRing className="h-5 w-5" aria-hidden="true" /> : <BellOff className="h-5 w-5" aria-hidden="true" />}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold text-foreground">Avisos en este dispositivo</span>
-          <span className="block text-xs text-foreground/55">{trabajando ? "Guardando…" : activas ? "Activados" : "Desactivados"}</span>
+          <span className="block text-sm font-bold text-foreground">{esEscritorio ? "Recibir avisos" : "Avisos en este dispositivo"}</span>
+          <span className="block text-xs text-foreground/55">{trabajando ? "Guardando…" : esEscritorio ? (activas ? "Activados en este equipo. Para apagarlos, desactivalos acá." : "Desactivados. Al activarlos, el navegador te va a pedir permiso.") : activas ? "Activados" : "Desactivados"}</span>
         </span>
         <span className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${activas ? "bg-lime-400" : "bg-foreground/15"}`} aria-hidden="true">
           <span className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow transition-all ${activas ? "left-[1.375rem]" : "left-0.5"}`}>

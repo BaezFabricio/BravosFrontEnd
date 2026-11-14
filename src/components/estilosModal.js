@@ -1,0 +1,4 @@
+// Estilos de los botones de las ventanas del panel admin (ver ModalAdmin)
+export const BOTON_SECUNDARIO = { height: "44px", padding: "0px 16px", borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer", whiteSpace: "nowrap" }
+export const BOTON_PRINCIPAL = { height: "44px", padding: "0px 18px", borderRadius: "10px", border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 14px Archivo", letterSpacing: "0.04em", cursor: "pointer", whiteSpace: "nowrap" }
+export const BOTON_PELIGRO = { height: "44px", padding: "0px 18px", borderRadius: "10px", border: "none", background: "var(--sh-danger)", color: "var(--card)", font: "800 14px Archivo", cursor: "pointer", whiteSpace: "nowrap" }

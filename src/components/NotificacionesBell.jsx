@@ -8,6 +8,8 @@ import { parsearFecha, etiquetaDia, formatearFechaNotif } from '@/lib/fechasNoti
 import { Ico } from '@/components/bx/iconos'
 import { IC } from '@/components/bx/trazos'
 import { PanelNotificaciones, AvisosAbajo } from '@/components/bx/PanelNotificaciones'
+import PanelNotificacionesAdmin from '@/components/PanelNotificacionesAdmin'
+import { useAnchoPanel } from '@/lib/useEscritorio'
 
 const COLORES_TIPO = {
   reserva:     'text-lime-700 dark:text-lime-400',
@@ -39,7 +41,11 @@ function tiempoRelativo(raw) {
  * cambian la campanita, el panel y los avisos (abajo en el medio, 5 s).
  */
 export default function NotificacionesBell({ variante } = {}) {
-  const bx = variante === 'bx' || variante === 'bxm' // bxm: la del header del celular
+  const admin = variante === 'admin'
+  const escritorioAdmin = useAnchoPanel() // en escritorio el admin usa la bandeja de la referencia 14
+  const estiloAdmin = { width: '44px', height: '44px', borderRadius: '10px', border: '1px solid var(--sh-btn-line)', background: 'transparent', color: 'var(--sh-ink)' }
+  const estiloBadgeAdmin = { minWidth: '20px', height: '20px', lineHeight: '16px', padding: '0px 5px', borderRadius: '10px', background: 'var(--sh-badge-bg)', color: 'var(--sh-badge-ink)', border: '2px solid var(--sh-badge-line)', font: '800 11px / 16px Archivo' }
+  const bx = variante === 'bx' || variante === 'bxm' || admin // bxm: la del header del celular
   const navigate = useNavigate()
   const [notifs, setNotifs] = useState([])
   const [noLeidas, setNoLeidas] = useState(0)
@@ -170,20 +176,31 @@ export default function NotificacionesBell({ variante } = {}) {
             aria-expanded={open}
             aria-controls="panel-notif"
             data-guia="campana"
+            style={admin ? { ...estiloAdmin, ...(open ? { border: '1px solid var(--sh-accent)', background: 'var(--sh-active-bg)', color: 'var(--sh-accent)' } : null) } : undefined}
             className={variante === 'bxm'
               ? "relative grid h-11 w-11 place-items-center rounded-[0.625rem] text-bx-ink transition-[background-color,transform] duration-200 active:scale-90"
               : "relative grid h-11 w-11 place-items-center rounded-[0.625rem] border border-bx-btn-line bg-bx-card text-bx-ink transition-[background-color,transform] duration-200 hover:bg-bx-surf active:scale-95"}
           >
-            <Ico d={IC.bell} size={variante === 'bxm' ? 22 : 20} />
+            <Ico d={IC.bell} size={variante === 'bxm' ? 22 : admin ? 19 : 20} />
             {noLeidas > 0 && (
-              <span className={variante === 'bxm'
+              <span style={admin ? estiloBadgeAdmin : undefined} className={variante === 'bxm'
                 ? "absolute right-1 top-1 h-[1.125rem] min-w-[1.125rem] rounded-[0.5625rem] bg-bx-lima px-1 text-center text-[0.625rem] font-extrabold leading-[1.125rem] text-bx-negro"
                 : "absolute -right-1.5 -top-1.5 h-[1.375rem] min-w-[1.375rem] rounded-[0.6875rem] bg-bx-lima px-[0.3125rem] text-center text-[0.6875rem] font-extrabold leading-[1.375rem] text-bx-negro"}>
                 {noLeidas > 9 ? '9+' : noLeidas}
               </span>
             )}
           </button>
-          {open && (
+          {open && admin && escritorioAdmin && (
+            <PanelNotificacionesAdmin
+              notifs={notifs}
+              noLeidas={noLeidas}
+              limpiando={limpiando}
+              onClickNotif={handleClickNotif}
+              onMarcarTodas={marcarTodas}
+              onBorrarTodas={limpiar}
+            />
+          )}
+          {open && !(admin && escritorioAdmin) && (
             <PanelNotificaciones
               notifs={notifs}
               noLeidas={noLeidas}

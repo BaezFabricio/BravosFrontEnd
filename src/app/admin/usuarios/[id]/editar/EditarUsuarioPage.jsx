@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import apiClient from "@/api"
 import { useVolver } from "@/components/BotonVolver"
 import {
   Loader2,
@@ -28,6 +29,9 @@ const emptyForm = {
   idPerfil: "",
   estado: "activo",
   avatarUrl: "",
+  fechaNacimiento: "",
+  contactoEmergencia: "",
+  telefonoEmergencia: "",
 }
 
 const inputCls = (error) =>
@@ -122,6 +126,14 @@ export default function EditarUsuarioPage() {
           estado: usuarioReal.estado || "activo",
           avatarUrl: usuarioReal.avatarUrl || "",
         }
+        // Datos de la ficha (fecha de nacimiento y contacto de emergencia): si no hay ficha de alumno, quedan vacíos
+        try {
+          const resFicha = await apiClient.get(`/usuarios/${id}/ficha`)
+          const dp = resFicha.data?.data?.datosPersona || {}
+          datos.fechaNacimiento = dp.fechaNacimiento || ""
+          datos.contactoEmergencia = dp.contactoEmergencia || ""
+          datos.telefonoEmergencia = dp.telefonoEmergencia || ""
+        } catch { /* sin ficha: se edita igual lo demás */ }
         setFormData(datos)
         setOriginal(datos)
       } catch {
@@ -172,6 +184,11 @@ export default function EditarUsuarioPage() {
       })
       const resultado = await res.json()
       if (!res.ok) throw new Error(resultado.message || "Error al actualizar")
+      await apiClient.put(`/usuarios/${id}/datos-ficha`, {
+        fechaNacimiento: formData.fechaNacimiento || null,
+        contactoEmergencia: formData.contactoEmergencia.trim() || null,
+        telefonoEmergencia: formData.telefonoEmergencia.trim() || null,
+      })
       // Si cambié mi propio perfil, el servidor ya cerró mi sesión: vuelvo a entrar
       if (propia && resultado.data?.sesionesCerradas) {
         toast.success("Perfil cambiado. Volvé a iniciar sesión.")
@@ -279,6 +296,17 @@ export default function EditarUsuarioPage() {
               <Field id="telefono" label="Teléfono" icon={Phone} error={errors.telefono}>
                 <input id="telefono" type="tel" inputMode="tel" maxLength={30} value={formData.telefono} onChange={set("telefono")}
                   placeholder="Ej: 3704123456" className={inputCls(errors.telefono)} />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="fechaNacimiento" label="Fecha de nacimiento">
+                <input id="fechaNacimiento" type="date" value={formData.fechaNacimiento} max={new Date().toISOString().slice(0, 10)} onChange={set("fechaNacimiento")} className={inputCls(false)} />
+              </Field>
+              <Field id="contactoEmergencia" label="Contacto de emergencia">
+                <input id="contactoEmergencia" maxLength={100} value={formData.contactoEmergencia} onChange={set("contactoEmergencia")} placeholder="Nombre y parentesco" className={inputCls(false)} />
+              </Field>
+              <Field id="telefonoEmergencia" label="Teléfono de emergencia">
+                <input id="telefonoEmergencia" type="tel" inputMode="tel" maxLength={30} value={formData.telefonoEmergencia} onChange={set("telefonoEmergencia")} placeholder="Ej: 3704123456" className={inputCls(false)} />
               </Field>
             </div>
             {formData.email.trim().toLowerCase() !== original.email.trim().toLowerCase() && (

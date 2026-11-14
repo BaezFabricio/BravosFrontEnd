@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil, Users, Clock, CalendarDays, Mail, Dumbbell, Power } from "lucide-react"
+import { Loader2, ArrowLeft, ArrowRight, Check, Minus, Plus, Pencil, Users, Clock, CalendarDays, Mail, Dumbbell, Power, ChevronLeft, Bell } from "lucide-react"
 import { toast } from '@/lib/notificar'
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import RichTextEditor from "@/components/RichTextEditor"
@@ -107,6 +107,55 @@ function HorariosDeTurno({ tipoPlan, horaInicio, horaFin, onElegir, compacto = f
         </optgroup>
       ))}
     </select>
+  )
+}
+
+// Escritorio (referencia): lista desplegable con los horarios del box ("Siesta · 13:10 a 14:10") y "Otra hora…" para elegirla a mano
+function HorarioEscritorio({ tipoPlan, horaInicio, horaFin, onElegir, onHora, estiloCampo, etiquetaHora }) {
+  const [lista, setLista] = useState(null) // null = cargando
+  const [otra, setOtra] = useState(false)
+
+  useEffect(() => {
+    if (!tipoPlan) return undefined
+    let vigente = true
+    fetch("/api/vv1/turnos/horarios?tipoPlan=" + encodeURIComponent(tipoPlan))
+      .then(r => r.json())
+      .then(r => { if (vigente) setLista(Array.isArray(r.data) ? r.data : []) })
+      .catch(() => { if (vigente) setLista([]) })
+    return () => { vigente = false }
+  }, [tipoPlan])
+
+  const elegido = lista?.find(h => h.horaInicio === horaInicio && h.horaFin === horaFin)
+  const manual = otra || Boolean(horaInicio && horaFin && lista && !elegido)
+  return (
+    <div>
+      <select aria-label="Horarios del box" disabled={!tipoPlan || lista === null} style={estiloCampo}
+        value={manual ? "otra" : elegido ? String(elegido.idTurnoHorario) : ""}
+        onChange={e => {
+          if (e.target.value === "otra") { setOtra(true); return }
+          setOtra(false)
+          const h = lista.find(x => String(x.idTurnoHorario) === e.target.value)
+          if (h) onElegir(h)
+        }}>
+        <option value="" disabled>{!tipoPlan ? "Elegí primero el tipo de clase" : "Elegí un horario del box"}</option>
+        {(lista || []).map(h => (
+          <option key={h.idTurnoHorario} value={h.idTurnoHorario}>{h.turno + " · " + h.horaInicio + " a " + h.horaFin + (h.etiqueta ? " · " + h.etiqueta : "")}</option>
+        ))}
+        <option value="otra">Otra hora…</option>
+      </select>
+      {manual && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "12px" }}>
+          <div>
+            <span style={{ ...etiquetaHora, marginBottom: "6px" }}>Inicio</span>
+            <TimeSelect value={horaInicio} onChange={v => onHora("horaInicio", v)} hasError={false} />
+          </div>
+          <div>
+            <span style={{ ...etiquetaHora, marginBottom: "6px" }}>Fin</span>
+            <TimeSelect value={horaFin} onChange={v => onHora("horaFin", v)} hasError={false} />
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -243,14 +292,20 @@ export default function NuevaClasePage() {
   const esEdicion = Boolean(id)
   const [searchParams] = useSearchParams()
   const tipoDesdeUrl = esEdicion ? "" : (searchParams.get("tipo") || "")
+  // "Duplicar" / "Usar como base": se cargan los datos de otra clase para crear una nueva (sin la fecha)
+  const duplicarId = esEdicion ? "" : (searchParams.get("duplicar") || "")
+  const idCarga = id || duplicarId
 
-  const [cargandoClase, setCargandoClase] = useState(esEdicion)
+  const [cargandoClase, setCargandoClase] = useState(Boolean(idCarga))
   const [isLoading, setIsLoading]     = useState(false)
   const [errors, setErrors]           = useState({})
   const [profesores, setProfesores]   = useState([])
   const [loadingProfesores, setLoadingProfesores] = useState(true)
   const [tipos, setTipos]             = useState([])
-  const [publicarProgramado, setPublicarProgramado] = useState(false)
+  // En escritorio una clase nueva avisa "al guardar" (como la referencia); en el celular el aviso arranca apagado, como siempre
+  const [publicarProgramado, setPublicarProgramado] = useState(() => !esEdicion && window.matchMedia("(min-width: 1024px)").matches)
+  const [modoProgramar, setModoProgramar] = useState(false)
+  const [nombreManual, setNombreManual] = useState(esEdicion || Boolean(duplicarId)) // si la persona escribió el nombre, ya no se completa solo
 
   const [esClaseUnica, setEsClaseUnica] = useState(true) // las clases son siempre de un solo día (ya no hay clases que se repiten)
 
@@ -296,16 +351,16 @@ export default function NuevaClasePage() {
     const headers = { "Content-Type": "application/json" }
 
     // Al editar: se cargan los datos de la clase antes de mostrar el formulario
-    if (esEdicion) {
-      fetch(`/api/vv1/clases/${id}`, { headers })
+    if (idCarga) {
+      fetch(`/api/vv1/clases/${idCarga}`, { headers })
         .then(r => r.json())
         .then(r => {
           if (!r.success) throw new Error(r.message || "No se encontró la clase")
           const c = r.data
           const { descripcion, rutina } = leerRutina(c.rutina)
           const aviso = avisoLocal(c.fechaPublicacion)
-          setEsClaseUnica(Boolean(c.fechaEspecifica))
-          setPublicarProgramado(Boolean(aviso))
+          setEsClaseUnica(esEdicion ? Boolean(c.fechaEspecifica) : true)
+          if (esEdicion) setPublicarProgramado(Boolean(aviso))
           setFormData({
             nombre: c.nombreClase || "",
             tipoPlan: c.tipoPlan || "",
@@ -315,11 +370,11 @@ export default function NuevaClasePage() {
             // El límite real de reservas es cupoMaximo
             capacidadMaxima: String(Number(c.cupoMaximo) || 15),
             diasSemana: c.fechaEspecifica || !c.diasSemana ? [] : c.diasSemana.split(",").map(d => d.trim()),
-            fechaEspecifica: c.fechaEspecifica || "",
+            fechaEspecifica: esEdicion ? (c.fechaEspecifica || "") : "",
             descripcion,
             rutina,
-            publicarDatetime: aviso,
-            estado: c.estado || "Activo",
+            publicarDatetime: esEdicion ? aviso : "",
+            estado: esEdicion ? (c.estado || "Activo") : "Activo",
           })
         })
         .catch(err => { toast.error("No se pudo cargar la clase", { description: err.message }); navigate("/admin/clases") })
@@ -336,7 +391,7 @@ export default function NuevaClasePage() {
       .then(r => r.json())
       .then(r => setTipos(r.data || []))
       .catch(err => console.error("Error al cargar los tipos de clase:", err))
-  }, [navigate, esEdicion, id])
+  }, [navigate, esEdicion, id, idCarga])
 
   const elegirHorarioDeLista = (h) => {
     setFormData(prev => ({ ...prev, horaInicio: h.horaInicio, horaFin: h.horaFin }))
@@ -439,6 +494,22 @@ export default function NuevaClasePage() {
   const opcionesTipo = tipos.filter(t => t.activo || t.codigo === formData.tipoPlan)
   const dur = duracionMinutos()
 
+  // Escritorio: aviso "Al guardar" (ahora), "Programar" (fecha y hora) o "No avisar"
+  const modoAviso = !publicarProgramado ? "no" : (modoProgramar || formData.publicarDatetime) ? "programar" : "guardar"
+  const elegirModoAviso = (m) => {
+    setPublicarProgramado(m !== "no")
+    setModoProgramar(m === "programar")
+    if (m !== "programar") set("publicarDatetime", "")
+  }
+  // Al elegir la fecha, el nombre se completa con el día ("Jueves") mientras no lo haya escrito la persona
+  const elegirFechaEscritorio = (v) => {
+    set("fechaEspecifica", v)
+    if (!nombreManual && v) {
+      const dia = new Date(v + "T12:00:00").toLocaleDateString("es-AR", { weekday: "long" })
+      set("nombre", dia.charAt(0).toUpperCase() + dia.slice(1))
+    }
+  }
+
   // ── CELULAR: la clase se arma en 4 pasos (sin scroll largo) ──
   const PASOS = ["Coach", "WOD", "Horario", "Listo"]
   const [paso, setPaso] = useState(0)
@@ -487,9 +558,6 @@ export default function NuevaClasePage() {
   const titulo = "flex items-center gap-2 text-sm font-black uppercase tracking-wide text-foreground"
   const errorTxt = (m) => m && <p className="mt-2 text-xs text-red-700 dark:text-red-400">{m}</p>
 
-  const field = "w-full bg-transparent border border-border text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-foreground/40 transition-colors"
-  const fieldError = "w-full bg-transparent border border-red-600/50 dark:border-red-500/50 text-sm text-foreground placeholder:text-foreground/25 px-3 py-2 outline-none focus:border-red-600 dark:focus:border-red-400 transition-colors"
-
   if (cargandoClase) return <AdminFormSkeleton />
 
   return (
@@ -498,7 +566,7 @@ export default function NuevaClasePage() {
       {/* HEADER */}
       <div className="flex items-start gap-4">
         <div>
-          <TituloPagina descripcion={tipoSeleccionado ? `Tipo de clase: ${tipoSeleccionado.nombre}` : esEdicion ? "Modificá los datos de la clase" : "Completá los campos para registrar la clase"}>{esEdicion ? "Editar clase" : "Nueva Clase"}</TituloPagina>
+          <TituloPagina descripcion={tipoSeleccionado ? `Tipo de clase: ${tipoSeleccionado.nombre}` : esEdicion ? "Modificá los datos de la clase" : "Completá los campos para registrar la clase"}>{esEdicion ? "Editar clase" : "Nueva clase"}</TituloPagina>
         </div>
       </div>
 
@@ -769,175 +837,134 @@ export default function NuevaClasePage() {
         </div>
       </div>
 
-      {/* ── COMPUTADORA: el formulario completo ── */}
+      {/* ── COMPUTADORA: formulario como la referencia ── */}
       <div className="hidden lg:block">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_21.25rem] gap-4 items-start">
+        {(() => {
+          const tarjeta = { borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", padding: "24px" }
+          const etiqueta = { display: "block", marginBottom: "8px", font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }
+          const ayuda = { margin: "6px 0 0", font: "500 13px Archivo", color: "var(--muted-foreground)" }
+          const errorEst = { margin: "6px 0 0", font: "600 13px Archivo", color: "var(--destructive)" }
+          const campo = (hayError) => ({ width: "100%", boxSizing: "border-box", height: "46px", padding: "0px 14px", borderRadius: "10px", border: `1px solid ${hayError ? "var(--destructive)" : "var(--input-line)"}`, background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" })
+          const hoyTxt = `${new Date().getFullYear()}-${dos(new Date().getMonth() + 1)}-${dos(new Date().getDate())}`
+          const cupo = parseInt(formData.capacidadMaxima) || 0
+          const botonCupo = { width: "46px", height: "46px", flexShrink: 0, borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", display: "grid", placeItems: "center", cursor: "pointer" }
+          const textoGuardar = esEdicion ? "GUARDAR CAMBIOS" : modoAviso === "no" ? "CREAR CLASE" : "CREAR Y AVISAR"
+          const hintAviso = modoAviso === "no" ? "No se envía ningún aviso." : esEdicion ? "Se envía apenas guardes la clase." : "Se envía apenas crees la clase."
+          return (
+            <>
+              <Link to="/admin/clases" style={{ display: "inline-flex", alignItems: "center", gap: "6px", minHeight: "40px", marginBottom: "16px", font: "700 14px Archivo", color: "var(--foreground)", textDecoration: "none" }}>
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Volver a Clases
+              </Link>
+              <form onSubmit={handleSubmit} noValidate>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 420px", gap: "20px", alignItems: "start" }}>
 
-            {/* ── IZQUIERDA: contenido ── */}
-            <div className="border border-border divide-y divide-border">
+                  <div style={{ ...tarjeta, display: "flex", flexDirection: "column", gap: "22px", minWidth: 0 }}>
+                    <div>
+                      <label htmlFor="nc-nombre" style={etiqueta}>Nombre de la clase *</label>
+                      <input id="nc-nombre" type="text" value={formData.nombre} placeholder="Ej: Jueves" onChange={e => { setNombreManual(true); set("nombre", e.target.value) }} style={campo(errors.nombre)} />
+                      {errors.nombre ? <p style={errorEst}>{errors.nombre}</p> : <p style={ayuda}>Se completa solo con el día de la fecha. Podés cambiarlo.</p>}
+                    </div>
 
-              <div className="p-5">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Nombre de la clase *</label>
-                <input
-                  type="text"
-                  value={formData.nombre}
-                  onChange={e => set("nombre", e.target.value)}
-                  placeholder="Ej: WOD Competitivo"
-                  className={errors.nombre ? fieldError : field}
-                />
-                {errors.nombre && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.nombre}</p>}
-              </div>
+                    <div>
+                      <span style={etiqueta}>Descripción</span>
+                      <p style={{ ...ayuda, margin: "-4px 0 8px" }}>Opcional. Una frase para que los alumnos sepan de qué se trata.</p>
+                      <RichTextEditor value={formData.descripcion} onChange={v => set("descripcion", v)} placeholder="Ej: Clase de fuerza con foco en sentadilla" minHeight={90} />
+                    </div>
 
-              <div className="p-5">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Descripción</label>
-                <RichTextEditor
-                  value={formData.descripcion}
-                  onChange={v => set("descripcion", v)}
-                  placeholder="Breve descripción para que los alumnos entiendan de qué se trata..."
-                  minHeight={90}
-                />
-              </div>
+                    <div>
+                      <span style={etiqueta}>Rutina de la clase</span>
+                      <p style={{ ...ayuda, margin: "-4px 0 8px" }}>Los alumnos la ven en “Ver rutina” cuando reservan.</p>
+                      <RichTextEditor value={formData.rutina} onChange={v => set("rutina", v)} placeholder="Calentamiento, ejercicio principal y metcon..." minHeight={170} />
+                    </div>
 
-              <div className="p-5">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Rutina de la clase</label>
-                <RichTextEditor
-                  value={formData.rutina}
-                  onChange={v => set("rutina", v)}
-                  placeholder={"Calentamiento: ...\n\nEjercicio principal: ...\n\nMetcon: ..."}
-                  minHeight={200}
-                />
-              </div>
-
-              {/* Notificación por email programada */}
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block">Avisar a los alumnos</label>
-                    <p className="text-xs text-foreground/60 mt-0.5">Les llega un email y una notificación en el celular cuando la clase esté lista para reservar. Sin fecha, se envía apenas guardes.</p>
+                    <div style={{ borderRadius: "12px", background: "color-mix(in srgb, var(--foreground) 4%, var(--card))", border: "1px solid var(--border)", padding: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ width: "40px", height: "40px", flexShrink: 0, borderRadius: "10px", display: "grid", placeItems: "center", background: "var(--sh-avatar)", color: "var(--sh-accent)" }}>
+                          <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
+                        </span>
+                        <div>
+                          <div style={{ font: "800 15px Archivo" }}>Avisar a los alumnos</div>
+                          <div style={{ marginTop: "2px", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>Les llega un email y una notificación en el celular cuando la clase esté lista para reservar.</div>
+                        </div>
+                      </div>
+                      <div role="radiogroup" aria-label="Cuándo avisar" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "4px", marginTop: "14px", padding: "4px", borderRadius: "10px", border: "1px solid var(--sh-control-line)" }}>
+                        {[["guardar", "Al guardar"], ["programar", "Programar"], ["no", "No avisar"]].map(([clave, texto]) => (
+                          <button key={clave} type="button" role="radio" aria-checked={modoAviso === clave} onClick={() => elegirModoAviso(clave)}
+                            style={{ height: "40px", borderRadius: "8px", border: "none", cursor: "pointer", background: modoAviso === clave ? "var(--primary)" : "transparent", color: modoAviso === clave ? "var(--primary-foreground)" : "var(--foreground)", font: "700 14px Archivo" }}>{texto}</button>
+                        ))}
+                      </div>
+                      {modoAviso === "programar"
+                        ? <div style={{ marginTop: "12px", maxWidth: "420px" }}><AvisoFechaHora value={formData.publicarDatetime} onChange={(v) => set("publicarDatetime", v)} /></div>
+                        : <p style={{ ...ayuda, marginTop: "10px" }}>{hintAviso}</p>}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => { setPublicarProgramado(!publicarProgramado); set("publicarDatetime", "") }}
-                    className={`shrink-0 flex items-center gap-1.5 text-[0.625rem] font-black uppercase tracking-widest px-3 py-1.5 border transition-colors ${
-                      publicarProgramado
-                        ? "border-lime-500/40 text-lime-700 dark:text-lime-400 bg-lime-400/10"
-                        : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30"
-                    }`}
-                  >
-                    {publicarProgramado ? <><Eye className="h-3 w-3" />Programado</> : <><EyeOff className="h-3 w-3" />Sin aviso</>}
-                  </button>
-                </div>
 
-                {publicarProgramado && (
-                  <div className="space-y-2">
-                    <AvisoFechaHora value={formData.publicarDatetime} onChange={(v) => set("publicarDatetime", v)} />
-                  </div>
-                )}
-              </div>
-            </div>
+                  <div style={{ ...tarjeta, display: "flex", flexDirection: "column", gap: "20px", position: "sticky", top: "24px" }}>
+                    {(esEdicion || !tipoDesdeUrl) && (
+                      <div>
+                        <label htmlFor="nc-tipo" style={etiqueta}>Tipo de clase *</label>
+                        <select id="nc-tipo" value={formData.tipoPlan} onChange={e => set("tipoPlan", e.target.value)} style={campo(errors.tipoPlan)}>
+                          <option value="" disabled>Elegí el tipo de clase</option>
+                          {opcionesTipo.map(t => <option key={t.codigo} value={t.codigo}>{t.nombre}</option>)}
+                        </select>
+                        {errors.tipoPlan ? <p style={errorEst}>{errors.tipoPlan}</p> : <p style={ayuda}>Solo los alumnos con una membresía vigente de este tipo ven la clase y reciben el aviso.</p>}
+                      </div>
+                    )}
+                    {esEdicion && (
+                      <div>
+                        <label htmlFor="nc-estado" style={etiqueta}>Estado</label>
+                        <select id="nc-estado" value={formData.estado} onChange={e => set("estado", e.target.value)} style={campo(false)}>
+                          <option value="Activo">Activa</option>
+                          <option value="Inactivo">Inactiva</option>
+                        </select>
+                      </div>
+                    )}
 
-            {/* ── DERECHA: configuración ── */}
-            <div className="border border-border divide-y divide-border sticky top-6 self-start">
+                    <div>
+                      <label htmlFor="nc-fecha" style={etiqueta}>¿Cuándo se dicta? *</label>
+                      <input id="nc-fecha" type="date" min={esEdicion ? undefined : hoyTxt} value={formData.fechaEspecifica} onChange={e => elegirFechaEscritorio(e.target.value)} style={campo(errors.diasSemana)} />
+                      {errors.diasSemana && <p style={errorEst}>{errors.diasSemana}</p>}
+                    </div>
 
-              {(esEdicion || !tipoDesdeUrl) && (
-                <div className="p-4 space-y-3">
-                  <div>
-                    <label htmlFor="d-plan-clase" className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Tipo de clase</label>
-                    <select id="d-plan-clase" value={formData.tipoPlan} onChange={e => set("tipoPlan", e.target.value)} style={{ colorScheme: "dark" }}
-                      className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
-                      <option value="" disabled>Elegí el tipo de clase</option>
-                      {opcionesTipo.map(t => <option key={t.codigo} value={t.codigo}>{t.nombre}</option>)}
-                    </select>
-                    {errors.tipoPlan && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.tipoPlan}</p>}
-                    <p className="mt-1.5 text-[0.625rem] text-foreground/50">Solo los alumnos con una membresía vigente de este tipo ven la clase y reciben el aviso.</p>
-                  </div>
-                  <div>
-                    <label htmlFor="d-estado-clase" className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Estado</label>
-                    <select id="d-estado-clase" value={formData.estado} onChange={e => set("estado", e.target.value)} style={{ colorScheme: "dark" }}
-                      className="w-full bg-card border border-border text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors">
-                      <option value="Activo">Activa</option>
-                      <option value="Inactivo">Inactiva</option>
-                    </select>
-                  </div>
-                </div>
-              )}
+                    <div>
+                      <span style={etiqueta}>Horario *</span>
+                      <HorarioEscritorio tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} onHora={(campoHora, v) => set(campoHora, v)} estiloCampo={campo(errors.horario)} etiquetaHora={etiqueta} />
+                      {errors.horario ? <p style={errorEst}>{errors.horario}</p> : dur ? <p style={ayuda}>{dur} min de duración</p> : null}
+                    </div>
 
-              <div className="p-4">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Coach *</label>
-                <select
-                  value={formData.idProfesor}
-                  onChange={e => set("idProfesor", e.target.value)}
-                  disabled={loadingProfesores}
-                  style={{ colorScheme: "dark" }}
-                  className={`w-full bg-card border ${errors.idProfesor ? "border-red-600/50 dark:border-red-500/50" : "border-border"} text-sm text-foreground px-3 py-2 outline-none focus:border-foreground/40 transition-colors`}
-                >
-                  <option value="">{loadingProfesores ? "Cargando..." : "Seleccionar..."}</option>
-                  {profesores.map(p => <option key={p.idProfesor} value={p.idProfesor}>{p.nombreProfesor}</option>)}
-                </select>
-                {errors.idProfesor && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.idProfesor}</p>}
-              </div>
+                    <div>
+                      <label htmlFor="nc-coach" style={etiqueta}>Coach *</label>
+                      <select id="nc-coach" value={formData.idProfesor} onChange={e => set("idProfesor", e.target.value)} disabled={loadingProfesores} style={campo(errors.idProfesor)}>
+                        <option value="">{loadingProfesores ? "Cargando..." : "Elegí un coach"}</option>
+                        {profesores.map(p => <option key={p.idProfesor} value={p.idProfesor}>{p.nombreProfesor}</option>)}
+                      </select>
+                      {errors.idProfesor && <p style={errorEst}>{errors.idProfesor}</p>}
+                    </div>
 
-              <div className="p-4">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-2">Cupo máximo *</label>
-                <input
-                  type="number" min="1"
-                  value={formData.capacidadMaxima}
-                  onChange={e => set("capacidadMaxima", e.target.value)}
-                  className={errors.capacidadMaxima ? fieldError : field}
-                />
-                {errors.capacidadMaxima && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">{errors.capacidadMaxima}</p>}
-              </div>
+                    <div>
+                      <label htmlFor="nc-cupo" style={etiqueta}>Cupo máximo *</label>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button type="button" aria-label="Un lugar menos" onClick={() => set("capacidadMaxima", String(Math.max(1, cupo - 1)))} style={botonCupo}><Minus className="h-4 w-4" /></button>
+                        <input id="nc-cupo" type="number" min="1" value={formData.capacidadMaxima} onChange={e => set("capacidadMaxima", e.target.value)} style={{ ...campo(errors.capacidadMaxima), textAlign: "center", font: "700 16px Archivo", flex: "1 1 0%", minWidth: 0 }} />
+                        <button type="button" aria-label="Un lugar más" onClick={() => set("capacidadMaxima", String(cupo + 1))} style={botonCupo}><Plus className="h-4 w-4" /></button>
+                      </div>
+                      {errors.capacidadMaxima ? <p style={errorEst}>{errors.capacidadMaxima}</p> : <p style={ayuda}>Lugares disponibles para reservar.</p>}
+                    </div>
 
-              <div className="p-4">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block mb-3">Horario *</label>
-                <div className="mb-3">
-                  <HorariosDeTurno tipoPlan={formData.tipoPlan} horaInicio={formData.horaInicio} horaFin={formData.horaFin} onElegir={elegirHorarioDeLista} compacto />
-                </div>
-                <p className="mb-2 text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">O elegí la hora a mano</p>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-[0.625rem] text-foreground/60 mb-1.5">Inicio</p>
-                    <TimeSelect value={formData.horaInicio} onChange={v => set("horaInicio", v)} hasError={!!errors.horario && !formData.horaInicio} />
-                  </div>
-                  <div>
-                    <p className="text-[0.625rem] text-foreground/60 mb-1.5">Fin</p>
-                    <TimeSelect value={formData.horaFin} onChange={v => set("horaFin", v)} hasError={!!errors.horario && !formData.horaFin} />
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <button type="submit" disabled={isLoading}
+                        style={{ height: "52px", borderRadius: "10px", border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 14px Archivo", letterSpacing: "0.06em", cursor: "pointer", opacity: isLoading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                        {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {isLoading ? "GUARDANDO..." : textoGuardar}
+                      </button>
+                      <Link to="/admin/clases" style={{ height: "46px", borderRadius: "10px", border: "1px solid var(--sh-control-line)", color: "var(--foreground)", font: "700 14px Archivo", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Cancelar</Link>
+                    </div>
                   </div>
                 </div>
-                {errors.horario && <p className="mt-1.5 text-[0.625rem] text-red-700 dark:text-red-400">{errors.horario}</p>}
-                {dur && !errors.horario && (
-                  <p className="mt-1.5 text-[0.625rem] text-foreground/60">{dur} min de duración</p>
-                )}
-              </div>
-
-              <div className="p-4">
-                <label className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/70 block">¿Cuándo se dicta?</label>
-                <div className="mt-3">
-                  <p className="text-[0.625rem] text-foreground/50 mb-1.5">Elegí la fecha *</p>
-                  <DateSelect value={formData.fechaEspecifica} onChange={v => set("fechaEspecifica", v)} />
-                </div>
-                {errors.diasSemana && <p className="mt-2 text-xs text-red-700 dark:text-red-400">{errors.diasSemana}</p>}
-              </div>
-
-              <div className="p-4 space-y-2">
-                <button
-                  type="submit" disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 bg-lime-400 text-black font-black uppercase tracking-widest text-xs py-3 hover:bg-lime-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isLoading ? "Guardando..." : esEdicion ? "Guardar cambios" : "Crear Clase"}
-                </button>
-                <Link
-                  to="/admin/clases"
-                  className="block w-full text-center border border-border py-2.5 text-xs font-bold uppercase tracking-widest text-foreground/30 hover:text-foreground hover:border-foreground/20 transition-colors"
-                >
-                  Cancelar
-                </Link>
-              </div>
-            </div>
-          </div>
-        </form>
+              </form>
+            </>
+          )
+        })()}
       </div>
     </div>
   )

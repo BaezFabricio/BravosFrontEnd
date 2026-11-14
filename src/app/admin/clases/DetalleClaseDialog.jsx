@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react"
-import { CalendarDays, CheckCircle2, Clock, Dumbbell, ExternalLink, Layers, User, Users, XCircle } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useNavigate } from "react-router-dom"
+import { ExternalLink } from "lucide-react"
 import apiClient from "@/api"
 import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { Cargando } from "@/components/Cargando"
+import { ModalAdmin } from "@/components/ModalAdmin"
+import { BOTON_SECUNDARIO } from "@/components/estilosModal"
+import { yaTermino } from "./utilClases"
 
 /*
- * Detalle de una clase realizada (historial de Gestión de Clases): datos de la clase, la rutina con sus ejercicios y
- * quiénes reservaron y cómo terminó cada reserva. Solo lectura.
+ * Detalle de una clase (referencia 03): datos en tarjetas, la rutina y quiénes reservaron y cómo terminó cada reserva.
+ * Se abre desde "Ver detalle" del Historial y "Ver anotados" del menú de cada clase. Solo lectura.
  */
 
-const fechaLarga = (f) => (f ? new Date(`${String(f).slice(0, 10)}T12:00:00`).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "—")
+const fechaLarga = (f) => (f ? new Date(`${String(f).slice(0, 10)}T12:00:00`).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).replace(",", "") : "—")
 const hora = (h) => (h ? String(h).slice(0, 5) : "")
+const minutos = (a, b) => { const [h1, m1] = a.split(":").map(Number); const [h2, m2] = b.split(":").map(Number); return h2 * 60 + m2 - (h1 * 60 + m1) }
 
 // La descripción de la rutina puede ser JSON { desc, rutina } (texto enriquecido) o texto plano (formato viejo)
 function partesDeRutina(rutina) {
@@ -26,26 +30,26 @@ function partesDeRutina(rutina) {
 
 // Cómo terminó cada reserva
 function estadoDeReserva(r) {
-  if (r.estadoReserva === "cancelada") return { texto: "Canceló", clase: "border-foreground/15 bg-foreground/5 text-foreground/55", Icono: XCircle }
-  if (r.asistencia === "presente") return { texto: "Asistió", clase: "border-lime-500/40 bg-lime-400/10 text-lime-700 dark:text-lime-400", Icono: CheckCircle2 }
-  if (r.asistencia === "ausente") return { texto: "No asistió", clase: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400", Icono: XCircle }
-  return { texto: "Sin registrar", clase: "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400", Icono: Clock }
+  if (r.estadoReserva === "cancelada") return { texto: "Canceló", color: "var(--muted-foreground)", borde: "var(--sh-control-line)", fondo: "transparent" }
+  if (r.asistencia === "presente") return { texto: "Asistió", color: "var(--primary)", borde: "rgba(155, 230, 0, 0.3)", fondo: "var(--sh-active-bg)" }
+  if (r.asistencia === "ausente") return { texto: "No asistió", color: "var(--sh-danger)", borde: "var(--sh-danger-line)", fondo: "var(--sh-danger-bg)" }
+  return { texto: "Sin registrar", color: "var(--sh-warn)", borde: "var(--sh-warn-line)", fondo: "var(--sh-warn-bg)" }
 }
 
-function Dato({ icono: Icono, etiqueta, valor }) {
+const etiqueta = { font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }
+
+function Dato({ etiqueta: titulo, valor }) {
   if (!valor) return null
   return (
-    <div className="flex items-start gap-2.5 rounded-xl border border-border bg-foreground/[0.03] px-3 py-2.5">
-      <Icono className="mt-0.5 h-4 w-4 shrink-0 text-foreground/45" aria-hidden="true" />
-      <div className="min-w-0">
-        <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/50">{etiqueta}</p>
-        <p className="text-sm font-semibold text-foreground">{valor}</p>
-      </div>
+    <div style={{ borderRadius: "10px", background: "color-mix(in srgb, var(--foreground) 4%, var(--card))", border: "1px solid var(--border)", padding: "12px 16px" }}>
+      <div style={etiqueta}>{titulo}</div>
+      <div style={{ marginTop: "4px", font: "800 15px Archivo" }}>{valor}</div>
     </div>
   )
 }
 
 export default function DetalleClaseDialog({ clase, onCerrar }) {
+  const navigate = useNavigate()
   const [detalle, setDetalle] = useState(null) // { clase, rutina }
   const [asistentes, setAsistentes] = useState(null) // null: cargando; false: no disponible
   const [error, setError] = useState(false)
@@ -68,70 +72,59 @@ export default function DetalleClaseDialog({ clase, onCerrar }) {
     return () => { vigente = false }
   }, [id])
 
-  const abierta = !!clase
+  const permisos = (() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } })()
   const d = detalle?.clase
   const rutina = detalle?.rutina
   const partes = rutina ? partesDeRutina(rutina) : null
   const lista = Array.isArray(asistentes) ? asistentes : []
   const activas = lista.filter((r) => r.estadoReserva !== "cancelada")
   const asistieron = lista.filter((r) => r.asistencia === "presente").length
-  const ausentes = lista.filter((r) => r.asistencia === "ausente").length
-  const canceladas = lista.length - activas.length
+  const realizada = clase ? yaTermino(clase) : false
+  const cupo = Number(d?.cupoMaximo || clase?.cupoMaximo) || 0
+  const dur = d?.horaInicio && d?.horaFin ? minutos(hora(d.horaInicio), hora(d.horaFin)) : 0
+  const asistenciaTexto = asistentes === null || asistentes === false || !cupo ? ""
+    : realizada ? `${asistieron} de ${cupo} · ${Math.round(asistieron / cupo * 100)}%` : `${activas.length} anotados de ${cupo}`
 
   return (
-    <Dialog open={abierta} onOpenChange={(o) => { if (!o) onCerrar() }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex flex-wrap items-center gap-2 font-black uppercase tracking-tight">
-            {clase?.nombreClase}
-            <span className="rounded-md bg-lime-400/15 px-1.5 py-0.5 text-[0.5625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">Realizada</span>
-          </DialogTitle>
-          <DialogDescription>{clase ? `${fechaLarga(clase.fechaEspecifica)}${clase.horaInicio ? ` · ${hora(clase.horaInicio)}${clase.horaFin ? ` a ${hora(clase.horaFin)}` : ""}` : ""}` : ""}</DialogDescription>
-        </DialogHeader>
-
+    <ModalAdmin abierto={Boolean(clase)} onCerrar={onCerrar} ancho={680} titulo={clase?.nombreClase}
+      extraTitulo={realizada && <span style={{ padding: "2px 8px", borderRadius: "999px", background: "var(--sh-active-bg)", border: "1px solid rgba(155, 230, 0, 0.3)", color: "var(--primary)", font: "700 11px Archivo" }}>Realizada</span>}
+      subtitulo={clase ? `${fechaLarga(clase.fechaEspecifica)}${clase.horaInicio ? ` · ${hora(clase.horaInicio)}${clase.horaFin ? ` a ${hora(clase.horaFin)}` : ""}` : ""}` : ""}>
+      <div style={{ maxHeight: "calc(0.9 * var(--bv-vh, 100vh) - 150px)", overflowY: "auto", marginTop: "16px" }}>
         {!detalle && !error && <Cargando filas={3} className="py-2" />}
-        {error && <p className="py-6 text-center text-sm text-foreground/60">No se pudo cargar el detalle de la clase. Probá de nuevo en un momento.</p>}
+        {error && <p style={{ padding: "24px 0", textAlign: "center", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>No se pudo cargar el detalle de la clase. Probá de nuevo en un momento.</p>}
 
         {detalle && (
-          <div className="space-y-5">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Dato icono={User} etiqueta="Coach" valor={d?.nombreProfesor || clase?.nombreProfesor} />
-              <Dato icono={Layers} etiqueta="Tipo de clase" valor={d?.nombreTipo || d?.tipoPlan} />
-              <Dato icono={CalendarDays} etiqueta="Fecha" valor={fechaLarga(d?.fechaEspecifica || clase?.fechaEspecifica)} />
-              <Dato icono={Clock} etiqueta="Horario" valor={d?.horaInicio ? `${hora(d.horaInicio)} a ${hora(d.horaFin)}${d.turno ? ` · ${d.turno}` : ""}` : ""} />
-              <Dato icono={Users} etiqueta="Cupo" valor={d?.cupoMaximo ? `${d.cupoMaximo} lugares` : ""} />
-              {d?.fechaPublicacion && <Dato icono={CalendarDays} etiqueta="Publicada" valor={new Date(d.fechaPublicacion).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} />}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+              <Dato etiqueta="Coach" valor={d?.nombreProfesor || clase?.nombreProfesor} />
+              <Dato etiqueta="Tipo de clase" valor={d?.nombreTipo || d?.tipoPlan} />
+              <Dato etiqueta="Horario" valor={d?.horaInicio ? `${hora(d.horaInicio)} a ${hora(d.horaFin)}${d.turno ? ` · ${d.turno}` : ""}${dur > 0 ? ` · ${dur} min` : ""}` : ""} />
+              <Dato etiqueta="Asistencia" valor={asistenciaTexto} />
+              <Dato etiqueta="Cupo" valor={cupo ? `${cupo} lugares` : ""} />
+              {d?.fechaPublicacion && <Dato etiqueta="Publicada" valor={new Date(d.fechaPublicacion).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", "")} />}
             </div>
 
-            {/* Rutina */}
             <section aria-labelledby="det-rutina">
-              <h3 id="det-rutina" className="mb-2 flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">
-                <Dumbbell className="h-4 w-4" aria-hidden="true" /> Rutina
-              </h3>
+              <h3 id="det-rutina" className="bv-admin-titulo" style={{ margin: "0px 0px 10px", ...etiqueta }}>Rutina</h3>
               {!rutina ? (
-                <p className="rounded-xl border border-dashed border-border px-4 py-5 text-center text-sm text-foreground/55">Esta clase no tuvo una rutina cargada.</p>
+                <p style={{ margin: 0, padding: "18px", borderRadius: "10px", border: "1px dashed var(--sh-control-line)", textAlign: "center", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Esta clase no tuvo una rutina cargada.</p>
               ) : (
-                <div className="space-y-3 rounded-xl border border-border bg-foreground/[0.03] p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {rutina.nombre && <p className="text-sm font-black text-foreground">{rutina.nombre}</p>}
-                    {rutina.categoria && <span className="rounded-full border border-border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-foreground/65">{rutina.categoria}</span>}
-                    {rutina.nivel && <span className="rounded-full border border-border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-foreground/65">Nivel {rutina.nivel}</span>}
-                    {rutina.duracion && <span className="rounded-full border border-border px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-foreground/65">{rutina.duracion} min</span>}
-                  </div>
+                <div style={{ borderRadius: "10px", border: "1px solid var(--border)", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {rutina.nombre && <p style={{ margin: 0, font: "800 14px Archivo" }}>{rutina.nombre}</p>}
                   {partes?.desc && (
                     <div className="prose prose-sm max-w-none text-sm leading-relaxed text-foreground/80 prose-headings:font-black prose-headings:text-foreground prose-strong:text-foreground" dangerouslySetInnerHTML={{ __html: sanitizarHtml(partes.desc) }} />
                   )}
                   {partes?.contenido && (
-                    <div className="prose prose-sm max-w-none rounded-lg border border-border bg-background/50 p-3 text-sm leading-relaxed text-foreground/80 prose-headings:font-black prose-headings:text-foreground prose-strong:text-foreground" dangerouslySetInnerHTML={{ __html: sanitizarHtml(partes.contenido) }} />
+                    <div className="prose prose-sm max-w-none text-sm leading-relaxed text-foreground/90 prose-headings:font-black prose-headings:text-[var(--primary)] prose-strong:text-foreground" dangerouslySetInnerHTML={{ __html: sanitizarHtml(partes.contenido) }} />
                   )}
                   {Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0 && (
-                    <ol className="space-y-1.5">
+                    <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" }}>
                       {rutina.ejercicios.map((e, i) => (
-                        <li key={e.idEjercicio || i} className="flex items-center gap-2.5 text-sm text-foreground/85">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-[0.6875rem] font-black tabular-nums">{i + 1}</span>
-                          <span className="min-w-0 flex-1 truncate">{e.nombre}</span>
+                        <li key={e.idEjercicio || i} style={{ display: "flex", alignItems: "center", gap: "10px", font: "500 14px Archivo" }}>
+                          <span style={{ width: "24px", height: "24px", flexShrink: 0, borderRadius: "50%", background: "var(--sh-track)", display: "grid", placeItems: "center", font: "800 11px Archivo" }}>{i + 1}</span>
+                          <span style={{ flex: "1 1 0%", minWidth: 0 }}>{e.nombre}</span>
                           {e.videoUrl && (
-                            <a href={e.videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Ver el video de ${e.nombre}`} className="inline-flex min-h-[2.25rem] items-center gap-1 text-xs font-bold text-lime-700 hover:underline dark:text-lime-400">
+                            <a href={e.videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Ver el video de ${e.nombre}`} style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: "var(--primary)", font: "700 12px Archivo", textDecoration: "none" }}>
                               Video <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                             </a>
                           )}
@@ -139,48 +132,44 @@ export default function DetalleClaseDialog({ clase, onCerrar }) {
                       ))}
                     </ol>
                   )}
-                  {!partes?.desc && !partes?.contenido && !(rutina.ejercicios?.length > 0) && <p className="text-sm text-foreground/55">La rutina no tiene contenido cargado.</p>}
+                  {!partes?.desc && !partes?.contenido && !(rutina.ejercicios?.length > 0) && <p style={{ margin: 0, font: "500 14px Archivo", color: "var(--muted-foreground)" }}>La rutina no tiene contenido cargado.</p>}
                 </div>
               )}
             </section>
 
-            {/* Quiénes reservaron */}
             {asistentes !== false && (
               <section aria-labelledby="det-alumnos">
-                <h3 id="det-alumnos" className="mb-2 flex items-center gap-2 text-[0.6875rem] font-black uppercase tracking-widest text-foreground/60">
-                  <Users className="h-4 w-4" aria-hidden="true" /> Alumnos
-                </h3>
+                <h3 id="det-alumnos" className="bv-admin-titulo" style={{ margin: "0px 0px 10px", ...etiqueta }}>Alumnos</h3>
                 {asistentes === null ? (
                   <Cargando filas={2} className="py-2" />
                 ) : lista.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-border px-4 py-5 text-center text-sm text-foreground/55">Nadie reservó esta clase.</p>
+                  <p style={{ margin: 0, padding: "18px", borderRadius: "10px", border: "1px dashed var(--sh-control-line)", textAlign: "center", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Nadie reservó esta clase.</p>
                 ) : (
-                  <>
-                    <p className="mb-2 text-xs text-foreground/65">
-                      {activas.length} {activas.length === 1 ? "reserva" : "reservas"} · <strong className="text-foreground">{asistieron}</strong> {asistieron === 1 ? "asistió" : "asistieron"}
-                      {ausentes > 0 && ` · ${ausentes} no ${ausentes === 1 ? "asistió" : "asistieron"}`}
-                      {canceladas > 0 && ` · ${canceladas} ${canceladas === 1 ? "canceló" : "cancelaron"}`}
-                    </p>
-                    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                      {lista.map((r) => {
-                        const est = estadoDeReserva(r)
-                        return (
-                          <li key={r.idReserva} className="flex items-center gap-3 px-3.5 py-2.5">
-                            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{r.nombre}</span>
-                            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-wide ${est.clase}`}>
-                              <est.Icono className="h-3 w-3" aria-hidden="true" />{est.texto}
-                            </span>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none", borderRadius: "10px", border: "1px solid var(--border)", overflow: "hidden" }}>
+                    {lista.map((r, i) => {
+                      const est = estadoDeReserva(r)
+                      return (
+                        <li key={r.idReserva} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", borderTop: i ? "1px solid var(--border)" : 0 }}>
+                          <span style={{ flex: "1 1 0%", minWidth: 0, font: "700 14px Archivo", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.nombre}</span>
+                          <span style={{ padding: "2px 8px", borderRadius: "999px", border: `1px solid ${est.borde}`, background: est.fondo, color: est.color, font: "700 11px Archivo", whiteSpace: "nowrap" }}>{est.texto}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
                 )}
               </section>
             )}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "20px" }}>
+        <button type="button" onClick={onCerrar} style={BOTON_SECUNDARIO}>Cerrar</button>
+        {permisos.includes("clases:alta") && id && (
+          <button type="button" onClick={() => navigate(`/admin/clases/nueva?duplicar=${id}`)}
+            style={{ ...BOTON_SECUNDARIO, border: "1px solid var(--sh-accent)", color: "var(--sh-accent)" }}>Usar como base para una nueva clase</button>
+        )}
+      </div>
+    </ModalAdmin>
   )
 }

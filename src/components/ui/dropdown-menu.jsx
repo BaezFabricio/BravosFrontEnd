@@ -1,4 +1,6 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
+import { useContext } from 'react'
+import { ContenedorPortal } from '@/lib/contenedorPortal'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -33,8 +35,9 @@ function DropdownMenuContent({
   sideOffset = 4,
   ...props
 }) {
+  const contenedor = useContext(ContenedorPortal)
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal container={contenedor || undefined}>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}

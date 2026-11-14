@@ -1,7 +1,8 @@
 import { BotonVolver } from "@/components/BotonVolver"
 import { useEffect, useState } from "react"
 import { Download, TrendingUp, TrendingDown, Trophy, Flame, Loader2 } from "lucide-react"
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
+import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
+import { Link } from "react-router-dom"
 import { AdminPageSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient from "@/api"
 import { TituloPagina } from "@/components/TituloPagina"
@@ -14,6 +15,7 @@ const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "O
 const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 const DIA_CORTO = { LUNES: "Lun", MARTES: "Mar", MIERCOLES: "Mié", JUEVES: "Jue", VIERNES: "Vie", SABADO: "Sáb", DOMINGO: "Dom" }
 
+const pesos = (v) => `$${Number(v || 0).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`
 const plata = (v) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(v) || 0)
 const mesCorto = (ym) => { const [a, m] = String(ym).split("-"); return `${MESES[Number(m) - 1]} ${a.slice(2)}` }
 
@@ -82,6 +84,10 @@ export default function ReportesPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState("")
   const [pestana, setPestana] = useState("ingresos")
+  const [planesRes, setPlanesRes] = useState([])
+  useEffect(() => {
+    apiClient.get("/planes").then((r) => setPlanesRes(r.data?.data || [])).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let vigente = true
@@ -110,6 +116,22 @@ export default function ReportesPage() {
   }
 
   const hoy = new Date()
+  // Escritorio: etiquetas y texto del período como la referencia (el celular sigue con sus etiquetas)
+  const etiquetaEscritorio = { mes: "Este mes", trimestre: "Último trimestre", anio: `Año ${hoy.getFullYear()}` }
+  const textoComparacion = (() => {
+    const partir = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-").map(Number); return new Date(y, m - 1, d) }
+    const largo = (f) => `${f.getDate()} de ${MESES_LARGOS[f.getMonth()]} de ${f.getFullYear()}`
+    if (datos.periodo === "mes") {
+      const ini = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+      const fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
+      return `${ini.getDate()} al ${largo(fin)} · comparado con ${MESES_LARGOS[(hoy.getMonth() + 11) % 12]}`
+    }
+    const desde = partir(datos.rango.desde)
+    const hasta = partir(datos.rango.hasta)
+    const previo = { trimestre: "el trimestre anterior", anio: "el año anterior" }[datos.periodo] || ""
+    return `${largo(desde)} al ${largo(hasta)}${previo ? ` · comparado con ${previo}` : ""}`
+  })()
+
   const PERIODOS = [
     { id: "mes", label: `Este mes (${MESES[hoy.getMonth()]})` },
     { id: "trimestre", label: "Último trimestre" },
@@ -117,6 +139,19 @@ export default function ReportesPage() {
   ]
 
   const ingresos = datos.ingresosPorMes.map((r) => ({ mes: mesCorto(r.mes), total: Number(r.total) }))
+  // Escritorio: los últimos seis meses (los que no tuvieron cobros van en cero), con el nombre corto del mes
+  const barrasIngresos = (() => {
+    const mapa = Object.fromEntries(datos.ingresosPorMes.map((r) => [r.mes, Number(r.total)]))
+    const hoy = new Date()
+    const meses = []
+    for (let i = 5; i >= 0; i--) {
+      const f = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1)
+      const clave = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}`
+      const nombre = f.toLocaleDateString("es-AR", { month: "short" }).replace(".", "")
+      meses.push({ mes: nombre.charAt(0).toUpperCase() + nombre.slice(1), total: mapa[clave] || 0 })
+    }
+    return meses
+  })()
   const promedio = ingresos.length ? Math.round(ingresos.reduce((a, r) => a + r.total, 0) / ingresos.length) : 0
   const variacion = datos.ingresoPrevio > 0 ? ((datos.ingresoTotal - datos.ingresoPrevio) / datos.ingresoPrevio) * 100 : null
   const textoPrevio = { mes: "el mes anterior", trimestre: "el trimestre anterior", anio: "el año anterior" }[datos.periodo]
@@ -206,8 +241,25 @@ export default function ReportesPage() {
         </div>
       </div>
 
-      {/* Período */}
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Período">
+      {/* ESCRITORIO: período, fecha del período y Descargar Excel, como la referencia */}
+      <div className="hidden lg:flex lg:items-center lg:gap-4">
+        <div role="group" aria-label="Período" style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)" }}>
+          {PERIODOS.map((p) => (
+            <button key={p.id} type="button" onClick={() => cambiarPeriodo(p.id)} aria-pressed={periodo === p.id}
+              style={{ height: 40, padding: "0px 18px", borderRadius: 9, border: "none", cursor: "pointer", whiteSpace: "nowrap", font: "700 14px Archivo", background: periodo === p.id ? "var(--primary)" : "transparent", color: periodo === p.id ? "var(--primary-foreground)" : "var(--foreground)" }}>
+              {etiquetaEscritorio[p.id]}
+            </button>
+          ))}
+        </div>
+        <span style={{ font: "500 14px Archivo", color: "var(--muted-foreground)" }}>{textoComparacion}</span>
+        <button type="button" onClick={exportarExcel}
+          style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer" }}>
+          <Download className="h-4 w-4" aria-hidden="true" /> Descargar Excel
+        </button>
+      </div>
+
+      {/* Período (celular y tableta) */}
+      <div className="flex flex-wrap items-center gap-2 lg:hidden" role="group" aria-label="Período">
         {PERIODOS.map((p) => (
           <button key={p.id} type="button" onClick={() => cambiarPeriodo(p.id)} aria-pressed={periodo === p.id}
             className={`flex min-h-[2.25rem] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-black transition-colors ${periodo === p.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-card text-foreground/70"}`}>
@@ -230,7 +282,51 @@ export default function ReportesPage() {
       {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
 
       {/* Indicadores: cada uno con su desglose debajo */}
-      <div className={`grid grid-cols-2 gap-3 lg:grid-cols-4 ${cargando ? "opacity-60" : ""}`}>
+      {/* ESCRITORIO: indicadores de la referencia (un dato grande y una línea debajo) */}
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4">
+        {(() => {
+          const diferencia = datos.ingresoTotal - datos.ingresoPrevio
+          const reservasTotal = datos.reservasPorEstado.reduce((a, r) => a + Number(r.cantidad), 0)
+          const pct = capacidad > 0 ? Math.round((ocupadosTotal / capacidad) * 100) : 0
+          const estilo = { borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", padding: "20px 22px" }
+          const rotulo = { font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }
+          const grande = { margin: "10px 0 0", font: "800 36px Archivo", fontVariantNumeric: "tabular-nums", color: "var(--foreground)" }
+          const linea = { margin: "6px 0 0", font: "600 13px Archivo" }
+          return (
+            <>
+              <div style={{ ...estilo, borderColor: "var(--primary)" }}>
+                <div style={rotulo}>Ingresos</div>
+                <p style={grande}>{pesos(datos.ingresoTotal)}</p>
+                <p style={{ ...linea, color: diferencia >= 0 ? "var(--primary)" : "var(--destructive)" }}>
+                  {`${diferencia >= 0 ? "+" : "−"}${pesos(Math.abs(diferencia))} vs ${textoPrevio} (${pesos(datos.ingresoPrevio)})`}
+                </p>
+              </div>
+              <div style={estilo}>
+                <div style={rotulo}>Alumnos con plan</div>
+                <p style={grande}>{datos.alumnosConPlan}</p>
+                <p style={{ ...linea, color: "var(--muted-foreground)", fontWeight: 500 }}>
+                  {datos.alumnosPorPlan.length === 1 ? `Todos en ${datos.alumnosPorPlan[0].plan}` : datos.alumnosPorPlan.length > 1 ? `Repartidos en ${datos.alumnosPorPlan.length} planes` : "Ninguno con plan activo"}
+                </p>
+              </div>
+              <div style={estilo}>
+                <div style={rotulo}>Ocupación</div>
+                <p style={grande}>{`${pct}%`}</p>
+                <p style={{ ...linea, color: "var(--sh-warn)" }}>{`${ocupadosTotal} de ${capacidad} lugares · ${clases.length} ${clases.length === 1 ? "clase activa" : "clases activas"}`}</p>
+              </div>
+              <div style={estilo}>
+                <div style={rotulo}>Reservas</div>
+                <p style={grande}>{reservasTotal}</p>
+                <p style={{ ...linea, color: "var(--muted-foreground)", fontWeight: 500 }}>
+                  {datos.reservasPorEstado.length ? datos.reservasPorEstado.map((r) => `${r.cantidad} ${(ESTADO_LABELS[r.estado] || r.estado).toLowerCase()}`).join(" · ") : "Sin reservas en el período"}
+                </p>
+              </div>
+            </>
+          )
+        })()}
+      </div>
+
+      {/* Celular y tableta: indicadores como antes */}
+      <div className={`grid grid-cols-2 gap-3 lg:hidden ${cargando ? "opacity-60" : ""}`}>
         <div className={kpi}>
           <p className={kpiTitulo}>Ingreso total</p>
           <p className="mt-2 text-xl font-black tabular-nums text-foreground sm:text-2xl">{plata(datos.ingresoTotal)}</p>
@@ -277,7 +373,58 @@ export default function ReportesPage() {
 
         <div className={`mt-4 ${cargando ? "opacity-60" : ""}`} role="tabpanel">
           {pestana === "ingresos" && (
-            <>
+            <div className="hidden lg:block">
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 300px", gap: 0 }}>
+                <div style={{ paddingRight: 24, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 17px Archivo" }}>Ingresos por mes</h2>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 4, background: "var(--primary)" }} aria-hidden="true" /> Cobros confirmados
+                    </span>
+                  </div>
+                  <div style={{ marginTop: 12, height: 300 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={barrasIngresos} margin={{ top: 28, right: 8, left: 0, bottom: 0 }}>
+                        <XAxis dataKey="mes" stroke="var(--muted-foreground)" fontSize={13} tickLine={false} axisLine={{ stroke: "var(--border)" }} />
+                        <YAxis hide />
+                        <Tooltip formatter={(v) => [pesos(v), "Ingresos"]} contentStyle={tooltipEstilo} />
+                        <Bar dataKey="total" radius={[6, 6, 0, 0]} label={{ position: "top", fill: "var(--foreground)", fontSize: 12, fontWeight: 700, formatter: (v) => pesos(v) }}>
+                          {barrasIngresos.map((r, i) => (
+                            <Cell key={i} fill={i === barrasIngresos.length - 1 ? "var(--primary)" : "var(--sh-track-strong)"} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div style={{ borderLeft: "1px solid var(--border)", paddingLeft: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+                  <h3 className="bv-admin-titulo" style={{ margin: 0, font: "800 16px Archivo" }}>Por método de pago</h3>
+                  {(datos.ingresoPorMetodo || []).length === 0 ? (
+                    <p style={{ margin: 0, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>Sin cobros en el período.</p>
+                  ) : (datos.ingresoPorMetodo || []).map((m) => {
+                    const pct = datos.ingresoTotal > 0 ? Math.round((Number(m.total) / datos.ingresoTotal) * 100) : 0
+                    return (
+                      <div key={m.metodo}>
+                        <div style={{ display: "flex", justifyContent: "space-between", font: "700 14px Archivo" }}>
+                          <span>{m.metodo}</span><span style={{ fontVariantNumeric: "tabular-nums" }}>{pesos(m.total)}</span>
+                        </div>
+                        <div style={{ marginTop: 8, height: 6, borderRadius: 3, background: "var(--sh-track)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${pct}%`, background: "var(--primary)" }} />
+                        </div>
+                        <p style={{ margin: "6px 0 0", font: "500 12px Archivo", color: "var(--muted-foreground)" }}>{`${pct}% de lo cobrado`}</p>
+                      </div>
+                    )
+                  })}
+                  <div style={{ marginTop: "auto", borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+                    <div style={{ font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Mes anterior</div>
+                    <div style={{ marginTop: 6, font: "800 26px Archivo", fontVariantNumeric: "tabular-nums" }}>{pesos(datos.ingresoPrevio)}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {pestana === "ingresos" && (
+            <div className="lg:hidden">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h2 className="text-sm font-black uppercase tracking-wide text-foreground">Evolución de ingresos</h2>
@@ -312,7 +459,7 @@ export default function ReportesPage() {
                   </div>
                 </>
               )}
-            </>
+            </div>
           )}
 
           {pestana === "ocupacion" && (
@@ -416,6 +563,52 @@ export default function ReportesPage() {
           </div>
         </section>
       )}
+      {/* ESCRITORIO: "Para tener en cuenta" (datos de la base: plan que más recaudó, clases sin reservas, planes sin alumnos) */}
+      <div className="hidden lg:block">
+        <h2 className="bv-admin-titulo" style={{ margin: "0px 0px 14px", font: "800 17px Archivo" }}>Para tener en cuenta</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
+          {(() => {
+            const tarjeta = { borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", padding: "20px 22px", display: "flex", flexDirection: "column", gap: 6 }
+            const rotulo = (color, texto) => (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color }}>
+                <span style={{ width: 8, height: 8, borderRadius: 4, background: color }} aria-hidden="true" />{texto}
+              </div>
+            )
+            const enlace = (to, texto) => <Link to={to} style={{ marginTop: "auto", paddingTop: 10, font: "700 14px Archivo", color: "var(--primary)", textDecoration: "none" }}>{texto} ›</Link>
+            const topPlan = [...datos.ingresoPorPlan].sort((a, b) => Number(b.total) - Number(a.total))[0]
+            const sinReservas = clases.filter((c) => c.ocupados === 0)
+            const planesSinAlumnos = planesRes.filter((p) => !Number(p.alumnosActivos))
+            return (
+              <>
+                <div style={tarjeta}>
+                  {rotulo("var(--primary)", "Plan que más recaudó")}
+                  <div style={{ font: "800 17px Archivo" }}>{topPlan ? topPlan.plan : "Sin cobros"}</div>
+                  <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+                    {topPlan ? `${pesos(topPlan.total)} · ${datos.ingresoTotal > 0 ? Math.round((Number(topPlan.total) / datos.ingresoTotal) * 100) : 0}% de lo cobrado en el período.` : "Todavía no hay pagos confirmados en el período."}
+                  </div>
+                  {enlace("/admin/planes", "Ver planes")}
+                </div>
+                <div style={tarjeta}>
+                  {rotulo("var(--sh-warn)", "Clases sin reservas")}
+                  <div style={{ font: "800 17px Archivo" }}>{`${sinReservas.length} de ${clases.length} ${clases.length === 1 ? "clase activa" : "clases activas"}`}</div>
+                  <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+                    {sinReservas.length ? `${sinReservas.map((c) => c.nombreClase).slice(0, 2).join(" y ")} todavía no tiene anotados.` : "Todas tienen anotados."}
+                  </div>
+                  {enlace("/admin/clases", "Ir a Clases")}
+                </div>
+                <div style={tarjeta}>
+                  {rotulo("var(--muted-foreground)", "Planes sin alumnos")}
+                  <div style={{ font: "800 17px Archivo" }}>{`${planesSinAlumnos.length} de ${planesRes.length} ${planesRes.length === 1 ? "plan" : "planes"}`}</div>
+                  <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+                    {planesSinAlumnos.length ? `${planesSinAlumnos.map((p) => p.nombre).slice(0, 2).join(" y ")} no tienen alumnos activos.` : "Todos los planes tienen alumnos activos."}
+                  </div>
+                  {enlace("/admin/planes", "Revisar planes")}
+                </div>
+              </>
+            )
+          })()}
+        </div>
+      </div>
     </div>
   )
 }

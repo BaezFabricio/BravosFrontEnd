@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Save, Landmark, AlertCircle, Info } from 'lucide-react'
+import { Loader2, Save, Landmark, AlertCircle, Info, Check } from 'lucide-react'
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 
@@ -44,11 +44,13 @@ export default function DatosBancarios({ puedeModificar }) {
   // Si no se pudieron leer, no se muestra el formulario: guardarlo vacío borraría los datos reales
   const [fallo, setFallo] = useState(false)
   const [intento, setIntento] = useState(0)
+  // Copia de lo guardado: sirve para saber si hay cambios sin guardar y para descartarlos
+  const [base, setBase] = useState(null)
 
   useEffect(() => {
     fetch('/landing/banco')
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((r) => { setDatos({ ...VACIO, ...(r.data || {}) }); setFallo(false) })
+      .then((r) => { const d = { ...VACIO, ...(r.data || {}) }; setDatos(d); setBase(d); setFallo(false) })
       .catch(() => setFallo(true))
       .finally(() => setCargando(false))
   }, [intento])
@@ -58,24 +60,30 @@ export default function DatosBancarios({ puedeModificar }) {
     setErrores((e) => (e[campo] ? { ...e, [campo]: undefined } : e))
   }
 
+  const hayCambios = base !== null && Object.keys(VACIO).some((k) => datos[k] !== base[k])
+  const descartar = () => { if (base) { setDatos(base); setErrores({}) } }
+
   const guardar = async (e) => {
     e.preventDefault()
     if (!puedeModificar) return
     const e2 = validar(datos)
     setErrores(e2)
     if (Object.keys(e2).length) return
+    const limpio = Object.fromEntries(Object.entries(datos).map(([k, v]) => [k, v.trim()]))
     try {
       setGuardando(true)
       const res = await fetch('/landing/banco', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(Object.entries(datos).map(([k, v]) => [k, v.trim()]))),
+        body: JSON.stringify(limpio),
       })
       const r = await res.json().catch(() => ({}))
       if (!res.ok) {
         if (r.campo) setErrores({ [r.campo]: r.message })
         throw new Error(r.message || 'No se pudieron guardar los datos bancarios')
       }
+      setDatos(limpio)
+      setBase(limpio)
       toast.success('Datos bancarios guardados')
     } catch (err) {
       toast.error(err.message)
@@ -102,7 +110,78 @@ export default function DatosBancarios({ puedeModificar }) {
   }
 
   return (
-    <form onSubmit={guardar} noValidate className="space-y-4">
+    <form onSubmit={guardar} noValidate className="space-y-4 lg:flex lg:flex-col lg:min-h-[calc(var(--bv-vh,100dvh)-13.5rem)]">
+      {/* ESCRITORIO: Datos bancarios como el prototipo de referencia */}
+      <div className="hidden lg:grid lg:items-start" style={{ gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 20 }}>
+        <section style={{ borderRadius: 16, background: 'var(--card)', border: '1px solid var(--border)', padding: '22px 24px' }}>
+          <h2 className="bv-admin-titulo" style={{ margin: 0, font: '800 17px Archivo' }}>Cuenta para transferencias</h2>
+          <p style={{ margin: '4px 0 18px', font: '500 13px Archivo', color: 'var(--muted-foreground)' }}>Los alumnos la ven al pagar por transferencia.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            {[
+              { id: 'banco', label: 'Banco o billetera *', campo: 'bancoEntidad', ph: 'Ej: Banco Galicia', max: 60, err: errores.bancoEntidad },
+              { id: 'titular', label: 'Titular de la cuenta *', campo: 'titularCuenta', ph: 'Ej: Bravos Fitness S.R.L.', max: 100, err: errores.titularCuenta },
+              { id: 'cbu', label: 'CBU o CVU *', campo: 'cvuTransferencia', ph: '22 números', max: 22, err: errores.cvuTransferencia, mono: true, pista: `${datos.cvuTransferencia.length} de 22 números`, solo: /\D/g },
+              { id: 'alias', label: 'Alias *', campo: 'aliasTransferencia', ph: 'BRAVOS.BOX.FSA', max: 20, err: errores.aliasTransferencia, pista: 'Entre 6 y 20 caracteres: letras, números, puntos o guiones.', solo: /\s/g },
+              { id: 'cuit', label: 'CUIT (opcional)', campo: 'cuitTransferencia', ph: '30-71649283-9', max: 13, err: errores.cuitTransferencia, pista: '11 números. Los guiones se ponen solos.', solo: /[^\d-]/g },
+            ].map((c) => (
+              <div key={c.id}>
+                <label htmlFor={`d-${c.id}`} style={{ display: 'block', marginBottom: 8, font: '700 11px Archivo', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>{c.label}</label>
+                <input id={`d-${c.id}`} disabled={!puedeModificar} maxLength={c.max} value={datos[c.campo]} placeholder={c.ph}
+                  onChange={(e) => cambiar(c.campo, c.solo ? e.target.value.replace(c.solo, '') : e.target.value)}
+                  style={{ width: '100%', boxSizing: 'border-box', height: 46, padding: '0px 14px', borderRadius: 10, border: `1px solid ${c.err ? 'var(--destructive)' : 'var(--input-line)'}`, background: 'var(--input)', color: 'var(--foreground)', font: c.mono ? '500 15px ui-monospace, monospace' : '500 15px Archivo', letterSpacing: c.mono ? '0.05em' : undefined }} />
+                {c.err ? <p style={{ margin: '6px 0 0', font: '500 12px Archivo', color: 'var(--destructive)' }}>{c.err}</p> : c.pista && <p style={{ margin: '6px 0 0', font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>{c.pista}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <aside aria-label="Así lo ven los alumnos" style={{ borderRadius: 16, background: 'var(--card)', border: '1px solid var(--border)', padding: '20px 22px' }}>
+          <div style={{ font: '700 11px Archivo', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>Así lo ven los alumnos</div>
+          <div style={{ marginTop: 14, borderRadius: 12, border: '1px solid var(--border)', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <div style={{ font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>Banco o billetera</div>
+              <div style={{ font: '700 15px Archivo' }}>{datos.bancoEntidad || 'Sin cargar'}</div>
+            </div>
+            <div>
+              <div style={{ font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>Titular</div>
+              <div style={{ font: '700 15px Archivo' }}>{[datos.titularCuenta, datos.cuitTransferencia && `CUIT ${datos.cuitTransferencia}`].filter(Boolean).join(' · ') || 'Sin cargar'}</div>
+            </div>
+            <div>
+              <div style={{ font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>CBU / CVU</div>
+              <div style={{ font: '600 14px ui-monospace, monospace', color: datos.cvuTransferencia ? 'var(--foreground)' : 'var(--sh-warn)' }}>{datos.cvuTransferencia || 'Sin cargar'}</div>
+            </div>
+            <div>
+              <div style={{ font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>Alias</div>
+              <div style={{ font: '700 15px Archivo' }}>{datos.aliasTransferencia || 'Sin cargar'}</div>
+            </div>
+          </div>
+          <p style={{ margin: '14px 0 0', display: 'flex', alignItems: 'flex-start', gap: 8, font: '500 13px / 1.5 Archivo', color: 'var(--muted-foreground)' }}>
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Revisalo bien: es la cuenta a la que transfieren los alumnos. Si borrás un dato, deja de mostrarse.
+          </p>
+        </aside>
+      </div>
+
+      {/* Escritorio: barra de abajo como la referencia */}
+      <div style={{ marginTop: 'auto' }} className="hidden lg:flex sticky bottom-0 z-10 items-center justify-between gap-4 border-t border-border bg-background/95 py-4 backdrop-blur lg:pr-24 lg:-mb-[48px] lg:-ml-[22rem] lg:-mr-8 lg:pl-8">
+        <span className="text-sm font-semibold text-muted-foreground">{guardando ? 'Guardando…' : hayCambios ? 'Cambios sin guardar' : 'Todo guardado'}</span>
+        <div className="flex gap-3">
+          <button type="button" onClick={descartar} disabled={guardando}
+            className="inline-flex h-[46px] items-center rounded-[10px] border border-border px-5 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)] disabled:opacity-50">
+            Descartar cambios
+          </button>
+          {puedeModificar && (
+            <button type="submit" disabled={guardando || !hayCambios}
+              className="flex h-[46px] items-center justify-center gap-2 rounded-[10px] px-6 text-[13px] font-black uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-60 bg-lime-400 text-black hover:bg-lime-300 disabled:bg-[rgba(128,128,128,.22)] disabled:text-muted-foreground">
+              {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {guardando ? 'Guardando…' : 'Guardar cambios'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Celular y tableta: como antes */}
+      <div className="lg:hidden space-y-4">
       <section className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-lime-400/15 text-lime-700 dark:text-lime-400">
@@ -155,6 +234,7 @@ export default function DatosBancarios({ puedeModificar }) {
           </button>
         </div>
       )}
+      </div>
     </form>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useConfirmar } from "@/components/useConfirmar"
-import { CheckCheck, Copy, Search, ArrowRight, ArrowLeft } from "lucide-react"
+import { CheckCheck, Copy, Search, ArrowRight, ArrowLeft, Check, Smartphone } from "lucide-react"
 import { toast } from "@/lib/notificar"
 import { TituloPagina } from "@/components/TituloPagina"
 import { Link } from "react-router-dom"
@@ -150,11 +150,143 @@ export default function AvisosPage() {
     <>
       {dialogoConfirmar}
     <div className="space-y-4">
-      <TituloPagina descripcion={"Elegí a quién, escribí abajo y mandalo. Lo que ves en el chat es lo que les llega."}>
+      <TituloPagina descripcion={"Elegí a quién, escribí el aviso y mandalo. La vista previa muestra lo que les llega."}>
         <span className="inline-flex items-center gap-2"><IconoWhatsApp className="h-5 w-5 shrink-0 text-foreground" />Avisos por WhatsApp</span>
       </TituloPagina>
 
-      <div className="grid h-[calc(100dvh-12rem)] min-h-[32.5rem] overflow-hidden rounded-2xl border border-border bg-card min-[720px]:grid-cols-[minmax(16.25rem,21.25rem)_minmax(0,1fr)] min-[720px]:min-h-[37.5rem]">
+      {/* ESCRITORIO: tres tarjetas como la referencia (¿A quién? / Escribí el aviso / vista previa). Mismos datos y acciones. */}
+      <div className="hidden lg:grid lg:items-start" style={{ gridTemplateColumns: "340px minmax(0, 1fr) 420px", gap: 20 }}>
+        {/* ¿A quién? */}
+        <section aria-label="Destinatarios" style={{ borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}>
+          <h2 className="bv-admin-titulo" style={{ margin: 0, padding: "18px 20px 10px", font: "800 17px Archivo" }}>¿A quién?</h2>
+          <p style={{ margin: 0, padding: "10px 20px 6px", font: "700 11px Archivo", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Para todos</p>
+          <button type="button" onClick={() => elegirDestino("grupo")} aria-pressed={aQuien === "grupo"}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", border: "none", borderLeft: `3px solid ${aQuien === "grupo" ? "var(--primary)" : "transparent"}`, background: aQuien === "grupo" ? "var(--sh-active-bg)" : "transparent", color: "var(--foreground)", textAlign: "left", cursor: "pointer" }}>
+            <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: "50%", background: "var(--primary)", color: "var(--primary-foreground)", display: "grid", placeItems: "center", font: "800 13px Archivo" }}>AB</span>
+            <span style={{ minWidth: 0, flex: "1 1 0%" }}>
+              <span style={{ display: "block", font: "700 15px Archivo" }}>Alumnos Bravos</span>
+              <span style={{ display: "block", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>Grupo o lista de difusión</span>
+            </span>
+            {aQuien === "grupo" && <Check className="h-4 w-4" style={{ color: "var(--primary)" }} aria-hidden="true" />}
+          </button>
+
+          <p style={{ margin: 0, padding: "18px 20px 8px", display: "flex", justifyContent: "space-between", font: "700 11px Archivo", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+            <span>A un alumno</span>
+            <span style={{ textTransform: "none", letterSpacing: 0, font: "600 12px Archivo" }}>{`${conTelefono.length} con teléfono`}</span>
+          </p>
+          {usuarios === null ? (
+            <p style={{ margin: 0, padding: "10px 20px 16px", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Cargando…</p>
+          ) : conTelefono.length === 0 ? (
+            <div style={{ margin: "0px 16px 16px", padding: 16, borderRadius: 12, border: "1px dashed var(--sh-control-line)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, font: "700 15px Archivo" }}>
+                <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" /> Ningún alumno tiene teléfono cargado
+              </div>
+              <p style={{ margin: "8px 0 0", font: "500 13px / 1.5 Archivo", color: "var(--muted-foreground)" }}>Para mandarle un aviso a un solo alumno, cargale un celular válido en su ficha.</p>
+              <Link to="/admin/usuarios" style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 12, font: "700 14px Archivo", color: "var(--primary)", textDecoration: "none" }}>Ir a Usuarios ›</Link>
+            </div>
+          ) : (
+            <ul style={{ listStyle: "none", margin: 0, padding: "0px 0px 8px" }}>
+              {conTelefono.map((u) => {
+                const activo = String(aQuien) === String(u.id)
+                return (
+                  <li key={u.id}>
+                    <button type="button" onClick={() => elegirDestino(String(u.id))} aria-pressed={activo}
+                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "12px 20px", border: "none", borderLeft: `3px solid ${activo ? "var(--primary)" : "transparent"}`, background: activo ? "var(--sh-active-bg)" : "transparent", color: "var(--foreground)", textAlign: "left", cursor: "pointer" }}>
+                      <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: "50%", background: "var(--primary)", color: "var(--primary-foreground)", display: "grid", placeItems: "center", font: "800 13px Archivo" }}>{iniciales(u.nombre)}</span>
+                      <span style={{ minWidth: 0, flex: "1 1 0%" }}>
+                        <span style={{ display: "block", font: "700 15px Archivo" }}>{u.nombre}</span>
+                        <span style={{ display: "block", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{u.telefono}</span>
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+
+        {/* Escribí el aviso */}
+        <section aria-label="Escribí el aviso" style={{ borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 17px Archivo" }}>Escribí el aviso</h2>
+            <p style={{ margin: "4px 0 0", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+              Para: <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{aQuien === "grupo" ? "Alumnos Bravos (grupo o lista de difusión)" : `${elegido?.nombre || "Alumno"} (${elegido?.telefono || ""})`}</span>
+            </p>
+          </div>
+          <div>
+            <span style={{ display: "block", marginBottom: 8, font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Empezar desde un modelo</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {MODELOS.map((m) => (
+                <button key={m.nombre} type="button" onClick={() => usarModelo(m)} aria-pressed={modeloActivo === m.nombre}
+                  style={{ height: 40, padding: "0px 16px", borderRadius: 999, border: `1px solid ${modeloActivo === m.nombre ? "var(--primary)" : "var(--sh-control-line)"}`, background: modeloActivo === m.nombre ? "var(--primary)" : "transparent", color: modeloActivo === m.nombre ? "var(--primary-foreground)" : "var(--foreground)", font: "700 13px Archivo", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  {m.nombre}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="av-titulo" style={{ display: "block", marginBottom: 8, font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+              Título <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(opcional · llega en negrita)</span>
+            </label>
+            <input id="av-titulo" value={titulo} maxLength={80} placeholder="Ej: Feriado"
+              onChange={(e) => { setTitulo(e.target.value); setConTitulo(e.target.value.length > 0) }}
+              style={{ width: "100%", boxSizing: "border-box", height: 46, padding: "0px 14px", borderRadius: 10, border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }} />
+          </div>
+          <div>
+            <label htmlFor="av-mensaje" style={{ display: "block", marginBottom: 8, font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Mensaje *</label>
+            <div style={{ borderRadius: 10, border: "1px solid var(--input-line)", background: "var(--input)", overflow: "hidden" }}>
+              <textarea id="av-mensaje" ref={areaRef} value={cuerpo} maxLength={MAX} onChange={(e) => setCuerpo(e.target.value)}
+                placeholder={aQuien === "grupo" ? "Escribí el aviso para todos…" : `Escribí el aviso para ${elegido ? String(elegido.nombre).split(" ")[0] : "el alumno"}…`}
+                style={{ display: "block", width: "100%", boxSizing: "border-box", minHeight: 200, padding: "14px 16px", border: "none", outline: "none", background: "transparent", color: "var(--foreground)", font: "500 15px / 1.5 Archivo", resize: "vertical" }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 12px", borderTop: "1px solid var(--sh-line)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button type="button" onClick={() => envolver("*")} aria-label="Negrita: marcá el texto y tocá" style={{ width: 38, height: 38, borderRadius: 8, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "900 14px Archivo", cursor: "pointer" }}>B</button>
+                  <button type="button" onClick={() => envolver("_")} aria-label="Cursiva: marcá el texto y tocá" style={{ width: 38, height: 38, borderRadius: 8, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "italic 800 14px Archivo", cursor: "pointer" }}>I</button>
+                  <span style={{ font: "500 12px Archivo", color: "var(--muted-foreground)" }}>Marcá una palabra y tocá B o I.</span>
+                </div>
+                <span style={{ font: "600 12px Archivo", color: "var(--muted-foreground)", fontVariantNumeric: "tabular-nums" }}>{`${cuerpo.length} / ${MAX}`}</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderTop: "1px solid var(--sh-line)", paddingTop: 16 }}>
+            <p style={{ margin: 0, font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{vacio ? "Escribí el mensaje para poder mandarlo." : (aQuien === "grupo" ? "Se abre WhatsApp con el mensaje escrito. Ahí elegís la lista o el grupo y lo enviás." : `Se abre el chat de ${String(elegido?.nombre || "este alumno").split(" ")[0]} con el mensaje.`)}</p>
+            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+              <button type="button" onClick={copiar} disabled={vacio}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 18px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: vacio ? "not-allowed" : "pointer", opacity: vacio ? 0.5 : 1 }}>
+                <Copy className="h-4 w-4" aria-hidden="true" /> Copiar
+              </button>
+              <button type="button" onClick={abrir} disabled={vacio || !enlace}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0px 20px", borderRadius: 10, border: "none", background: !vacio && enlace ? "var(--primary)" : "var(--sh-track-strong)", color: !vacio && enlace ? "var(--primary-foreground)" : "var(--muted-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", textTransform: "uppercase", cursor: !vacio && enlace ? "pointer" : "not-allowed" }}>
+                {aQuien === "grupo" ? "Abrir en WhatsApp" : `Enviar a ${String(elegido?.nombre || "").split(" ")[0]}`} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Vista previa */}
+        <section aria-label="Vista previa" style={{ borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 490 }}>
+          <header style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 18px", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ width: 40, height: 40, flexShrink: 0, borderRadius: "50%", background: "var(--primary)", color: "var(--primary-foreground)", display: "grid", placeItems: "center", font: "800 13px Archivo" }}>{aQuien === "grupo" ? "AB" : iniciales(elegido?.nombre)}</span>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, font: "800 15px Archivo" }}>{aQuien === "grupo" ? "Alumnos Bravos" : elegido?.nombre || "Alumno"}</p>
+              <p style={{ margin: 0, font: "500 12px Archivo", color: "var(--muted-foreground)" }}>Vista previa · así les llega</p>
+            </div>
+          </header>
+          <div className="flex flex-1 flex-col justify-end gap-3" style={{ padding: "16px 18px", background: "var(--sh-bg)" }} aria-label="Vista previa del mensaje en WhatsApp">
+            <Separador texto="Hoy" />
+            {vacio ? (
+              <Burbuja discontinua><span className="text-sm">Tu aviso aparece acá mientras lo escribís.</span></Burbuja>
+            ) : (
+              <Burbuja hora={hora}>
+                {titulo && <p className="font-bold">{titulo}</p>}
+                <ConFormato texto={mensaje} />
+              </Burbuja>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid h-[calc(100dvh-12rem)] min-h-[32.5rem] overflow-hidden rounded-2xl border border-border bg-card min-[720px]:grid-cols-[minmax(16.25rem,21.25rem)_minmax(0,1fr)] min-[720px]:min-h-[37.5rem] lg:hidden">
         {/* Destinatarios */}
         <aside className={`min-h-0 flex-col border-border min-[720px]:flex min-[720px]:border-r ${vista === "chat" ? "hidden" : "flex"}`} aria-label="Destinatarios">
           <div className="p-3">

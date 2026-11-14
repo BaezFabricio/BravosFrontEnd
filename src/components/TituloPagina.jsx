@@ -23,8 +23,8 @@ export function TituloPagina({ children, descripcion, className = "text-2xl font
   if (slot === null) return null
   return createPortal(
     <div className="min-w-0">
-      <h1 className="truncate text-[22px] font-extrabold leading-tight text-foreground">{children}</h1>
-      {descripcion && <p className="truncate text-[13px] font-medium leading-tight text-muted-foreground">{descripcion}</p>}
+      <h1 className="bv-admin-titulo truncate text-foreground" style={{ margin: "2px 0px 0px", font: "800 22px Archivo" }}>{children}</h1>
+      {descripcion && <p className="truncate text-muted-foreground" style={{ font: "500 13px Archivo" }}>{descripcion}</p>}
     </div>,
     slot
   )

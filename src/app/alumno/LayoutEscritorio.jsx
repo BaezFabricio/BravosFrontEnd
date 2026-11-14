@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { ContenedorPortal } from "@/lib/contenedorPortal"
+import { useZoomLienzo } from "@/lib/useZoomLienzo"
 import { Link, useLocation } from "react-router-dom"
 import { useTheme } from "@/components/theme-provider"
 import NotificacionesBell from "@/components/NotificacionesBell"
@@ -69,14 +71,19 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
   const { titulo, subtitulo } = paginaActual(pathname)
   // El menú se puede ocultar (se desliza hacia la izquierda y el contenido ocupa su lugar); se recuerda la elección
   const [menuAbierto, setMenuAbierto] = useState(LEE_MENU)
+  const [raiz, setRaiz] = useState(null)
+  const [anfitrion, setAnfitrion] = useState(null) // donde se montan menús y ventanas (ver useZoomLienzo)
+  useZoomLienzo(raiz, anfitrion) // se diseña a 1920 px y se achica según el ancho de la ventana
   const cambiarMenu = (abierto) => {
     setMenuAbierto(abierto)
     try { localStorage.setItem("bx-menu-cerrado", abierto ? "0" : "1") } catch { /* sin almacenamiento: no se recuerda */ }
   }
 
   return (
-    <div className="bx min-h-screen bg-bx-bg text-bx-ink">
+    <ContenedorPortal.Provider value={anfitrion}>
+    <div ref={setRaiz} className="bx min-h-screen bg-bx-bg text-bx-ink">
       <aside
+        style={{ height: "var(--bv-vh, 100vh)" }}
         aria-label="Menú del alumno"
         inert={!menuAbierto}
         className={`fixed left-0 top-0 z-20 flex h-screen w-[17rem] flex-col bg-bx-lateral text-[#ecefe4] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "translate-x-0" : "-translate-x-full"}`}
@@ -164,6 +171,8 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
           <LayoutBxContext.Provider value={true}>{children}</LayoutBxContext.Provider>
         </main>
       </div>
+      <div ref={setAnfitrion} data-anfitrion-portales />
     </div>
+    </ContenedorPortal.Provider>
   )
 }

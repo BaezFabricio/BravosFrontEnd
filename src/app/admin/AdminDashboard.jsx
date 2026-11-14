@@ -17,7 +17,8 @@ const AVATAR_COLORS = [
 
 const DIA_MS = 24 * 60 * 60 * 1000
 const FECHA_HOY = (() => {
-  const texto = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })
+  // Como la referencia: "Viernes 13 de noviembre" (sin coma)
+  const texto = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }).replace(", ", " ")
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 })()
 const MES_ACTUAL = new Date().toLocaleDateString("es-AR", { month: "long" }).toUpperCase()
@@ -61,6 +62,7 @@ const fechaCorta = (fechaOrden) => {
 }
 
 export default function AdminDashboard() {
+  const [atencion, setAtencion] = useState({ pagosPendientes: 0, documentosPorRevisar: 0, cuentasSinVerificar: 0 })
   const [tarjetas, setTarjetas] = useState({
     totalUsuarios: "...",
     usuariosActivos: "...",
@@ -87,6 +89,7 @@ export default function AdminDashboard() {
         const resData = response.data?.data || response.data
         if (resData) {
           setTarjetas(resData.tarjetas)
+          setAtencion(resData.atencion || { pagosPendientes: 0, documentosPorRevisar: 0, cuentasSinVerificar: 0 })
           setSuspendedUsers(resData.suspendedUsers || [])
           setClasesHoy(resData.clasesDeHoy || [])
           setAhora(Date.now())
@@ -199,6 +202,55 @@ export default function AdminDashboard() {
     </div>
   )
 
+  // Escritorio (referencia 01): "Pagó Clase CrossFit · Efectivo" con el monto a la derecha, y
+  // "Reservó la clase del jueves 12, 19:00". Los datos salen de la base; si faltan, se usa el texto de siempre.
+  const pesosActividad = (n) => "$" + Number(n).toLocaleString("es-AR", { maximumFractionDigits: 0 })
+  const metodoActividad = (m) => ({ MercadoPago: "Mercado Pago", Efectivo: "Efectivo", Transferencia: "Transferencia" })[m] || m || ""
+  const textoEscritorio = (a) => {
+    if (a.type === "payment") return `Pagó ${a.plan || "un plan"}${a.metodo ? " · " + metodoActividad(a.metodo) : ""}`
+    if (a.type === "reservation" && a.fechaClase && a.horaClase) {
+      const d = new Date(a.fechaClase + "T12:00:00")
+      const dia = d.toLocaleDateString("es-AR", { weekday: "long" })
+      return `Reservó la clase del ${dia} ${d.getDate()}, ${String(a.horaClase).slice(0, 5)}`
+    }
+    return textoAccion(a.action)
+  }
+  const listaActividadEscritorio = loading ? (
+    <EsqueletoAdmin filas={3} />
+  ) : actividadFiltrada.length === 0 ? (
+    <EstadoVacio titulo="Sin actividad reciente" texto="Cuando los alumnos reserven o paguen, aparece acá." />
+  ) : (
+    <div>
+      {grupos.map((g) => (
+        <div key={g.label}>
+          <p className="px-5 pb-1.5 pt-3.5 text-[11px] font-bold uppercase tracking-[.12em] text-muted-foreground">{g.label}</p>
+          <ul className="divide-y divide-border">
+            {g.items.map((activity, index) => {
+              const pago = activity.type === "payment"
+              const Icono = pago ? DollarSign : Calendar
+              const hora = formatearHora(activity.fecha_orden)
+              return (
+                <li key={index} className="grid min-h-[60px] grid-cols-[36px_minmax(0,1fr)_auto_128px] items-center gap-3.5 border-t border-border px-5 py-2 first:border-t-0">
+                  <span className={`grid h-9 w-9 place-items-center rounded-full ${pago ? "bg-lime-400/15 text-lime-700 dark:text-lime-400" : "bg-muted text-muted-foreground"}`} aria-hidden="true">
+                    <Icono className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-bold text-foreground">{activity.user}</span>
+                    <span className="block truncate text-[13px] text-muted-foreground">{textoEscritorio(activity)}</span>
+                  </span>
+                  <span className="text-[15px] font-extrabold text-lime-700 dark:text-lime-400">{pago && activity.importe != null ? pesosActividad(activity.importe) : ""}</span>
+                  <span className="text-right text-[13px] font-medium text-muted-foreground">
+                    {fechaCorta(activity.fecha_orden)}{hora ? ` · ${hora}` : ""}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+
   // Lista de usuarios sin pago (celular)
   const listaSinPago = loading ? (
     <p className="text-sm text-muted-foreground text-center py-8">Buscando...</p>
@@ -297,8 +349,8 @@ export default function AdminDashboard() {
   // Título de la barra superior (fecha y saludo), como la referencia
   const cabecera = (
     <div className="min-w-0">
-      <p className="truncate text-[13px] font-medium text-muted-foreground">{FECHA_HOY}</p>
-      <h1 className="truncate text-[22px] font-extrabold leading-tight text-foreground">{primerNombre ? `Hola, ${primerNombre}` : "Bienvenido"}</h1>
+      <p className="truncate text-muted-foreground" style={{ font: "500 13px Archivo" }}>{FECHA_HOY}</p>
+      <h1 className="bv-admin-titulo truncate text-foreground" style={{ margin: "2px 0px 0px", font: "800 22px Archivo" }}>{primerNombre ? `Hola, ${primerNombre}` : "Bienvenido"}</h1>
     </div>
   )
 
@@ -402,7 +454,7 @@ export default function AdminDashboard() {
               })}
             </div>
           </div>
-          {listaActividad}
+          {listaActividadEscritorio}
           <Link to="/admin/reportes" className="flex min-h-[52px] items-center justify-center border-t border-border text-sm font-bold text-foreground no-underline hover:bg-[rgba(128,128,128,.14)]">
             Ver toda la actividad →
           </Link>
@@ -423,8 +475,9 @@ export default function AdminDashboard() {
             </div>
             <ul className="divide-y divide-border">
               {[
-                { t: "Usuarios sin pago", n: loading ? null : sinPago, href: "/admin/usuarios" },
-                { t: "Membresías por vencer", n: loading ? null : Number(tarjetas.membresiasPorVencer) || 0, href: "/admin/planes" },
+                { t: "Pagos pendientes de confirmar", n: loading ? null : Number(atencion.pagosPendientes) || 0, href: "/admin/usuarios/abonos/carga-masiva" },
+                { t: "Documentos para revisar", n: loading ? null : Number(atencion.documentosPorRevisar) || 0, href: "/admin/usuarios" },
+                { t: "Cuentas sin verificar el correo", n: loading ? null : Number(atencion.cuentasSinVerificar) || 0, href: "/admin/usuarios" },
               ].map((fila) => (
                 <li key={fila.t}>
                   <Link to={fila.href} className="flex min-h-[58px] items-center gap-3 px-5 text-foreground no-underline hover:bg-[rgba(128,128,128,.14)]">

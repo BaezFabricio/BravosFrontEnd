@@ -5,6 +5,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
 import { Cargando } from "@/components/Cargando"
+import { ModalAdmin, ConfirmarAdmin } from "@/components/ModalAdmin"
+import { useAnchoPanel } from "@/lib/useEscritorio"
 
 /**
  * Administración de los tipos de clase del box (CrossFit, Planificación Atleta, Funcional…).
@@ -17,6 +19,8 @@ export default function TiposClaseDialog({ open, onClose, tipos, onCambio, puede
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState("")
   const [aBorrar, setABorrar] = useState(null)
+  const [aDesactivar, setADesactivar] = useState(null)
+  const escritorio = useAnchoPanel()
 
   const mensaje = (err, porDefecto) => err.response?.data?.message || porDefecto
 
@@ -60,6 +64,87 @@ export default function TiposClaseDialog({ open, onClose, tipos, onCambio, puede
 
   const campo = "h-11 w-full rounded-xl border border-border bg-background/60 px-3 text-base text-foreground outline-none transition-colors focus:border-lime-500"
   const iconBtn = "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-foreground/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:opacity-40"
+
+  // ESCRITORIO (referencia 07): lista de tipos con Desactivar, y "Nuevo tipo de clase" abajo
+  if (escritorio) {
+    const boton = { height: "40px", padding: "0px 14px", borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer", whiteSpace: "nowrap" }
+    const cuadrado = { width: "40px", height: "40px", flexShrink: 0, borderRadius: "10px", border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", display: "grid", placeItems: "center", cursor: "pointer" }
+    return (
+      <>
+        <ModalAdmin abierto={open} onCerrar={onClose} ancho={640} titulo="Tipos de clase">
+          <p style={{ margin: "8px 40px 0px 0px", font: "400 14px / 1.5 Archivo", color: "var(--sh-link)" }}>
+            Cada plan y cada clase es de un tipo. El alumno puede reservar las clases de los tipos que tiene contratados, sin importar el plan que haya comprado dentro de ese tipo.
+          </p>
+          {tipos === null ? <Cargando filas={2} className="py-2" /> : (
+            <ul style={{ listStyle: "none", margin: "18px 0 0", padding: 0, borderRadius: "12px", border: "1px solid var(--border)", overflow: "hidden" }}>
+              {tipos.map((t, i) => {
+                const enUso = t.planes + t.clases + t.horarios > 0
+                const modo = editando?.id === t.idTipoClase
+                return (
+                  <li key={t.idTipoClase} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 16px", borderTop: i ? "1px solid var(--border)" : 0 }}>
+                    <div style={{ flex: "1 1 0%", minWidth: 0 }}>
+                      {modo ? (
+                        <input autoFocus value={editando.nombre} maxLength={50} aria-label={"Nombre del tipo " + t.nombre}
+                          onChange={(e) => setEditando({ id: t.idTipoClase, nombre: e.target.value })}
+                          onKeyDown={(e) => { if (e.key === "Enter") guardar(t, { nombre: editando.nombre.trim() }); if (e.key === "Escape") setEditando(null) }}
+                          style={{ width: "100%", boxSizing: "border-box", height: "40px", padding: "0px 12px", borderRadius: "8px", border: "1px solid var(--sh-accent)", background: "var(--input)", color: "var(--foreground)", font: "700 15px Archivo" }} />
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{ font: "800 15px Archivo", color: t.activo ? "var(--foreground)" : "var(--muted-foreground)" }}>{t.nombre}</span>
+                          <span style={{ padding: "1px 8px", borderRadius: "999px", background: t.activo ? "var(--sh-active-bg)" : "transparent", border: "1px solid " + (t.activo ? "rgba(155, 230, 0, 0.3)" : "var(--sh-control-line)"), color: t.activo ? "var(--primary)" : "var(--muted-foreground)", font: "700 11px Archivo" }}>{t.activo ? "Activo" : "Desactivado"}</span>
+                        </div>
+                      )}
+                      <div style={{ marginTop: "2px", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>
+                        {t.planes + (t.planes === 1 ? " plan" : " planes") + " · " + t.clases + (t.clases === 1 ? " clase" : " clases") + " · " + t.horarios + (t.horarios === 1 ? " horario" : " horarios")}
+                      </div>
+                    </div>
+                    {modo ? (
+                      <>
+                        <button type="button" onClick={() => guardar(t, { nombre: editando.nombre.trim() })} disabled={ocupado} aria-label="Guardar nombre" style={cuadrado}><Check className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => setEditando(null)} aria-label="Cancelar" style={cuadrado}><X className="h-4 w-4" /></button>
+                      </>
+                    ) : (
+                      <>
+                        {puedeEditar && (
+                          <>
+                            <button type="button" onClick={() => setEditando({ id: t.idTipoClase, nombre: t.nombre })} aria-label={"Cambiar el nombre de " + t.nombre} style={cuadrado}><Pencil className="h-4 w-4" /></button>
+                            <button type="button" disabled={ocupado} onClick={() => (t.activo ? setADesactivar(t) : guardar(t, { activo: true }))} style={{ ...boton, minWidth: "112px" }}>{t.activo ? "Desactivar" : "Activar"}</button>
+                          </>
+                        )}
+                        {puedeBorrar && !enUso && (
+                          <button type="button" onClick={() => setABorrar(t)} aria-label={"Eliminar " + t.nombre} style={{ ...cuadrado, color: "var(--sh-danger)" }}><Trash2 className="h-4 w-4" /></button>
+                        )}
+                      </>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {puedeCrear && (
+            <div style={{ marginTop: "20px" }}>
+              <label htmlFor="tc-nuevo" style={{ display: "block", marginBottom: "8px", font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Nuevo tipo de clase</label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input id="tc-nuevo" value={nuevo} maxLength={50} onChange={(e) => { setNuevo(e.target.value); setError("") }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); crear() } }} placeholder="Ej: Funcional, Kids, Yoga"
+                  style={{ flex: "1 1 0%", minWidth: 0, boxSizing: "border-box", height: "46px", padding: "0px 14px", borderRadius: "10px", border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }} />
+                <button type="button" onClick={crear} disabled={ocupado || !nuevo.trim()}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "6px", height: "46px", padding: "0px 16px", borderRadius: "10px", border: "1px solid var(--sh-accent)", background: "transparent", color: "var(--sh-accent)", font: "800 14px Archivo", cursor: "pointer", opacity: nuevo.trim() ? 1 : 0.6 }}>
+                  {ocupado ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Agregar
+                </button>
+              </div>
+            </div>
+          )}
+          {error && <p role="alert" style={{ margin: "12px 0 0", font: "600 13px Archivo", color: "var(--destructive)" }}>{error}</p>}
+        </ModalAdmin>
+        <ConfirmarAdmin abierto={!!aBorrar} onCerrar={() => setABorrar(null)} titulo="¿Eliminar este tipo de clase?" textoAccion="Eliminar" onConfirmar={borrar}
+          texto={aBorrar ? aBorrar.nombre + ". No tiene planes, clases ni horarios, así que no se pierde nada." : ""} />
+        <ConfirmarAdmin abierto={!!aDesactivar} onCerrar={() => setADesactivar(null)} titulo={aDesactivar ? "¿Desactivar " + aDesactivar.nombre + "?" : ""} textoAccion="Desactivar"
+          texto="Sus planes y clases dejan de estar disponibles para los alumnos. Podés volver a activarlo cuando quieras."
+          onConfirmar={() => { const t = aDesactivar; setADesactivar(null); guardar(t, { activo: false }) }} />
+      </>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>

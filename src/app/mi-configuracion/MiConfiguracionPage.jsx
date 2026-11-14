@@ -44,7 +44,7 @@ export default function MiConfiguracionPage() {
   return (
     <div className="space-y-6">
       {/* El panel de alumno ya muestra su "Volver" en el celular */}
-      {panel !== "alumno" && <BotonVolver a={inicioPanel} texto="Volver" />}
+      {panel !== "alumno" && <div className={panel === "general" ? "lg:hidden" : undefined}><BotonVolver a={inicioPanel} texto="Volver" /></div>}
 
       <div>
         <TituloPagina descripcion={"Cómo se ve la app y qué avisos te llegan en este equipo"}>Preferencias</TituloPagina>
@@ -87,16 +87,27 @@ export default function MiConfiguracionPage() {
             <h2 id="pref-avisos" className="text-xl font-extrabold text-foreground">Avisos en este equipo</h2>
             <p className="mt-1 text-sm text-muted-foreground">Te llegan aunque tengas la app cerrada.</p>
           </div>
-          <ActivarNotificaciones variante="tarjeta" />
+          {panel === "general" ? (
+            <>
+              <div className="lg:hidden"><ActivarNotificaciones variante="tarjeta" /></div>
+              <div className="hidden lg:block"><ActivarNotificaciones variante="escritorio" /></div>
+            </>
+          ) : <ActivarNotificaciones variante="tarjeta" />}
         </section>
 
         {/* Instalación */}
         <section aria-labelledby="pref-celular" className="space-y-4">
           <div>
             <h2 id="pref-celular" className="text-xl font-extrabold text-foreground">Bravos en tu celular</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Para Android y iPhone. Es lo primero para poder recibir avisos.</p>
+            <p className={`mt-1 text-sm text-muted-foreground ${panel === "general" ? "lg:hidden" : ""}`}>Para Android y iPhone. Es lo primero para poder recibir avisos.</p>
+            {panel === "general" && <p className="mt-1 hidden text-sm text-muted-foreground lg:block">Instalala para abrirla como una app y recibir avisos también en el teléfono.</p>}
           </div>
-          <InstalarApp />
+          {panel === "general" ? (
+            <>
+              <div className="lg:hidden"><InstalarApp /></div>
+              <div className="hidden lg:block"><InstalarApp escritorio /></div>
+            </>
+          ) : <InstalarApp />}
         </section>
 
         {/* Enlace a Mi perfil */}

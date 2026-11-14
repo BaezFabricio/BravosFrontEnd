@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
-import { BotonVolver } from "@/components/BotonVolver"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText, ChevronLeft, ChevronRight, RefreshCw, X, Check } from "lucide-react"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from "@/lib/notificar"
@@ -511,7 +510,9 @@ export default function GestionAbonosPage() {
     <div className="space-y-6">
 
       {/* Header */}
-      <BotonVolver a={destinoVolver} texto="Volver" />
+      <Link to={destinoVolver} className="inline-flex min-h-[40px] items-center gap-1.5 self-start text-[14px] font-bold text-foreground no-underline">
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Volver a Usuarios
+      </Link>
       <div className="flex items-start gap-4">
         <div className="flex-1">
           <TituloPagina descripcion={"Cargá pagos y revisá las membresías de cada mes"}>Abonos</TituloPagina>
@@ -531,20 +532,10 @@ export default function GestionAbonosPage() {
       </div>
 
       {/* ── CARGA MASIVA (escritorio y tablet) ───────────────────────────────── */}
-      <div id="nueva-carga" className="hidden scroll-mt-24 space-y-3 md:block">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-[17px] font-extrabold text-foreground">Cargar abono</h2>
-            <p className="text-sm text-muted-foreground">Al elegir el plan se completan los créditos, el vencimiento y el monto. Podés cargar varios alumnos a la vez.</p>
-          </div>
-          <button
-            onClick={enviar}
-            disabled={enviando || filas.every(f => f.estado === "ok")}
-            className="flex items-center gap-2 bg-lime-400 text-black font-black uppercase tracking-widest text-sm px-5 py-2.5 hover:bg-lime-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {enviando && <Loader2 className="h-4 w-4 animate-spin" />}
-            {enviando ? "Guardando..." : "Guardar Todo"}
-          </button>
+      <div id="nueva-carga" className="hidden scroll-mt-24 border border-border bg-card md:block">
+        <div className="border-b border-border px-[22px] py-[18px]">
+          <h2 className="text-[17px] font-extrabold text-foreground">Cargar abono</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">Al elegir el plan se completan los créditos, el vencimiento y el monto. Podés cargar varios alumnos a la vez.</p>
         </div>
 
         {(resumen.ok > 0 || resumen.err > 0) && (
@@ -558,7 +549,7 @@ export default function GestionAbonosPage() {
           <table className="w-full text-sm block md:table md:min-w-[65.625rem]">
             <thead className="hidden md:table-header-group">
               <tr className="border-b border-border bg-background/50">
-                {["","Alumno","Plan","Créd.","Horario","Inicio","Vencimiento","Método Pago","Monto",""].map((h, i) => (
+                {["","Alumno","Plan *","Créd.","Horario","Inicio","Vence","Pago","Monto",""].map((h, i) => (
                   <th key={i} className="px-3 py-2 text-left text-xs font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -694,10 +685,31 @@ export default function GestionAbonosPage() {
           </table>
         </div>
 
-        <button onClick={() => setFilas(prev => [...prev, filaNueva()])}
-          className="flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground transition-colors border border-dashed border-border px-4 py-2">
-          <Plus className="h-4 w-4" /> Agregar fila
-        </button>
+        <div className="px-[22px] py-4">
+          <button onClick={() => setFilas(prev => [...prev, filaNueva()])}
+            className="flex items-center gap-2 border border-dashed border-lime-400 px-4 py-2.5 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/10 dark:text-lime-400">
+            <Plus className="h-4 w-4" /> Agregar otro alumno
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-[22px] py-4">
+          <p className="text-sm text-muted-foreground">
+            {filas.length} {filas.length === 1 ? "abono" : "abonos"} · Total ${filas.reduce((t, f) => t + (Number(f.monto) || 0), 0).toLocaleString("es-AR")}
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            {filas.some(f => f.estado !== "ok" && !f.idPlan) && (
+              <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">Elegí el plan en cada fila para guardar.</p>
+            )}
+            <button
+              onClick={enviar}
+              disabled={enviando || filas.every(f => f.estado === "ok")}
+              className="flex h-[46px] items-center gap-2 bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {enviando && <Loader2 className="h-4 w-4 animate-spin" />}
+              {enviando ? "Guardando..." : "Guardar abono"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── LISTA DE ABONOS POR MES ──────────────────────────────────────────── */}
@@ -780,8 +792,8 @@ export default function GestionAbonosPage() {
             {/* Cabecera con navegación de mes */}
             <div className="border-b border-border px-5 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Membresías</p>
-                <p className="text-sm text-foreground/60 mt-0.5">Muestra las membresías que empiezan en el mes elegido. Cambiá de mes con las flechas o tocando el mes.</p>
+                <p className="text-[17px] font-extrabold text-foreground">Membresías del mes</p>
+                <p className="text-sm text-foreground/60 mt-0.5">Las que empiezan en el mes elegido.</p>
               </div>
 
               <div className="flex w-full items-center gap-1.5 sm:w-auto sm:shrink-0">
@@ -976,39 +988,8 @@ export default function GestionAbonosPage() {
                   ) : delMes.length === 0 ? (
                     <tr className="block md:table-row">
                       <td colSpan="12" className="block md:table-cell p-10 text-center">
-                        <p className="text-base font-semibold text-foreground">No hay membresías que empiecen en {labelMes(mesFiltro)}.</p>
-                        <p className="mt-1 text-sm text-foreground/60">Probá con otro mes o cargá un abono nuevo.</p>
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                          {(() => {
-                            const ultimo = Array.from(mesesConDatos)
-                              .map(k => { const [y, m] = k.split("-").map(Number); return { year: y, month: m } })
-                              .filter(({ year, month }) => year !== mesFiltro.year || month !== mesFiltro.month)
-                              .sort((a, b) => b.year - a.year || b.month - a.month)[0]
-                            return ultimo ? (
-                              <button onClick={() => setMesFiltro(ultimo)}
-                                className="bg-lime-400 px-4 py-2 text-sm font-black uppercase tracking-wider text-black transition-colors hover:bg-lime-300">
-                                Ver {labelMes(ultimo)}
-                              </button>
-                            ) : null
-                          })()}
-                          <button
-                            onClick={() => {
-                              // En el celular la carga es con el modal; en pantallas grandes, con la tabla de arriba
-                              if (window.innerWidth < 768) { abrirModalAbono(); return }
-                              const bloque = document.getElementById("nueva-carga")
-                              bloque?.scrollIntoView({ behavior: "smooth", block: "start" })
-                              setTimeout(() => bloque?.querySelector("input")?.focus(), 400)
-                            }}
-                            className="border border-foreground/30 px-4 py-2 text-sm font-black uppercase tracking-wider text-foreground/80 transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
-                            Cargar un nuevo abono
-                          </button>
-                          {!esMesActual && (
-                            <button onClick={() => setMesFiltro({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })}
-                              className="border border-foreground/30 px-4 py-2 text-sm font-black uppercase tracking-wider text-foreground/80 transition-colors hover:border-lime-500 hover:text-lime-700 dark:hover:text-lime-400">
-                              Volver al mes actual
-                            </button>
-                          )}
-                        </div>
+                        <p className="text-base font-semibold text-foreground">No hay membresías que empiecen en {labelMes(mesFiltro).toLowerCase()}</p>
+                        <p className="mt-1 text-sm text-foreground/60">Probá con otro mes o cargá un abono arriba.</p>
                       </td>
                     </tr>
                   ) : delMes.map((ab) => {

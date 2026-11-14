@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Smartphone, Share, SquarePlus, MoreVertical, Download, Check } from "lucide-react"
+import { toast } from "@/lib/notificar"
 
 /*
  * Guía para instalar Bravos en el celular (PWA): pasos para iPhone (Safari) y Android (Chrome).
@@ -48,11 +49,63 @@ function Pasos({ datos }) {
   )
 }
 
-export default function InstalarApp() {
+// Escritorio (Preferencias del admin, referencia 16): pestañas, pasos numerados y la dirección para abrir en el celular
+function EscritorioInstalar({ elegido, setElegido, yaInstalada }) {
+  const copiar = () => {
+    navigator.clipboard?.writeText(window.location.origin).then(
+      () => toast.success("Dirección copiada"),
+      () => toast.error("No se pudo copiar la dirección"),
+    )
+  }
+  if (yaInstalada) {
+    return (
+      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+        <p className="text-sm font-bold text-foreground">Ya tenés la app instalada</p>
+        <p className="mt-1 text-sm text-foreground/60">Si cambiás de celular, repetí estos pasos en el nuevo.</p>
+      </div>
+    )
+  }
+  const datos = PASOS[elegido]
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div role="tablist" aria-label="Tu celular" className="flex gap-7 border-b border-border px-5">
+        {Object.entries(PASOS).map(([clave, d]) => (
+          <button key={clave} type="button" role="tab" aria-selected={elegido === clave} onClick={() => setElegido(clave)}
+            className={"-mb-px border-b-2 py-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 " + (elegido === clave ? "border-lime-400 text-foreground" : "border-transparent text-foreground/55 hover:text-foreground")}>
+            {d.titulo}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" className="grid grid-cols-[minmax(0,1fr)_16.25rem] gap-6 p-5">
+        <div className="space-y-4">
+          <p className="text-sm font-bold text-foreground">{datos.navegador}</p>
+          <ol className="space-y-3.5">
+            {datos.pasos.map((p, n) => (
+              <li key={n} className="flex items-center gap-4">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-lime-400/40 bg-lime-400/10 text-sm font-black text-lime-700 dark:text-lime-400">{n + 1}</span>
+                <p className="text-[0.9375rem] text-foreground/85">{p.texto}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <aside className="flex flex-col gap-2 rounded-xl border border-border p-4">
+          <Smartphone className="h-5 w-5 text-lime-700 dark:text-lime-400" aria-hidden="true" />
+          <p className="text-sm font-bold text-foreground">Estás en una computadora</p>
+          <p className="text-[0.8125rem] leading-snug text-foreground/60">Abrí esta dirección en el celular y seguí los pasos:</p>
+          <p className="break-all text-sm font-bold text-foreground">{window.location.host}</p>
+          <button type="button" onClick={copiar} className="mt-2 h-10 rounded-[0.625rem] border border-border text-sm font-bold text-foreground transition-colors hover:border-foreground/30">Copiar dirección</button>
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+export default function InstalarApp({ escritorio = false } = {}) {
   const [iphone] = useState(esIphone)
   const [yaInstalada] = useState(instalada)
   // Se elige el aparato con los botones de arriba; arranca en el que se está usando
-  const [elegido, setElegido] = useState(iphone ? "iphone" : "android")
+  const [elegido, setElegido] = useState(escritorio || iphone ? "iphone" : "android")
+  if (escritorio) return <EscritorioInstalar elegido={elegido} setElegido={setElegido} yaInstalada={yaInstalada} />
 
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-4">

@@ -1,15 +1,21 @@
 import { useEffect, useRef, useState } from "react"
-import { Maximize, Minimize } from "lucide-react"
+import { Link } from "react-router-dom"
+import { ArrowLeft, Eye, EyeOff, Maximize, Minimize } from "lucide-react"
 
 /*
- * Check-in del gimnasio (para una tablet o una pantalla en recepción). Sin sesión: el alumno escribe su DNI
+ * Check-in del gimnasio (para una tablet o una pantalla en recepción), referencia 02. Sin sesión: el alumno escribe su DNI
  * y se registra su asistencia de hoy, solo si tiene reserva en este horario. El equipo se configura una vez con su clave.
  */
 
 const CLAVE_EQUIPO = "bravos-checkin-clave"
 const TIEMPO_RESULTADO_MS = 9000
+const MIN_CLAVE = 12
 const leerClave = () => { try { return localStorage.getItem(CLAVE_EQUIPO) || "" } catch { return "" } }
 const guardarClave = (c) => { try { localStorage.setItem(CLAVE_EQUIPO, c) } catch { /* sin almacenamiento */ } }
+const conPuntos = (s) => s.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+
+// "Volver al panel" solo aparece si quien abre la pantalla tiene sesión de administración
+const vieneDelAdmin = () => { try { return JSON.parse(localStorage.getItem("permisos") || "[]").some((p) => String(p).startsWith("configuracion:")) } catch { return false } }
 
 async function registrar(dni, clave) {
   const res = await fetch("/api/vv1/asistencia/check-in", {
@@ -21,24 +27,38 @@ async function registrar(dni, clave) {
   return { ok: res.ok, status: res.status, data: json.data, mensaje: json.message, codigo: json.errorCode }
 }
 
+const BORDE = "var(--ck-borde, #2a2a2a)"
+const TEXTO = "#ecefe4"
+const MUDO = "#a3a698"
+const SUAVE = "#c9ccbf"
+const lima = { background: "#9be600", color: "#0b0b0b", cursor: "pointer" }
+const apagado = { background: "#262626", color: "#7d8073", cursor: "not-allowed" }
+const etiqueta = { display: "block", font: "700 12px Archivo", letterSpacing: "0.1em", color: MUDO }
+
 export default function CheckinPage() {
   const [clave, setClave] = useState(leerClave)
   const [claveNueva, setClaveNueva] = useState("")
+  const [verClave, setVerClave] = useState(false)
   const [dni, setDni] = useState("")
+  const [errorDni, setErrorDni] = useState("")
   const [enviando, setEnviando] = useState(false)
   const [resultado, setResultado] = useState(null) // { tipo: "ok" | "error", ... }
+  const [configurando, setConfigurando] = useState(false)
   const temporizador = useRef(null)
 
   // Después de un registro, la pantalla vuelve sola a la espera para el siguiente alumno
   useEffect(() => {
-    if (!resultado) return
+    if (!resultado) return undefined
     temporizador.current = setTimeout(() => { setResultado(null); setDni("") }, TIEMPO_RESULTADO_MS)
     return () => clearTimeout(temporizador.current)
   }, [resultado])
 
+  const dniValido = dni.length >= 7 && dni.length <= 8
+
   const enviar = async (e) => {
     e?.preventDefault()
-    if (enviando || dni.length < 6) return
+    if (enviando) return
+    if (!dniValido) { setErrorDni(dni ? "El DNI tiene 7 u 8 números. Revisalo." : "Escribí tu DNI."); return }
     setEnviando(true)
     try {
       const r = await registrar(dni, clave)
@@ -56,20 +76,41 @@ export default function CheckinPage() {
     }
   }
 
-  const volverAEspera = () => { clearTimeout(temporizador.current); setResultado(null); setDni("") }
+  const volverAEspera = () => { clearTimeout(temporizador.current); setResultado(null); setDni(""); setErrorDni("") }
+  const irAConfigurar = () => { setConfigurando(true); setClaveNueva("") }
 
-  // Pantalla de configuración del equipo (una sola vez)
-  if (!clave) {
+  // Configuración del equipo (una sola vez)
+  if (!clave || configurando) {
+    const faltan = MIN_CLAVE - claveNueva.length
+    const lista = faltan <= 0
+    const guardar = () => { if (!lista) return; guardarClave(claveNueva.trim()); setClave(claveNueva.trim()); setClaveNueva(""); setConfigurando(false) }
     return (
-      <Pantalla>
-        <h1 className="text-3xl font-black uppercase tracking-tight text-white">Configurar este equipo</h1>
-        <p className="mt-2 text-base text-white/60">Pedile la clave de la pantalla de check-in al administrador. Se guarda una sola vez en este equipo.</p>
-        <form className="mt-8 space-y-4" onSubmit={(e) => { e.preventDefault(); if (claveNueva.trim()) { guardarClave(claveNueva.trim()); setClave(claveNueva.trim()); setClaveNueva("") } }}>
-          <input type="password" value={claveNueva} onChange={(e) => setClaveNueva(e.target.value)} aria-label="Clave del equipo" autoComplete="off"
-            className="h-16 w-full rounded-2xl border border-white/20 bg-white/5 px-5 text-xl text-white outline-none focus:border-lime-400" />
-          <button type="submit" disabled={!claveNueva.trim()} className="h-16 w-full rounded-2xl bg-lime-400 text-lg font-black uppercase tracking-wide text-black disabled:opacity-40">Guardar</button>
-        </form>
-      </Pantalla>
+      <Marco>
+        <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", gap: 18 }}>
+          <div>
+            <h1 style={{ margin: 0, letterSpacing: "normal", textTransform: "none", font: "800 36px / 1.1 Archivo" }}>Configurar este equipo</h1>
+            <p style={{ margin: "8px 0 0", font: "500 16px / 1.5 Archivo", color: SUAVE }}>Pedile la clave de la pantalla de check-in al administrador. Se guarda una sola vez en este equipo.</p>
+          </div>
+          <div>
+            <label htmlFor="cfg" style={etiqueta}>CLAVE DEL EQUIPO</label>
+            <div style={{ position: "relative", marginTop: 8 }}>
+              <input id="cfg" type={verClave ? "text" : "password"} autoFocus autoComplete="off" value={claveNueva}
+                onChange={(e) => setClaveNueva(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") guardar() }}
+                style={{ width: "100%", boxSizing: "border-box", height: 56, padding: "0px 52px 0px 14px", borderRadius: 10, border: `1px solid ${lista ? "#3d5a10" : BORDE}`, background: "#0e0e0e", color: TEXTO, font: "500 18px Archivo" }} />
+              <button type="button" onClick={() => setVerClave((v) => !v)} aria-label={verClave ? "Ocultar clave" : "Mostrar clave"} aria-pressed={verClave}
+                style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", width: 44, height: 44, border: "none", borderRadius: 8, background: "transparent", color: SUAVE, display: "grid", placeItems: "center", cursor: "pointer" }}>
+                {verClave ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+              </button>
+            </div>
+            <div role="status" style={{ marginTop: 8, font: "600 14px Archivo", color: lista ? "#9be600" : MUDO }}>
+              {!claveNueva.length ? "Mínimo 12 caracteres." : lista ? "Lista para guardar." : `Faltan ${faltan} caracteres (${claveNueva.length} de ${MIN_CLAVE}).`}
+            </div>
+          </div>
+          <button type="button" onClick={guardar} disabled={!lista}
+            style={{ height: 60, borderRadius: 12, border: "none", font: "800 17px Archivo", letterSpacing: "0.03em", ...(lista ? lima : apagado) }}>Guardar</button>
+          {configurando && clave && <button type="button" onClick={() => setConfigurando(false)} style={{ border: "none", background: "transparent", color: MUDO, font: "600 14px Archivo", textDecoration: "underline", cursor: "pointer" }}>Cancelar</button>}
+        </div>
+      </Marco>
     )
   }
 
@@ -77,63 +118,77 @@ export default function CheckinPage() {
   if (resultado) {
     if (resultado.tipo === "error") {
       return (
-        <Pantalla>
-          <p className="text-5xl text-red-400" aria-hidden="true">✕</p>
-          <h1 className="mt-4 text-3xl font-black uppercase text-white">No se pudo registrar</h1>
-          <p className="mt-3 text-lg text-white/75">{resultado.mensaje}</p>
-          <button type="button" onClick={volverAEspera} className="mt-10 h-16 w-full rounded-2xl border border-white/25 text-lg font-black uppercase text-white">Volver</button>
-        </Pantalla>
+        <Marco>
+          <div style={{ width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 14 }}>
+            <p aria-hidden="true" style={{ margin: 0, font: "800 56px Archivo", color: "#ff8a80" }}>✕</p>
+            <h1 style={{ margin: 0, letterSpacing: "normal", textTransform: "none", font: "800 36px / 1.1 Archivo" }}>No se pudo registrar</h1>
+            <p style={{ margin: 0, font: "500 18px / 1.5 Archivo", color: SUAVE }}>{resultado.mensaje}</p>
+            <button type="button" onClick={volverAEspera} style={{ marginTop: 16, width: "100%", height: 64, borderRadius: 14, border: `1px solid ${BORDE}`, background: "transparent", color: TEXTO, font: "800 18px Archivo", cursor: "pointer" }}>Volver</button>
+          </div>
+        </Marco>
       )
     }
     return (
-      <Pantalla>
-        <p className="text-5xl text-lime-400" aria-hidden="true">✓</p>
-        <h1 className="mt-4 text-4xl font-black uppercase text-white">Asistencia registrada</h1>
-        <p className="mt-2 text-2xl font-bold text-lime-400">{resultado.bienvenida}</p>
-        <div className="mt-8 w-full divide-y divide-white/10 rounded-2xl border border-white/15 text-left">
-          <Fila etiqueta="Clase" valor={`${resultado.clase.nombre} · ${resultado.clase.inicio} a ${resultado.clase.fin}`} />
-          {resultado.semana && <Fila etiqueta="Esta semana" valor={`${resultado.semana.usadas} de ${resultado.semana.total} clases`} />}
-          <Fila etiqueta="Clases disponibles" valor={String(resultado.clasesDisponibles)} />
-          {resultado.vence && <Fila etiqueta="Vence" valor={resultado.vence} />}
+      <Marco>
+        <div style={{ width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 14 }}>
+          <p aria-hidden="true" style={{ margin: 0, font: "800 56px Archivo", color: "#9be600" }}>✓</p>
+          <h1 style={{ margin: 0, letterSpacing: "normal", textTransform: "none", font: "800 38px / 1.1 Archivo" }}>Asistencia registrada</h1>
+          <p style={{ margin: 0, font: "700 24px Archivo", color: "#9be600" }}>{resultado.bienvenida}</p>
+          <div style={{ marginTop: 10, width: "100%", borderRadius: 14, border: `1px solid ${BORDE}`, textAlign: "left", overflow: "hidden" }}>
+            <Fila etiqueta="Clase" valor={`${resultado.clase.nombre} · ${resultado.clase.inicio} a ${resultado.clase.fin}`} />
+            {resultado.semana && <Fila etiqueta="Esta semana" valor={`${resultado.semana.usadas} de ${resultado.semana.total} clases`} />}
+            <Fila etiqueta="Clases disponibles" valor={String(resultado.clasesDisponibles)} />
+            {resultado.vence && <Fila etiqueta="Vence" valor={resultado.vence} />}
+          </div>
+          <button type="button" onClick={volverAEspera} style={{ marginTop: 10, width: "100%", height: 64, borderRadius: 14, border: "none", font: "800 18px Archivo", ...lima }}>Listo</button>
+          <p style={{ margin: 0, font: "500 14px Archivo", color: MUDO }}>La pantalla vuelve sola en unos segundos.</p>
         </div>
-        <button type="button" onClick={volverAEspera} className="mt-8 h-14 w-full rounded-2xl bg-lime-400 text-lg font-black uppercase text-black">Listo</button>
-        <p className="mt-3 text-sm text-white/40">La pantalla vuelve sola en unos segundos.</p>
-      </Pantalla>
+      </Marco>
     )
   }
 
   // Espera: se escribe el DNI
   return (
-    <Pantalla>
-      <h1 className="text-3xl font-black uppercase tracking-tight text-white">Registrá tu check-in</h1>
-      <p className="mt-2 text-base text-white/60">Escribí tu DNI sin puntos y tocá Registrar.</p>
-      <form onSubmit={enviar} className="mt-8 space-y-4">
-        <input
-          value={dni}
-          onChange={(e) => setDni(e.target.value.replace(/\D/g, "").slice(0, 10))}
-          inputMode="numeric"
-          autoComplete="off"
-          placeholder="DNI"
-          aria-label="DNI"
-          autoFocus
-          className="h-20 w-full rounded-2xl border border-white/20 bg-white/5 text-center text-4xl font-black tracking-[0.15em] text-white outline-none placeholder:text-white/25 focus:border-lime-400"
-        />
-        <button type="submit" disabled={enviando || dni.length < 6} className="h-20 w-full rounded-2xl bg-lime-400 text-2xl font-black uppercase tracking-wide text-black disabled:opacity-40">
+    <Marco pie={<button type="button" onClick={irAConfigurar} style={{ position: "absolute", bottom: 20, minHeight: 44, padding: "0px 12px", border: "none", background: "transparent", color: MUDO, font: "600 14px Archivo", textDecoration: "underline", cursor: "pointer" }}>Configurar equipo (solo administrador)</button>}>
+      <form onSubmit={enviar} noValidate style={{ width: "100%", maxWidth: 460, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div>
+          <h1 style={{ margin: 0, letterSpacing: "normal", textTransform: "none", font: "800 40px / 1.1 Archivo" }}>Registrá tu asistencia</h1>
+          <p style={{ margin: "8px 0 0", font: "500 18px Archivo", color: SUAVE }}>Escribí tu DNI con el teclado y apretá Enter.</p>
+        </div>
+        <div>
+          <label htmlFor="dni" style={etiqueta}>DNI</label>
+          <input id="dni" autoFocus inputMode="numeric" autoComplete="off" aria-invalid={Boolean(errorDni)} aria-describedby="dni-e"
+            value={conPuntos(dni)}
+            onChange={(e) => { setDni(e.target.value.replace(/\D/g, "").slice(0, 8)); setErrorDni("") }}
+            onKeyDown={(e) => { if (e.key === "Escape") { setDni(""); setErrorDni("") } }}
+            style={{ width: "100%", boxSizing: "border-box", height: 96, marginTop: 8, padding: "0px 14px", borderRadius: 10, border: `1px solid ${errorDni ? "#6b2a24" : BORDE}`, background: "#0e0e0e", color: TEXTO, textAlign: "center", font: "800 46px Archivo", letterSpacing: "0.06em", fontVariantNumeric: "tabular-nums" }} />
+          <div id="dni-e" role="alert" style={{ marginTop: 8, minHeight: 20, textAlign: "center", font: "600 14px Archivo", color: "#ff8a80" }}>{errorDni}</div>
+        </div>
+        <button type="submit" disabled={enviando}
+          style={{ height: 72, borderRadius: 14, border: "none", font: "800 20px Archivo", letterSpacing: "0.03em", ...(dniValido && !enviando ? lima : apagado) }}>
           {enviando ? "Registrando…" : "Registrar"}
         </button>
+        <div aria-hidden="true" style={{ marginTop: -6, textAlign: "center", font: "500 14px Archivo", color: MUDO }}>
+          o apretá <Tecla>Enter</Tecla> · <Tecla>Esc</Tecla> para borrar
+        </div>
       </form>
-      <button type="button" onClick={() => { setClave(""); guardarClave("") }} className="mt-10 text-xs text-white/30 underline">Cambiar la clave del equipo</button>
-    </Pantalla>
+    </Marco>
   )
 }
 
-// Pantalla completa: solo para esta página (el resto del sistema no cambia). Se pide con un toque, porque el navegador lo exige.
-function BotonPantallaCompleta() {
+function Tecla({ children }) {
+  return <span style={{ padding: "2px 8px", borderRadius: 6, border: "1px solid #444", background: "#161616", color: TEXTO, font: "700 13px Archivo" }}>{children}</span>
+}
+
+// Marco de la pantalla: foto a la izquierda (45 %), y a la derecha la hora, pantalla completa y el contenido
+function Marco({ children, pie }) {
+  const [hora, setHora] = useState(() => new Date())
   const [completa, setCompleta] = useState(false)
   useEffect(() => {
+    const t = setInterval(() => setHora(new Date()), 15000)
     const cambio = () => setCompleta(Boolean(document.fullscreenElement))
     document.addEventListener("fullscreenchange", cambio)
-    return () => document.removeEventListener("fullscreenchange", cambio)
+    return () => { clearInterval(t); document.removeEventListener("fullscreenchange", cambio) }
   }, [])
   const alternar = async () => {
     try {
@@ -141,28 +196,39 @@ function BotonPantallaCompleta() {
       else await document.documentElement.requestFullscreen()
     } catch { /* el navegador no permite pantalla completa aquí */ }
   }
+  const reloj = `${String(hora.getHours()).padStart(2, "0")}:${String(hora.getMinutes()).padStart(2, "0")} · ${hora.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short" }).replace(",", "").replace(".", "")}`
   return (
-    <button type="button" onClick={alternar} aria-label={completa ? "Salir de pantalla completa" : "Pantalla completa"}
-      className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-white/70 hover:text-white">
-      {completa ? <Minimize className="h-5 w-5" aria-hidden="true" /> : <Maximize className="h-5 w-5" aria-hidden="true" />}
-    </button>
-  )
-}
-
-function Pantalla({ children }) {
-  return (
-    <div className="dark relative min-h-[100dvh] bg-black px-6 py-10 text-white">
-      <BotonPantallaCompleta />
-      <div className="mx-auto flex min-h-[80dvh] max-w-md flex-col items-center justify-center text-center">{children}</div>
+    <div className="dark" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", background: "#050505", color: TEXTO, fontFamily: "Archivo, sans-serif" }}>
+      <div className="hidden md:block" style={{ position: "relative", width: "45%", flexShrink: 0, overflow: "hidden", background: "#000" }}>
+        <img src="/checkin-atleta.jpg" alt="Atleta entrenando en Bravos Box con la frase: Empieza aunque no sepas lo que viene luego" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+        <span aria-hidden="true" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 120, background: "linear-gradient(90deg, rgba(5, 5, 5, 0), #050505)" }} />
+      </div>
+      <div style={{ flex: "1 1 0%", minWidth: 0, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, overflowY: "auto" }}>
+        <div style={{ position: "absolute", top: 24, left: 40, right: 24, display: "flex", alignItems: "center", gap: 12 }}>
+          {vieneDelAdmin() && (
+            <Link to="/admin/check-in" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, height: 44, padding: "0px 16px", borderRadius: 10, border: "1px solid #333", color: TEXTO, font: "700 14px Archivo", textDecoration: "none", whiteSpace: "nowrap" }}>
+              <ArrowLeft className="h-[17px] w-[17px]" aria-hidden="true" /> Volver al panel
+            </Link>
+          )}
+          <span style={{ flex: "1 1 0%" }} />
+          <span style={{ font: "700 15px Archivo", color: SUAVE, fontVariantNumeric: "tabular-nums" }}>{reloj}</span>
+          <button type="button" onClick={alternar} aria-label={completa ? "Salir de pantalla completa" : "Pantalla completa"}
+            style={{ width: 48, height: 48, borderRadius: "50%", border: "1px solid #333", background: "transparent", color: TEXTO, display: "grid", placeItems: "center", cursor: "pointer" }}>
+            {completa ? <Minimize className="h-[19px] w-[19px]" aria-hidden="true" /> : <Maximize className="h-[19px] w-[19px]" aria-hidden="true" />}
+          </button>
+        </div>
+        {children}
+        {pie}
+      </div>
     </div>
   )
 }
 
-function Fila({ etiqueta, valor }) {
+function Fila({ etiqueta: titulo, valor }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 px-5 py-4">
-      <span className="text-sm font-bold uppercase tracking-wide text-white/50">{etiqueta}</span>
-      <span className="text-right text-lg font-black text-white">{valor}</span>
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, padding: "14px 20px", borderTop: `1px solid ${BORDE}` }}>
+      <span style={{ font: "700 13px Archivo", letterSpacing: "0.08em", textTransform: "uppercase", color: MUDO }}>{titulo}</span>
+      <span style={{ textAlign: "right", font: "800 18px Archivo" }}>{valor}</span>
     </div>
   )
 }

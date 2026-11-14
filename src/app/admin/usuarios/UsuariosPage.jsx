@@ -37,7 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
+import apiClient, { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } from "@/api"
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
@@ -71,9 +71,35 @@ const membershipConfig = {
 
 // Acciones sobre un usuario. Se muestran según los permisos del perfil (el servidor vuelve a
 // controlarlos en cada ruta: ocultar una opción no es la protección).
-function MenuAcciones({ user, permisos, navigate, onCambiarEstado, onEliminar, children }) {
+function MenuAcciones({ user, permisos, navigate, onCambiarEstado, onEliminar, children, variante }) {
   const id = user.idUsuario || user.id
   const ir = (e, ruta) => { e.stopPropagation(); navigate(ruta) }
+  if (variante === "ficha") {
+    const item = "min-h-[40px] gap-3 px-3 text-[14px] font-bold"
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[232px] p-1.5" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px" }}>
+          {permisos.includes("usuarios:modificacion") && (
+            user.estado === "inactivo" ? (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCambiarEstado(user, "activate") }} className={item}>
+                <UserCheck className="h-4 w-4" aria-hidden="true" /> Activar usuario
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCambiarEstado(user, "deactivate") }} className={item}>
+                <UserX className="h-4 w-4" aria-hidden="true" /> Desactivar usuario
+              </DropdownMenuItem>
+            )
+          )}
+          {permisos.includes("usuarios:baja") && (
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEliminar(user) }} className={item} style={{ color: "var(--sh-danger)" }}>
+              <Trash2 className="h-4 w-4" aria-hidden="true" /> Eliminar usuario
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
@@ -176,16 +202,6 @@ const ORDENES = [
   { id: "membresia", label: "Membresía activa primero" },
 ]
 
-// Texto de la ficha según el estado de la cuenta
-const textoCuenta = (u) => (u.sinAcceso
-  ? "Sin cuenta: se gestiona desde este panel"
-  : ({
-    activo: "Cuenta activa y habilitada",
-    inactivo: "Cuenta inactiva: no puede entrar ni reservar",
-    pendiente: "Cuenta pendiente: todavía no verificó su correo. Se activa sola cuando lo verifique",
-    suspendido: "Cuenta suspendida",
-  }[u.estado] || ""))
-
 const fechaCorta = (valor) => {
   const d = new Date(valor)
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -204,8 +220,8 @@ function UltimasReservas({ idUsuario }) {
 
   useEffect(() => {
     let vigente = true
-    fetch(`/api/vv1/reservas/admin/usuario/${idUsuario}`)
-      .then((r) => r.json())
+    apiClient.get(`/reservas/admin/usuario/${idUsuario}`)
+      .then((r) => r.data)
       .then((r) => { if (vigente) setReservas(Array.isArray(r.data) ? r.data.slice(0, 5) : []) })
       .catch(() => { if (vigente) setReservas([]) })
     return () => { vigente = false }
@@ -232,8 +248,27 @@ function UltimasReservas({ idUsuario }) {
   )
 }
 
-// Ficha del usuario elegido en la lista (computadora): estado, membresía, datos y acciones.
-// Con "Editar" los mismos datos pasan a ser campos en su lugar (no se cambia de pantalla ni de diseño).
+// Estilos de la referencia 04 (colores de los tokens del tema)
+const pastilla = (fondo, linea, tinta) => ({ padding: "3px 9px", borderRadius: 999, background: fondo, border: `1px solid ${linea}`, color: tinta, font: "700 11px Archivo", whiteSpace: "nowrap" })
+const estiloMembresiaPastilla = (m) => (m === "vigente" || m === "activa"
+  ? pastilla("var(--sh-active-bg)", "rgba(155, 230, 0, 0.3)", "var(--primary)")
+  : m === "por_vencer"
+    ? pastilla("var(--sh-warn-bg)", "var(--sh-warn-line)", "var(--sh-warn)")
+    : pastilla("var(--sh-danger-bg)", "var(--sh-danger-line)", "var(--sh-danger)"))
+const estiloSinVerificar = pastilla("var(--sh-warn-bg)", "var(--sh-warn-line)", "var(--sh-warn)")
+const estiloSinCuenta = pastilla("transparent", "var(--sh-control-line)", "var(--muted-foreground)")
+// "10 nov 2026" a partir de la fecha de la base (sin pasarla por UTC)
+const fechaLarga = (valor) => {
+  if (!valor) return ""
+  const [y, m, d] = String(valor).slice(0, 10).split("-").map(Number)
+  if (!y || !m || !d) return ""
+  return new Date(y, m - 1, d).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" })
+}
+const perfilTexto = (u) => { const p = String(u.nombrePerfil || u.perfil || "").trim(); return p ? p.charAt(0).toUpperCase() + p.slice(1) : "Sin perfil" }
+const estiloBotonContorno = { display: "flex", alignItems: "center", gap: 8, height: 46, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", whiteSpace: "nowrap", textDecoration: "none", cursor: "pointer" }
+const estiloBotonLima = { display: "flex", alignItems: "center", gap: 8, height: 46, padding: "0px 20px", borderRadius: 10, border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", whiteSpace: "nowrap", textDecoration: "none", cursor: "pointer" }
+
+// Ficha del usuario elegido en la lista (computadora), como la referencia 04. "Editar" convierte los datos en campos en su lugar.
 function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, onGuardado }) {
   const id = user.idUsuario || user.id
   const ed = useEdicionFicha(user, onGuardado)
@@ -242,6 +277,19 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
   const planes = Array.isArray(user.planes) ? user.planes : []
   const puedeVerReservas = permisos.includes("reservas:consulta")
   const puedeVerDetalle = permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")
+  const fechaVencimientoTexto = fechaLarga(user.fechaVencimiento)
+  const [reenviando, setReenviando] = useState(false)
+  const reenviarVerificacion = async () => {
+    setReenviando(true)
+    try {
+      await apiClient.post(`/usuarios/${id}/reenviar-verificacion`)
+      toast.success("Reenviamos el correo de verificación", { guardar: false })
+    } catch (err) {
+      toast.error(err.response?.data?.message || "No se pudo reenviar el correo")
+    } finally {
+      setReenviando(false)
+    }
+  }
 
   const campo = (error) => `w-full border-0 border-b ${error ? "border-red-600/60 dark:border-red-500/60" : "border-lime-500/60"} bg-transparent p-0 pr-6 text-sm font-bold leading-5 text-foreground outline-none transition-colors focus:border-lime-500`
   const conLapiz = (input) => (
@@ -261,20 +309,31 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
   )
   const mensaje = (texto) => texto && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{texto}</p>
 
-  const dato = (titulo, valor, ancho = "") => (
-    <div className={`min-w-0 border-l border-border px-[18px] py-3.5 first:border-l-0 ${ancho}`}>
+  const celdaContacto = (titulo, valor, primera = false) => (
+    <div style={{ minWidth: 0, padding: "14px 18px", borderLeft: primera ? "none" : "1px solid var(--border)" }}>
+      <p style={{ margin: 0, font: "600 12px Archivo", color: "var(--muted-foreground)" }}>{titulo}</p>
+      <div style={{ marginTop: 3, font: "700 15px Archivo", color: "var(--foreground)" }}>{valor}</div>
+    </div>
+  )
+  // Edición: los mismos campos con su lápiz (sin cambiar de pantalla)
+  const datoEdicion = (titulo, valor, primera = false) => (
+    <div className={`min-w-0 px-[18px] py-3.5 ${primera ? "" : "border-l border-border"}`}>
       <p className="text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">{titulo}</p>
       <div className="mt-0.5 text-sm font-bold text-foreground">{valor}</div>
     </div>
   )
 
+  const avatar = (
+    <span style={{ width: 68, height: 68, flexShrink: 0, borderRadius: 18, background: "var(--primary)", color: "var(--primary-foreground)", display: "grid", placeItems: "center", overflow: "hidden", font: "900 30px 'Big Shoulders Stencil Display', Archivo, sans-serif" }}>
+      {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(user.nombre)}
+    </span>
+  )
+
   return (
-    <section aria-label={`Ficha de ${user.nombre}`} className={`rounded-2xl border bg-card p-6 ${editando ? "border-lime-500/50" : "border-border"}`}>
-      <div className="flex items-start gap-4">
-        <div className="flex h-[68px] w-[68px] shrink-0 items-center justify-center overflow-hidden rounded-[18px] bg-lime-400 text-[30px] font-black text-[#0b0b0b]" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>
-          {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(user.nombre)}
-        </div>
-        <div className="min-w-0 flex-1">
+    <section aria-label={`Ficha de ${user.nombre}`} style={{ borderRadius: 16, background: "var(--card)", border: `1px solid ${editando ? "var(--primary)" : "var(--border)"}`, padding: 24 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+        {avatar}
+        <div style={{ minWidth: 0, flex: "1 1 0%" }}>
           {editando ? (
             <div>
               <div className="relative">
@@ -298,70 +357,127 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
             </div>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="truncate text-base font-black leading-tight text-foreground">{user.nombre}</h2>
-                <span className="rounded-md border border-lime-500/40 bg-lime-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
-                  {user.nombrePerfil || user.perfil || "Sin perfil"}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 22px Archivo" }}>{user.nombre}</h2>
+                <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--sh-control-line)", color: "var(--muted-foreground)", font: "700 11px Archivo", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  {(user.nombrePerfil || user.perfil || "Sin perfil").trim()}
                 </span>
-                {user.sinAcceso && <span className="rounded-md border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
               </div>
-              <p className="mt-1 text-sm text-foreground/70">{textoCuenta(user)}</p>
+              <p style={{ margin: "4px 0 0", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>{user.email || "Sin correo"}</p>
             </>
           )}
         </div>
         {!editando && (
-          <MenuAcciones user={user} permisos={permisos} navigate={navigate} onCambiarEstado={onCambiarEstado} onEliminar={onEliminar}>
+          <MenuAcciones variante="ficha" user={user} permisos={permisos} navigate={navigate} onCambiarEstado={onCambiarEstado} onEliminar={onEliminar}>
             <button type="button" aria-label={`Más acciones para ${user.nombre}`}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-foreground/70 transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", display: "grid", placeItems: "center", cursor: "pointer" }}>
               <MoreHorizontal className="h-5 w-5" />
             </button>
           </MenuAcciones>
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-3.5">
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
-          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Membresía</p>
-          <span className={`mt-1.5 inline-block rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
-        </div>
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
-          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Créditos disponibles</p>
-          <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{Number(user.creditos) || 0}</p>
-        </div>
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
-          <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">{editando && !ed.propia ? "Estado general" : "Plan vigente"}</p>
-          {editando && !ed.propia ? (
-            <div className="mt-1.5">
-              {lista(
-                "Estado de la cuenta",
-                form.estado,
-                (v) => ed.cambiar("estado", v),
-                [
-                  ...(form.estado === "pendiente" || form.estado === "suspendido" ? [{ valor: form.estado, texto: (statusConfig[form.estado] || statusConfig.activo).label }] : []),
-                  { valor: "activo", texto: "Activo" },
-                  { valor: "inactivo", texto: "Inactivo" },
-                ],
-              )}
-            </div>
-          ) : (
-            <span className="mt-1.5 block text-[17px] font-extrabold text-foreground">{planes.length ? planes.map((p) => p.nombre).join(", ") : "Ninguno"}</span>
+      {!editando && !user.sinAcceso && user.correoVerificado === 0 && (
+        <div style={{ marginTop: 20, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 12, border: "1px solid var(--sh-warn-line)", background: "var(--sh-warn-bg)", padding: "12px 16px" }}>
+          <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "600 14px Archivo", color: "var(--sh-warn)" }}>
+            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Todavía no verificó su correo. La cuenta se activa sola cuando lo haga.
+          </p>
+          {permisos.includes("usuarios:modificacion") && (
+            <button type="button" onClick={reenviarVerificacion} disabled={reenviando}
+              style={{ minHeight: 36, padding: "0px 12px", borderRadius: 8, border: "1px solid var(--sh-warn-line)", background: "transparent", color: "var(--sh-warn)", font: "800 12px Archivo", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer", opacity: reenviando ? 0.5 : 1 }}>
+              {reenviando ? "Enviando…" : "Reenviar correo"}
+            </button>
           )}
         </div>
-      </div>
+      )}
+
+      {!editando && (
+        <div style={{ marginTop: 20, display: "flex", flexWrap: "wrap", gap: 10 }}>
+          <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)} style={estiloBotonLima}>
+            <Plus className="h-4 w-4" aria-hidden="true" /> CARGAR ABONO
+          </button>
+          <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)} style={estiloBotonContorno}>
+            <CreditCard className="h-4 w-4" aria-hidden="true" /> Ver abonos
+          </button>
+          {puedeVerDetalle && (
+            <button type="button" onClick={() => navigate(`/admin/usuarios/${id}`)} style={estiloBotonContorno}>
+              <Eye className="h-4 w-4" aria-hidden="true" /> Ficha completa
+            </button>
+          )}
+          {permisos.includes("usuarios:modificacion") && (
+            <button type="button" onClick={ed.abrir} style={estiloBotonContorno}>
+              <Pencil className="h-4 w-4" aria-hidden="true" /> Editar
+            </button>
+          )}
+        </div>
+      )}
+
+      {editando && (
+        <div className="mt-6 grid grid-cols-3 gap-3.5">
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+            <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Membresía</p>
+            <span className={`mt-1.5 inline-block rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-wider ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
+          </div>
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+            <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Créditos disponibles</p>
+            <p className="text-[40px] font-black leading-none tabular-nums text-lime-700 dark:text-lime-400" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{Number(user.creditos) || 0}</p>
+          </div>
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted px-[18px] py-4">
+            <p className="text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">{!ed.propia ? "Estado general" : "Plan vigente"}</p>
+            {!ed.propia ? (
+              <div className="mt-1.5">
+                {lista(
+                  "Estado de la cuenta",
+                  form.estado,
+                  (v) => ed.cambiar("estado", v),
+                  [
+                    ...(form.estado === "pendiente" || form.estado === "suspendido" ? [{ valor: form.estado, texto: (statusConfig[form.estado] || statusConfig.activo).label }] : []),
+                    { valor: "activo", texto: "Activo" },
+                    { valor: "inactivo", texto: "Inactivo" },
+                  ],
+                )}
+              </div>
+            ) : (
+              <span className="mt-1.5 block text-[17px] font-extrabold text-foreground">{planes.length ? planes.map((p) => p.nombre).join(", ") : "Ninguno"}</span>
+            )}
+          </div>
+        </div>
+      )}
       {editando && ed.propia && <p className="mt-2 text-xs text-foreground/60">Es tu cuenta: podés pasarte a un perfil igual o con menos permisos que el tuyo, nunca a uno con más. El estado lo cambia otro administrador.</p>}
 
-      <h3 className="mt-6 text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Datos de contacto</h3>
-      <div className="mt-2 grid grid-cols-3 overflow-hidden rounded-xl border border-border">
-        {dato("DNI", editando
-          ? <>{conLapiz(<input aria-label="DNI" inputMode="numeric" maxLength={10} value={form.dni} onChange={(e) => ed.cambiar("dni", e.target.value.replace(/\D/g, ""))} className={campo(errores.dni)} />)}{mensaje(errores.dni)}</>
-          : (user.dni || "—"))}
-        {dato("Teléfono", editando
-          ? <>{conLapiz(<input aria-label="Teléfono" type="tel" inputMode="tel" maxLength={30} value={form.telefono} onChange={(e) => ed.cambiar("telefono", e.target.value)} className={campo(errores.telefono)} />)}{mensaje(errores.telefono)}</>
-          : (user.telefono ? <span className="flex items-center gap-2"><a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a><BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span> : "—"))}
-        {dato("Correo electrónico", editando
-          ? <>{conLapiz(<input aria-label="Correo electrónico" type="email" autoComplete="off" maxLength={100} value={form.email} onChange={(e) => ed.cambiar("email", e.target.value)} className={campo(errores.email)} />)}{mensaje(errores.email)}</>
-          : <span className="block truncate">{user.email || "Sin correo"}</span>)}
-      </div>
+      {!editando && (
+        <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+          <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--muted)", padding: "16px 18px" }}>
+            <p style={{ margin: 0, font: "700 12px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Membresía</p>
+            <span style={{ ...estiloMembresiaPastilla(user.membresia), display: "inline-block", marginTop: 10 }}>{membresia.label}</span>
+            {fechaVencimientoTexto && <p style={{ margin: "10px 0 0", font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{`${user.membresia === "vencida" ? "Venció" : "Vence"} el ${fechaVencimientoTexto}`}</p>}
+          </div>
+          <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--muted)", padding: "16px 18px" }}>
+            <p style={{ margin: 0, font: "700 12px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Créditos disponibles</p>
+            <p style={{ margin: "8px 0 0", font: "900 56px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", fontVariantNumeric: "tabular-nums", color: Number(user.creditos) > 0 ? "var(--primary)" : "var(--destructive)" }}>{Number(user.creditos) || 0}</p>
+          </div>
+          <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--muted)", padding: "16px 18px" }}>
+            <p style={{ margin: 0, font: "700 12px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Plan vigente</p>
+            <span style={{ display: "block", marginTop: 10, font: "800 17px Archivo", color: "var(--foreground)" }}>{planes.length ? planes.map((p) => p.nombre).join(", ") : "Ninguno"}</span>
+          </div>
+        </div>
+      )}
+
+      <p style={{ margin: "24px 0 0", font: "700 12px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Datos de contacto</p>
+      {editando ? (
+        <div className="mt-2 grid grid-cols-3 overflow-hidden rounded-xl border border-border">
+          {datoEdicion("DNI", <>{conLapiz(<input aria-label="DNI" inputMode="numeric" maxLength={10} value={form.dni} onChange={(e) => ed.cambiar("dni", e.target.value.replace(/\D/g, ""))} className={campo(errores.dni)} />)}{mensaje(errores.dni)}</>, true)}
+          {datoEdicion("Teléfono", <>{conLapiz(<input aria-label="Teléfono" type="tel" inputMode="tel" maxLength={30} value={form.telefono} onChange={(e) => ed.cambiar("telefono", e.target.value)} className={campo(errores.telefono)} />)}{mensaje(errores.telefono)}</>)}
+          {datoEdicion("Correo electrónico", <>{conLapiz(<input aria-label="Correo electrónico" type="email" autoComplete="off" maxLength={100} value={form.email} onChange={(e) => ed.cambiar("email", e.target.value)} className={campo(errores.email)} />)}{mensaje(errores.email)}</>)}
+        </div>
+      ) : (
+        <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", overflow: "hidden", borderRadius: 12, border: "1px solid var(--border)" }}>
+          {celdaContacto("DNI", user.dni || "—", true)}
+          {celdaContacto("Teléfono", user.telefono ? <span style={{ display: "flex", alignItems: "center", gap: 10 }}><a href={`tel:${user.telefono}`} className="underline-offset-2 hover:underline">{user.telefono}</a><BotonWhatsApp telefono={user.telefono} nombre={user.nombre} /></span> : "—")}
+          {celdaContacto("Correo electrónico", <span className="block truncate">{user.email || "Sin correo"}</span>)}
+        </div>
+      )}
 
       {editando ? (
         <div className="mt-6">
@@ -382,30 +498,11 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
             </button>
           </div>
         </div>
-      ) : (
-        <div className="mt-6 flex flex-wrap gap-2.5">
-          <button type="button" onClick={() => navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${id}`)}
-            className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl bg-lime-400 px-5 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-            <Plus className="h-4 w-4" aria-hidden="true" /> CARGAR ABONO
-          </button>
-          {puedeVerDetalle && (
-            <button type="button" onClick={() => navigate(`/admin/usuarios/${id}`)}
-              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-              <Eye className="h-4 w-4" aria-hidden="true" /> Ficha completa
-            </button>
-          )}
-          {permisos.includes("usuarios:modificacion") && (
-            <button type="button" onClick={ed.abrir}
-              className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-xl border border-border px-5 text-xs font-black uppercase tracking-widest text-foreground transition-colors hover:border-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-              <Pencil className="h-4 w-4" aria-hidden="true" /> Editar
-            </button>
-          )}
-        </div>
-      )}
+      ) : null}
 
       {puedeVerReservas && (
         <>
-          <h3 className="mt-6 text-[12px] font-bold uppercase tracking-[.1em] text-muted-foreground">Últimas reservas</h3>
+          <p style={{ margin: "24px 0 0", font: "700 12px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Últimas reservas</p>
           <div className="mt-2">
             <UltimasReservas key={id} idUsuario={id} />
           </div>
@@ -468,8 +565,8 @@ export default function UsuariosPage() {
   // Cargar usuarios y permisos al montar el componente
   useEffect(() => {
     cargarUsuarios()
-    fetch("/api/vv1/usuarios/filtros")
-      .then((r) => r.json())
+    apiClient.get("/usuarios/filtros")
+      .then((r) => r.data)
       .then((j) => { if (j?.data) setOpciones({ planes: j.data.planes || [], horas: j.data.horas || [] }) })
       .catch(() => { /* sin opciones: los filtros de plan y hora quedan vacíos */ })
 
@@ -490,10 +587,8 @@ export default function UsuariosPage() {
       setError(null)
 
       // 🟢 FETCH DIRECTO AL BACKEND: Saltamos getUsuarios() para evitar filtros fantasmas
-      const res = await fetch("/api/vv1/usuarios", {
-        headers: {  }
-      })
-      const resultado = await res.json()
+      const res = await apiClient.get("/usuarios")
+      const resultado = res.data
       
       const listaReal = resultado.data || resultado;
       setUsers(Array.isArray(listaReal) ? listaReal : [])
@@ -835,62 +930,42 @@ export default function UsuariosPage() {
 
       {/* ── COMPUTADORA Y TABLET ── */}
       <div className="hidden md:block">
-        <div className="flex items-center gap-3">
-          <div className="relative min-w-[13.75rem] flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre, DNI o email..."
-              className="h-[46px] rounded-[10px] pl-9 bg-background border-border text-[15px]"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => setVerFiltros((v) => !v)}
-            aria-expanded={verFiltros}
-            className={`flex h-[46px] items-center gap-2 rounded-[10px] border px-4 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
-              verFiltros || filtrosActivos > 0 ? "border-lime-500 bg-lime-400/10 text-lime-700 dark:text-lime-400" : "border-border text-foreground/60 hover:border-foreground/30 hover:text-foreground"
-            }`}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filtros y orden
-            {filtrosActivos > 0 && <span className="rounded-full bg-lime-400 px-1.5 text-[0.625rem] text-black">{filtrosActivos}</span>}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <label style={{ position: "relative", flex: "1 1 0%", minWidth: 220, display: "block" }}>
+            <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0px, 0px, 0px, 0px)" }}>Buscar usuario</span>
+            <span style={{ position: "absolute", left: 14, top: 15, color: "var(--muted-foreground)", display: "flex" }}>
+              <Search className="h-[17px] w-[17px]" aria-hidden="true" />
+            </span>
+            <input type="search" placeholder="Buscar por nombre, DNI o correo" value={search} onChange={(e) => setSearch(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box", height: 46, padding: "0px 14px 0px 42px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--card)", color: "var(--foreground)", font: "500 15px Archivo" }} />
+          </label>
+          <button type="button" onClick={() => setVerFiltros((v) => !v)} aria-expanded={verFiltros} aria-controls="filtros" style={verFiltros ? { ...estiloBotonContorno, border: "1px solid var(--primary)" } : estiloBotonContorno}>
+            <SlidersHorizontal className="h-[17px] w-[17px]" aria-hidden="true" />
+            Filtros
+            {filtrosActivos > 0 && <span style={{ borderRadius: 999, background: "var(--primary)", color: "var(--primary-foreground)", padding: "0px 6px", font: "800 11px Archivo" }}>{filtrosActivos}</span>}
           </button>
-
-          {/* 🟢 PROTECCIÓN DEL BOTÓN EXPORTAR */}
           {(permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver")) && (
-            <button type="button" onClick={exportarUsuarios} className="flex h-[46px] items-center gap-2 rounded-[10px] border border-border px-4 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]">
-              <Download className="h-4 w-4" />
+            <button type="button" onClick={exportarUsuarios} style={estiloBotonContorno}>
+              <Download className="h-[17px] w-[17px]" aria-hidden="true" />
               Exportar
             </button>
           )}
-
-          {/* Altas: en la misma barra, con "Nuevo usuario" (la acción principal) al final */}
           {permisos.includes("usuarios:alta") && (
-            <button
-              type="button"
-              onClick={() => setSinCuentaAbierto(true)}
-              title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías"
-              className="inline-flex h-[46px] shrink-0 items-center gap-2 rounded-[10px] border border-border px-4 text-[14px] font-bold text-foreground transition-colors hover:bg-[rgba(128,128,128,.14)]"
-            >
-              <UserRound className="h-4 w-4" aria-hidden="true" />
+            <button type="button" onClick={() => setSinCuentaAbierto(true)} title="Para quien no usa el sistema: se registra sin contraseña y vos le gestionás las membresías" style={estiloBotonContorno}>
+              <UserRound className="h-[17px] w-[17px]" aria-hidden="true" />
               Alumno sin cuenta
             </button>
           )}
           {permisos.includes("usuarios:alta") && (
-            <Link
-              to="/admin/usuarios/nuevo"
-              className="inline-flex h-[46px] shrink-0 items-center gap-2 rounded-[10px] bg-lime-400 px-5 text-[13px] font-extrabold uppercase tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-lime-300"
-            >
-              <Plus className="h-4 w-4" />
+            <Link to="/admin/usuarios/nuevo" style={estiloBotonLima}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
               NUEVO USUARIO
             </Link>
           )}
         </div>
 
         {verFiltros && (
-          <div className="mt-4 space-y-3 border-t border-border pt-4">
+          <div id="filtros" className="mt-4 space-y-3 border-t border-border pt-4 lg:hidden">
             {panelFiltros}
             {filtrosActivos > 0 && (
               <button type="button" onClick={limpiarFiltros} className="text-xs font-bold text-lime-700 underline-offset-2 hover:underline dark:text-lime-400">
@@ -898,6 +973,43 @@ export default function UsuariosPage() {
               </button>
             )}
           </div>
+        )}
+        {verFiltros && (
+          <section id="filtros-escritorio" aria-label="Filtros" className="hidden lg:block" style={{ marginTop: 20, borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", padding: "22px 24px" }}>
+            {(() => {
+              const grupo = (titulo, opciones, valor, onChange) => (
+                <div role="group" aria-label={titulo} style={{ minWidth: 0 }}>
+                  <div style={{ marginBottom: 12, font: "700 11px Archivo", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>{titulo}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {opciones.map((o) => {
+                      const elegido = valor === o.id
+                      return (
+                        <button key={o.id} type="button" aria-pressed={elegido} onClick={() => onChange(o.id)}
+                          style={{ height: 36, padding: "0px 14px", borderRadius: 999, border: `1px solid ${elegido ? "var(--primary)" : "var(--sh-control-line)"}`, background: elegido ? "var(--primary)" : "transparent", color: elegido ? "var(--primary-foreground)" : "var(--foreground)", font: "700 13px Archivo", whiteSpace: "nowrap", cursor: "pointer" }}>
+                          {o.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+              return (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 340px) minmax(0, 200px) minmax(0, 230px) minmax(0, 1fr) minmax(0, 220px)", gap: 40 }}>
+                    {grupo("Estado", FILTROS_ESTADO, statusFilter, setStatusFilter)}
+                    {grupo("Perfil", FILTROS_PERFIL.map((o) => (o.id === "all" ? { ...o, label: "Todos" } : o)), roleFilter, setRoleFilter)}
+                    {grupo("Plan", [{ id: "all", label: "Todos" }, ...opciones.planes.map((p) => ({ id: String(p.idPlan), label: p.nombre }))], planFilter, setPlanFilter)}
+                    {grupo("Horario de su clase", [{ id: "all", label: "Todos" }, ...opciones.horas.map((h) => ({ id: h, label: h }))], horaFilter, setHoraFilter)}
+                    {grupo("Ordenar por", ORDENES, orden, setOrden)}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 24, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+                    <span style={{ font: "500 14px Archivo", color: "var(--muted-foreground)" }}>{filteredUsers.length + (filteredUsers.length === 1 ? " usuario" : " usuarios")}</span>
+                    <button type="button" onClick={() => { limpiarFiltros(); setOrden("alfabetico") }} style={{ border: "none", background: "transparent", color: "var(--muted-foreground)", font: "600 14px Archivo", cursor: "pointer" }}>Limpiar filtros</button>
+                  </div>
+                </>
+              )
+            })()}
+          </section>
         )}
       </div>
 
@@ -1014,38 +1126,36 @@ export default function UsuariosPage() {
 
       {/* ── COMPUTADORA: lista a la izquierda y ficha del usuario elegido a la derecha ── */}
       <div className="hidden lg:grid lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start lg:gap-6">
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="text-[17px] font-extrabold text-foreground">Usuarios</h2>
-            <span className="text-[13px] font-semibold text-muted-foreground">{filteredUsers.length} resultados</span>
+        <section aria-label="Lista de usuarios" style={{ borderRadius: 16, background: "var(--card)", border: "1px solid var(--border)", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+            <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 17px Archivo" }}>Usuarios</h2>
+            <span style={{ font: "600 13px Archivo", color: "var(--muted-foreground)" }}>{`${filteredUsers.length} ${filteredUsers.length === 1 ? "usuario" : "usuarios"}`}</span>
           </div>
           {isLoading ? (
             <Cargando filas={4} className="p-4" />
           ) : filteredUsers.length === 0 ? (
-            <EstadoVacio titulo="No hay usuarios con estos filtros" accion={<button type="button" onClick={limpiarFiltros} className="inline-flex min-h-11 items-center rounded-[10px] border border-border px-4 text-[13px] font-bold text-foreground hover:bg-[rgba(128,128,128,.14)]">Limpiar filtros</button>} />
+            <EstadoVacio titulo="No hay usuarios con estos filtros" accion={<button type="button" onClick={limpiarFiltros} style={estiloBotonContorno}>Limpiar filtros</button>} />
           ) : (
-            <ul className="max-h-[calc(100vh-17rem)] divide-y divide-border overflow-y-auto">
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, maxHeight: "calc(100vh - 17rem)", overflowY: "auto" }}>
               {filteredUsers.map((user) => {
                 const id = user.idUsuario || user.id
                 const elegido = seleccionado && (seleccionado.idUsuario || seleccionado.id) === id
-                const membresia = membershipConfig[user.membresia] || membershipConfig.vencida
                 return (
-                  <li key={id}>
+                  <li key={id} style={{ borderTop: "1px solid var(--border)" }}>
                     <button type="button" onClick={() => setSeleccionadoId(id)} aria-current={elegido ? "true" : undefined}
-                      className={`grid w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3.5 border-l-[3px] py-3.5 pl-4 pr-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 ${
-                        elegido ? "border-l-lime-400 bg-lime-400/10" : "border-l-transparent hover:bg-[rgba(128,128,128,.14)]"
-                      }`}>
-                      <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-lime-400 text-[14px] font-extrabold text-[#0b0b0b]">
+                      style={{ width: "100%", display: "grid", gridTemplateColumns: "44px minmax(0px, 1fr) auto", alignItems: "center", gap: 14, padding: "14px 18px 14px 16px", borderWidth: "0px 0px 0px 3px", borderStyle: "solid", borderColor: elegido ? "var(--primary)" : "transparent", background: elegido ? "var(--sh-active-bg)" : "transparent", color: "var(--foreground)", textAlign: "left", cursor: "pointer" }}>
+                      <span style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--primary)", color: "var(--primary-foreground)", display: "grid", placeItems: "center", overflow: "hidden", font: "800 14px Archivo" }}>
                         {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : getIniciales(user.nombre)}
                       </span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-[15px] font-bold text-foreground">{user.nombre}</span>
-                        <span className="block truncate text-[13px] text-muted-foreground">{user.email || "Sin correo"}</span>
-                        <span className="mt-[3px] block truncate text-[12px] font-medium text-muted-foreground">{user.nombrePerfil || user.perfil || "Sin perfil"} · {Number(user.creditos) || 0} créditos</span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", font: "700 15px Archivo" }}>{user.nombre}</span>
+                        <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", font: "400 13px Archivo", color: "var(--muted-foreground)" }}>{user.email || "Sin correo"}</span>
+                        <span style={{ display: "block", marginTop: 3, font: "500 12px Archivo", color: "var(--muted-foreground)" }}>{`${perfilTexto(user)} · ${Number(user.creditos) || 0} ${Number(user.creditos) === 1 ? "crédito" : "créditos"}`}</span>
                       </span>
-                      <span className="flex flex-col items-end gap-1.5">
-                        <span className={`whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${claseMembresia(user.membresia)}`}>{membresia.label}</span>
-                        {user.sinAcceso && <span className="whitespace-nowrap rounded-full border border-border px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">Sin cuenta</span>}
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+                        <span style={estiloMembresiaPastilla(user.membresia)}>{(membershipConfig[user.membresia] || membershipConfig.vencida).label}</span>
+                        {!user.sinAcceso && user.correoVerificado === 0 && <span style={estiloSinVerificar}>Sin verificar</span>}
+                        {user.sinAcceso && <span style={estiloSinCuenta}>Sin cuenta</span>}
                       </span>
                     </button>
                   </li>
@@ -1053,7 +1163,7 @@ export default function UsuariosPage() {
               })}
             </ul>
           )}
-        </div>
+        </section>
 
         <div className="sticky top-4">
           {seleccionado ? (

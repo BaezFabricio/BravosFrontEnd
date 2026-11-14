@@ -28,7 +28,8 @@ import apiClient from "@/api"
 import { TituloPagina } from "@/components/TituloPagina"
 import FotoAmpliable from "@/components/FotoAmpliable"
 import { useAnchoPanel } from "@/lib/useEscritorio"
-import { LayoutBxContext } from "@/lib/layoutBx"
+import { LayoutBxContext, LayoutAdminContext } from "@/lib/layoutBx"
+import PerfilAdminEscritorio from "@/app/admin/perfil/PerfilAdminEscritorio"
 import PerfilEscritorio from "./PerfilEscritorio"
 import PerfilMovilNuevo from "./PerfilMovilNuevo"
 
@@ -572,6 +573,8 @@ function PerfilClasico() {
 export default function PerfilPage() {
   const escritorio = useAnchoPanel()
   const enMarcoAlumno = useContext(LayoutBxContext)
+  const enPanelAdmin = useContext(LayoutAdminContext)
+  if (enPanelAdmin) return escritorio ? <PerfilAdminEscritorio /> : <PerfilClasico />
   if (enMarcoAlumno) return escritorio ? <PerfilEscritorio /> : <PerfilMovilNuevo />
   return <PerfilClasico />
 }
