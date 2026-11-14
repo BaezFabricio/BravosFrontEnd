@@ -469,29 +469,9 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 
 @media (min-width: 1024px) {
   /* Pantalla: cada bloque sube y aparece, uno detrás del otro (si la pantalla es un solo bloque, entran sus partes) */
-  html.bv-admin .bv-entrada > * { animation: bv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  html.bv-admin .bv-entrada > *:nth-child(2) { animation-delay: 0.06s; }
-  html.bv-admin .bv-entrada > *:nth-child(3) { animation-delay: 0.12s; }
-  html.bv-admin .bv-entrada > *:nth-child(4) { animation-delay: 0.18s; }
-  html.bv-admin .bv-entrada > *:nth-child(5) { animation-delay: 0.24s; }
-  html.bv-admin .bv-entrada > :nth-child(n+6) { animation-delay: 0.3s; }
-  html.bv-admin .bv-entrada > :only-child { animation: none; }
-  html.bv-admin .bv-entrada > :only-child > * { animation: bv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  html.bv-admin .bv-entrada > :only-child > *:nth-child(2) { animation-delay: 0.06s; }
-  html.bv-admin .bv-entrada > :only-child > *:nth-child(3) { animation-delay: 0.12s; }
-  html.bv-admin .bv-entrada > :only-child > *:nth-child(4) { animation-delay: 0.18s; }
-  html.bv-admin .bv-entrada > :only-child > *:nth-child(5) { animation-delay: 0.24s; }
-  html.bv-admin .bv-entrada > :only-child > :nth-child(n+6) { animation-delay: 0.3s; }
+  html.bv-admin .bv-entrada { animation: bv-aparece 0.22s ease-out; }
 
   /* Listas: cada fila entra con un pequeño retraso */
-  html.bv-admin main ul > li, html.bv-admin main tbody > tr { animation: bv-sube 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  html.bv-admin main ul > li:nth-child(2) { animation-delay: 0.04s; }
-  html.bv-admin main ul > li:nth-child(3) { animation-delay: 0.08s; }
-  html.bv-admin main ul > li:nth-child(4) { animation-delay: 0.12s; }
-  html.bv-admin main ul > li:nth-child(5) { animation-delay: 0.16s; }
-  html.bv-admin main ul > li:nth-child(6) { animation-delay: 0.20s; }
-  html.bv-admin main ul > li:nth-child(7) { animation-delay: 0.24s; }
-  html.bv-admin main ul > li:nth-child(n+8) { animation-delay: 0.28s; }
 
   /* Menús (notificaciones, cuenta): salen desde su botón */
   html.bv-admin .bv-pop { transform-origin: top right; animation: bv-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
