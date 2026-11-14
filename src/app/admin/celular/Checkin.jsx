@@ -49,7 +49,7 @@ export default function CheckinCelular() {
       ks, openK: () => { if (puedeEditar) { setKs(true); setK(""); setShow(false) } }, closeK: () => setKs(false),
       k, onK: (ev) => setK(ev.target.value), kType: show ? "text" : "password", tog: () => setShow((x) => !x), eyeL: show ? "Ocultar clave" : "Mostrar clave",
       kBd: kl && !kOk ? c.errFg : c.line, kH: kOk ? "Clave válida." : kl ? `Faltan ${MINIMO - kl} caracteres.` : `Mínimo ${MINIMO} caracteres.`, kHFg: kOk ? c.okFg : kl ? c.errFg : c.muted,
-      kDis: !kOk || guardando, kBg: kOk ? "#9be600" : c.line2, kFg: kOk ? "#0b0b0b" : c.muted, saveK: guardar, toast,
+      claveTxt: estado?.configurado ? "Configurada · cambiar" : "Sin configurar · definir", kDis: !kOk || guardando, kBg: kOk ? "#9be600" : c.line2, kFg: kOk ? "#0b0b0b" : c.muted, saveK: guardar, toast,
       iniciales: nombre.split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "AD",
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
     }
