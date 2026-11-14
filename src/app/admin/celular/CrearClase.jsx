@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import apiClient from "@/api"
 import { useCelular } from "./contexto"
 import { Cabecera, Cuerpo, Extras, estilosHover } from "./pantallas/CrearClaseView"
@@ -15,6 +15,11 @@ const ini = (n = "") => n.trim().split(/\s+/).slice(0, 2).map((x) => x[0] || "")
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 // La rutina se escribe como texto simple y se guarda como párrafos (el servidor y el alumno la leen como HTML)
 const aHtml = (t) => t.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => (/^[^:]{1,30}:$/.test(l) ? `<h3>${esc(l)}</h3>` : `<p>${esc(l)}</p>`)).join("")
+// De HTML a texto simple (para volver a mostrar la rutina guardada)
+const aTexto = (html = "") => {
+  const d = new DOMParser().parseFromString(String(html).replace(/<\/(p|div|li|h\d)>|<br\s*\/?>/gi, "\n"), "text/html")
+  return (d.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim()
+}
 const horaLocal = (d) => `${iso(d)} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`
 
 // Crear clase del admin en celular (referencia 08): cuatro pasos y botón fijo abajo
@@ -22,8 +27,11 @@ export default function CrearClaseCelular() {
   const { c, oscuro } = useCelular()
   const navigate = useNavigate()
   const [params] = useSearchParams()
+  const { id } = useParams()
+  const esEdicion = Boolean(id)
+  const [original, setOriginal] = useState(null) // clase que se edita
   const permisos = useMemo(() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }, [])
-  const puede = permisos.includes("clases:alta")
+  const puede = permisos.includes(esEdicion ? "clases:modificacion" : "clases:alta")
   const hoy = useMemo(() => new Date(), [])
   const dias = useMemo(() => Array.from({ length: 7 }, (_, i) => { const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + i); return { iso: iso(d), wd: i === 0 ? "HOY" : WD[d.getDay()], n: d.getDate(), long: `${WDL[d.getDay()]} ${d.getDate()} de ${MESL[d.getMonth()]}` } }), [hoy])
 
@@ -37,7 +45,20 @@ export default function CrearClaseCelular() {
     apiClient.get("/tipos-clase").then((r) => setTipos(r.data?.data || [])).catch(() => {})
     apiClient.get("/profesores").then((r) => { const l = r.data?.data || []; setProfes(l); if (l[0]) setSt((s) => (s.coach ? s : { ...s, coach: String(l[0].idProfesor) })) }).catch(() => {})
   }, [])
-  const tipoCod = params.get("tipo") || (tipos.find((t) => t.activo) || {}).codigo || ""
+  // Editar: se cargan los datos de la clase
+  useEffect(() => {
+    if (!esEdicion) return
+    apiClient.get(`/clases/${id}`).then((r) => {
+      const k = r.data?.data || r.data
+      if (!k) return
+      let desc = k.rutina?.descripcion || "", cont = k.rutina?.contenido || ""
+      try { const p = JSON.parse(k.rutina?.descripcion || ""); if (p && typeof p.rutina !== "undefined") { desc = p.desc || ""; cont = p.rutina || "" } } catch { /* texto plano */ }
+      const texto = aTexto
+      setOriginal(k)
+      setSt((s) => ({ ...s, name: k.nombreClase || "", coach: String(k.idProfesor || ""), desc: texto(desc), rutina: texto(cont), fecha: k.fechaEspecifica ? String(k.fechaEspecifica).slice(0, 10) : s.fecha, ini: String(k.horaInicio || "").slice(0, 5), fin: String(k.horaFin || "").slice(0, 5), cupo: Number(k.cupoMaximo) || 15, avisar: false }))
+    }).catch(() => set({ error: "No se pudo cargar la clase.", tried: true }))
+  }, [esEdicion, id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const tipoCod = (original && original.tipoPlan) || params.get("tipo") || (tipos.find((t) => t.activo) || {}).codigo || ""
   const tipoNombre = (tipos.find((t) => t.codigo === tipoCod) || {}).nombre || "Clase"
   useEffect(() => { if (tipoCod) apiClient.get("/turnos/horarios", { params: { tipoPlan: tipoCod } }).then((r) => setHorarios(r.data?.data || [])).catch(() => setHorarios([])) }, [tipoCod])
   useEffect(() => { const el = document.getElementById("wiz"); if (el) window.scrollTo(0, 0) }, [st.step])
@@ -60,15 +81,15 @@ export default function CrearClaseCelular() {
       set({ sending: true, error: "" })
       try {
         const turno = NOMBRE_TURNO[turnoDe(S.ini)]
-        const fechaPublicacion = !S.avisar ? null : S.cuando === "ya" ? horaLocal(new Date()) : (S.avDt ? horaLocal(new Date(S.avDt)) : horaLocal(new Date()))
-        const payload = { nombreClase: S.name.trim(), tipoClase: "Grupal", cupoMaximo: S.cupo, cupoDisponible: S.cupo, estado: "Activo", idGimnasio: 1, idProfesor: parseInt(S.coach, 10), fechaEspecifica: S.fecha, horaInicio: S.ini, horaFin: S.fin, turno, tipoPlan: tipoCod, fechaPublicacion, rutina: { descripcion: S.desc, ejercicios: aHtml(S.rutina) } }
-        const r = await apiClient.post("/clases", payload)
+        const fechaPublicacion = !S.avisar ? (esEdicion ? (original?.fechaPublicacion || null) : null) : S.cuando === "ya" ? horaLocal(new Date()) : (S.avDt ? horaLocal(new Date(S.avDt)) : horaLocal(new Date()))
+        const payload = { nombreClase: S.name.trim(), tipoClase: "Grupal", cupoMaximo: S.cupo, cupoDisponible: S.cupo, estado: (esEdicion && original?.estado) || "Activo", idGimnasio: 1, idProfesor: parseInt(S.coach, 10), ...(esEdicion && !original?.fechaEspecifica ? { diasSemana: original?.diasSemana ? String(original.diasSemana).split(",") : [] } : { fechaEspecifica: S.fecha }), horaInicio: S.ini, horaFin: S.fin, turno, tipoPlan: tipoCod, fechaPublicacion, rutina: { descripcion: S.desc, ejercicios: aHtml(S.rutina) } }
+        const r = esEdicion ? await apiClient.put(`/clases/${id}`, payload) : await apiClient.post("/clases", payload)
         if (r.data && r.data.success === false) throw new Error(r.data.message || "Error al crear la clase")
         set({ sending: false, done: true })
       } catch (e) { set({ sending: false, error: e.response?.data?.message || e.message || "No se pudo crear la clase.", tried: true }) }
     }
     return {
-      c, scheme: oscuro ? "dark" : "light", step, stepName: NAMES[step - 1], tipoNombre,
+      c, scheme: oscuro ? "dark" : "light", step, stepName: NAMES[step - 1], tipoNombre, titulo: esEdicion ? "Editar clase" : "Nueva clase", doneTitulo: esEdicion ? "Cambios guardados" : "Clase creada", salirTxt: esEdicion ? "¿Salir sin guardar los cambios?" : "¿Salir sin crear la clase?", otraTxt: esEdicion ? "Volver a Clases" : "Crear otra clase",
       bars: [1, 2, 3, 4].map((i) => (i <= step ? "#9be600" : c.line2)),
       done: S.done, form: !S.done, s1: step === 1, s2: step === 2, s3: step === 3, s4: step === 4,
       err: err || (S.tried && S.error ? S.error : ""), name: S.name, onName: (e) => set({ name: e.target.value }), nameInv: err && step === 1 ? "true" : "false", nameBd: err && step === 1 ? c.errFg : c.line,
@@ -93,15 +114,15 @@ export default function CrearClaseCelular() {
       cuando: [["ya", "Al crear"], ["prog", "Programar"]].map(([id, l]) => { const ch = S.cuando === id; return { l, ch: ch ? "true" : "false", bg: ch ? "#9be600" : "transparent", fg: ch ? "#0b0b0b" : c.ink, pick: () => set({ cuando: id }) } }),
       prog: S.cuando === "prog", avDt: S.avDt, onAvDt: (e) => set({ avDt: e.target.value }), avMsg,
       canBack: step > 1, footCols: step > 1 ? "52px 1fr" : "1fr", back: () => go(step - 1),
-      sending: S.sending, nxBg: S.sending ? "#7fbf00" : "#9be600", nxLabel: S.sending ? "Creando…" : step === 4 ? "CREAR CLASE" : step === 2 && !S.desc && !S.rutina ? "SALTEAR" : "CONTINUAR",
+      sending: S.sending, nxBg: S.sending ? "#7fbf00" : "#9be600", nxLabel: S.sending ? "Creando…" : step === 4 ? (esEdicion ? "GUARDAR CAMBIOS" : "CREAR CLASE") : step === 2 && !S.desc && !S.rutina ? "SALTEAR" : "CONTINUAR",
       next: () => { if (errs[step]) { set({ tried: true }); setTimeout(() => document.getElementById("err-w")?.focus(), 0); return } if (step < 4) return go(step + 1); crear() },
       doneSub: `${S.name} · ${fDate(S.fecha)} a las ${S.ini}. ${S.avisar ? (S.cuando === "ya" ? "Ya avisamos a los alumnos activos." : "El aviso quedó programado.") : "No se envió aviso."}`,
-      again: () => set({ step: 1, name: "", desc: "", rutina: "", ini: "", fin: "", cupo: 15, tried: false, done: false, error: "" }),
-      exit: () => { if (S.name || S.desc || S.rutina || S.ini) set({ ask: true }); else navigate("/admin/clases") },
+      again: () => esEdicion ? navigate("/admin/clases") : set({ step: 1, name: "", desc: "", rutina: "", ini: "", fin: "", cupo: 15, tried: false, done: false, error: "" }),
+      exit: () => { if (!esEdicion && (S.name || S.desc || S.rutina || S.ini)) set({ ask: true }); else if (esEdicion) set({ ask: true }); else navigate("/admin/clases") },
       ask: S.ask, keep: () => set({ ask: false }), toast: null,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [st, profes, horarios, tipoNombre, tipoCod, c, oscuro, dias, navigate])
+  }, [st, profes, horarios, tipoNombre, tipoCod, c, oscuro, dias, navigate, esEdicion, original, id])
 
   if (!puede) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para crear clases.</div>
 
