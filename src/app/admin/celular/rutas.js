@@ -3,6 +3,7 @@ import { useAnchoCelular } from "@/lib/useEscritorio"
 
 // Pantallas del admin que ya tienen el diseño nuevo para celular (menos de 768 px). El resto sigue como estaba.
 const LISTAS = [
+  /^\/admin\/clases\/?$/,
   /^\/admin\/planes\/?$/,
   /^\/admin\/?$/,
   /^\/admin\/mas\/?$/,
