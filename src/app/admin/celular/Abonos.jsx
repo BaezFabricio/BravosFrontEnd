@@ -1,0 +1,128 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "react-router-dom"
+import apiClient from "@/api"
+import { useCelular } from "./contexto"
+import { Cabecera, Cuerpo, Extras, estilosHover } from "./pantallas/AbonosView"
+
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+const pesos = (n) => "$" + Number(n || 0).toLocaleString("es-AR", { maximumFractionDigits: 0 })
+const dia = (f) => String(f || "").slice(0, 10)
+const fmtD = (d) => { const [Y, M, D] = String(d).split("-").map(Number); return Y ? `${D} ${MESES[M - 1].slice(0, 3)} ${Y}` : "" }
+const hoyISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` }
+const masUnMes = (iso) => { const [Y, M, D] = iso.split("-").map(Number); const d = new Date(Y, M, D, 12); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` }
+const METODOS = [["Efectivo", "Efectivo"], ["Transferencia", "Transferencia"], ["Débito", "Débito"], ["Tarjeta Crédito", "Crédito"]]
+
+// Abonos del admin en celular (referencia 06): membresías del mes y hoja para cargar un abono a un alumno
+export default function AbonosCelular() {
+  const { c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta } = useCelular()
+  const [params] = useSearchParams()
+  const usuarioPre = params.get("usuario")
+  const permisos = useMemo(() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }, [])
+  const puedeVer = permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver") || permisos.includes("creditos:consulta")
+  const puedeAlta = permisos.includes("usuarios:alta") || permisos.includes("creditos:alta") || permisos.includes("usuarios:modificacion")
+
+  const [abonos, setAbonos] = useState(null)
+  const [planes, setPlanes] = useState([])
+  const [alumno, setAlumno] = useState(null)
+  const [m, setM] = useState(0)
+  const [sheet, setSheet] = useState(false)
+  const [plan, setPlan] = useState(null)
+  const [met, setMet] = useState("Efectivo")
+  const [monto, setMonto] = useState("")
+  const [ini, setIni] = useState(hoyISO())
+  const [fin, setFin] = useState(masUnMes(hoyISO()))
+  const [tried, setTried] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [errorServidor, setErrorServidor] = useState("")
+  const [toast, setToast] = useState(null)
+  const reloj = useRef(null)
+  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 4000) }, [])
+  useEffect(() => () => clearTimeout(reloj.current), [])
+
+  const cargar = useCallback(() => {
+    const url = usuarioPre ? `/usuarios/${usuarioPre}/abonos` : "/usuarios/abonos/todos"
+    return apiClient.get(url).then((r) => setAbonos(Array.isArray(r.data?.data) ? r.data.data : [])).catch(() => setAbonos([]))
+  }, [usuarioPre])
+  useEffect(() => {
+    if (!puedeVer) return
+    cargar()
+    apiClient.get("/planes").then((r) => setPlanes(r.data?.data || [])).catch(() => {})
+    if (usuarioPre) apiClient.get(`/usuarios/${usuarioPre}`).then((r) => { const u = r.data?.data || r.data?.usuario || r.data; setAlumno({ id: usuarioPre, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "" }) }).catch(() => {})
+  }, [puedeVer, cargar, usuarioPre])
+
+  useEffect(() => {
+    const tecla = (e) => { if (e.key === "Escape") setSheet(false) }
+    window.addEventListener("keydown", tecla)
+    return () => window.removeEventListener("keydown", tecla)
+  }, [])
+
+  const v = useMemo(() => {
+    const hoy = new Date()
+    const base = hoy.getFullYear() * 12 + hoy.getMonth() + m
+    const y = Math.floor(base / 12), mn = base % 12
+    const clave = `${y}-${String(mn + 1).padStart(2, "0")}`
+    const mes = MESES[mn].charAt(0).toUpperCase() + MESES[mn].slice(1) + " " + y
+    const loading = abonos === null
+    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
+    const total = L.reduce((s, x) => s + x.amt, 0)
+    const elegido = planes.find((p) => String(p.idPlan) === plan)
+    const mErr = !(Number(monto) > 0)
+    const nErr = (elegido ? 0 : 1) + (mErr ? 1 : 0) + (alumno ? 0 : 1)
+    const precio = (p, metodo) => (p ? Math.round(Number(p.precio) * (metodo === "Tarjeta Crédito" ? 1.1 : 1)) : 0)
+    const guardar = async () => {
+      if (saving) return
+      if (nErr) { setTried(true); setTimeout(() => document.getElementById("err-ab")?.focus(), 0); return }
+      setSaving(true); setErrorServidor("")
+      try {
+        await apiClient.post(`/usuarios/${alumno.id}/abonos`, { tipoAbono: elegido.nombre, fechaInicio: ini, fechaVencimiento: fin || undefined, metodoPago: met, importe: parseFloat(monto), idUsuarioOperador: sesion.idUsuario })
+        // Pago por transferencia: se aprueba el comprobante que el alumno haya subido
+        if (met === "Transferencia") {
+          try {
+            const rd = await apiClient.get(`/documentos/usuario/${alumno.id}`)
+            const desde = new Date(ini + "T00:00:00")
+            const doc = (rd.data?.data || []).find((d) => d.tipo === "comprobante_transferencia" && (!d.creadoEn || new Date(d.creadoEn) >= desde))
+            if (doc) await apiClient.patch(`/documentos/${doc.idDocumento}/aprobar`)
+          } catch { /* sin comprobante: el abono ya quedó guardado */ }
+        }
+        await cargar()
+        setSheet(false); setM(0); setPlan(null); setMonto(""); setTried(false)
+        avisar(`Abono guardado: ${pesos(monto)} de ${alumno.nombre}.`)
+      } catch (err) { setErrorServidor(err.response?.data?.message || "No se pudo guardar el abono."); setTried(true) } finally { setSaving(false) }
+    }
+    const nombre = (sesion.nombrecompleto || "").trim()
+    return {
+      c, mes, mesCorto: MESES[mn] + " " + y, actual: m === 0, notActual: m !== 0, nextFg: m === 0 ? c.muted : c.ink, nextOp: m === 0 ? 0.4 : 1,
+      prev: () => setM((x) => x - 1), next: () => { if (m < 0) setM((x) => x + 1) }, hoy: () => setM(0),
+      total: pesos(total), countLabel: L.length === 1 ? "1 abono" : L.length + " abonos",
+      loading, empty: !loading && !L.length, hasList: L.length > 0,
+      lista: L.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),
+      sheet, openNew: () => { if (puedeAlta) { setSheet(true); setTried(false) } }, close: () => setSheet(false),
+      alu: { ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir" },
+      planes: planes.map((p) => { const ch = plan === String(p.idPlan); return { id: p.idPlan, n: p.nombre, s: `${p.cantidadCreditos} créditos`, pr: pesos(p.precio), ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + (tried && !elegido ? c.errFg : c.line2), bg: ch ? c.okBg : c.surf, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => { setPlan(String(p.idPlan)); setMonto(String(precio(p, met))); setFin(masUnMes(ini)) } } }),
+      planErr: tried && !elegido, planInv: tried && !elegido ? "true" : "false",
+      metodos: METODOS.map(([val, l]) => { const ch = met === val; return { l, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => { setMet(val); if (elegido) setMonto(String(precio(elegido, val))) } } }),
+      isTransf: met === "Transferencia",
+      monto, onMonto: (ev) => setMonto(ev.target.value.replace(/\D/g, "").slice(0, 8)),
+      montoInv: tried && mErr ? "true" : "false", montoBd: tried && mErr ? c.errFg : c.line,
+      montoH: tried && mErr ? "Ingresá el monto cobrado." : elegido ? `Precio del plan: ${pesos(elegido.precio)}${met === "Tarjeta Crédito" ? " + 10% por tarjeta de crédito" : ""}. Podés cambiarlo si hubo descuento.` : "Se completa al elegir el plan.", montoHFg: tried && mErr ? c.errFg : c.muted,
+      ini, fin, scheme: oscuro ? "dark" : "light", onIni: (ev) => { const val = ev.target.value; if (val) { setIni(val); setFin(masUnMes(val)) } }, onFin: (ev) => setFin(ev.target.value),
+      err: tried && (nErr > 0 || !!errorServidor), errMsg: errorServidor || (!alumno ? "Elegí un alumno desde su ficha." : nErr === 1 ? "Revisá 1 campo antes de guardar." : `Revisá ${nErr} campos antes de guardar.`),
+      resumen: elegido ? `${elegido.nombre} · ${met}` : false, resumenAmt: pesos(monto),
+      saving, saveBg: saving ? "#7fbf00" : "#9be600", saveLabel: saving ? "Guardando…" : "GUARDAR ABONO", save: guardar, toast,
+      iniciales: nombre.split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "AD",
+      noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abonos, planes, alumno, m, sheet, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre])
+
+  if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver los abonos.</div>
+
+  return (
+    <>
+      <style>{estilosHover(v)}</style>
+      <div style={{ position: "sticky", top: 0, zIndex: 20, paddingTop: "env(safe-area-inset-top, 0px)", background: c.bg }}><Cabecera v={v} /></div>
+      <Cuerpo v={v} />
+      <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 40 }}><Extras v={v} /></div>
+    </>
+  )
+}
