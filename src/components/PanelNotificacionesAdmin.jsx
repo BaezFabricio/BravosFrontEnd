@@ -73,7 +73,7 @@ export default function PanelNotificacionesAdmin({ notifs, noLeidas, limpiando, 
   const chip = (activo) => ({ height: "36px", padding: "0px 12px", borderRadius: "999px", border: `1px solid ${activo ? "var(--foreground)" : "var(--sh-control-line)"}`, background: activo ? "var(--foreground)" : "transparent", color: activo ? "var(--background)" : "var(--foreground)", font: "700 13px Archivo", whiteSpace: "nowrap", cursor: "pointer" })
 
   return (
-    <div id="panel-notif" role="dialog" aria-label="Notificaciones"
+    <div id="panel-notif" className="bv-pop" role="dialog" aria-label="Notificaciones"
       style={{ position: "absolute", top: "52px", right: "-30px", zIndex: 60, width: "440px", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", overflow: "hidden", color: "var(--foreground)", textAlign: "left" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 18px 12px" }}>
         <h2 className="bv-admin-titulo" style={{ flex: "1 1 0%", margin: 0, font: "800 17px Archivo" }}>Notificaciones</h2>

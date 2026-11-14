@@ -381,7 +381,7 @@ export default function AdminDashboard() {
       {/* Indicadores */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {indicadores.map((k) => (
-          <div key={k.label} className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card px-5 py-5">
+          <div key={k.label} className="bv-lift flex flex-col gap-2.5 rounded-2xl border border-border bg-card px-5 py-5">
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs font-bold uppercase tracking-[.1em] text-muted-foreground">{k.label}</p>
               <span className={`grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[9px] ${TONO_ICONO[k.tono]}`} aria-hidden="true">

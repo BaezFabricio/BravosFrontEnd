@@ -16,9 +16,9 @@ export function ModalAdmin({ abierto, onCerrar, ancho = 520, titulo, subtitulo, 
   }, [abierto, onCerrar])
   if (!abierto) return null
   return (
-    <div onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar() }}
+    <div className="bv-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar() }}
       style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0, 0, 0, 0.6)", display: "grid", placeItems: "center", padding: "24px", overflowY: "auto" }}>
-      <div role="dialog" aria-modal="true" aria-label={typeof titulo === "string" ? titulo : undefined}
+      <div className="bv-modal" role="dialog" aria-modal="true" aria-label={typeof titulo === "string" ? titulo : undefined}
         style={{ width: `${ancho}px`, maxWidth: "100%", boxSizing: "border-box", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", padding: plano ? 0 : "24px", color: "var(--foreground)", ...(plano ? { display: "flex", flexDirection: "column", maxHeight: "calc(var(--bv-vh, 100vh) - 48px)", overflow: "hidden" } : null) }}>
         {!plano && <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
           <div style={{ flex: "1 1 0%", minWidth: 0 }}>

@@ -457,3 +457,57 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 /* Menús, listas y ventanas montados en el anfitrión de portales (zoom inverso): el contenido recupera el zoom del panel */
 [data-anfitrion-portales] [data-radix-popper-content-wrapper] > *,
 [data-anfitrion-portales] [data-slot="dialog-content"] { zoom: var(--bv-zoom, 1); }
+
+/* ───────── Movimiento del admin (escritorio) ─────────
+ * Las mismas animaciones que el panel del alumno: pantallas que entran por partes, filas de lista escalonadas,
+ * menús que salen desde su botón, ventanas con fondo, barras que se llenan y tarjetas que se elevan. */
+@keyframes bv-sube { from { opacity: 0; transform: translateY(0.75rem); } to { opacity: 1; transform: none; } }
+@keyframes bv-pop { from { opacity: 0; transform: translateY(-0.375rem) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes bv-modal-in { from { opacity: 0; transform: translateY(0.75rem) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes bv-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bv-barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (min-width: 1024px) {
+  /* Pantalla: cada bloque sube y aparece, uno detrás del otro (si la pantalla es un solo bloque, entran sus partes) */
+  html.bv-admin .bv-entrada > * { animation: bv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  html.bv-admin .bv-entrada > *:nth-child(2) { animation-delay: 0.06s; }
+  html.bv-admin .bv-entrada > *:nth-child(3) { animation-delay: 0.12s; }
+  html.bv-admin .bv-entrada > *:nth-child(4) { animation-delay: 0.18s; }
+  html.bv-admin .bv-entrada > *:nth-child(5) { animation-delay: 0.24s; }
+  html.bv-admin .bv-entrada > :nth-child(n+6) { animation-delay: 0.3s; }
+  html.bv-admin .bv-entrada > :only-child { animation: none; }
+  html.bv-admin .bv-entrada > :only-child > * { animation: bv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  html.bv-admin .bv-entrada > :only-child > *:nth-child(2) { animation-delay: 0.06s; }
+  html.bv-admin .bv-entrada > :only-child > *:nth-child(3) { animation-delay: 0.12s; }
+  html.bv-admin .bv-entrada > :only-child > *:nth-child(4) { animation-delay: 0.18s; }
+  html.bv-admin .bv-entrada > :only-child > *:nth-child(5) { animation-delay: 0.24s; }
+  html.bv-admin .bv-entrada > :only-child > :nth-child(n+6) { animation-delay: 0.3s; }
+
+  /* Listas: cada fila entra con un pequeño retraso */
+  html.bv-admin main ul > li, html.bv-admin main tbody > tr { animation: bv-sube 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  html.bv-admin main ul > li:nth-child(2) { animation-delay: 0.04s; }
+  html.bv-admin main ul > li:nth-child(3) { animation-delay: 0.08s; }
+  html.bv-admin main ul > li:nth-child(4) { animation-delay: 0.12s; }
+  html.bv-admin main ul > li:nth-child(5) { animation-delay: 0.16s; }
+  html.bv-admin main ul > li:nth-child(6) { animation-delay: 0.20s; }
+  html.bv-admin main ul > li:nth-child(7) { animation-delay: 0.24s; }
+  html.bv-admin main ul > li:nth-child(n+8) { animation-delay: 0.28s; }
+
+  /* Menús (notificaciones, cuenta): salen desde su botón */
+  html.bv-admin .bv-pop { transform-origin: top right; animation: bv-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  /* Ventanas: el fondo aparece y la ventana sube */
+  html.bv-admin .bv-overlay { animation: bv-overlay-in 0.25s ease-out backwards; }
+  html.bv-admin .bv-modal { animation: bv-modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  /* Barras de progreso: se llenan desde cero */
+  html.bv-admin .bv-barra { transform-origin: left; animation: bv-barra 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  /* Tarjetas que se elevan al pasar el mouse */
+  html.bv-admin .bv-lift { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease; }
+  html.bv-admin .bv-lift:hover { transform: translateY(-0.1875rem); box-shadow: 0 0.75rem 1.75rem -0.5rem rgba(155, 230, 0, 0.22); }
+  /* Menú lateral: el fondo y el color cambian suave y el ícono se corre un poco */
+  html.bv-admin .bv-nav-link { transition: background-color 0.2s ease, color 0.2s ease; }
+  html.bv-admin .bv-nav-link svg { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  html.bv-admin .bv-nav-link:hover svg { transform: translateX(0.125rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.bv-admin .bv-lift:hover, html.bv-admin .bv-nav-link:hover svg { transform: none; }
+}

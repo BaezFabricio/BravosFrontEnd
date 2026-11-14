@@ -54,7 +54,7 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-        <div style={{ position: "absolute", right: 0, top: "100%", marginTop: "12px", zIndex: 50, width: "304px", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", overflow: "hidden", color: "var(--foreground)" }}>
+        <div className="bv-pop" style={{ position: "absolute", right: 0, top: "100%", marginTop: "12px", zIndex: 50, width: "304px", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", overflow: "hidden", color: "var(--foreground)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "18px" }}>
             <span style={{ width: "52px", height: "52px", flexShrink: 0, borderRadius: "50%", background: "var(--sh-avatar)", border: "2px solid var(--sh-accent)", color: "var(--sh-accent)", font: "800 17px Archivo", display: "grid", placeItems: "center", overflow: "hidden" }}>
               {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Iniciales nombre={userData.nombrecompleto} />}

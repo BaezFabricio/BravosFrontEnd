@@ -387,7 +387,7 @@ export default function AdminLayout({ children }) {
         <main className="p-4 pb-36 lg:px-[32px] lg:pb-[48px] lg:pt-[24px]" style={{ maxWidth: "1720px" }}>
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className={"mb-4 " + (ES_FORM_CLASES.test(location.pathname) ? "lg:hidden" : "")}  />}
-          <SlotTituloContext.Provider value={slotTitulo}><LayoutAdminContext.Provider value={true}>{children}</LayoutAdminContext.Provider></SlotTituloContext.Provider>
+          <SlotTituloContext.Provider value={slotTitulo}><LayoutAdminContext.Provider value={true}><div key={pathname} className="bv-entrada">{children}</div></LayoutAdminContext.Provider></SlotTituloContext.Provider>
         </main>
 
         {/* Mobile Bottom Navigation */}

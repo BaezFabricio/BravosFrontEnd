@@ -224,7 +224,7 @@ export default function ClasesPage() {
             <span style={{ color: llena ? "var(--sh-warn)" : "var(--sh-link)" }}>{llena ? "Sin lugares" : `${libres} libres de ${cupo}`}</span>
           </span>
           <span style={{ display: "block", marginTop: "6px", height: "6px", borderRadius: "3px", background: "var(--sh-track)", overflow: "hidden" }}>
-            <span style={{ display: "block", height: "100%", width: `${porcentaje}%`, background: llena ? "var(--sh-warn)" : "var(--primary)" }} />
+            <span className="bv-barra" style={{ display: "block", height: "100%", width: `${porcentaje}%`, background: llena ? "var(--sh-warn)" : "var(--primary)" }} />
           </span>
         </span>
 
