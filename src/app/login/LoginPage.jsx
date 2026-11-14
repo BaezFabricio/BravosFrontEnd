@@ -50,6 +50,23 @@ export default function LoginPage() {
     el.style.transform = `perspective(1100px) rotateX(${(-y * 4).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg) translateY(-4px)`
   }
   const soltar = () => { if (fichaRef.current) fichaRef.current.style.transform = "" }
+  // En celular, al abrir el inicio de sesión se baja solo hasta el formulario (como en el registro)
+  useEffect(() => {
+    if (escritorio) return undefined
+    const ir = () => {
+      const el = fichaRef.current
+      if (!el) return
+      const arriba = el.getBoundingClientRect().top + window.scrollY - 96
+      const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      window.scrollTo({ top: Math.max(0, arriba), behavior: sinMovimiento ? "auto" : "smooth" })
+    }
+    const t1 = setTimeout(ir, 450)
+    const t2 = setTimeout(() => {
+      const el = fichaRef.current
+      if (el && Math.abs(el.getBoundingClientRect().top - 96) > 24) ir()
+    }, 1300)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [escritorio])
   const navigate = useNavigate()
   // "Volver al sitio" lleva siempre a la página principal (no al registro ni al login, que son pantallas hermanas)
   const volver = () => navigate("/inicio")

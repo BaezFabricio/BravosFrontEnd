@@ -13,8 +13,10 @@ function VerificarCuentaPage() {
   const { token: tokenEnRuta } = useParams()
   const [searchParams] = useSearchParams()
   const token = tokenEnRuta || searchParams.get('token') || ''
-  const [status, setStatus] = useState(token ? 'ready' : 'error')
-  const [mensaje, setMensaje] = useState('')
+  // Si este enlace ya se confirmó en este navegador, al actualizar la página se sigue mostrando la cuenta activada
+  const yaConfirmado = token && localStorage.getItem(`bravos-verificado:${token}`) === '1'
+  const [status, setStatus] = useState(yaConfirmado ? 'success' : token ? 'ready' : 'error')
+  const [mensaje, setMensaje] = useState(yaConfirmado ? '¡Tu cuenta ha sido activada con éxito!' : '')
   const [isVerificando, setIsVerificando] = useState(false)
   const [correo, setCorreo] = useState('')
   const [isReenviando, setIsReenviando] = useState(false)
@@ -29,6 +31,7 @@ function VerificarCuentaPage() {
       return
     }
 
+    if (localStorage.getItem(`bravos-verificado:${token}`) === '1') return
     setStatus('ready')
     setMensaje('Para evitar verificaciones automáticas del correo, confirmá manualmente tu cuenta con el botón de abajo.')
   }, [token]);
@@ -44,6 +47,7 @@ function VerificarCuentaPage() {
 
     try {
       const response = await axios.get(`${API_BASE_URL}/auth/verificar/${token}`)
+      try { localStorage.setItem(`bravos-verificado:${token}`, '1') } catch { /* sin almacenamiento */ }
       setStatus('success')
       setMensaje(response?.data?.message || '¡Tu cuenta ha sido activada con éxito!')
     } catch (error) {
