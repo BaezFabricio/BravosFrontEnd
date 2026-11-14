@@ -4,6 +4,7 @@ import apiClient from "@/api"
 import { useTheme } from "@/components/theme-provider"
 import BravoChat from "@/components/BravoChat"
 import { ContextoCelular } from "./contexto"
+import { sinMenuCelular } from "./rutas"
 import { OSCURO, CLARO } from "./paleta"
 import { Menu } from "./pantallas/MenuView"
 import { Extras as Superpuestos, estilosHover as hoverSuperpuestos } from "./pantallas/NotificacionesView"
@@ -112,9 +113,9 @@ export default function LayoutCelular({ children }) {
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         {children}
-        <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs }} /></div>
+        {sinMenuCelular(pathname) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs }} /></div>}
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
-        <BravoChat rol="admin" />
+        {sinMenuCelular(pathname) ? null : <BravoChat rol="admin" />}
       </div>
     </ContextoCelular.Provider>
   )
