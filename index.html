@@ -19,7 +19,7 @@
     <script>
       (function () {
         try {
-          if (!location.pathname.startsWith("/admin")) return;
+          if (!location.pathname.startsWith("/admin") || window.innerWidth < 1024) return; // celular y tableta no usan la paleta del panel de escritorio
           var modo = localStorage.getItem("bravos-admin-tema-modo");
           var sistemaOscuro = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
           var oscuro = modo === "oscuro" ? true : modo === "claro" ? false : sistemaOscuro;

@@ -1,6 +1,7 @@
 import { useContext } from "react"
 import { createPortal } from "react-dom"
 import { SlotTituloContext } from "@/lib/slotTitulo"
+import { useAnchoPanel } from "@/lib/useEscritorio"
 
 /*
  * Título de cada pantalla, con su descripción. En los paneles de administrador y profesor no se dibuja en el cuerpo de
@@ -12,6 +13,7 @@ import { SlotTituloContext } from "@/lib/slotTitulo"
  */
 export function TituloPagina({ children, descripcion, className = "text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl" }) {
   const slot = useContext(SlotTituloContext)
+  const escritorio = useAnchoPanel()
   if (slot === false) {
     return (
       <>
@@ -21,6 +23,16 @@ export function TituloPagina({ children, descripcion, className = "text-2xl font
     )
   }
   if (slot === null) return null
+  if (!escritorio) {
+    // Celular y tableta: el título de siempre
+    return createPortal(
+      <div className="min-w-0">
+        <h1 className="truncate text-lg font-black uppercase leading-tight tracking-tight text-foreground sm:text-xl">{children}</h1>
+        {descripcion && <p className="hidden truncate text-xs leading-tight text-foreground/55 sm:block">{descripcion}</p>}
+      </div>,
+      slot
+    )
+  }
   return createPortal(
     <div className="min-w-0">
       <h1 className="bv-admin-titulo truncate text-foreground" style={{ margin: "2px 0px 0px", font: "800 22px Archivo" }}>{children}</h1>
