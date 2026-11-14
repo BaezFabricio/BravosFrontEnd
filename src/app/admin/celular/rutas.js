@@ -3,28 +3,28 @@ import { useAnchoCelular } from "@/lib/useEscritorio"
 
 // Pantallas del admin que ya tienen el diseño nuevo para celular (menos de 768 px). El resto sigue como estaba.
 const LISTAS = [
-  /^\/mi-configuracion\/?$/,
-  /^\/admin\/perfil\/?$/,
-  /^\/admin\/configuracion\/?$/,
-  /^\/admin\/perfiles\/?$/,
-  /^\/admin\/avisos\/?$/,
-  /^\/admin\/ejercicios-rm\/?$/,
-  /^\/admin\/novedades\/?$/,
-  /^\/admin\/check-in\/?$/,
-  /^\/admin\/reportes\/?$/,
-  /^\/admin\/usuarios\/abonos\/carga-masiva\/?$/,
-  /^\/admin\/usuarios\/\d+\/?$/,
-  /^\/admin\/usuarios\/\d+\/editar\/?$/,
-  /^\/admin\/usuarios\/nuevo\/?$/,
-  /^\/admin\/clases\/?$/,
-  /^\/admin\/planes\/?$/,
   /^\/admin\/?$/,
   /^\/admin\/mas\/?$/,
   /^\/admin\/usuarios\/?$/,
-]
-const SIN_MENU = [
-  /^\/mi-configuracion\/?$/,
+  /^\/admin\/usuarios\/nuevo\/?$/,
+  /^\/admin\/usuarios\/\d+\/?$/,
+  /^\/admin\/usuarios\/\d+\/editar\/?$/,
+  /^\/admin\/usuarios\/abonos\/carga-masiva\/?$/,
+  /^\/admin\/clases\/?$/,
+  /^\/admin\/planes\/?$/,
+  /^\/admin\/reportes\/?$/,
+  /^\/admin\/check-in\/?$/,
+  /^\/admin\/novedades\/?$/,
+  /^\/admin\/ejercicios-rm\/?$/,
+  /^\/admin\/avisos\/?$/,
+  /^\/admin\/perfiles\/?$/,
+  /^\/admin\/configuracion\/?$/,
   /^\/admin\/perfil\/?$/,
+  /^\/mi-configuracion\/?$/,
+]
+
+// Pantallas de formulario: sin menú inferior ni mascota (el botón principal queda abajo)
+const SIN_MENU = [
   /^\/admin\/usuarios\/\d+\/editar\/?$/,
   /^\/admin\/usuarios\/nuevo\/?$/,
 ]
