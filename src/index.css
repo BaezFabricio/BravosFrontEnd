@@ -511,3 +511,48 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 @media (prefers-reduced-motion: reduce) {
   html.bv-admin .bv-lift:hover, html.bv-admin .bv-nav-link:hover svg { transform: none; }
 }
+
+/* ───────── Movimiento del admin, parte 2: cada detalle ───────── */
+@keyframes bv-modal-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(0.5rem) scale(0.97); } }
+@keyframes bv-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes bv-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bv-sacude { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+@keyframes bv-campana { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(14deg); } 40% { transform: rotate(-12deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-5deg); } }
+@keyframes bv-insignia { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+
+@media (min-width: 1024px) {
+  html.bv-admin { scroll-behavior: smooth; }
+
+  /* Ventanas: al cerrar, el fondo y la ventana se van con movimiento */
+  html.bv-admin .bv-overlay[data-cerrando] { animation: bv-overlay-out 0.18s ease-in both; }
+  html.bv-admin .bv-modal[data-cerrando] { animation: bv-modal-out 0.18s ease-in both; }
+  /* Contenido de una pestaña: aparece al cambiar de pestaña */
+  html.bv-admin .bv-aparece { animation: bv-aparece 0.35s ease-out backwards; }
+
+  /* Botones y enlaces: todo cambia suave; al tocar se hunden un poco; al pasar el mouse se iluminan */
+  html.bv-admin button, html.bv-admin a { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease; }
+  html.bv-admin button:not(:disabled):hover { filter: brightness(1.1); }
+  html.bv-admin button:not(:disabled):active { transform: scale(0.97); }
+  html.bv-admin button[style*="background: transparent"]:not(:disabled):hover { background-color: rgba(128, 128, 128, 0.14) !important; filter: none; }
+
+  /* Campos: el borde se pone lima con un halo suave al escribir; si hay un error, se sacuden */
+  html.bv-admin input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), html.bv-admin textarea, html.bv-admin select { transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
+  html.bv-admin input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):focus, html.bv-admin textarea:focus, html.bv-admin select:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); outline: none; }
+  html.bv-admin [aria-invalid="true"] { animation: bv-sacude 0.35s ease-in-out; }
+
+  /* Filas de listas y tablas: se aclaran al pasar el mouse */
+  html.bv-admin main ul > li, html.bv-admin main tbody > tr { transition: background-color 0.2s ease; }
+  html.bv-admin main ul > li:hover, html.bv-admin main tbody > tr:hover { background-color: rgba(128, 128, 128, 0.06); }
+  html.bv-admin [role="menuitem"] { transition: background-color 0.15s ease; }
+
+  /* Barra de arriba: el título entra, el sol gira, la campana se mueve y su número aparece con un salto */
+  html.bv-admin header h1, html.bv-admin header h1 + p { animation: bv-sube 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  html.bv-admin header h1 + p { animation-delay: 0.05s; }
+  html.bv-admin header button[aria-label^="Cambiar a modo"] svg { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  html.bv-admin header button[aria-label^="Cambiar a modo"]:hover svg { transform: rotate(40deg); }
+  html.bv-admin header button[aria-controls="panel-notif"]:hover svg { animation: bv-campana 0.6s ease-in-out; }
+  html.bv-admin header button[aria-controls="panel-notif"] > span { animation: bv-insignia 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.bv-admin { scroll-behavior: auto; }
+}

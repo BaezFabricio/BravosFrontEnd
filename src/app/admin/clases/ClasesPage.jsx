@@ -355,7 +355,7 @@ export default function ClasesPage() {
 
       {/* ── PESTAÑA CLASES ── */}
       {!loading && !error && pestana === "clases" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div className="bv-aparece" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {clasesAgrupadas.length === 0 ? (
             <div style={{ ...CARD, padding: "40px", textAlign: "center" }}>
               <p style={{ margin: 0, color: "var(--muted-foreground)" }}>No hay tipos de clase creados. Creá uno desde Planes y Membresías &gt; Tipos de clase.</p>
@@ -413,7 +413,7 @@ export default function ClasesPage() {
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div className="bv-aparece" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {historialPorMes.map((grupo) => (
               <section key={grupo.etiqueta} aria-label={grupo.etiqueta}>
                 <h2 className="bv-admin-titulo" style={{ margin: "0px 0px 10px", font: "700 11px Archivo", letterSpacing: "0.12em", color: "var(--muted-foreground)" }}>{grupo.etiqueta}</h2>

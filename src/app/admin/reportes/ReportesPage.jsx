@@ -1,3 +1,4 @@
+import NumeroAnimado from "@/components/NumeroAnimado"
 import { BotonVolver } from "@/components/BotonVolver"
 import { useEffect, useState } from "react"
 import { Download, TrendingUp, TrendingDown, Trophy, Flame, Loader2 } from "lucide-react"
@@ -296,26 +297,26 @@ export default function ReportesPage() {
             <>
               <div style={{ ...estilo, borderColor: "var(--primary)" }}>
                 <div style={rotulo}>Ingresos</div>
-                <p style={grande}>{pesos(datos.ingresoTotal)}</p>
+                <p style={grande}><NumeroAnimado valor={pesos(datos.ingresoTotal)} /></p>
                 <p style={{ ...linea, color: diferencia >= 0 ? "var(--primary)" : "var(--destructive)" }}>
                   {`${diferencia >= 0 ? "+" : "−"}${pesos(Math.abs(diferencia))} vs ${textoPrevio} (${pesos(datos.ingresoPrevio)})`}
                 </p>
               </div>
               <div style={estilo}>
                 <div style={rotulo}>Alumnos con plan</div>
-                <p style={grande}>{datos.alumnosConPlan}</p>
+                <p style={grande}><NumeroAnimado valor={datos.alumnosConPlan} /></p>
                 <p style={{ ...linea, color: "var(--muted-foreground)", fontWeight: 500 }}>
                   {datos.alumnosPorPlan.length === 1 ? `Todos en ${datos.alumnosPorPlan[0].plan}` : datos.alumnosPorPlan.length > 1 ? `Repartidos en ${datos.alumnosPorPlan.length} planes` : "Ninguno con plan activo"}
                 </p>
               </div>
               <div style={estilo}>
                 <div style={rotulo}>Ocupación</div>
-                <p style={grande}>{`${pct}%`}</p>
+                <p style={grande}><NumeroAnimado valor={`${pct}%`} /></p>
                 <p style={{ ...linea, color: "var(--sh-warn)" }}>{`${ocupadosTotal} de ${capacidad} lugares · ${clases.length} ${clases.length === 1 ? "clase activa" : "clases activas"}`}</p>
               </div>
               <div style={estilo}>
                 <div style={rotulo}>Reservas</div>
-                <p style={grande}>{reservasTotal}</p>
+                <p style={grande}><NumeroAnimado valor={reservasTotal} /></p>
                 <p style={{ ...linea, color: "var(--muted-foreground)", fontWeight: 500 }}>
                   {datos.reservasPorEstado.length ? datos.reservasPorEstado.map((r) => `${r.cantidad} ${(ESTADO_LABELS[r.estado] || r.estado).toLowerCase()}`).join(" · ") : "Sin reservas en el período"}
                 </p>

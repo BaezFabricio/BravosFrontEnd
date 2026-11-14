@@ -1,4 +1,5 @@
-﻿import { useContext, useEffect, useState } from "react"
+﻿import NumeroAnimado from "@/components/NumeroAnimado"
+import { useContext, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import { AlertTriangle, Calendar, ChevronRight, Clock, DollarSign, Plus, TrendingUp, UserCheck } from "lucide-react"
@@ -389,7 +390,7 @@ export default function AdminDashboard() {
               </span>
             </div>
             <p className="flex items-baseline gap-2">
-              <span className="text-[44px] font-black leading-none text-foreground" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}>{k.value}</span>
+              <span className="text-[44px] font-black leading-none text-foreground" style={{ fontFamily: "'Big Shoulders Stencil Display', Archivo, sans-serif" }}><NumeroAnimado valor={k.value} /></span>
               {k.unit && <span className="text-[15px] font-semibold text-muted-foreground">{k.unit}</span>}
             </p>
             <p className={`text-[13px] font-semibold ${TONO_NOTA[k.notaTono]}`}>{k.nota}</p>

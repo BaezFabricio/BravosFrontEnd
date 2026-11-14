@@ -1,3 +1,4 @@
+import NumeroAnimado from "@/components/NumeroAnimado"
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ChevronLeft, CreditCard, Eye, FileText, MoreHorizontal, Pencil, Plus, Stethoscope, UserCheck, UserX, Trash2, CalendarX } from "lucide-react"
@@ -253,19 +254,19 @@ export default function DetalleUsuarioPage() {
         <section aria-label="Resumen" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 16 }}>
           <div style={{ ...estiloTarjeta, padding: "18px 20px" }}>
             <div style={estiloEtiqueta}>Créditos</div>
-            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--primary)", marginTop: 10 }}>{user?.creditos ?? 0}</div>
+            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--primary)", marginTop: 10 }}><NumeroAnimado valor={Number(user?.creditos ?? 0)} /></div>
             <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)", marginTop: 6 }}>
               {vigente ? `de ${vigente.totalCreditos} · vencen el ${fechaDiaMes(vigente.vencimiento)}` : "Sin crédito vigente"}
             </div>
           </div>
           <div style={{ ...estiloTarjeta, padding: "18px 20px" }}>
             <div style={estiloEtiqueta}>Asistencia del mes</div>
-            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--foreground)", marginTop: 10 }}>{ficha.asistenciaMes.asistidas}</div>
+            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--foreground)", marginTop: 10 }}><NumeroAnimado valor={Number(ficha.asistenciaMes.asistidas)} /></div>
             <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)", marginTop: 6 }}>{`clases · ${ficha.asistenciaMes.ausencias} ${ficha.asistenciaMes.ausencias === 1 ? "ausencia" : "ausencias"}`}</div>
           </div>
           <div style={{ ...estiloTarjeta, padding: "18px 20px" }}>
             <div style={estiloEtiqueta}>Racha</div>
-            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--foreground)", marginTop: 10 }}>{ficha.racha}</div>
+            <div style={{ font: "900 40px / 1 'Big Shoulders Stencil Display', Archivo, sans-serif", color: "var(--foreground)", marginTop: 10 }}><NumeroAnimado valor={Number(ficha.racha)} /></div>
             <div style={{ font: "500 13px Archivo", color: "var(--muted-foreground)", marginTop: 6 }}>semanas seguidas</div>
           </div>
           <div style={{ ...estiloTarjeta, padding: "18px 20px" }}>

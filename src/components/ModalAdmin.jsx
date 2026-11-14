@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { AlertTriangle, X } from "lucide-react"
 import { BOTON_SECUNDARIO, BOTON_PELIGRO, BOTON_PRINCIPAL } from "./estilosModal"
 
@@ -8,17 +8,29 @@ import { BOTON_SECUNDARIO, BOTON_PELIGRO, BOTON_PRINCIPAL } from "./estilosModal
  * plano: sin encabezado propio (la ventana arma su encabezado, cuerpo y pie). ancho: ancho de la ventana en px. Con "sinCerrar" no muestra la x (los diálogos de confirmar).
  */
 export function ModalAdmin({ abierto, onCerrar, ancho = 520, titulo, subtitulo, extraTitulo, sinCerrar = false, plano = false, children }) {
+  // Al cerrar, la ventana queda 180 ms más para despedirse con movimiento (solo en escritorio y sin "reducir movimiento")
+  const [visible, setVisible] = useState(abierto)
+  const [ultimo, setUltimo] = useState(children)
+  if (abierto && !visible) setVisible(true)
+  if (abierto && ultimo !== children) setUltimo(children)
+  const animaSalida = typeof window !== "undefined" && window.innerWidth >= 1024 && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  useEffect(() => {
+    if (abierto || !visible) return undefined
+    const t = setTimeout(() => setVisible(false), animaSalida ? 180 : 0)
+    return () => clearTimeout(t)
+  }, [abierto, visible, animaSalida])
   useEffect(() => {
     if (!abierto) return undefined
     const tecla = (e) => { if (e.key === "Escape") onCerrar() }
     window.addEventListener("keydown", tecla)
     return () => window.removeEventListener("keydown", tecla)
   }, [abierto, onCerrar])
-  if (!abierto) return null
+  if (!abierto && !visible) return null
+  const cerrando = !abierto
   return (
-    <div className="bv-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar() }}
+    <div className="bv-overlay" data-cerrando={cerrando ? "" : undefined} onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar() }}
       style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0, 0, 0, 0.6)", display: "grid", placeItems: "center", padding: "24px", overflowY: "auto" }}>
-      <div className="bv-modal" role="dialog" aria-modal="true" aria-label={typeof titulo === "string" ? titulo : undefined}
+      <div className="bv-modal" data-cerrando={cerrando ? "" : undefined} role="dialog" aria-modal="true" aria-label={typeof titulo === "string" ? titulo : undefined}
         style={{ width: `${ancho}px`, maxWidth: "100%", boxSizing: "border-box", borderRadius: "16px", background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)", padding: plano ? 0 : "24px", color: "var(--foreground)", ...(plano ? { display: "flex", flexDirection: "column", maxHeight: "calc(var(--bv-vh, 100vh) - 48px)", overflow: "hidden" } : null) }}>
         {!plano && <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
           <div style={{ flex: "1 1 0%", minWidth: 0 }}>
@@ -35,7 +47,7 @@ export function ModalAdmin({ abierto, onCerrar, ancho = 520, titulo, subtitulo, 
             </button>
           )}
         </div>}
-        {children}
+        {cerrando ? ultimo : children}
       </div>
     </div>
   )
