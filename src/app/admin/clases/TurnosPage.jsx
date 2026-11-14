@@ -139,7 +139,7 @@ export default function TurnosPage() {
 
       {/* ESCRITORIO: Turnos como la referencia (tarjeta por tipo de clase, agrupada por turno) */}
       {!cargando && !error && escritorio && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "20px", alignItems: "start" }}>
+        <div className="bv-datos" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "20px", alignItems: "start" }}>
           {grupos.map((g) => {
             const total = g.turnos.reduce((n, t) => n + t.horarios.length, 0)
             return (
