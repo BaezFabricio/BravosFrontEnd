@@ -52,6 +52,7 @@ export default function LayoutCelular({ children }) {
     window.addEventListener("keydown", tecla)
     return () => window.removeEventListener("keydown", tecla)
   }, [panel])
+  const [menuOculto, setMenuOculto] = useState(false) // pantallas que lo piden (formularios con botón fijo abajo)
   const sesion = useMemo(() => { try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} } }, [])
 
   const tabs = useMemo(() => {
@@ -109,13 +110,13 @@ export default function LayoutCelular({ children }) {
   }
 
   return (
-    <ContextoCelular.Provider value={{ c, oscuro, notifs, noLeidas, recargarNotifs, setNoLeidas, setNotifs, sesion, abrirNotif, abrirCuenta }}>
+    <ContextoCelular.Provider value={{ c, oscuro, notifs, noLeidas, recargarNotifs, setNoLeidas, setNotifs, sesion, abrirNotif, abrirCuenta, setMenuOculto }}>
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         {children}
-        {sinMenuCelular(pathname) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs }} /></div>}
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs }} /></div>}
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
-        {sinMenuCelular(pathname) ? null : <BravoChat rol="admin" />}
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}
       </div>
     </ContextoCelular.Provider>
   )
