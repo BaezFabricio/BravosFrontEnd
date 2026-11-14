@@ -471,7 +471,11 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
   /* Pantalla: cada bloque sube y aparece, uno detrás del otro (si la pantalla es un solo bloque, entran sus partes) */
   html.bv-admin .bv-entrada { animation: bv-aparece 0.22s ease-out; }
 
-  /* Listas: cada fila entra con un pequeño retraso */
+  /* Datos que llegan después de cargar: cada bloque sube, uno tras otro */
+  html.bv-admin .bv-datos > * { animation: bv-sube 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  html.bv-admin .bv-datos > *:nth-child(2) { animation-delay: 0.08s; }
+  html.bv-admin .bv-datos > *:nth-child(3) { animation-delay: 0.16s; }
+  html.bv-admin .bv-datos > *:nth-child(n+4) { animation-delay: 0.24s; }
 
   /* Menús (notificaciones, cuenta): salen desde su botón */
   html.bv-admin .bv-pop { transform-origin: top right; animation: bv-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
