@@ -39,7 +39,7 @@ const pwa = VitePWA({
     // Se guardan de antemano solo los archivos de la app (no las fotos grandes de public/)
     globPatterns: ['**/*.{js,css,html,woff2}', 'pwa-*.png', 'favicon-48x48.png', 'apple-touch-icon-180x180.png'],
     // El paquete principal pesa ~2,1 MB; el límite por defecto (2 MB) lo dejaría afuera
-    maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     // Las páginas (la app al abrirse y cada pantalla) se piden SIEMPRE a la red cuando hay conexión, así una versión nueva
     // se ve enseguida. Sin conexión se usa la última copia guardada. Nunca se guardan respuestas de /api, /landing ni /uploads.
     cleanupOutdatedCaches: true,

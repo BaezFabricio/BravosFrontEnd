@@ -2,7 +2,11 @@ import { useLocation } from "react-router-dom"
 import { useAnchoCelular } from "@/lib/useEscritorio"
 
 // Pantallas del admin que ya tienen el diseño nuevo para celular (menos de 768 px). El resto sigue como estaba.
-const LISTAS = [/^\/admin\/?$/, /^\/admin\/mas\/?$/]
+const LISTAS = [
+  /^\/admin\/?$/,
+  /^\/admin\/mas\/?$/,
+  /^\/admin\/usuarios\/?$/,
+]
 
 export const esRutaCelular = (pathname) => LISTAS.some((r) => r.test(pathname))
 
