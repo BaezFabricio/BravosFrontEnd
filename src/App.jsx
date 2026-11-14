@@ -11,6 +11,7 @@ import LoginPage from './app/login/LoginPage.jsx'
 import RegistroPage from './app/registro/RegistroPage.jsx'
 import RecuperarContrasenaPage from './app/recuperar-contraseña/RecuperarContrasenaPage.jsx'
 import CrearContrasenaPage from './app/cambiar-contrasena/CrearContrasenaPage.jsx'
+import MasPage from "./app/admin/mas/MasPage.jsx"
 import AdminLayout from './app/admin/layout.jsx'
 import AdminDashboard from './app/admin/AdminDashboard.jsx'
 import PerfilesPage from './app/admin/perfiles/PerfilesPage.jsx'
@@ -181,6 +182,7 @@ function App() {
 
         {/* RUTAS DE ADMINISTRADOR */}
         <Route path="/admin" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AdminDashboard /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/mas" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><MasPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
         {/* Mi perfil desde el panel admin: se queda en el layout de admin */}
         <Route path="/admin/perfil" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AlumnoPerfilPage /></AdminLayout></RequireAuth>} />

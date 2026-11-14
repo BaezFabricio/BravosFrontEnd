@@ -17,3 +17,6 @@ export const useEscritorio = () => useConsulta("(min-width: 768px)")
 export const useAnchoAcceso = () => useConsulta("(min-width: 900px)")
 // Paneles (alumno): desde 1024 px se muestra el diseño de escritorio con menú lateral; por debajo, el del celular.
 export const useAnchoPanel = () => useConsulta("(min-width: 1024px)")
+
+// Admin en celular (referencias móviles): menos de 768 px
+export const useAnchoCelular = () => !useConsulta("(min-width: 768px)")

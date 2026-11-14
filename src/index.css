@@ -540,3 +540,16 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 @media (prefers-reduced-motion: reduce) {
   html.bv-admin { scroll-behavior: auto; }
 }
+
+/* Admin en celular (referencias móviles): los títulos van en Archivo, como en el diseño; gana sobre la regla global de h1-h3 */
+@layer base {
+  .dc-pantalla h1, .dc-pantalla h2, .dc-pantalla h3, .dc-pantalla h4 { font-family: Archivo, sans-serif !important; text-transform: none !important; }
+  .dc-pantalla [style*="letter-spacing: 0.02em"] { letter-spacing: 0.02em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.04em"] { letter-spacing: 0.04em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.06em"] { letter-spacing: 0.06em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.08em"] { letter-spacing: 0.08em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.1em"] { letter-spacing: 0.1em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.12em"] { letter-spacing: 0.12em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.14em"] { letter-spacing: 0.14em !important; }
+  .dc-pantalla [style*="letter-spacing: 0.16em"] { letter-spacing: 0.16em !important; }
+}
