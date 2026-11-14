@@ -48,6 +48,8 @@ import AlumnoMarcasPage from './app/alumno/marcas/MarcasPage.jsx'
 import AlumnoPlanPage from './app/alumno/plan/MiPlanPage.jsx'
 import AlumnoNovedadesPage from './app/alumno/novedades/NovedadesAlumnoPage.jsx'
 import AlumnoCalculadoraRMPage from './app/alumno/calculadora/CalculadoraRMPage.jsx'
+import PerfilAdminPage from './app/admin/perfil/PerfilAdminPage.jsx'
+import MiConfiguracionDespacho from './app/mi-configuracion/MiConfiguracionDespacho.jsx'
 import AlumnoPerfilPage from './app/alumno/perfil/PerfilPage.jsx'
 import MasMovilNuevo from './app/alumno/MasMovilNuevo.jsx'
 import NotificacionesMovilNuevo from './app/alumno/NotificacionesMovilNuevo.jsx'
@@ -185,7 +187,7 @@ function App() {
         <Route path="/admin/mas" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><MasPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/perfiles" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilesPage /></AdminLayout></RequireAuth>} />
         {/* Mi perfil desde el panel admin: se queda en el layout de admin */}
-        <Route path="/admin/perfil" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><AlumnoPerfilPage /></AdminLayout></RequireAuth>} />
+        <Route path="/admin/perfil" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><PerfilAdminPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><UsuariosPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/nuevo" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><NuevoUsuarioPage /></AdminLayout></RequireAuth>} />
         <Route path="/admin/usuarios/abonos/carga-masiva" element={<RequireAuth allowedRoles={["admin"]}><AdminLayout><CargaMasivaAbonosPage /></AdminLayout></RequireAuth>} />
@@ -222,7 +224,7 @@ function App() {
         {/* Mi configuración (preferencias de la persona): se abre dentro del panel en el que está */}
         <Route path="/alumno/configuracion" element={<RequireAuth allowedRoles={["alumno"]}><AlumnoLayout><MiConfiguracionPage /></AlumnoLayout></RequireAuth>} />
         <Route path="/profesor/configuracion" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><MiConfiguracionPage /></ProfesorLayout></RequireAuth>} />
-        <Route path="/mi-configuracion" element={<RequireAuth><SharedProfileRoute><MiConfiguracionPage /></SharedProfileRoute></RequireAuth>} />
+        <Route path="/mi-configuracion" element={<RequireAuth><SharedProfileRoute><MiConfiguracionDespacho /></SharedProfileRoute></RequireAuth>} />
 
         {/* RUTAS DE PROFESOR CORREGIDAS */}
         <Route path="/profesor" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorDashboard /></ProfesorLayout></RequireAuth>} />

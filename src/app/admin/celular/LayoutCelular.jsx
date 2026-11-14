@@ -56,7 +56,7 @@ export default function LayoutCelular({ children }) {
   const sesion = useMemo(() => { try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} } }, [])
 
   const tabs = useMemo(() => {
-    const activa = pathname === "/admin" || pathname === "/admin/" ? "Inicio" : pathname.startsWith("/admin/usuarios") ? "Usuarios" : pathname.startsWith("/admin/planes") ? "Planes" : pathname.startsWith("/admin/mas") || pathname.startsWith("/admin/notificaciones") ? "Más" : null
+    const activa = pathname === "/admin" || pathname === "/admin/" ? "Inicio" : pathname.startsWith("/admin/usuarios") ? "Usuarios" : pathname.startsWith("/admin/planes") ? "Planes" : pathname.startsWith("/admin/mas") || pathname.startsWith("/admin/perfil") || pathname.startsWith("/mi-configuracion") ? "Más" : null
     return [["Inicio", I.home, "/admin"], ["Usuarios", I.users, "/admin/usuarios"], ["Clases", I.cal, "/admin/clases", "fab"], ["Planes", I.card, "/admin/planes"], ["Más", I.menu, "/admin/mas"]].map(([label, d, href, k]) => {
       const cur = !k && activa === label, fab = k === "fab"
       return { label, d, href, cur: cur ? "page" : undefined, aria: fab ? "Clases" : undefined, fg: (cur || fab) ? c.okFg : c.muted, font: (cur || fab) ? "700 11px Archivo" : "600 11px Archivo", w: fab ? "60px" : "52px", h: fab ? "60px" : "30px", mt: fab ? "-30px" : "0", r: fab ? "50%" : "15px", bg: fab ? "#9be600" : (cur ? c.okBg : "transparent"), ic: fab ? "#0b0b0b" : "currentColor", bd: fab ? "4px solid " + c.bg : "none", sh: fab ? "0 0 0 1px rgba(155,230,0,.4), 0 8px 24px rgba(155,230,0,.25)" : "none" }
