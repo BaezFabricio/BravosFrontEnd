@@ -19,7 +19,7 @@ import {
   User,
   X,
   ChevronDown,
-  FileText,
+  Dumbbell,
   ClipboardCheck,
   Menu,
 } from "lucide-react"
@@ -36,7 +36,7 @@ const GRUPOS = [{ key: "inicio", titulo: null }]
 
 const navigation = [
   { name: "Asistencia", mobileLabel: "Asistencia", href: "/profesor", icon: ClipboardCheck, grupo: "inicio" },
-  { name: "Mis Rutinas", mobileLabel: "Rutinas", href: "/profesor/rutinas", icon: FileText, grupo: "inicio" },
+  { name: "Mis Rutinas", mobileLabel: "Rutinas", href: "/profesor/rutinas", icon: Dumbbell, grupo: "inicio" },
   { name: "Perfil", mobileLabel: "Perfil", href: "/profesor/perfil", icon: User, grupo: "inicio" },
 ]
 
@@ -234,9 +234,9 @@ export default function ProfesorLayout({ children }) {
 
   // Celular: cabecera con logo o flecha, contenido a pantalla completa y menú flotante de 3 botones
   const porDefecto = {
-    "/profesor": { titulo: "Asistencia", sub: "Tomá lista de tus clases" },
-    "/profesor/rutinas": { titulo: "Mis rutinas", sub: "Las rutinas que el administrador asignó a tus clases" },
-    "/profesor/perfil": { titulo: "Mi perfil", sub: "Tus datos de contacto" },
+    "/profesor": { titulo: "Asistencia" },
+    "/profesor/rutinas": { titulo: "Mis rutinas" },
+    "/profesor/perfil": { titulo: "Mi perfil" },
   }
   const cab = cabecera || porDefecto[pathname] || { titulo: "Bravos" }
   const volver = cabecera?.onVolver || (rutaPadre(pathname) ? () => navigate(rutaPadre(pathname)) : null)

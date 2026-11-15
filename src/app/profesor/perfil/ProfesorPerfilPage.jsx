@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { Moon, Sun, LogOut } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
@@ -107,8 +108,11 @@ export default function ProfesorPerfilPage() {
           <span style={{ position: "relative", width: movil ? 64 : 112, height: movil ? 64 : 112, flexShrink: 0, borderRadius: "50%", background: "#2a2c24", border: `3px solid ${C.lime}`, boxSizing: "border-box", display: "grid", placeItems: "center", overflow: "hidden", font: movil ? "900 24px 'Big Shoulders Stencil Display'" : "900 40px 'Big Shoulders Stencil Display'", color: C.lime }}>
             {avatarUrl ? <img src={avatarUrl} alt={datos.nombre || "Foto de perfil"} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : iniciales(datos.nombre)}
           </span>
-          <h2 style={{ position: "relative", minWidth: 0, margin: movil ? 0 : "6px 0 0", font: movil ? "900 24px/1 'Big Shoulders Stencil Display'" : "900 30px/1 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>{datos.nombre || "Sin cargar"}</h2>
-          <span style={{ position: "relative", padding: "3px 12px", borderRadius: 999, border: `1px solid ${C.okLine}`, background: "#16220a", color: C.lime, font: "700 11px Archivo", letterSpacing: ".08em" }}>PROFESOR</span>
+          {/* Celular: nombre y chip en una columna, como la referencia; en computadora, uno debajo del otro centrado */}
+          <div style={movil ? { position: "relative", minWidth: 0, flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8 } : { position: "relative", display: "contents" }}>
+            <h2 style={{ position: "relative", minWidth: 0, margin: movil ? 0 : "6px 0 0", font: movil ? "900 24px/1 'Big Shoulders Stencil Display'" : "900 30px/1 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>{datos.nombre || "Sin cargar"}</h2>
+            <span style={{ position: "relative", padding: "3px 12px", borderRadius: 999, border: `1px solid ${C.okLine}`, background: "#16220a", color: C.lime, font: "700 11px Archivo", letterSpacing: ".08em" }}>PROFESOR</span>
+          </div>
           <input ref={inputFoto} type="file" accept={TIPOS_FOTO.join(",")} onChange={elegirFoto} style={{ display: "none" }} aria-label="Elegir foto de perfil" />
           {/* Celular: botón de cámara de 44 px a la derecha (como la referencia); en computadora, con texto */}
           <button onClick={() => inputFoto.current?.click()} aria-label="Cambiar foto" style={movil
@@ -124,7 +128,11 @@ export default function ProfesorPerfilPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: `1px solid ${C.line}` }}>
             <h2 id="t-dp" style={{ flex: 1, margin: 0, font: "700 17px Archivo" }}>Datos personales</h2>
             {!editando ? (
-              <button onClick={() => setBorrador({ ...datos })} style={{ height: 44, display: "flex", alignItems: "center", gap: 6, padding: "0 14px", borderRadius: 10, border: `1px solid ${C.btnLine}`, background: "transparent", color: C.ink, font: "700 14px Archivo", cursor: "pointer" }}>Editar</button>
+              movil ? (
+                <button onClick={() => setBorrador({ ...datos })} style={{ height: 44, padding: "0 4px", border: "none", background: "transparent", color: C.okFg, font: "700 14px Archivo", cursor: "pointer" }}>Editar</button>
+              ) : (
+                <button onClick={() => setBorrador({ ...datos })} style={{ height: 44, display: "flex", alignItems: "center", gap: 6, padding: "0 14px", borderRadius: 10, border: `1px solid ${C.btnLine}`, background: "transparent", color: C.ink, font: "700 14px Archivo", cursor: "pointer" }}>Editar</button>
+              )
             ) : null}
           </div>
           <dl style={{ margin: 0, padding: "6px 20px 14px" }}>
@@ -133,7 +141,7 @@ export default function ProfesorPerfilPage() {
                 <dt><label htmlFor={`pf-${c.k}`} style={{ font: "600 13px Archivo", color: C.muted }}>{c.l}</label></dt>
                 <dd style={{ margin: 0 }}>
                   {!editando ? (
-                    verDato(datos[c.k]) ? <span style={{ font: "600 16px Archivo", color: C.ink }}>{datos[c.k]}</span> : <span style={{ font: "600 16px Archivo", color: C.muted }}>Sin cargar</span>
+                    verDato(datos[c.k]) ? <span style={{ font: "600 16px Archivo", color: C.ink }}>{datos[c.k]}</span> : <span style={{ font: "600 16px Archivo", color: C.muted }}>Sin cargar · tocá Editar para agregarlo</span>
                   ) : (
                     <input id={`pf-${c.k}`} type={c.type} value={borrador[c.k]} placeholder={c.ph} onChange={(e) => setBorrador({ ...borrador, [c.k]: e.target.value })} style={campoEstilo} />
                   )}
@@ -152,9 +160,11 @@ export default function ProfesorPerfilPage() {
         {movil && (
           <>
             <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ minHeight: 56, display: "flex", alignItems: "center", gap: 12, padding: "0 16px", borderRadius: 14, border: `1px solid ${C.line}`, background: C.card, color: C.ink, font: "700 15px Archivo", textAlign: "left", cursor: "pointer" }}>
+              {theme === "dark" ? <Moon className="h-[19px] w-[19px]" /> : <Sun className="h-[19px] w-[19px]" />}
               <span style={{ flex: 1 }}>{theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}</span>
             </button>
             <button onClick={() => { cerrarSesionEnServidor(); localStorage.clear(); navigate("/login") }} style={{ minHeight: 56, display: "flex", alignItems: "center", gap: 12, padding: "0 16px", borderRadius: 14, border: `1px solid ${C.line}`, background: C.card, color: C.errFg, font: "700 15px Archivo", textAlign: "left", cursor: "pointer" }}>
+              <LogOut className="h-[19px] w-[19px]" />
               Cerrar sesión
             </button>
           </>
