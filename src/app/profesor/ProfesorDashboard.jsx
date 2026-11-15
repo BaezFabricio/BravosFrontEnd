@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useLocation } from "react-router-dom"
+import { useLocation, useSearchParams } from "react-router-dom"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
 import { useTemaProfesor } from "./paletaProfesor"
@@ -15,9 +15,14 @@ const hoy = () => { const d = new Date(); d.setHours(12, 0, 0, 0); return d }
 const etiquetaDia = (d) => `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`
 const sinSegundos = (h) => String(h || "").slice(0, 5)
 
-// Fecha de "Tomar lista de esta clase" (rutina) o de hoy
-function fechaInicial(state) {
-  if (state?.fecha) { const [a, m, d] = state.fecha.split("-").map(Number); return new Date(a, m - 1, d, 12) }
+// Fecha de "Tomar lista de esta clase" (rutina), de un aviso (?fecha= o ?clase=) o de hoy
+function fechaDeTxt(txt) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(txt || "")
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12) : null
+}
+function fechaInicial(state, fechaUrl) {
+  if (state?.fecha) return fechaDeTxt(state.fecha) || hoy()
+  if (fechaUrl) return fechaDeTxt(fechaUrl) || hoy()
   return hoy()
 }
 
@@ -25,8 +30,10 @@ export default function ProfesorDashboard() {
   const C = useTemaProfesor()
   const movil = useEsMovil()
   const location = useLocation()
-  const [fecha, setFecha] = useState(() => fechaInicial(location.state))
-  const pedidoClase = location.state?.idClase && location.state?.idHorario ? `${location.state.idClase}-${location.state.idHorario}-${location.state.fecha}` : null
+  const [params] = useSearchParams()
+  const claseUrl = params.get("clase") // "idClase-idHorario-AAAA-MM-DD" (lo manda un aviso)
+  const [fecha, setFecha] = useState(() => fechaInicial(location.state, claseUrl ? claseUrl.slice(-10) : params.get("fecha")))
+  const pedidoClase = location.state?.idClase && location.state?.idHorario ? `${location.state.idClase}-${location.state.idHorario}-${location.state.fecha}` : (claseUrl || null)
   const [horariosPorClase, setHorariosPorClase] = useState([]) // [{idClase, nombre, idHorario, fecha, hora}]
   const [alumnosPorClave, setAlumnosPorClave] = useState({}) // clave "idClase-idHorario-fecha" -> alumnos
   const [abierta, setAbierta] = useState(null) // clave de la clase con la lista abierta

@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { ModeToggle } from "@/components/ModeToggle"
 import HamburgerButton from "@/components/HamburgerButton"
-import NotificacionesBell from "@/components/NotificacionesBell"
+import CampanaProfesor from "./avisos/CampanaProfesor"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import { HojaMas, EnlacePaginaPrincipal, BotonPaginaPrincipal } from "@/components/MenuPanel"
@@ -168,7 +168,7 @@ export default function ProfesorLayout({ children }) {
               <div className="hidden lg:block"><ModeToggle /></div>
               
 
-              <NotificacionesBell />
+              <CampanaProfesor movil={false} />
               
               {/* GLOBITO IDÉNTICO AL LANDING */}
               <div className="relative" ref={menuRef}>
@@ -258,7 +258,7 @@ export default function ProfesorLayout({ children }) {
           <h1 className="truncate text-[18px] font-extrabold leading-tight">{cab.titulo}</h1>
           {cab.sub && <div className="truncate text-xs" style={{ color: C.muted }}>{cab.sub}</div>}
         </div>
-        <NotificacionesBell />
+        <CampanaProfesor movil={true} />
         <button onClick={() => setCuentaAbierta(true)} aria-label="Menú de cuenta" className="grid h-11 w-11 shrink-0 place-items-center">
           <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border-2 text-[13px] font-bold" style={{ background: C.card, borderColor: C.lime, color: C.okFg }}>
             {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : usuario.iniciales}

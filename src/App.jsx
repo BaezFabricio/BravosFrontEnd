@@ -61,6 +61,7 @@ import MiConfiguracionPage from './app/mi-configuracion/MiConfiguracionPage.jsx'
 import ProfesorLayout from './app/profesor/ProfesorLayout.jsx'
 import ProfesorDashboard from "./app/profesor/ProfesorDashboard"
 import ProfesorPerfilPage from './app/profesor/perfil/ProfesorPerfilPage.jsx'
+import AvisosProfesorPage from './app/profesor/avisos/AvisosProfesorPage.jsx'
 import RutinasPage from "./app/profesor/rutinas/RutinasPage"
 import NuevaRutinaPage from './app/profesor/rutinas/nueva/NuevaRutinaPage.jsx'
 import DetalleRutinaPage from './app/profesor/rutinas/[id]/DetalleRutinaPage.jsx'
@@ -229,6 +230,7 @@ function App() {
         {/* RUTAS DE PROFESOR CORREGIDAS */}
         <Route path="/profesor" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorDashboard /></ProfesorLayout></RequireAuth>} />
         <Route path="/profesor/perfil" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><ProfesorPerfilPage /></ProfesorLayout></RequireAuth>} />
+        <Route path="/profesor/avisos" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><AvisosProfesorPage /></ProfesorLayout></RequireAuth>} />
         <Route path="/profesor/rutinas" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><RutinasPage /></ProfesorLayout></RequireAuth>} />
         <Route path="/profesor/rutinas/nueva" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><NuevaRutinaPage /></ProfesorLayout></RequireAuth>} />
         <Route path="/profesor/rutinas/:id" element={<RequireAuth allowedRoles={["profesor"]}><ProfesorLayout><DetalleRutinaPage /></ProfesorLayout></RequireAuth>} />
