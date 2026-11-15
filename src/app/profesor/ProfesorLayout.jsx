@@ -8,6 +8,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import { useEsMovil, CabeceraMovilContext } from "./movil"
 import { useTemaProfesor } from "./paletaProfesor"
+import HojaCuentaCelular from "@/components/HojaCuentaCelular"
 import { ChevronLeft, ClipboardList } from "lucide-react"
 
 // Submódulo = una pantalla dentro de un módulo (ej. /profesor/rutinas/5): su "Volver" lleva a la pantalla de arriba
@@ -60,6 +61,7 @@ export default function ProfesorLayout({ children }) {
   const movil = useEsMovil()
   const C = useTemaProfesor()
   const [cabecera, setCabecera] = useState(null) // la pone cada página en el celular (título, subtítulo, volver)
+  const [cuentaAbierta, setCuentaAbierta] = useState(false) // menú de cuenta del celular (globo de arriba)
   // Computadora angosta (menos de 1100 px): el menú lateral queda en íconos (76 px), como en la referencia
   const [compacto, setCompacto] = useState(() => window.innerWidth < 1100)
 
@@ -257,7 +259,7 @@ export default function ProfesorLayout({ children }) {
           {cab.sub && <div className="truncate text-xs" style={{ color: C.muted }}>{cab.sub}</div>}
         </div>
         <NotificacionesBell />
-        <button onClick={() => navigate("/profesor/perfil")} aria-label="Mi perfil" className="grid h-11 w-11 shrink-0 place-items-center">
+        <button onClick={() => setCuentaAbierta(true)} aria-label="Menú de cuenta" className="grid h-11 w-11 shrink-0 place-items-center">
           <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border-2 text-[13px] font-bold" style={{ background: C.card, borderColor: C.lime, color: C.okFg }}>
             {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : usuario.iniciales}
           </span>
@@ -279,6 +281,17 @@ export default function ProfesorLayout({ children }) {
           )
         })}
       </nav>
+
+      <HojaCuentaCelular
+        abierto={cuentaAbierta}
+        onCerrar={() => setCuentaAbierta(false)}
+        userData={{ nombrecompleto: usuario.nombre, correo: usuario.email }}
+        avatarUrl={avatarUrl}
+        rutaPerfil="/profesor/perfil"
+        rutaConfiguracion="/profesor/configuracion"
+        panelActual="profesor"
+        onLogout={handleLogout}
+      />
 
       <BravoChat rol="profesor" />
       <InvitacionAvisos />

@@ -24,7 +24,7 @@ import InvitacionAvisos from "@/components/InvitacionAvisos"
 import GuiasAlumno from "@/components/GuiasAlumno"
 import { HojaMas } from "@/components/MenuPanel"
 import { EncabezadoMovil, MenuInferior } from "@/components/bx/MarcoMovil"
-import { HojaCuenta } from "@/components/bx/MenuCuenta"
+import HojaCuentaCelular from "@/components/HojaCuentaCelular"
 import { IC } from "@/components/bx/trazos"
 import { LayoutBxContext } from "@/lib/layoutBx"
 import { Ico } from "@/components/bx/iconos"
@@ -308,12 +308,15 @@ export default function AlumnoLayout({ children }) {
       />
 
       {/* Menú de cuenta (avatar): hoja que sube desde abajo */}
-      <HojaCuenta
+      <HojaCuentaCelular
         abierto={cuentaAbierta}
         onCerrar={() => setCuentaAbierta(false)}
         userData={userData}
         avatarUrl={avatarUrl}
         rutaPerfil="/alumno/perfil"
+        rutaConfiguracion="/alumno/configuracion"
+        panelActual="alumno"
+        onLogout={handleLogout}
       />
 
       {/* "Más" (menú de abajo): hoja que sube desde abajo con todas las opciones */}
