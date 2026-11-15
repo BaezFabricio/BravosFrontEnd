@@ -571,3 +571,20 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 @media (min-width: 1921px) {
   html.bv-landing { --u: calc(100vw / 1920); }
 }
+
+/* Módulo de profesor: al presionar un botón se achica un poco (150 ms); no se mueve si el celular pide menos movimiento */
+.bv-prof button:not(:disabled),
+.bv-prof a {
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+.bv-prof button:not(:disabled):active,
+.bv-prof a:active {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bv-prof button:active,
+  .bv-prof a:active {
+    transform: none;
+  }
+}

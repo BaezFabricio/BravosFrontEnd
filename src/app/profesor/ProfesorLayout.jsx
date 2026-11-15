@@ -6,6 +6,9 @@ import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
+import { useEsMovil, CabeceraMovilContext } from "./movil"
+import { useTemaProfesor } from "./paletaProfesor"
+import { ChevronLeft, ClipboardList } from "lucide-react"
 
 // Submódulo = una pantalla dentro de un módulo (ej. /profesor/rutinas/5): su "Volver" lleva a la pantalla de arriba
 const rutaPadre = (pathname) => {
@@ -54,6 +57,11 @@ export default function ProfesorLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const pathname = location.pathname
+  const movil = useEsMovil()
+  const C = useTemaProfesor()
+  const [cabecera, setCabecera] = useState(null) // la pone cada página en el celular (título, subtítulo, volver)
+  // Computadora angosta (menos de 1100 px): el menú lateral queda en íconos (76 px), como en la referencia
+  const [compacto, setCompacto] = useState(() => window.innerWidth < 1100)
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("usuario") || "{}");
@@ -78,7 +86,7 @@ export default function ProfesorLayout({ children }) {
   }, []);
 
   useEffect(() => {
-    const checkBreakpoint = () => setSidebarOpen(window.innerWidth >= 1024)
+    const checkBreakpoint = () => { setSidebarOpen(window.innerWidth >= 1024); setCompacto(window.innerWidth < 1100) }
     checkBreakpoint()
     window.addEventListener("resize", checkBreakpoint)
     return () => window.removeEventListener("resize", checkBreakpoint)
@@ -90,50 +98,58 @@ export default function ProfesorLayout({ children }) {
     navigate("/login");
   }
 
-  return (
-    <div className="min-h-screen bg-background">
+  const escritorio = (
+    <div className="min-h-screen bg-background bv-prof">
       {/* Menú lateral: solo en la computadora. En el celular se usa el desplegable de arriba a la derecha */}
-      <aside className={`hidden lg:block fixed top-0 left-0 z-50 h-full w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside style={{ width: compacto ? 76 : 260 }} className={`hidden lg:block fixed top-0 left-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between px-4 py-3 border-b-2 border-lime-400/30">
-            <Link to="/inicio" aria-label="Ir a la página principal" className="flex items-center gap-3">
+            <Link to="/inicio" aria-label="Ir a la página principal" className="flex min-h-[44px] items-center gap-3">
               <img src="/logo.jpg" alt="Bravos Box" className="w-10 h-10 rounded-lg" />
               <span className="text-base font-black tracking-widest text-sidebar-foreground">BRAVOS</span>
             </Link>
-            <button className="text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors p-1" onClick={() => setSidebarOpen(false)}>
+            <button className="grid h-[44px] w-[44px] place-items-center text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú">
               <X className="h-5 w-5" />
             </button>
           </div>
           <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
             {/* Primero: volver al sitio público del box */}
-            <div className="mb-1 border-b border-sidebar-border pb-1">
-              <EnlacePaginaPrincipal />
-            </div>
+            {!compacto && (
+              <div className="mb-1 border-b border-sidebar-border pb-1">
+                <EnlacePaginaPrincipal />
+              </div>
+            )}
             {navigation.map((item) => {
               const isActive = esActivo(item, pathname)
+              // Rótulo de grupo de la referencia: MIS CLASES (asistencia, rutinas) y MI CUENTA (perfil)
+              const rotulo = compacto ? null : item.href === "/profesor" ? "MIS CLASES" : item.href === "/profesor/perfil" ? "MI CUENTA" : null
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center gap-3 py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
-                    isActive
-                      ? "border-l-2 border-l-lime-600 dark:border-l-lime-400 pl-[0.625rem] pr-3 bg-lime-400/10 text-lime-700 dark:text-lime-400"
-                      : "px-3 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                  }`}
-                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
-                >
-                  <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-700 dark:text-lime-400" : ""}`} />
-                  {item.name}
-                </Link>
+                <div key={item.name}>
+                  {rotulo && <div className="px-3 pb-1.5 pt-4 text-[0.6875rem] font-bold tracking-[0.12em] text-sidebar-foreground/50">{rotulo}</div>}
+                  <Link
+                    to={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    title={compacto ? item.name : undefined}
+                    className={`flex min-h-[44px] items-center ${compacto ? "justify-center px-0" : "gap-3 px-3"} py-2 [@media(max-height:780px)]:py-1.5 rounded-lg text-sm font-semibold uppercase tracking-wide transition-all ${
+                      isActive
+                        ? "border-l-2 border-l-lime-400 pl-[0.625rem] pr-3 bg-[#1f2a0e] text-lime-400"
+                        : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                    }`}
+                    onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false) }}
+                  >
+                    <item.icon className={`h-4 w-4 flex-shrink-0 ${isActive ? "text-lime-400" : ""}`} />
+                    {!compacto && item.name}
+                  </Link>
+                </div>
               )
             })}
           </nav>
         </div>
       </aside>
 
-      <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-64" : ""}`}>
+      <div className={`transition-[padding] duration-300 ease-in-out ${sidebarOpen ? "lg:pl-[var(--ancho-menu)]" : ""}`} style={{ "--ancho-menu": `${compacto ? 76 : 260}px` }}>
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
-          <div className="flex items-center justify-between h-16 px-4">
+          <div className="flex items-center justify-between h-[72px] px-4">
             {!sidebarOpen && (
               <div className="hidden lg:block">
                 <HamburgerButton isOpen={false} onClick={() => setSidebarOpen(true)} />
@@ -192,7 +208,7 @@ export default function ProfesorLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main className="p-4 lg:p-6 pb-36 lg:pb-6">
+        <main className="p-4 lg:p-[24px] pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
@@ -214,5 +230,64 @@ export default function ProfesorLayout({ children }) {
       {/* Primera vez con la app instalada: invitación a activar los avisos en el celular */}
       <InvitacionAvisos />
     </div>
+  )
+
+  // Celular: cabecera con logo o flecha, contenido a pantalla completa y menú flotante de 3 botones
+  const porDefecto = {
+    "/profesor": { titulo: "Asistencia", sub: "Tomá lista de tus clases" },
+    "/profesor/rutinas": { titulo: "Mis rutinas", sub: "Las rutinas que el administrador asignó a tus clases" },
+    "/profesor/perfil": { titulo: "Mi perfil", sub: "Tus datos de contacto" },
+  }
+  const cab = cabecera || porDefecto[pathname] || { titulo: "Bravos" }
+  const volver = cabecera?.onVolver || (rutaPadre(pathname) ? () => navigate(rutaPadre(pathname)) : null)
+  const itemsMovil = navigation.map((item) => ({ ...item, activo: esActivo(item, pathname) }))
+
+  const arbolMovil = (
+    <div className="min-h-[100dvh] bv-prof" style={{ background: C.bg, color: C.ink }}>
+      <header className="sticky top-0 z-20 flex h-[60px] items-center gap-2 border-b px-1.5" style={{ background: C.bg, borderColor: C.line, paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        {volver ? (
+          <button onClick={volver} aria-label={cabecera?.onVolver ? "Volver a las clases del día" : "Volver"} className="grid h-11 w-11 shrink-0 place-items-center">
+            <ChevronLeft className="h-[22px] w-[22px]" />
+          </button>
+        ) : (
+          <img src="/logo.jpg" alt="Bravos Box" className="ml-2.5 h-9 w-9 shrink-0 rounded-lg object-cover" />
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[18px] font-extrabold leading-tight">{cab.titulo}</h1>
+          {cab.sub && <div className="truncate text-xs" style={{ color: C.muted }}>{cab.sub}</div>}
+        </div>
+        <NotificacionesBell />
+        <button onClick={() => navigate("/profesor/perfil")} aria-label="Mi perfil" className="grid h-11 w-11 shrink-0 place-items-center">
+          <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border-2 text-[13px] font-bold" style={{ background: C.card, borderColor: C.lime, color: C.okFg }}>
+            {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : usuario.iniciales}
+          </span>
+        </button>
+      </header>
+
+      <main className="flex min-h-0 flex-col gap-3.5 px-4 pt-4" style={{ paddingBottom: 124, overscrollBehavior: "contain" }}>
+        <SlotTituloContext.Provider value={null}>{children}</SlotTituloContext.Provider>
+      </main>
+
+      <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-6 z-20 grid h-[68px] grid-cols-3 gap-1 rounded-[22px] border p-1.5" style={{ background: C.card, borderColor: C.line, boxShadow: "0 10px 30px rgba(0,0,0,.35)" }}>
+        {itemsMovil.map((item) => {
+          const Icono = item.icon || ClipboardList
+          return (
+            <Link key={item.name} to={item.href} aria-current={item.activo ? "page" : undefined} className="flex flex-col items-center justify-center gap-[3px] rounded-2xl text-[11px] font-semibold" style={{ background: item.activo ? C.okBg : "transparent", color: item.activo ? C.okFg : C.muted }}>
+              <Icono className="h-[21px] w-[21px]" />
+              {item.mobileLabel || item.name}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <BravoChat rol="profesor" />
+      <InvitacionAvisos />
+    </div>
+  )
+
+  return (
+    <CabeceraMovilContext.Provider value={{ set: setCabecera }}>
+      {movil ? arbolMovil : escritorio}
+    </CabeceraMovilContext.Provider>
   )
 }

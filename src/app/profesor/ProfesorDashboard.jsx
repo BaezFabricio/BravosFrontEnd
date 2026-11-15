@@ -1,346 +1,408 @@
-import { CargandoLinea } from '@/components/Cargando'
-import { useEffect, useState } from "react"
-import { Calendar as CalendarIcon, ClipboardCheck, Clock, Users, CheckCircle2, XCircle, Dumbbell, ChevronRight, AlertCircle } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEffect, useMemo, useState } from "react"
+import { useLocation } from "react-router-dom"
 import apiClient from "@/api"
-import { toast } from '@/lib/notificar'
-import { GymLoader } from "@/components/GymLoader"
+import { toast } from "@/lib/notificar"
+import { useTemaProfesor } from "./paletaProfesor"
+import { useEsMovil, useCabeceraMovil } from "./movil"
 import { TituloPagina } from "@/components/TituloPagina"
 
-function getInitials(name = "") {
-  const parts = name.trim().split(" ")
-  return parts.length > 1
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : name.substring(0, 2).toUpperCase()
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+
+// Fecha local como AAAA-MM-DD (nunca toISOString: en Argentina cambia el día de noche)
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+const hoy = () => { const d = new Date(); d.setHours(12, 0, 0, 0); return d }
+const etiquetaDia = (d) => `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`
+const sinSegundos = (h) => String(h || "").slice(0, 5)
+
+// Fecha de "Tomar lista de esta clase" (rutina) o de hoy
+function fechaInicial(state) {
+  if (state?.fecha) { const [a, m, d] = state.fecha.split("-").map(Number); return new Date(a, m - 1, d, 12) }
+  return hoy()
 }
 
 export default function ProfesorDashboard() {
-  const [fecha, setFecha] = useState(new Date())
-  const [actividades, setActividades] = useState([])
-  const [actividad, setActividad] = useState("")
-  const [horarios, setHorarios] = useState([])
-  const [horarioSeleccionado, setHorarioSeleccionado] = useState("")
-  const [alumnos, setAlumnos] = useState([])
-  const [checkedIn, setCheckedIn] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const C = useTemaProfesor()
+  const movil = useEsMovil()
+  const location = useLocation()
+  const [fecha, setFecha] = useState(() => fechaInicial(location.state))
+  const pedidoClase = location.state?.idClase && location.state?.idHorario ? `${location.state.idClase}-${location.state.idHorario}-${location.state.fecha}` : null
+  const [horariosPorClase, setHorariosPorClase] = useState([]) // [{idClase, nombre, idHorario, fecha, hora}]
+  const [alumnosPorClave, setAlumnosPorClave] = useState({}) // clave "idClase-idHorario-fecha" -> alumnos
+  const [abierta, setAbierta] = useState(null) // clave de la clase con la lista abierta
 
-  const actividadObj = actividades.find(a => String(a.idClase) === actividad)
+  const fechaTxt = ymd(fecha)
+  const esHoy = fechaTxt === ymd(hoy())
 
-  // Solo las clases que tienen horario en la fecha elegida (cada clase tiene su fecha puntual)
-  const fechaElegidaTxt = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`
-  const actividadesDelDia = actividades.filter(a => String(a.fechas || "").split(",").includes(fechaElegidaTxt))
-
-  const presentes = alumnos.filter(a => a.asistencia === "presente").length
-  const ausentes = alumnos.filter(a => a.asistencia === "ausente").length
-  const pendientes = alumnos.filter(a => a.asistencia !== "presente" && a.asistencia !== "ausente").length
-  const pct = alumnos.length > 0 ? Math.round((presentes / alumnos.length) * 100) : 0
-
+  // Todas las clases del profesor con su horario puntual (una vez)
   useEffect(() => {
     apiClient.get("/profesores/mis-clases")
-      .then(res => setActividades(res.data?.data || []))
-      .catch(err => console.error("Error al cargar clases:", err))
+      .then(async (res) => {
+        const clases = res.data?.data || []
+        const listas = await Promise.all(clases.map(async (c) => {
+          try {
+            const r = await apiClient.get(`/profesores/clases/${c.idClase}/horarios`)
+            return (r.data?.data || []).map((h) => ({
+              idClase: c.idClase, nombre: c.categoria || c.nombreClase, idHorario: h.idHorario,
+              fecha: h.fecha, hora: sinSegundos(h.horaInicio), fin: sinSegundos(h.horaFin),
+            }))
+          } catch { return [] }
+        }))
+        const todas = listas.flat()
+        setHorariosPorClase(todas)
+        if (pedidoClase && todas.some((h) => `${h.idClase}-${h.idHorario}-${h.fecha}` === pedidoClase)) setAbierta(pedidoClase)
+      })
+      .catch(() => toast.error("No pudimos cargar tus clases"))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    setHorarioSeleccionado("")
-    setHorarios([])
-    setCheckedIn(false)
-    setAlumnos([])
-    if (!actividad) return
-    apiClient.get(`/profesores/clases/${actividad}/horarios`)
-      .then(res => setHorarios(res.data?.data || []))
-      .catch(err => console.error("Error al cargar horarios:", err))
-  }, [actividad])
+  const clasesDelDia = useMemo(
+    () => horariosPorClase.filter((h) => h.fecha === fechaTxt).sort((a, b) => a.hora.localeCompare(b.hora)),
+    [horariosPorClase, fechaTxt]
+  )
 
-  async function marcarAsistencia(idReserva, estado) {
+  const claveDe = (k) => `${k.idClase}-${k.idHorario}-${k.fecha}`
+
+  function cargarAlumnos(k) {
+    apiClient.get(`/profesores/clases/${k.idClase}/alumnos`, { params: { fecha: k.fecha, idHorario: k.idHorario } })
+      .then((r) => setAlumnosPorClave((prev) => ({ ...prev, [claveDe(k)]: r.data?.data || [] })))
+      .catch(() => toast.error("No pudimos cargar los alumnos"))
+  }
+
+  // Alumnos de cada clase del día (para contar y mostrar el estado de cada tarjeta)
+  useEffect(() => {
+    clasesDelDia.forEach((k) => cargarAlumnos(k))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechaTxt, horariosPorClase])
+
+
+  const claseAbierta = clasesDelDia.find((k) => claveDe(k) === abierta) || null
+  const alumnosAbiertos = claseAbierta ? alumnosPorClave[claveDe(claseAbierta)] || [] : []
+
+  // Tocar el mismo estado otra vez lo quita (vuelve a "sin marcar"); tocar el otro lo cambia
+  async function marcar(k, idReserva, estado) {
+    const actual = (alumnosPorClave[claveDe(k)] || []).find((a) => a.idReserva === idReserva)?.asistencia
+    const quitar = actual === estado
     try {
-      await apiClient.put(`/profesores/asistencias/${idReserva}`, { estado })
-      setAlumnos(prev => prev.map(a => a.idReserva === idReserva ? { ...a, asistencia: estado } : a))
-      toast.success(estado === "presente" ? "Asistencia confirmada" : "Inasistencia registrada")
+      if (quitar) await apiClient.delete(`/profesores/asistencias/${idReserva}`)
+      else await apiClient.put(`/profesores/asistencias/${idReserva}`, { estado })
+      setAlumnosPorClave((prev) => {
+        const lista = (prev[claveDe(k)] || []).map((a) => (a.idReserva === idReserva ? { ...a, asistencia: quitar ? null : estado } : a))
+        return { ...prev, [claveDe(k)]: lista }
+      })
     } catch {
       toast.error("No se pudo guardar la asistencia")
     }
   }
 
-  async function handleCheckIn() {
-    if (!actividad) { toast.error("Seleccioná una actividad"); return }
-    if (!horarioSeleccionado) { toast.error("Seleccioná un horario"); return }
-    setLoading(true)
-    const fechaISO = fecha.toISOString().split("T")[0]
-    try {
-      const response = await apiClient.get(
-        `/profesores/clases/${actividad}/alumnos?fecha=${fechaISO}&idHorario=${horarioSeleccionado}`
-      )
-      const data = response.data.data || response.data
-      setAlumnos(Array.isArray(data) ? data : [])
-      setCheckedIn(true)
-    } catch {
-      toast.error("Error al cargar los alumnos")
-    } finally {
-      setLoading(false)
-    }
+  async function marcarTodos(k) {
+    const pendientes = (alumnosPorClave[claveDe(k)] || []).filter((a) => a.asistencia !== "presente")
+    await Promise.all(pendientes.map((a) => marcar(k, a.idReserva, "presente")))
+    toast.success("Marcaste a todos presentes")
   }
 
-  const horarioObj = horarios.find(h => String(h.idHorario) === horarioSeleccionado)
+  const irDia = (n) => { setFecha((f) => { const d = new Date(f); d.setDate(d.getDate() + n); d.setHours(12, 0, 0, 0); return d > hoy() ? hoy() : d }); setAbierta(null) }
+  const volverHoy = () => { setFecha(hoy()); setAbierta(null) }
+
+  // Celular: la cabecera muestra la clase abierta y vuelve a las clases del día
+  useCabeceraMovil(movil && claseAbierta ? {
+    titulo: `${claseAbierta.nombre} · ${claseAbierta.hora}`,
+    sub: `${etiquetaDia(fecha)} · ${alumnosAbiertos.length === 1 ? "1 reservado" : `${alumnosAbiertos.length} reservados`}`,
+    onVolver: () => setAbierta(null),
+  } : null)
+
+  const estadoDe = (k) => {
+    const lista = alumnosPorClave[claveDe(k)]
+    if (!lista) return { n: 0, done: 0, st: "Cargando", full: false, part: false }
+    const n = lista.length
+    const done = lista.filter((a) => a.asistencia === "presente" || a.asistencia === "ausente").length
+    const full = n > 0 && done === n
+    return { n, done, full, part: done > 0 && !full, st: !n ? "Sin reservas" : full ? "Lista completa" : done > 0 ? `A medias · ${done}/${n}` : "Sin tomar" }
+  }
+
+  if (movil) {
+    return (
+      <AsistenciaMovil C={C} fecha={fecha} esHoy={esHoy} clasesDelDia={clasesDelDia} estadoDe={estadoDe} claveDe={claveDe} irDia={irDia} volverHoy={volverHoy} setAbierta={setAbierta} claseAbierta={claseAbierta} alumnosAbiertos={alumnosAbiertos} marcar={marcar} marcarTodos={marcarTodos} />
+    )
+  }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div>
-          <TituloPagina descripcion={"Tomá lista de tus alumnos marcando presentes y ausentes"}>Registro de Asistencia</TituloPagina>
-        </div>
-        {checkedIn && alumnos.length > 0 && (
-          <div className="sm:text-right ml-10 sm:ml-0">
-            <p className="text-3xl font-black text-primary">{pct}%</p>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">asistencia</p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1152, width: "100%", margin: "0 auto", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
+      <TituloPagina descripcion="Tomá lista de tus clases">Asistencia</TituloPagina>
+      {/* Elegir día */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+        <div role="group" aria-label="Día" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button onClick={() => irDia(-1)} aria-label="Día anterior" style={botonCuadrado(C)}>
+            <Flecha dir="izq" />
+          </button>
+          <div aria-live="polite" style={{ minWidth: 220, height: 44, boxSizing: "border-box", padding: "0 16px", borderRadius: 10, border: `1px solid ${C.line}`, background: C.card, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ padding: "2px 8px", borderRadius: 999, background: esHoy ? C.lime : C.surf, color: esHoy ? C.onLime : C.muted, font: "700 11px Archivo", letterSpacing: ".06em" }}>{esHoy ? "HOY" : "AYER"}</span>
+            <span style={{ font: "700 15px Archivo" }}>{etiquetaDia(fecha)}</span>
           </div>
+          <button onClick={() => irDia(1)} disabled={esHoy} aria-label="Día siguiente" style={{ ...botonCuadrado(C), opacity: esHoy ? 0.4 : 1 }}>
+            <Flecha dir="der" />
+          </button>
+        </div>
+        {!esHoy && (
+          <button onClick={volverHoy} style={{ height: 44, padding: "0 14px", border: "none", background: "transparent", color: C.okFg, font: "700 14px Archivo", cursor: "pointer" }}>Volver a hoy</button>
         )}
       </div>
 
-      {/* PANEL DE FILTROS */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="border-b border-border bg-secondary px-6 py-3 flex items-center gap-2">
-          <Dumbbell className="h-4 w-4 text-primary" />
-          <span className="text-xs font-bold uppercase tracking-widest text-foreground">Configurar Clase</span>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* FECHA */}
-            <div className="min-w-0 space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <CalendarIcon className="h-3.5 w-3.5" /> Fecha
-              </label>
-              <input
-                type="date"
-                value={fecha ? fecha.toISOString().split("T")[0] : ""}
-                onChange={(e) => {
-                  const val = e.target.value
-                  if (!val) return
-                  setFecha(new Date(val + "T00:00:00"))
-                  setCheckedIn(false)
-                  setAlumnos([])
-                }}
-                className="block w-full min-w-0 max-w-full appearance-none rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-              />
+      {!claseAbierta && (
+        <section aria-labelledby="t-cl" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <h2 id="t-cl" style={{ margin: 0, font: "600 12px Archivo", letterSpacing: ".1em", color: C.muted }}>
+            {(esHoy ? "TUS CLASES DE HOY" : "TUS CLASES DE ESE DÍA") + " · " + clasesDelDia.length}
+          </h2>
+          {clasesDelDia.length === 0 && (
+            <div style={{ padding: "48px 20px", borderRadius: 16, border: `1px dashed ${C.btnLine}`, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              <div style={{ font: "700 17px Archivo" }}>No tenés clases este día</div>
+              <div style={{ font: "400 14px Archivo", color: C.muted }}>Usá las flechas para ver otro día.</div>
             </div>
-
-            {/* ACTIVIDAD */}
-            <div className="min-w-0 space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <Dumbbell className="h-3.5 w-3.5" /> Actividad
-              </label>
-              <Select onValueChange={v => { setActividad(v); setCheckedIn(false); setAlumnos([]) }}>
-                <SelectTrigger className="w-full bg-secondary border-border text-foreground">
-                  <SelectValue placeholder="Seleccionar clase..." />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {actividadesDelDia.map(a => (
-                    <SelectItem key={a.idClase} value={String(a.idClase)}>
-                      {a.categoria || a.nombreClase}
-                      {a.dias ? ` · ${a.dias}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* HORARIO */}
-            <div className="min-w-0 space-y-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" /> Horario
-              </label>
-              <Select
-                value={horarioSeleccionado}
-                onValueChange={v => { setHorarioSeleccionado(v); setCheckedIn(false); setAlumnos([]) }}
-                disabled={!actividad || horarios.length === 0}
-              >
-                <SelectTrigger className="w-full bg-secondary border-border text-foreground">
-                  <SelectValue placeholder={actividad ? "Seleccionar..." : "Elegí una actividad"} />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {horarios.map(h => (
-                    <SelectItem key={h.idHorario} value={String(h.idHorario)}>
-                      {h.dia} · {h.horaInicio?.slice(0, 5)} – {h.horaFin?.slice(0, 5)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="mt-5 flex justify-end">
-            <button
-              onClick={handleCheckIn}
-              disabled={loading || !actividad || !horarioSeleccionado}
-              className="bg-lime-400 text-black font-black uppercase tracking-widest text-xs px-6 py-2.5 hover:bg-lime-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-            >
-              {loading
-                ? <CargandoLinea ancho="w-20" className="bg-black/30" />
-                : <><ClipboardCheck className="h-4 w-4" /> Tomar Lista <ChevronRight className="h-4 w-4" /></>
-              }
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ESTADO: sin check-in */}
-      {!checkedIn && (
-        <div className="rounded-xl border border-dashed border-border bg-card/50 p-16 flex flex-col items-center justify-center text-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Users className="h-8 w-8 text-primary/50" />
-          </div>
-          <p className="font-semibold text-foreground">Ninguna lista abierta</p>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            Seleccioná la fecha, actividad y horario, luego presioná <span className="text-primary font-semibold">Tomar Lista</span> para ver los alumnos reservados.
-          </p>
-        </div>
+          )}
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(min(100%,300px),1fr))", gap: 12 }}>
+            {clasesDelDia.map((k) => {
+              const e = estadoDe(k)
+              const sBg = e.full ? C.okBg : e.part ? C.warnBg : "transparent"
+              const sBd = e.full ? C.okLine : e.part ? C.warnLine : C.btnLine
+              const sFg = e.full ? C.okFg : e.part ? C.warnFg : C.ink
+              const cta = !e.n ? "Ver clase" : e.full ? "Ver lista" : "Tomar lista"
+              return (
+                <li key={claveDe(k)}>
+                  <button
+                    onClick={() => setAbierta(claveDe(k))}
+                    aria-label={`${k.nombre} de las ${k.hora}, ${e.n} reservados, ${e.st}`}
+                    style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14, padding: 18, borderRadius: 16, border: `1px solid ${e.full ? C.okLine : C.line}`, background: C.card, color: C.ink, textAlign: "left", cursor: "pointer", transitionProperty: "transform,border-color", transitionDuration: "150ms", transitionTimingFunction: "ease-out" }}
+                  >
+                    <span style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                      <span>
+                        <span style={{ display: "block", font: "900 34px/1 'Big Shoulders Stencil Display'" }}>{k.hora}</span>
+                        <span style={{ display: "block", marginTop: 4, font: "700 15px Archivo" }}>{k.nombre}</span>
+                      </span>
+                      <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 999, background: sBg, border: `1px solid ${sBd}`, color: sFg, font: "700 12px Archivo", whiteSpace: "nowrap" }}>
+                        <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />{e.st}
+                      </span>
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, paddingTop: 12, borderTop: `1px solid ${C.line2}`, font: "500 14px Archivo", color: C.muted }}>
+                      <span>{e.n === 1 ? "1 reservado" : `${e.n} reservados`}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, font: "700 14px Archivo", color: e.n ? C.okFg : C.muted }}>{cta} <Flecha dir="der" tam={16} /></span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
       )}
 
-      {/* LISTA DE ALUMNOS */}
-      {checkedIn && (
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-
-          {/* Header de la lista */}
-          <div className="border-b border-border bg-secondary px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="font-black uppercase tracking-wide text-foreground text-sm">
-                {actividadObj?.categoria || actividadObj?.nombreClase || "Clase"}
-              </p>
-              {horarioObj && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {horarioObj.dia} · {horarioObj.horaInicio?.slice(0,5)} – {horarioObj.horaFin?.slice(0,5)} · {fecha.toLocaleDateString("es-AR")}
-                </p>
+      {claseAbierta && (
+        <section aria-labelledby="t-li" style={{ borderRadius: 16, background: C.card, border: `1px solid ${C.line}`, overflow: "hidden" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 20px", padding: 18, borderBottom: `1px solid ${C.line}` }}>
+            <button onClick={() => setAbierta(null)} aria-label="Volver a las clases del día" style={{ ...botonCuadrado(C), background: "transparent" }}>
+              <Flecha dir="izq" tam={18} />
+            </button>
+            <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+              <h2 id="t-li" style={{ margin: 0, font: "900 28px/1 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>{claseAbierta.nombre} · {claseAbierta.hora}</h2>
+              <div style={{ marginTop: 4, font: "500 14px Archivo", color: C.muted }}>{etiquetaDia(fecha)} · {alumnosAbiertos.length === 1 ? "1 reservado" : `${alumnosAbiertos.length} reservados`}</div>
+            </div>
+            <ConteoLista C={C} lista={alumnosAbiertos} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "14px 20px", borderBottom: `1px solid ${C.line2}` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <span style={{ font: "600 14px Archivo" }}>{progresoTxt(alumnosAbiertos)}</span>
+              {alumnosAbiertos.some((a) => a.asistencia !== "presente") && alumnosAbiertos.length > 0 && (
+                <button onClick={() => marcarTodos(claseAbierta)} style={{ minHeight: 40, padding: "0 4px", border: "none", background: "transparent", color: C.okFg, font: "700 14px Archivo", cursor: "pointer" }}>Marcar todos presentes</button>
               )}
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-lime-400" />
-                <span className="font-bold text-foreground">{presentes}</span>
-                <span className="text-muted-foreground text-xs">pres.</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="font-bold text-foreground">{ausentes}</span>
-                <span className="text-muted-foreground text-xs">aus.</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-zinc-500" />
-                <span className="font-bold text-foreground">{pendientes}</span>
-                <span className="text-muted-foreground text-xs">pend.</span>
-              </div>
+            <div role="progressbar" aria-label="Lista tomada" aria-valuemin={0} aria-valuemax={alumnosAbiertos.length} aria-valuenow={alumnosAbiertos.filter((a) => a.asistencia).length} style={{ height: 8, borderRadius: 4, background: C.track, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${alumnosAbiertos.length ? (alumnosAbiertos.filter((a) => a.asistencia).length / alumnosAbiertos.length) * 100 : 0}%`, background: C.lime, transitionProperty: "width", transitionDuration: "300ms" }} />
             </div>
           </div>
-
-          {/* Barra de progreso */}
-          {alumnos.length > 0 && (
-            <div className="px-6 pt-4 pb-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-                <span>Progreso de lista</span>
-                <span className="font-semibold text-foreground">{presentes + ausentes} / {alumnos.length} registrados</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
-                  style={{ width: `${alumnos.length > 0 ? ((presentes + ausentes) / alumnos.length) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
+          {alumnosAbiertos.length === 0 && (
+            <div style={{ padding: "40px 20px", textAlign: "center", font: "500 15px Archivo", color: C.muted }}>Nadie reservó esta clase todavía.</div>
           )}
-
-          {/* Sin alumnos */}
-          {alumnos.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-3 text-center">
-              <AlertCircle className="h-10 w-10 text-muted-foreground/40" />
-              <p className="font-semibold text-muted-foreground">Sin reservas para esta clase</p>
-              <p className="text-xs text-muted-foreground">Nadie reservó esta clase en la fecha seleccionada.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {alumnos.map((a, i) => {
-                const isPresente = a.asistencia === "presente"
-                const isAusente = a.asistencia === "ausente"
-                return (
-                  <div
-                    key={a.idReserva}
-                    className={`flex items-center justify-between px-4 sm:px-6 py-3 transition-colors gap-3 ${
-                      isPresente ? "bg-lime-400/5" : isAusente ? "bg-red-500/5" : "hover:bg-secondary/50"
-                    }`}
-                  >
-                    {/* Avatar + nombre */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                        isPresente
-                          ? "bg-lime-400/20 text-lime-700 dark:text-lime-400"
-                          : isAusente
-                          ? "bg-red-500/20 text-red-700 dark:text-red-400"
-                          : "bg-secondary text-muted-foreground"
-                      }`}>
-                        {getInitials(a.nombrecompleto)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{a.nombrecompleto}</p>
-                        <p className="text-xs text-muted-foreground">#{i + 1}</p>
-                      </div>
-                    </div>
-
-                    {/* Acciones */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isPresente || isAusente ? (
-                        <>
-                          <span className={`flex min-h-[2.5rem] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold ${
-                            isPresente
-                              ? "bg-lime-400 text-black"
-                              : "bg-red-500 text-foreground"
-                          }`}>
-                            {isPresente
-                              ? <><CheckCircle2 className="h-4 w-4" /> Presente</>
-                              : <><XCircle className="h-4 w-4" /> Ausente</>
-                            }
-                          </span>
-                          <button
-                            onClick={() => setAlumnos(prev => prev.map(al => al.idReserva === a.idReserva ? { ...al, asistencia: null } : al))}
-                            className="text-[0.625rem] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-                          >
-                            Cambiar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => marcarAsistencia(a.idReserva, "presente")}
-                            className="flex min-h-[2.75rem] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-lime-600 dark:hover:border-lime-400 hover:text-lime-700 dark:hover:text-lime-400 hover:bg-lime-400/5 transition-all"
-                          >
-                            <CheckCircle2 className="h-4 w-4" /> Presente
-                          </button>
-                          <button
-                            onClick={() => marcarAsistencia(a.idReserva, "ausente")}
-                            className="flex min-h-[2.75rem] items-center gap-1.5 rounded-xl px-4 text-xs font-bold border border-border text-muted-foreground hover:border-red-600 dark:hover:border-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-500/5 transition-all"
-                          >
-                            <XCircle className="h-4 w-4" /> Ausente
-                          </button>
-                        </>
-                      )}
-                    </div>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {alumnosAbiertos.map((a, i) => {
+              const p = a.asistencia === "presente", x = a.asistencia === "ausente"
+              return (
+                <li key={a.idReserva} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 16px", padding: "12px 20px", borderTop: i ? `1px solid ${C.line2}` : "none", background: p ? C.okBg : x ? C.errBg : "transparent" }}>
+                  <span aria-hidden="true" style={{ width: 42, height: 42, flexShrink: 0, borderRadius: "50%", background: p ? C.lime : x ? C.errBg : C.surf, color: p ? C.onLime : x ? C.errFg : C.ink, display: "grid", placeItems: "center", font: "800 14px Archivo" }}>{iniciales(a.nombrecompleto)}</span>
+                  <div style={{ flex: "1 1 180px", minWidth: 0 }}>
+                    <div style={{ font: "700 16px Archivo" }}>{a.nombrecompleto}</div>
+                    <div style={{ font: "500 13px Archivo", color: C.muted }}>Reservó · {i + 1}.º</div>
                   </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Footer resumen */}
-          {alumnos.length > 0 && (
-            <div className="border-t border-border bg-secondary/50 px-6 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Users className="h-3.5 w-3.5" />
-                <span>{alumnos.length} alumnos en esta clase</span>
-              </div>
-              <span className="text-xs font-bold text-primary">{pct}% de asistencia</span>
-            </div>
-          )}
-        </div>
+                  <div role="radiogroup" aria-label={`Asistencia de ${a.nombrecompleto}`} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, width: 280, maxWidth: "100%" }}>
+                    <button role="radio" aria-checked={p} onClick={() => marcar(claseAbierta, a.idReserva, "presente")} style={botonMarca(C, p, "lime")}>Presente</button>
+                    <button role="radio" aria-checked={x} onClick={() => marcar(claseAbierta, a.idReserva, "ausente")} style={botonMarca(C, x, "err")}>Ausente</button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 20px", borderTop: `1px solid ${C.line}`, font: "500 13px Archivo", color: C.muted }}>
+            {alumnosAbiertos.some((a) => a.asistencia) ? "Se guarda automáticamente." : "Cada marca se guarda al instante."}
+          </div>
+        </section>
       )}
     </div>
+  )
+}
+
+// Celular (referencia 02-profesor-celular.html): filas tocables y lista en tarjetas con botones de 48 px
+function AsistenciaMovil({ C, fecha, esHoy, clasesDelDia, estadoDe, claveDe, irDia, volverHoy, setAbierta, claseAbierta, alumnosAbiertos, marcar, marcarTodos }) {
+  const n = alumnosAbiertos.length
+  const p = alumnosAbiertos.filter((a) => a.asistencia === "presente").length
+  const x = alumnosAbiertos.filter((a) => a.asistencia === "ausente").length
+  const marcados = p + x
+  const numero = { display: "block", font: "900 26px/1 'Big Shoulders Stencil Display'" }
+  const boton = (on, tono) => ({ ...botonMarca(C, on, tono), height: 48, fontSize: 15, borderRadius: 12 })
+
+  if (claseAbierta) {
+    return (
+      <>
+        <section aria-label="Resumen de la lista" style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: C.card, border: `1px solid ${C.line}` }}>
+          <div aria-live="polite" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", textAlign: "center" }}>
+            <span><strong style={{ ...numero, color: C.okFg }}>{p}</strong><span style={{ font: "600 12px Archivo", color: C.muted }}>presentes</span></span>
+            <span><strong style={{ ...numero, color: C.errFg }}>{x}</strong><span style={{ font: "600 12px Archivo", color: C.muted }}>ausentes</span></span>
+            <span><strong style={{ ...numero, color: C.ink }}>{n - marcados}</strong><span style={{ font: "600 12px Archivo", color: C.muted }}>sin marcar</span></span>
+          </div>
+          <div role="progressbar" aria-label="Lista tomada" aria-valuemin={0} aria-valuemax={n} aria-valuenow={marcados} style={{ height: 8, borderRadius: 4, background: C.track, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${n ? (marcados / n) * 100 : 0}%`, background: C.lime }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <span style={{ font: "600 13px Archivo", color: C.muted }}>{progresoTxt(alumnosAbiertos)}</span>
+            {n > 0 && p < n && (
+              <button onClick={() => marcarTodos(claseAbierta)} style={{ minHeight: 40, padding: "0 2px", border: "none", background: "transparent", color: C.okFg, font: "700 13px Archivo", cursor: "pointer", whiteSpace: "nowrap" }}>Todos presentes</button>
+            )}
+          </div>
+        </section>
+
+        {n === 0 && <div style={{ padding: "32px 16px", textAlign: "center", font: "500 15px Archivo", color: C.muted }}>Nadie reservó esta clase todavía.</div>}
+
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+          {alumnosAbiertos.map((a, i) => {
+            const pres = a.asistencia === "presente", ause = a.asistencia === "ausente"
+            return (
+              <li key={a.idReserva} style={{ padding: 12, borderRadius: 14, background: pres ? C.okBg : ause ? C.errBg : C.card, border: `1px solid ${C.line}`, display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span aria-hidden="true" style={{ width: 40, height: 40, flexShrink: 0, borderRadius: "50%", background: pres ? C.lime : ause ? C.errBg : C.surf, color: pres ? C.onLime : ause ? C.errFg : C.ink, display: "grid", placeItems: "center", font: "800 13px Archivo" }}>{iniciales(a.nombrecompleto)}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", font: "700 16px Archivo" }}>{a.nombrecompleto}</span>
+                    <span style={{ display: "block", font: "500 12px Archivo", color: C.muted }}>Reservó · {i + 1}.º</span>
+                  </span>
+                </div>
+                <div role="radiogroup" aria-label={`Asistencia de ${a.nombrecompleto}`} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <button role="radio" aria-checked={pres} onClick={() => marcar(claseAbierta, a.idReserva, "presente")} style={boton(pres, "lime")}>Presente</button>
+                  <button role="radio" aria-checked={ause} onClick={() => marcar(claseAbierta, a.idReserva, "ausente")} style={boton(ause, "err")}>Ausente</button>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+        <p style={{ margin: 0, textAlign: "center", font: "500 13px Archivo", color: C.muted }}>{marcados ? "Se guarda automáticamente." : "Cada marca se guarda al instante."}</p>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div role="group" aria-label="Día" style={{ display: "grid", gridTemplateColumns: "44px 1fr 44px", gap: 8 }}>
+        <button onClick={() => irDia(-1)} aria-label="Día anterior" style={{ height: 48, borderRadius: 12, border: `1px solid ${C.btnLine}`, background: C.card, color: C.ink, display: "grid", placeItems: "center", cursor: "pointer" }}>
+          <Flecha dir="izq" tam={18} />
+        </button>
+        <div aria-live="polite" style={{ height: 48, borderRadius: 12, border: `1px solid ${C.line}`, background: C.card, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <span style={{ padding: "2px 8px", borderRadius: 999, background: esHoy ? C.lime : C.surf, color: esHoy ? C.onLime : C.muted, font: "700 11px Archivo" }}>{esHoy ? "HOY" : "AYER"}</span>
+          <span style={{ font: "700 15px Archivo" }}>{etiquetaDia(fecha)}</span>
+        </div>
+        <button onClick={() => irDia(1)} disabled={esHoy} aria-label="Día siguiente" style={{ height: 48, borderRadius: 12, border: `1px solid ${C.btnLine}`, background: C.card, color: C.ink, opacity: esHoy ? 0.4 : 1, display: "grid", placeItems: "center", cursor: "pointer" }}>
+          <Flecha dir="der" tam={18} />
+        </button>
+      </div>
+      {!esHoy && (
+        <button onClick={volverHoy} style={{ alignSelf: "flex-start", height: 40, padding: "0 4px", border: "none", background: "transparent", color: C.okFg, font: "700 14px Archivo", cursor: "pointer" }}>Volver a hoy</button>
+      )}
+
+      <h2 style={{ margin: "4px 0 0", font: "600 12px Archivo", letterSpacing: ".1em", color: C.muted }}>{(esHoy ? "TUS CLASES DE HOY" : "TUS CLASES DE ESE DÍA") + " · " + clasesDelDia.length}</h2>
+      {clasesDelDia.length === 0 && (
+        <div style={{ padding: "36px 16px", borderRadius: 14, border: `1px dashed ${C.btnLine}`, textAlign: "center" }}>
+          <div style={{ font: "700 16px Archivo" }}>No tenés clases este día</div>
+          <div style={{ marginTop: 4, font: "400 14px Archivo", color: C.muted }}>Usá las flechas para ver otro día.</div>
+        </div>
+      )}
+      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+        {clasesDelDia.map((k) => {
+          const e = estadoDe(k)
+          const sBg = e.full ? C.okBg : e.part ? C.warnBg : "transparent"
+          const sBd = e.full ? C.okLine : e.part ? C.warnLine : C.btnLine
+          const sFg = e.full ? C.okFg : e.part ? C.warnFg : C.ink
+          return (
+            <li key={claveDe(k)}>
+              <button onClick={() => setAbierta(claveDe(k))} aria-label={`${k.nombre} de las ${k.hora}, ${e.n} reservados, ${e.st}`} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: 14, borderRadius: 14, border: `1px solid ${e.full ? C.okLine : C.line}`, background: C.card, color: C.ink, textAlign: "left", cursor: "pointer", transitionProperty: "transform,background-color,border-color,color", transitionDuration: "150ms", transitionTimingFunction: "ease-out" }}>
+                <span style={{ minWidth: 64, font: "900 30px/1 'Big Shoulders Stencil Display'" }}>{k.hora}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", font: "700 15px Archivo" }}>{k.nombre}</span>
+                  <span style={{ display: "block", marginTop: 2, font: "500 13px Archivo", color: C.muted }}>{e.n === 1 ? "1 reservado" : `${e.n} reservados`}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "2px 9px", borderRadius: 999, background: sBg, border: `1px solid ${sBd}`, color: sFg, font: "700 11px Archivo" }}>
+                    <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor" }} />{e.st}
+                  </span>
+                </span>
+                <span style={{ color: C.muted, display: "flex" }}><Flecha dir="der" tam={18} /></span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </>
+  )
+}
+
+function progresoTxt(lista) {
+  const n = lista.length
+  if (!n) return "Sin alumnos"
+  const p = lista.filter((a) => a.asistencia === "presente").length
+  const done = lista.filter((a) => a.asistencia).length
+  return done === n ? `Lista completa · ${Math.round((p / n) * 100)} % de asistencia` : `${done} de ${n} marcados`
+}
+
+function ConteoLista({ C, lista }) {
+  const p = lista.filter((a) => a.asistencia === "presente").length
+  const x = lista.filter((a) => a.asistencia === "ausente").length
+  const f = lista.length - p - x
+  const num = { font: "900 22px 'Big Shoulders Stencil Display'" }
+  return (
+    <div aria-live="polite" style={{ display: "flex", gap: 16, font: "600 14px Archivo", color: C.muted }}>
+      <span><strong style={{ ...num, color: C.okFg }}>{p}</strong> presentes</span>
+      <span><strong style={{ ...num, color: C.errFg }}>{x}</strong> ausentes</span>
+      <span><strong style={{ ...num, color: C.ink }}>{f}</strong> sin marcar</span>
+    </div>
+  )
+}
+
+function iniciales(nombre = "") {
+  const p = nombre.trim().split(" ")
+  return (p.length > 1 ? p[0][0] + p[1][0] : nombre.substring(0, 2)).toUpperCase()
+}
+
+function botonCuadrado(C) {
+  return { width: 44, height: 44, flexShrink: 0, borderRadius: 10, border: `1px solid ${C.btnLine}`, background: C.card, color: C.ink, display: "grid", placeItems: "center", cursor: "pointer" }
+}
+
+function botonMarca(C, on, tono) {
+  const acento = tono === "lime" ? C.lime : C.errFg
+  return {
+    height: 44, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 10,
+    border: `1px solid ${on ? acento : C.btnLine}`,
+    background: on ? acento : "transparent",
+    color: on ? (tono === "lime" ? C.onLime : "#ffffff") : C.ink,
+    font: "700 14px Archivo", cursor: "pointer",
+    transitionProperty: "transform,background-color,border-color,color", transitionDuration: "150ms", transitionTimingFunction: "ease-out",
+  }
+}
+
+function Flecha({ dir, tam = 18 }) {
+  const d = dir === "izq" ? "m15 6-6 6 6 6" : "m9 6 6 6-6 6"
+  return (
+    <svg width={tam} height={tam} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
   )
 }

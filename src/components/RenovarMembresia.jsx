@@ -806,7 +806,7 @@ function PlanesEnLista({ planes, plan, popular, elegir }) {
 // ── Celular: elegir membresía ────────────────────────────────────────────────
 // Los planes se eligen tocándolos y hay un solo botón para seguir (estilo "paywall").
 // En la ventana de membresías el botón queda fijo abajo.
-function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana }) {
+function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana, sinMembresia = false, dudasWa = null }) {
   const total = planesOrdenados.length
   const popular = total > 1 ? planesOrdenados.find((p) => p.masPopular) : null
   const [elegido, setElegido] = useState((popular || planesOrdenados[0])?.idPlan)
@@ -817,8 +817,8 @@ function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana }) {
   return (
     <div className="flex flex-col sm:hidden">
       <div className="text-center">
-        <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-foreground">Elegí tu membresía</h2>
-        <p className="mt-1 text-sm text-foreground/60">Todas vencen el próximo día 10.</p>
+        <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-foreground">{sinMembresia ? "Elegí tu plan" : "Elegí tu membresía"}</h2>
+        <p className="mt-1 text-sm text-foreground/60">{sinMembresia ? "Todos vencen el próximo día 10." : "Todas vencen el próximo día 10."}</p>
       </div>
 
       <PlanesEnLista {...props} />
@@ -836,6 +836,16 @@ function ListaPlanesMovil({ planesOrdenados, onElegir, enVentana }) {
         </button>
         <p className="mt-2 text-center text-[0.6875rem] text-foreground/55">Pagás con Mercado Pago o transferencia bancaria</p>
       </div>
+
+      {sinMembresia && dudasWa && (
+        <a href={`https://wa.me/${dudasWa}`} target="_blank" rel="noopener noreferrer" className="mt-4 flex min-h-[3.75rem] items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5">
+          <span className="grid h-[2.375rem] w-[2.375rem] shrink-0 place-items-center rounded-xl bg-[#25d366] text-[#04210f]"><MessageCircle className="h-[1.125rem] w-[1.125rem]" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[0.9375rem] font-bold text-foreground">¿Dudas con los planes?</span>
+            <span className="block text-[0.8125rem] text-foreground/60">Escribile al box por WhatsApp</span>
+          </span>
+        </a>
+      )}
     </div>
   )
 }
@@ -902,7 +912,9 @@ export function PagarPlanModal({ idPlan, open, onClose, onRenovado }) {
   )
 }
 
-export default function RenovarMembresia({ onRenovado, enVentana = false }) {
+// variante "sinMembresia": el alumno sin plan vigente (encabezado y comparación de la referencia Sin membresía)
+export default function RenovarMembresia({ onRenovado, enVentana = false, variante = "normal" }) {
+  const sinMembresia = variante === "sinMembresia"
   const { planes, loading, configBanco } = useDatosPago()
   const [planModal, setPlanModal]     = useState(null)
   const [faqOpen, setFaqOpen]         = useState(null)
@@ -929,10 +941,15 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
 
   return (
     <>
-    <ListaPlanesMovil planesOrdenados={planesOrdenados} onElegir={setPlanModal} enVentana={enVentana} />
+    <ListaPlanesMovil planesOrdenados={planesOrdenados} onElegir={setPlanModal} enVentana={enVentana} sinMembresia={sinMembresia} dudasWa={numeroWhatsapp(configBanco.whatsapp)} />
     <div className="hidden space-y-10 sm:block">
-      {/* ── Encabezado ── */}
-      <div className="text-center space-y-2">
+      {sinMembresia ? (
+        <div className="text-center space-y-1">
+          <h2 className="text-2xl font-black text-foreground">Elegí tu plan</h2>
+          <p className="text-sm text-foreground/60">Todos vencen el próximo día 10. Pagás con Mercado Pago o transferencia.</p>
+        </div>
+      ) : (
+        <div className="text-center space-y-2">
         <p className="text-[0.6875rem] font-black uppercase tracking-widest text-lime-600 dark:text-lime-400">
           MEMBRESÍAS & CRÉDITOS DISPONIBLES
         </p>
@@ -944,6 +961,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
           para reservar tus clases favoritas con la comunidad BRAVOS.
         </p>
       </div>
+      )}
 
 
       {/* ── Cards de planes ── */}
@@ -1056,7 +1074,7 @@ export default function RenovarMembresia({ onRenovado, enVentana = false }) {
       </div>
 
       {/* ── Tabla comparativa ── */}
-      {planesOrdenados.length > 1 && (
+      {planesOrdenados.length > 1 && !sinMembresia && (
         <div>
           <div className="mb-4">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-foreground/55">

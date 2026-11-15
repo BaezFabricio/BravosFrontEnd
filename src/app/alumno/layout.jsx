@@ -9,18 +9,16 @@ import {
   History,
   CreditCard,
   User,
-  LogOut,
-  ShieldAlert,
   Home,
   FolderOpen,
   Trophy,
   Calculator,
   Wallet,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import NovedadesPortada from "@/components/NovedadesPortada"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
+import SinMembresiaHero from "@/components/SinMembresiaHero"
 import BravoChat from "@/components/BravoChat"
 import InvitacionAvisos from "@/components/InvitacionAvisos"
 import GuiasAlumno from "@/components/GuiasAlumno"
@@ -236,18 +234,11 @@ export default function AlumnoLayout({ children }) {
             </div>
           ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
-            <div className="max-w-5xl mx-auto mt-4 space-y-4">
-              <div className="flex items-start gap-3 border border-red-500/20 bg-red-500/5 px-4 py-3">
-                <ShieldAlert className="h-4 w-4 text-red-700 dark:text-red-400 mt-0.5 shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-red-700 dark:text-red-400">Sin membresía vigente</p>
-                  <p className="text-xs text-foreground/50 mt-0.5">Renová tu plan para acceder al sistema.</p>
-                </div>
-                <Button onClick={handleLogout} variant="ghost" size="sm" className="shrink-0 text-foreground/40 hover:text-red-700 dark:hover:text-red-400 text-xs gap-1">
-                  <LogOut className="h-3.5 w-3.5" /> Salir
-                </Button>
+            <div className="mx-auto mt-4 max-w-5xl space-y-8">
+              <SinMembresiaHero />
+              <div id="planes" className="scroll-mt-24">
+                <RenovarMembresia variante="sinMembresia" onRenovado={() => window.location.reload()} />
               </div>
-              <RenovarMembresia onRenovado={() => window.location.reload()} />
             </div>
           ) : (
             /* ACCESO CONCEDIDO: Muestra las pantallas con sus datos reales */
