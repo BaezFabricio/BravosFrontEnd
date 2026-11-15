@@ -26,6 +26,8 @@ export default function AbonosCelular() {
   const [alumno, setAlumno] = useState(null)
   const [m, setM] = useState(0)
   const [sheet, setSheet] = useState(false)
+  // Filtro por hora de las clases próximas del alumno ("all" = todas)
+  const [horaF, setHoraF] = useState("all")
   const [plan, setPlan] = useState(null)
   const [met, setMet] = useState("Efectivo")
   const [monto, setMonto] = useState("")
@@ -63,8 +65,10 @@ export default function AbonosCelular() {
     const clave = `${y}-${String(mn + 1).padStart(2, "0")}`
     const mes = MESES[mn].charAt(0).toUpperCase() + MESES[mn].slice(1) + " " + y
     const loading = abonos === null
-    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
+    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre, horas: a.horas || [] })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
     const total = L.reduce((s, x) => s + x.amt, 0)
+    const horasOpc = [...new Set(L.flatMap((x) => x.horas || []))].sort()
+    const LF = horaF === "all" ? L : L.filter((x) => (x.horas || []).includes(horaF))
     const elegido = planes.find((p) => String(p.idPlan) === plan)
     const mErr = !(Number(monto) > 0)
     const nErr = (elegido ? 0 : 1) + (mErr ? 1 : 0) + (alumno ? 0 : 1)
@@ -93,9 +97,10 @@ export default function AbonosCelular() {
     return {
       c, mes, mesCorto: MESES[mn] + " " + y, actual: m === 0, notActual: m !== 0, nextFg: m === 0 ? c.muted : c.ink, nextOp: m === 0 ? 0.4 : 1,
       prev: () => setM((x) => x - 1), next: () => { if (m < 0) setM((x) => x + 1) }, hoy: () => setM(0),
-      total: pesos(total), countLabel: L.length === 1 ? "1 abono" : L.length + " abonos",
-      loading, empty: !loading && !L.length, hasList: L.length > 0,
-      lista: L.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),
+      total: pesos(total), countLabel: LF.length === 1 ? "1 abono" : LF.length + " abonos",
+      loading, empty: !loading && !LF.length, hasList: LF.length > 0,
+      horasOpc: [{ id: "all", label: "Todas" }, ...horasOpc.map((h) => ({ id: h, label: h }))].map((o) => { const ch = horaF === o.id; return { id: o.id, label: o.label, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => setHoraF(o.id) } }),
+      lista: LF.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),
       sheet, openNew: () => { if (puedeAlta) { setSheet(true); setTried(false) } }, close: () => setSheet(false),
       alu: { ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir" },
       planes: planes.map((p) => { const ch = plan === String(p.idPlan); return { id: p.idPlan, n: p.nombre, s: `${p.cantidadCreditos} créditos`, pr: pesos(p.precio), ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + (tried && !elegido ? c.errFg : c.line2), bg: ch ? c.okBg : c.surf, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => { setPlan(String(p.idPlan)); setMonto(String(precio(p, met))); setFin(masUnMes(ini)) } } }),
@@ -113,7 +118,7 @@ export default function AbonosCelular() {
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abonos, planes, alumno, m, sheet, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre])
+  }, [abonos, planes, alumno, m, sheet, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre, horaF])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver los abonos.</div>
 

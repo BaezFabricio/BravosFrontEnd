@@ -89,6 +89,8 @@ export default function GestionAbonosPage() {
   const hoyRef = new Date()
   const [compAbiertos, setCompAbiertos] = useState({})
   const [mesFiltro, setMesFiltro] = useState({ year: hoyRef.getFullYear(), month: hoyRef.getMonth() })
+  // Filtro por hora de las clases próximas del alumno ("all" = todas)
+  const [horaAbono, setHoraAbono] = useState("all")
   // Ventana para elegir el mes (y el año) directamente, sin ir de a uno con las flechas
   const [pickerMes, setPickerMes] = useState(false)
   const [anioPicker, setAnioPicker] = useState(hoyRef.getFullYear())
@@ -779,6 +781,8 @@ export default function GestionAbonosPage() {
           ) : null
         const activos = abonos.filter(a => a.estado !== "CANCELADO")
         const delMes  = abonosPorMes(activos)
+        const horasAbonos = [...new Set(delMes.flatMap(a => a.horas || []))].sort()
+        const delMesF = horaAbono === "all" ? delMes : delMes.filter(a => (a.horas || []).includes(horaAbono))
         const prevKey = `${mesFiltro.year}-${mesFiltro.month - 1 < 0 ? 11 : mesFiltro.month - 1}`
           .replace(/-([-\d]+)$/, m => {
             const n = parseInt(m.slice(1)); return `-${n < 0 ? 11 : n}`
@@ -883,6 +887,21 @@ export default function GestionAbonosPage() {
               </DialogContent>
             </Dialog>
 
+            {/* Filtro por hora de clase, como en Usuarios */}
+            {horasAbonos.length > 0 && (
+              <div className="border-b border-border px-5 py-3">
+                <p className="pb-1.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/55">Hora de su clase reservada</p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Hora de su clase reservada">
+                  {[{ id: "all", label: "Todas" }, ...horasAbonos.map(h => ({ id: h, label: h }))].map(o => (
+                    <button key={o.id} type="button" onClick={() => setHoraAbono(o.id)} aria-pressed={horaAbono === o.id}
+                      className={`min-h-[2.25rem] rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${horaAbono === o.id ? "border-lime-500 bg-lime-400 text-black" : "border-border bg-background text-foreground/70 hover:border-foreground/30"}`}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Resumen rápido del mes */}
             {delMes.length > 0 && (
               <div className="border-b border-border border-dashed px-5 py-2 flex items-center gap-6 text-xs text-muted-foreground">
@@ -898,9 +917,9 @@ export default function GestionAbonosPage() {
             )}
 
             {/* CELULAR: una tarjeta por membresía */}
-            {!cargandoAbonos && delMes.length > 0 && (
+            {!cargandoAbonos && delMesF.length > 0 && (
               <ul className="space-y-3 p-3 md:hidden">
-                {delMes.map((ab) => {
+                {delMesF.map((ab) => {
                   const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                   const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
                   const docsAbono = docsDe(ab)
@@ -985,14 +1004,14 @@ export default function GestionAbonosPage() {
                 <tbody className="block md:table-row-group divide-y divide-border">
                   {cargandoAbonos ? (
                     <tr className="block md:table-row"><td colSpan="12" className="block md:table-cell p-8 text-center text-foreground/60 animate-pulse text-sm">Cargando...</td></tr>
-                  ) : delMes.length === 0 ? (
+                  ) : delMesF.length === 0 ? (
                     <tr className="block md:table-row">
                       <td colSpan="12" className="block md:table-cell p-10 text-center">
                         <p className="text-base font-semibold text-foreground">No hay membresías que empiecen en {labelMes(mesFiltro).toLowerCase()}</p>
                         <p className="mt-1 text-sm text-foreground/60">Probá con otro mes o cargá un abono arriba.</p>
                       </td>
                     </tr>
-                  ) : delMes.map((ab) => {
+                  ) : delMesF.map((ab) => {
                     const alumno = usuarios.find(u => String(u.idUsuario || u.id) === String(ab.idUsuario))
                     const nombreMostrar = ab.nombreAlumno || alumno?.nombre || alumno?.nombrecompleto || "-"
                     const docsAbono = docsDe(ab)
