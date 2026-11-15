@@ -12,6 +12,9 @@ import {
   DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { TituloPagina } from "@/components/TituloPagina"
+import { useTheme } from "@/components/theme-provider"
+import { CargaAbono } from "./pantallas/AbonosCargaView"
+import { PALETA } from "./pantallas/paletaAbonos"
 
 const METODOS = ["Efectivo", "Transferencia", "Débito", "Tarjeta Crédito"]
 
@@ -24,16 +27,19 @@ const fmt = (iso) => {
   } catch { return iso }
 }
 
+// Fecha local como AAAA-MM-DD (nunca toISOString: en Argentina, de noche, daría el día siguiente)
+const fechaLocal = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+
 const diezDelMesSiguiente = (fechaStr) => {
   if (!fechaStr) return ""
-  const d = new Date(fechaStr + "T00:00:00")
+  const d = new Date(fechaStr + "T12:00:00")
   d.setMonth(d.getMonth() + 1)
   d.setDate(10)
-  return d.toISOString().split("T")[0]
+  return fechaLocal(d)
 }
 
 function filaVacia() {
-  const hoy = new Date().toISOString().split("T")[0]
+  const hoy = fechaLocal(new Date())
   return {
     _id: Math.random().toString(36).slice(2),
     idUsuario: "",
@@ -126,6 +132,14 @@ export default function GestionAbonosPage() {
   const [enviando, setEnviando] = useState(false)
   const busquedaRefs = useRef({})
   const adjRefs = useRef({})
+  const { theme } = useTheme()
+  // Ventana del comprobante (dentro del sistema, no en otra pestaña): { fid, doc, al }
+  const [visor, setVisor] = useState(null)
+  useEffect(() => {
+    const tecla = (e) => { if (e.key === "Escape") setVisor(null) }
+    window.addEventListener("keydown", tecla)
+    return () => window.removeEventListener("keydown", tecla)
+  }, [])
   const [dropdownPos, setDropdownPos] = useState({})
 
   // Comprobantes por fila de carga (idFila → array de docs)
@@ -343,6 +357,7 @@ export default function GestionAbonosPage() {
       const json = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(json.message || "No se pudo adjuntar el comprobante")
       toast.success("Comprobante adjuntado")
+      if (json.data?.idDocumento) upd(f._id, "comp", json.data.idDocumento)
       cargarComprobantes(f._id, f.idUsuario)
     } catch (err) { toast.error(err.message || "No se pudo adjuntar el comprobante") }
   }
@@ -413,10 +428,11 @@ export default function GestionAbonosPage() {
     }
     setEnviando(true)
 
+    let guardados = 0
     for (const f of pendientes) {
       upd(f._id, "estado", "cargando")
       try {
-        const docIdAprobado = await guardarFila(f, comprobantesMap[f._id] || [])
+        const docIdAprobado = await guardarFila(f, docsDeFila(f).filter(d => d.idDocumento === compElegido(f)))
         if (docIdAprobado) {
           setComprobantesMap(prev => ({
             ...prev,
@@ -425,13 +441,17 @@ export default function GestionAbonosPage() {
         }
 
         upd(f._id, "estado", "ok")
+        guardados++
       } catch (err) {
         upd(f._id, "estado", "error")
         upd(f._id, "mensajeError", err.message || "Error al guardar")
       }
     }
     setEnviando(false)
-    toast.success("Carga completada")
+    if (guardados > 0) {
+      setFilas(prev => { const resto = prev.filter(r => r.estado !== "ok"); return resto.length ? resto : [filaNueva()] })
+      toast.success(guardados === 1 ? "Guardaste el abono." : `Guardaste ${guardados} abonos.`)
+    }
     cargarAbonos()
   }
 
@@ -526,6 +546,75 @@ export default function GestionAbonosPage() {
 
   const inp = "w-full bg-card border border-border text-sm text-foreground px-2 py-1.5 outline-none focus:border-foreground/40 transition-colors placeholder:text-foreground/45"
 
+  // ── Datos de la sección "Cargar abono" ───────────────────────────────────────────
+  const oscuro = theme === "dark" || (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  const C = oscuro ? PALETA.d : PALETA.l
+  const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+  const fmtDoc = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? "" : `${d.getDate()} ${MESES_CORTOS[d.getMonth()]} ${d.getFullYear()}` }
+  const fmtCorto = (iso) => { const [Y, M, D] = String(iso || "").split("-").map(Number); return Y ? `${D} ${["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][M - 1]}` : "la fecha de inicio" }
+  // Comprobantes que el alumno subió desde la fecha de inicio del abono
+  function docsDeFila(f) {
+    const desde = f.fechaInicio ? new Date(f.fechaInicio + "T00:00:00") : null
+    return (comprobantesMap[f._id] || []).filter(d => d.tipo === "comprobante_transferencia" && (!desde || !d.creadoEn || new Date(d.creadoEn) >= desde))
+  }
+  // El comprobante elegido: el que se tocó; si no se tocó ninguno, el más reciente. null = ninguno
+  function compElegido(f) {
+    const l = docsDeFila(f)
+    const id = f.comp === undefined ? (l[0]?.idDocumento ?? null) : f.comp
+    return l.some(d => d.idDocumento === id) ? id : null
+  }
+  const nAb = filas.length
+  const totalAb = filas.reduce((t, f) => t + (Number(f.monto) || 0), 0)
+  const faltaPlan = filas.some(f => f.estado !== "ok" && !f.idPlan)
+  const filaDelVisor = visor ? filas.find(x => x._id === visor.fid) : null
+  const vCarga = {
+    C,
+    planes: planes.map(p => ({ id: p.idPlan, n: p.nombre })),
+    metodos: METODOS.map(m => [m, m]),
+    filas: filas.map(f => {
+      const plan = planes.find(p => String(p.idPlan) === String(f.idPlan))
+      const docs = docsDeFila(f)
+      const sel = compElegido(f)
+      const nombre = f.nombreAlumno || f.busqueda || ""
+      return {
+        alumno: f.busqueda, bloq: f.estado === "cargando",
+        setAl: (e) => buscarAlumno(f._id, e.target.value, e.target),
+        plan: f.idPlan, setPlan: (e) => seleccionarPlan(f._id, e.target.value), planBd: f.idPlan ? C.l.x2a2a2a : C.l.x5a4a12,
+        cred: plan ? String(plan.cantidadCreditos) : "—", credFg: plan ? C.t.x9be600 : C.t.x7d8073,
+        horario: f.horario, setHorario: (e) => upd(f._id, "horario", e.target.value),
+        ini: f.fechaInicio, setIni: (e) => { const val = e.target.value; setFilas(prev => prev.map(r => r._id === f._id ? { ...r, fechaInicio: val, fechaVencimiento: val ? diezDelMesSiguiente(val) : r.fechaVencimiento } : r)) },
+        ven: f.fechaVencimiento, setVen: (e) => upd(f._id, "fechaVencimiento", e.target.value),
+        pago: f.metodoPago, setPago: (e) => cambiarMetodo(f._id, e.target.value),
+        monto: f.monto, setMonto: (e) => upd(f._id, "monto", e.target.value.replace(/[^\d.]/g, "")),
+        only: filas.length === 1, delFg: filas.length === 1 ? C.t.x444 : C.t.xff8a80,
+        del: () => setFilas(prev => (prev.length > 1 ? prev.filter(r => r._id !== f._id) : prev)),
+        err: f.estado === "error" ? f.mensajeError : "",
+        isTr: f.metodoPago === "Transferencia",
+        compAria: "Comprobante de transferencia de " + (nombre || "este alumno"),
+        comps: docs.map(d => ({
+          n: d.nombreArchivo || "comprobante", d: d.creadoEn ? fmtDoc(d.creadoEn) : "",
+          ch: sel === d.idDocumento ? "true" : "false", bd: sel === d.idDocumento ? "2px solid " + C.t.x9be600 : "1px solid " + C.l.x2a2a2a,
+          pick: () => upd(f._id, "comp", sel === d.idDocumento ? null : d.idDocumento),
+          verA: "Ver comprobante " + (d.nombreArchivo || ""),
+          ver: () => { setVisor({ fid: f._id, doc: d, al: nombre || "el alumno" }); setTimeout(() => document.getElementById("vc-x")?.focus(), 0) },
+        })),
+        noComps: !docs.length, alCorto: (nombre || "El alumno").split(" ")[0], desde: fmtCorto(f.fechaInicio),
+        adjuntar: () => { if (!f.idUsuario) { toast.error("Elegí primero al alumno"); return } adjRefs.current[f._id]?.click() },
+      }
+    }),
+    vOn: !!visor,
+    v: visor ? { al: visor.al, n: visor.doc.nombreArchivo || "comprobante", d: visor.doc.creadoEn ? fmtDoc(visor.doc.creadoEn) : "", url: visor.doc.urlArchivo, img: /\.(jpe?g|png|webp)$/i.test(visor.doc.urlArchivo || ""), pdf: /\.pdf$/i.test(visor.doc.urlArchivo || "") } : {},
+    vClose: () => setVisor(null),
+    vUsarL: visor && filaDelVisor && compElegido(filaDelVisor) === visor.doc.idDocumento ? "USANDO ESTE" : "USAR ESTE COMPROBANTE",
+    vUsar: () => { if (visor) { upd(visor.fid, "comp", visor.doc.idDocumento); setVisor(null) } },
+    addFila: () => setFilas(prev => [...prev, filaNueva()]),
+    resumen: (nAb === 1 ? "1 abono" : nAb + " abonos") + " · Total $" + totalAb.toLocaleString("es-AR"),
+    falta: faltaPlan,
+    gLabel: enviando ? "GUARDANDO…" : (nAb === 1 ? "GUARDAR ABONO" : "GUARDAR " + nAb + " ABONOS"),
+    gBg: faltaPlan ? C.b.x262626 : C.t.x9be600, gFg: faltaPlan ? C.t.x7d8073 : C.b.x0b0b0b, gCur: faltaPlan ? "not-allowed" : "pointer",
+    guardar: () => { if (faltaPlan || enviando) return; enviar() },
+  }
+
   return (
     <div className="space-y-6">
 
@@ -551,191 +640,13 @@ export default function GestionAbonosPage() {
         </button>
       </div>
 
-      {/* ── CARGA MASIVA (escritorio y tablet) ───────────────────────────────── */}
-      <div id="nueva-carga" className="hidden scroll-mt-24 border border-border bg-card md:block">
-        <div className="border-b border-border px-[22px] py-[18px]">
-          <h2 className="text-[17px] font-extrabold text-foreground">Cargar abono</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">Al elegir el plan se completan los créditos, el vencimiento y el monto. Podés cargar varios alumnos a la vez.</p>
-        </div>
-
-        {(resumen.ok > 0 || resumen.err > 0) && (
-          <div className="flex items-center gap-4 text-sm">
-            {resumen.ok  > 0 && <span className="flex items-center gap-1.5 text-lime-700 dark:text-lime-500 font-bold"><CheckCircle2 className="h-3.5 w-3.5" />{resumen.ok} guardados</span>}
-            {resumen.err > 0 && <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400 font-bold"><AlertCircle className="h-3.5 w-3.5" />{resumen.err} errores</span>}
-          </div>
-        )}
-
-        <div className="border border-border bg-card md:overflow-x-auto">
-          <table className="w-full text-sm block md:table md:min-w-[65.625rem]">
-            <thead className="hidden md:table-header-group">
-              <tr className="border-b border-border bg-background/50">
-                {["","Alumno","Plan *","Créd.","Horario","Inicio","Vence","Pago","Monto",""].map((h, i) => (
-                  <th key={i} className="px-3 py-2 text-left text-xs font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="block md:table-row-group divide-y divide-border">
-              {filas.map((f) => (
-                <React.Fragment key={f._id}>
-                <tr className={`grid grid-cols-2 gap-x-3 gap-y-2 p-3 md:table-row md:p-0 transition-colors ${f.estado === "ok" ? "bg-lime-400/5" : f.estado === "error" ? "bg-red-400/5" : ""}`}>
-                  <td data-label="" className="px-3 py-2 md:w-8 text-center  ">
-                    {f.estado === "cargando" && <Loader2 className="h-4 w-4 animate-spin text-foreground/60 mx-auto" />}
-                    {f.estado === "ok"       && <CheckCircle2 className="h-4 w-4 text-lime-700 dark:text-lime-400 mx-auto" />}
-                    {f.estado === "error"    && <AlertCircle  className="h-4 w-4 text-red-700 dark:text-red-400 mx-auto" title={f.mensajeError} />}
-                  </td>
-
-                  <td data-label="Alumno" className="px-3 py-2 md:min-w-[11.25rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
-                    <input
-                      className={inp}
-                      placeholder="Buscar alumno..."
-                      value={f.busqueda}
-                      disabled={f.estado === "ok"}
-                      onChange={e => buscarAlumno(f._id, e.target.value, e.target)}
-                      onFocus={e => {
-                        const rect = e.target.getBoundingClientRect()
-                        setDropdownPos(prev => ({ ...prev, [f._id]: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX, width: rect.width } }))
-                        upd(f._id, "mostrarSugerencias", true)
-                      }}
-                      onBlur={() => setTimeout(() => upd(f._id, "mostrarSugerencias", false), 200)}
-                    />
-                  </td>
-
-                  <td data-label="Plan" className="px-3 py-2 md:min-w-[9.375rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden col-span-2 md:col-span-1">
-                    <select className={inp} value={f.idPlan} disabled={f.estado === "ok"}
-                      onChange={e => seleccionarPlan(f._id, e.target.value)}>
-                      <option value="">Seleccionar...</option>
-                      {planes.map(p => <option key={p.idPlan} value={p.idPlan}>{p.nombre}</option>)}
-                    </select>
-                  </td>
-
-                  <td data-label="Créditos" className="px-3 py-2 md:w-20 before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <input className={inp + " text-center bg-muted/40 cursor-default"} value={f.creditos} readOnly />
-                  </td>
-
-                  <td data-label="Horario" className="px-3 py-2 md:min-w-[6.875rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <input className={inp} placeholder="Lun/Mié 18hs" value={f.horario} disabled={f.estado === "ok"}
-                      onChange={e => upd(f._id, "horario", e.target.value)} />
-                  </td>
-
-                  <td data-label="Inicio" className="px-3 py-2 md:min-w-[8.125rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <input type="date" className={inp} value={f.fechaInicio} disabled={f.estado === "ok"}
-                      onChange={e => {
-                        const val = e.target.value
-                        setFilas(prev => prev.map(row =>
-                          row._id === f._id
-                            ? { ...row, fechaInicio: val, fechaVencimiento: val ? diezDelMesSiguiente(val) : row.fechaVencimiento }
-                            : row
-                        ))
-                      }} />
-                  </td>
-
-                  <td data-label="Vencimiento" className="px-3 py-2 md:min-w-[8.125rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <input type="date" className={inp} value={f.fechaVencimiento} disabled={f.estado === "ok"}
-                      onChange={e => upd(f._id, "fechaVencimiento", e.target.value)} />
-                  </td>
-
-                  <td data-label="Método de pago" className="px-3 py-2 md:min-w-[8.75rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <select className={inp} value={f.metodoPago} disabled={f.estado === "ok"}
-                      onChange={e => cambiarMetodo(f._id, e.target.value)}>
-                      {METODOS.map(m => <option key={m}>{m}</option>)}
-                    </select>
-                  </td>
-
-                  <td data-label="Monto" className="px-3 py-2 md:min-w-[5.625rem] before:mb-1 before:block before:text-xs before:font-black before:uppercase before:tracking-widest before:text-muted-foreground before:content-[attr(data-label)] md:before:hidden ">
-                    <input type="number" className={inp} value={f.monto} disabled={f.estado === "ok"}
-                      onChange={e => upd(f._id, "monto", e.target.value)} />
-                  </td>
-
-                  <td data-label="" className="px-3 py-2 md:w-10 text-center  ">
-                    {f.estado !== "ok" && (
-                      <button onClick={() => setFilas(prev => prev.filter(r => r._id !== f._id))}
-                        className="text-foreground/40 hover:text-red-700 dark:hover:text-red-400 transition-colors">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-                {/* Sub-fila de comprobantes cuando método = Transferencia */}
-                {f.metodoPago === "Transferencia" && f.idUsuario && (() => {
-                  const docs = (comprobantesMap[f._id] || []).filter(d => d.tipo === "comprobante_transferencia")
-                  // Comprobantes subidos en el mes de la fecha de inicio del abono
-                  const desde = f.fechaInicio ? new Date(f.fechaInicio + "T12:00:00") : null
-                  const filtrados = desde
-                    ? docs.filter(d => {
-                        if (!d.creadoEn) return true
-                        const c = new Date(d.creadoEn)
-                        return c.getFullYear() === desde.getFullYear() && c.getMonth() === desde.getMonth()
-                      })
-                    : docs
-                  return (
-                    <tr key={`comp-${f._id}`} className="block md:table-row bg-lime-400/3">
-                      <td colSpan={10} className="block md:table-cell px-4 py-3 border-t border-dashed border-lime-400/20">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm font-black uppercase tracking-widest text-lime-700/70 dark:text-lime-400/70 shrink-0">
-                            Comprobantes de transferencia
-                          </span>
-                          <button type="button" onClick={() => adjRefs.current[f._id]?.click()}
-                            className="flex items-center gap-1.5 border border-dashed border-lime-400 px-3 py-1.5 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/10 dark:text-lime-400">
-                            Adjuntar archivo
-                          </button>
-                          <input ref={el => { adjRefs.current[f._id] = el }} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden"
-                            onChange={e => adjuntarComprobante(f, e.target)} />
-                          {comprobantesMap[f._id] === undefined ? (
-                            <span className="text-sm text-foreground/50 animate-pulse">Cargando...</span>
-                          ) : filtrados.length === 0 ? (
-                            <span className="text-sm text-foreground/50 border border-dashed border-foreground/10 px-2 py-1">
-                              Sin comprobantes cargados desde {f.fechaInicio || "la fecha de inicio"}
-                            </span>
-                          ) : filtrados.map((doc, i) => (
-                            <a key={i} href={doc.urlArchivo} target="_blank" rel="noopener noreferrer"
-                              className={`flex items-center gap-1.5 text-sm font-bold uppercase tracking-wider px-2.5 py-1 transition-colors ${
-                                doc.estado === "aprobado"
-                                  ? "border border-lime-600/50 dark:border-lime-400/50 bg-lime-400/10 text-lime-700 dark:text-lime-400 hover:bg-lime-400/15"
-                                  : "border border-foreground/15 bg-foreground/5 text-foreground/60 hover:bg-foreground/10"
-                              }`}>
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              {doc.creadoEn ? new Date(doc.creadoEn).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : `Comprobante ${i + 1}`}
-                              <span className={`ml-0.5 ${doc.estado === "aprobado" ? "text-lime-700/60 dark:text-lime-400/60" : "text-foreground/50"}`}>
-                                {doc.estado === "aprobado" ? "✓" : "↗"}
-                              </span>
-                            </a>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })()}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="px-[22px] py-4">
-          <button onClick={() => setFilas(prev => [...prev, filaNueva()])}
-            className="flex items-center gap-2 border border-dashed border-lime-400 px-4 py-2.5 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/10 dark:text-lime-400">
-            <Plus className="h-4 w-4" /> Agregar otro alumno
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-[22px] py-4">
-          <p className="text-sm text-muted-foreground">
-            {filas.length} {filas.length === 1 ? "abono" : "abonos"} · Total ${filas.reduce((t, f) => t + (Number(f.monto) || 0), 0).toLocaleString("es-AR")}
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            {filas.some(f => f.estado !== "ok" && !f.idPlan) && (
-              <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">Elegí el plan en cada fila para guardar.</p>
-            )}
-            <button
-              onClick={enviar}
-              disabled={enviando || filas.every(f => f.estado === "ok")}
-              className="flex h-[46px] items-center gap-2 bg-lime-400 px-5 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {enviando && <Loader2 className="h-4 w-4 animate-spin" />}
-              {enviando ? "Guardando..." : "Guardar abono"}
-            </button>
-          </div>
-        </div>
+      {/* ── CARGAR ABONO (referencia de escritorio de Abonos) ─────────────────────────── */}
+      <div id="nueva-carga" className="scroll-mt-24 dc-abonos">
+        <CargaAbono v={vCarga} />
+        {filas.map(f => (
+          <input key={f._id} ref={el => { adjRefs.current[f._id] = el }} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden"
+            onChange={e => adjuntarComprobante(f, e.target)} />
+        ))}
       </div>
 
       {/* ── LISTA DE ABONOS POR MES ──────────────────────────────────────────── */}

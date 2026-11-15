@@ -553,3 +553,8 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
   .dc-pantalla [style*="letter-spacing: 0.14em"] { letter-spacing: 0.14em !important; }
   .dc-pantalla [style*="letter-spacing: 0.16em"] { letter-spacing: 0.16em !important; }
 }
+
+/* Abonos en escritorio (referencia): los títulos van en Archivo, sin mayúsculas ni espaciado; gana sobre la regla global de h1-h3 */
+@layer base {
+  .dc-abonos h1, .dc-abonos h2, .dc-abonos h3 { font-family: Archivo, sans-serif !important; letter-spacing: normal !important; text-transform: none !important; }
+}
