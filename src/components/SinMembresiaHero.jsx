@@ -1,4 +1,4 @@
-import { ShieldAlert, Check, MessageCircle, ArrowDown } from "lucide-react"
+import { ShieldAlert, Check, MessageCircle, ArrowDown, LogOut } from "lucide-react"
 import { useMiPlan } from "@/lib/miPlan"
 import { useDatosPago, numeroWhatsapp } from "@/components/RenovarMembresia"
 
@@ -13,7 +13,7 @@ function diaMes(ymd) {
 
 // Referencia 03/04 "Sin membresía": la tarjeta oscura que reemplaza el aviso rojo.
 // Escritorio: dos columnas con botones y el panel "Mientras tanto". Celular: solo el aviso con la fecha.
-export default function SinMembresiaHero() {
+export default function SinMembresiaHero({ onSalir }) {
   const { data: miPlan } = useMiPlan()
   const { configBanco } = useDatosPago()
   const venc = diaMes(miPlan?.ultimoVencimiento)
@@ -46,6 +46,12 @@ export default function SinMembresiaHero() {
             </a>
           )}
         </div>
+        {/* Siempre visible: sin plan no hay otra pantalla a la que ir, así que tiene que poder cerrar sesión desde acá */}
+        {onSalir && (
+          <button type="button" onClick={onSalir} className="mt-3 inline-flex min-h-[44px] items-center gap-2 self-start rounded-lg px-1 text-sm font-semibold text-[#ff8a80] underline-offset-4 hover:underline">
+            <LogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
+          </button>
+        )}
       </div>
 
       <div className="relative mt-5 hidden flex-col gap-3 rounded-[14px] border border-[#262626] bg-[#1a1a1a] p-5 lg:mt-0 lg:flex">

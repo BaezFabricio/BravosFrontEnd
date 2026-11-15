@@ -235,7 +235,7 @@ export default function AlumnoLayout({ children }) {
           ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
             <div className="mx-auto mt-4 max-w-5xl space-y-8">
-              <SinMembresiaHero />
+              <SinMembresiaHero onSalir={handleLogout} />
               <div id="planes" className="scroll-mt-24">
                 <RenovarMembresia variante="sinMembresia" onRenovado={() => window.location.reload()} />
               </div>
