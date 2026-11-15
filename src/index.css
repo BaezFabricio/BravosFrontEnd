@@ -558,3 +558,16 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 @layer base {
   .dc-abonos h1, .dc-abonos h2, .dc-abonos h3 { font-family: Archivo, sans-serif !important; letter-spacing: normal !important; text-transform: none !important; }
 }
+
+/* Landing en pantallas más grandes que 1920 px (2K, 4K): todo está en rem, así que se agranda junto con el ancho y se ve
+   igual que en 1920 (0,75vw = 14,4 px en 1920, el mismo 90% de arriba). Solo en la landing: no cambia el resto de la app. */
+@media (min-width: 1921px) {
+  html.bv-landing { font-size: 0.75vw; }
+}
+
+/* Medida de diseño de la landing: 1 unidad = 1 px hasta 1920 px de ancho y crece con la pantalla después (la landing usa
+   calc(N*var(--u)) en lugar de N px, así las medidas fijas escalan junto con el texto en 2K y 4K). */
+:root { --u: 1px; }
+@media (min-width: 1921px) {
+  html.bv-landing { --u: calc(100vw / 1920); }
+}

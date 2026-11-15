@@ -252,9 +252,9 @@ function LandingPage() {
 
       {/* ENCABEZADO */}
       <header className="sticky top-0 z-40 border-b border-[#262626] bg-[rgba(11,11,11,.92)] backdrop-blur-[10px]">
-        <div className="relative mx-auto flex h-[68px] max-w-[1720px] items-center gap-6 px-5">
+        <div className="relative mx-auto flex h-[calc(68*var(--u))] max-w-[calc(1720*var(--u))] items-center gap-6 px-5">
           <Link to="/" aria-label="Bravos Box, inicio" className="flex shrink-0">
-            <img src="/bravos-logo.png" alt="Bravos Box" className="h-[34px] w-auto" />
+            <img src="/bravos-logo.png" alt="Bravos Box" className="h-[calc(34*var(--u))] w-auto" />
           </Link>
 
           <nav aria-label="Principal" className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 gap-1 min-[900px]:flex">
@@ -268,7 +268,7 @@ function LandingPage() {
           <span className="flex-1 min-[900px]:hidden" />
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            <Link to="/ranking" className="hidden h-11 items-center gap-2 rounded-[10px] border border-[#3d5a10] px-4 text-[0.8125rem] font-bold tracking-[.04em] text-[#9be600] no-underline transition-colors hover:bg-[#16220a] min-[900px]:flex">
+            <Link to="/ranking" className="hidden h-11 items-center gap-2 rounded-[calc(10*var(--u))] border border-[#3d5a10] px-4 text-[0.8125rem] font-bold tracking-[.04em] text-[#9be600] no-underline transition-colors hover:bg-[#16220a] min-[900px]:flex">
               <Trophy className="h-4 w-4" aria-hidden="true" />
               RANKING
             </Link>
@@ -297,14 +297,14 @@ function LandingPage() {
               </>
             ) : (
               <div className="hidden items-center gap-2 min-[900px]:flex">
-                <Link to="/login" className="flex h-11 items-center rounded-[10px] px-4 text-xs font-black tracking-widest text-[#ecefe4] no-underline hover:bg-[#161616]">INGRESAR</Link>
-                <Link to="/registro" className="flex h-11 items-center rounded-[10px] bg-[#9be600] px-5 text-xs font-black tracking-widest text-[#0b0b0b] no-underline hover:bg-[#c4ff3d]">UNIRSE</Link>
+                <Link to="/login" className="flex h-11 items-center rounded-[calc(10*var(--u))] px-4 text-xs font-black tracking-widest text-[#ecefe4] no-underline hover:bg-[#161616]">INGRESAR</Link>
+                <Link to="/registro" className="flex h-11 items-center rounded-[calc(10*var(--u))] bg-[#9be600] px-5 text-xs font-black tracking-widest text-[#0b0b0b] no-underline hover:bg-[#c4ff3d]">UNIRSE</Link>
               </div>
             )}
 
             <button type="button" onClick={() => setMenuAbierto((v) => !v)} aria-expanded={menuAbierto} aria-controls="menu-m" aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
-              className="grid h-11 w-11 place-items-center rounded-[10px] border border-[#333] text-[#ecefe4] min-[900px]:hidden">
-              {menuAbierto ? <X className="h-[22px] w-[22px]" /> : <Menu className="h-[22px] w-[22px]" />}
+              className="grid h-11 w-11 place-items-center rounded-[calc(10*var(--u))] border border-[#333] text-[#ecefe4] min-[900px]:hidden">
+              {menuAbierto ? <X className="h-[calc(22*var(--u))] w-[calc(22*var(--u))]" /> : <Menu className="h-[calc(22*var(--u))] w-[calc(22*var(--u))]" />}
             </button>
           </div>
         </div>
@@ -312,7 +312,7 @@ function LandingPage() {
         {menuAbierto && (
           <nav id="menu-m" aria-label="Principal" className="flex flex-col border-t border-[#262626] bg-[#0b0b0b] px-5 pt-2 pb-5 min-[900px]:hidden">
             <Link to="/ranking" onClick={() => setMenuAbierto(false)} className="flex min-h-[3.25rem] items-center gap-2 border-b border-[#1f1f1f] text-[1.0625rem] font-bold text-[#9be600] no-underline">
-              <Trophy className="h-[18px] w-[18px]" aria-hidden="true" /> Ranking
+              <Trophy className="h-[calc(18*var(--u))] w-[calc(18*var(--u))]" aria-hidden="true" /> Ranking
             </Link>
             {menu.map((item) => (
               <a key={item.name} href={item.href} onClick={(e) => { abrirAccion(e, item); setMenuAbierto(false) }}
@@ -323,20 +323,20 @@ function LandingPage() {
             {logueado ? (
               <>
                 {puedeAccederPanel && (
-                  <Link to={rutaMiPanel} onClick={() => setMenuAbierto(false)} className="mt-2 flex h-12 items-center justify-center rounded-[10px] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">Ir a mi panel</Link>
+                  <Link to={rutaMiPanel} onClick={() => setMenuAbierto(false)} className="mt-2 flex h-12 items-center justify-center rounded-[calc(10*var(--u))] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">Ir a mi panel</Link>
                 )}
-                <button type="button" onClick={handleLogout} className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[10px] text-sm font-bold text-[#ff6b5e]">
+                <button type="button" onClick={handleLogout} className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[calc(10*var(--u))] text-sm font-bold text-[#ff6b5e]">
                   <LogOut className="h-4 w-4" aria-hidden="true" /> Cerrar sesión
                 </button>
               </>
             ) : (
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <Link to="/login" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[10px] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">INGRESAR</Link>
-                <Link to="/registro" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold text-[#0b0b0b] no-underline">UNIRSE</Link>
+                <Link to="/login" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[calc(10*var(--u))] border border-[#333] text-sm font-bold text-[#ecefe4] no-underline">INGRESAR</Link>
+                <Link to="/registro" onClick={() => setMenuAbierto(false)} className="flex h-12 items-center justify-center rounded-[calc(10*var(--u))] bg-[#9be600] text-sm font-extrabold text-[#0b0b0b] no-underline">UNIRSE</Link>
               </div>
             )}
             {esAlumno && (
-              <Link to="/alumno" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[10px] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">IR A MI PANEL</Link>
+              <Link to="/alumno" onClick={() => setMenuAbierto(false)} className="mt-3 flex h-[3.125rem] items-center justify-center rounded-[calc(10*var(--u))] bg-[#9be600] text-sm font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline">IR A MI PANEL</Link>
             )}
           </nav>
         )}
@@ -344,7 +344,7 @@ function LandingPage() {
 
       <main id="main">
         {/* PORTADA: foto de Malvinas a pantalla completa */}
-        <section aria-labelledby="t-hero" className="relative flex min-h-[640px] items-end overflow-hidden md:min-h-[min(calc(100vh-68px),820px)]">
+        <section aria-labelledby="t-hero" className="relative flex min-h-[calc(640*var(--u))] items-end overflow-hidden md:min-h-[min(calc(100vh-68*var(--u)),calc(820*var(--u)))]">
           {imagenesHero.map((src, i) => (
             <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-center ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
@@ -352,9 +352,9 @@ function LandingPage() {
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:h-[12%]" />
 
-          <div className="relative mx-auto w-full max-w-[1720px] px-5 pb-10 md:px-10 md:pb-16">
+          <div className="relative mx-auto w-full max-w-[calc(1720*var(--u))] px-5 pb-10 md:px-10 md:pb-16">
             <div className="landing-entra inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
-              <MapPin className="h-[15px] w-[15px] text-[#9be600]" aria-hidden="true" />
+              <MapPin className="h-[calc(15*var(--u))] w-[calc(15*var(--u))] text-[#9be600]" aria-hidden="true" />
               FORMOSA CAPITAL · ARGENTINA
             </div>
             <h1 id="t-hero" className="mt-[1.125rem] flex flex-col gap-3.5">
@@ -366,11 +366,11 @@ function LandingPage() {
 
             <div className="landing-sube mt-7 flex flex-wrap gap-3" style={{ animationDelay: '.45s' }}>
               {esAlumno && (
-                <Link to="/alumno" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
+                <Link to="/alumno" className="flex h-[3.375rem] w-full items-center justify-center rounded-[calc(10*var(--u))] bg-[#9be600] px-6 text-[0.9375rem] font-extrabold tracking-[.04em] text-[#0b0b0b] no-underline transition-colors hover:bg-[#c4ff3d] md:w-auto">
                   IR A MI PANEL
                 </Link>
               )}
-              <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[10px] border border-[rgba(236,239,228,.45)] px-6 text-[0.9375rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] md:w-auto">
+              <a href="#horarios" className="flex h-[3.375rem] w-full items-center justify-center rounded-[calc(10*var(--u))] border border-[rgba(236,239,228,.45)] px-6 text-[0.9375rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] md:w-auto">
                 Ver horarios
               </a>
             </div>
@@ -386,7 +386,7 @@ function LandingPage() {
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
-          <div className="relative mx-auto grid max-w-[1720px] items-center gap-12 px-5 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+          <div className="relative mx-auto grid max-w-[calc(1720*var(--u))] items-center gap-12 px-5 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
             <p data-revela className="landing-revelar m-0 font-[Barlow_Semi_Condensed]! text-[2.75rem] leading-[1.05] font-extrabold tracking-normal text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]" style={{ textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
               "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
             </p>
@@ -402,17 +402,17 @@ function LandingPage() {
 
         {/* CLASES: dos tarjetas que ocupan todo el ancho */}
         <section id="clases" aria-labelledby="t-cla" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
               {clases.map((k, i) => (
-                <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[18px] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
+                <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[calc(18*var(--u))] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   {/* Marco de alto fijo: la foto llena el marco (se recorta un poco en los bordes) y las dos tarjetas quedan del mismo tamaño */}
                   <div className="relative aspect-[16/10] overflow-hidden md:aspect-auto md:h-[22rem]">
                     <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="absolute inset-0 h-full w-full" />
                   </div>
-                  <div className="flex flex-1 flex-col gap-2.5 p-[22px]">
+                  <div className="flex flex-1 flex-col gap-2.5 p-[calc(22*var(--u))]">
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-md bg-[#1f2a0e] px-2.5 py-1 text-xs font-bold text-[#9be600]">{k.min}</span>
                       <span className="rounded-md border border-[#333] px-2.5 py-1 text-xs font-bold text-[#c9ccbf]">Todos los niveles</span>
@@ -431,7 +431,7 @@ function LandingPage() {
 
         {/* HORARIOS */}
         <section id="horarios" aria-labelledby="t-hor" className="scroll-mt-20 border-y border-[#1f1f1f] bg-[#0e0e0e]">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CALENDARIO ACTIVO</p>
             <h2 id="t-hor" className="mt-2 mb-6 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Horarios semanales</h2>
 
@@ -440,7 +440,7 @@ function LandingPage() {
                 const on = diaSeleccionado === d.value
                 return (
                   <button key={d.value} type="button" role="tab" aria-selected={on} onClick={() => setDiaSeleccionado(d.value)}
-                    className={`h-[2.875rem] shrink-0 rounded-[10px] border px-[1.125rem] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? 'border-[#9be600] bg-[#9be600] text-[#0b0b0b]' : 'border-[#333] text-[#ecefe4] hover:border-[#555]'}`}>
+                    className={`h-[2.875rem] shrink-0 rounded-[calc(10*var(--u))] border px-[1.125rem] text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#9be600] ${on ? 'border-[#9be600] bg-[#9be600] text-[#0b0b0b]' : 'border-[#333] text-[#ecefe4] hover:border-[#555]'}`}>
                     <span className="md:hidden">{d.corto}</span>
                     <span className="hidden md:inline">{d.label}</span>
                   </button>
@@ -512,7 +512,7 @@ function LandingPage() {
 
         {/* CONTACTO */}
         <section id="contacto" aria-labelledby="t-con" className="scroll-mt-20">
-          <div className="mx-auto max-w-[1720px] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CONTACTO DIRECTO</p>
             <h2 id="t-con" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Encontranos</h2>
 
@@ -531,7 +531,7 @@ function LandingPage() {
                   <div className="mb-2.5 flex items-center justify-between gap-2">
                     <h3 className="m-0 text-xs font-bold tracking-[.12em] text-[#a3a698]">HORARIOS DEL BOX</h3>
                     {abiertoAhora !== null && (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-xs font-bold ${abiertoAhora ? 'border-[#3d5a10] bg-[#16220a] text-[#9be600]' : 'border-[#333] text-[#a3a698]'}`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[calc(3*var(--u))] text-xs font-bold ${abiertoAhora ? 'border-[#3d5a10] bg-[#16220a] text-[#9be600]' : 'border-[#333] text-[#a3a698]'}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${abiertoAhora ? 'bg-[#9be600]' : 'bg-[#6b6b6b]'}`} aria-hidden="true" />
                         {abiertoAhora ? 'Abierto ahora' : 'Cerrado ahora'}
                       </span>
@@ -584,7 +584,7 @@ function LandingPage() {
                 ) : (
                   <div className="flex h-full min-h-[20rem] flex-col items-center justify-center gap-3 p-6 text-center">
                     <MapPin className="h-8 w-8 text-[#9be600]" aria-hidden="true" />
-                    <button type="button" onClick={() => setMapaVisible(true)} className="h-[2.875rem] rounded-[10px] border border-[#333] px-5 text-sm font-bold text-[#ecefe4] transition-colors hover:border-[#9be600]">
+                    <button type="button" onClick={() => setMapaVisible(true)} className="h-[2.875rem] rounded-[calc(10*var(--u))] border border-[#333] px-5 text-sm font-bold text-[#ecefe4] transition-colors hover:border-[#9be600]">
                       Cargar mapa
                     </button>
                     <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-normal text-[#a3a698]">El mapa lo muestra Google Maps, que puede guardar cookies propias.</p>
@@ -598,13 +598,13 @@ function LandingPage() {
 
       {/* PIE */}
       <footer className="border-t border-[#1f1f1f] bg-[#080808]">
-        <div className="mx-auto flex max-w-[1720px] flex-col gap-6 px-5 pt-10 pb-7">
+        <div className="mx-auto flex max-w-[calc(1720*var(--u))] flex-col gap-6 px-5 pt-10 pb-7">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex flex-col gap-2">
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-[1.875rem] w-auto self-start" />
               <span className="text-sm text-[#a3a698]">Centro de entrenamiento funcional · Formosa</span>
             </div>
-            <Link to="/arrepentimiento" className="flex h-11 items-center rounded-[10px] border border-[#333] px-[1.125rem] text-[0.8125rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:text-[#ecefe4]">
+            <Link to="/arrepentimiento" className="flex h-11 items-center rounded-[calc(10*var(--u))] border border-[#333] px-[1.125rem] text-[0.8125rem] font-bold text-[#ecefe4] no-underline transition-colors hover:border-[#9be600] hover:text-[#ecefe4]">
               Botón de arrepentimiento
             </Link>
           </div>
@@ -626,7 +626,7 @@ function LandingPage() {
         <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent('Hola Bravos Box, quiero hacer una consulta.')}`} target="_blank" rel="noopener noreferrer"
           aria-label="Escribinos por WhatsApp (se abre en otra pestaña)"
           className="fixed right-5 bottom-5 z-30 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(0,0,0,.4)] transition-transform hover:scale-110">
-          <svg viewBox="0 0 32 32" className="h-[26px] w-[26px]" fill="currentColor" aria-hidden="true"><path d="M16.04 3C8.86 3 3.04 8.82 3.04 16c0 2.29.6 4.53 1.74 6.5L3 29l6.68-1.75A12.94 12.94 0 0 0 16.04 29C23.22 29 29 23.18 29 16S23.22 3 16.04 3Zm0 23.62c-1.98 0-3.92-.53-5.61-1.53l-.4-.24-3.96 1.04 1.06-3.86-.26-.4A10.6 10.6 0 0 1 5.42 16c0-5.86 4.76-10.62 10.62-10.62 5.85 0 10.6 4.76 10.6 10.62 0 5.86-4.75 10.62-10.6 10.62Zm5.82-7.95c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.71.16-.21.32-.82 1.03-1 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.55-1.57-.94-.84-1.58-1.88-1.76-2.2-.18-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.09-1.11 2.65s1.14 3.07 1.3 3.28c.16.21 2.24 3.42 5.43 4.8.76.33 1.35.52 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z" /></svg>
+          <svg viewBox="0 0 32 32" className="h-[calc(26*var(--u))] w-[calc(26*var(--u))]" fill="currentColor" aria-hidden="true"><path d="M16.04 3C8.86 3 3.04 8.82 3.04 16c0 2.29.6 4.53 1.74 6.5L3 29l6.68-1.75A12.94 12.94 0 0 0 16.04 29C23.22 29 29 23.18 29 16S23.22 3 16.04 3Zm0 23.62c-1.98 0-3.92-.53-5.61-1.53l-.4-.24-3.96 1.04 1.06-3.86-.26-.4A10.6 10.6 0 0 1 5.42 16c0-5.86 4.76-10.62 10.62-10.62 5.85 0 10.6 4.76 10.6 10.62 0 5.86-4.75 10.62-10.6 10.62Zm5.82-7.95c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.71.16-.21.32-.82 1.03-1 1.24-.18.21-.37.24-.69.08-.32-.16-1.34-.49-2.55-1.57-.94-.84-1.58-1.88-1.76-2.2-.18-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.18.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.09-1.11 2.65s1.14 3.07 1.3 3.28c.16.21 2.24 3.42 5.43 4.8.76.33 1.35.52 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z" /></svg>
         </a>
       )}
     </div>
