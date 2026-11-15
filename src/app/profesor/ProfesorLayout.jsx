@@ -242,7 +242,11 @@ export default function ProfesorLayout({ children }) {
   }
   const cab = cabecera || porDefecto[pathname] || { titulo: "Bravos" }
   const volver = cabecera?.onVolver || (rutaPadre(pathname) ? () => navigate(rutaPadre(pathname)) : null)
-  const itemsMovil = navigation.map((item) => ({ ...item, activo: esActivo(item, pathname) }))
+  // Celular: Asistencia va en el centro, como Reservar en la barra del alumno (Rutinas a la izquierda, Perfil a la derecha)
+  const itemsMovil = ["/profesor/rutinas", "/profesor", "/profesor/perfil"].map((href) => {
+    const item = navigation.find((n) => n.href === href)
+    return { ...item, activo: esActivo(item, pathname), centro: href === "/profesor" }
+  })
 
   const arbolMovil = (
     <div className="min-h-[100dvh] bv-prof" style={{ background: C.bg, color: C.ink }}>
@@ -273,6 +277,17 @@ export default function ProfesorLayout({ children }) {
       <nav aria-label="Navegación principal" className="fixed inset-x-3 bottom-6 z-20 grid h-[68px] grid-cols-3 gap-1 rounded-[22px] border p-1.5" style={{ background: C.card, borderColor: C.line, boxShadow: "0 10px 30px rgba(0,0,0,.35)" }}>
         {itemsMovil.map((item) => {
           const Icono = item.icon || ClipboardList
+          if (item.centro) {
+            // Botón principal: círculo lima que sobresale de la barra, con el nombre debajo
+            return (
+              <div key={item.name} className="relative flex items-end justify-center">
+                <Link to={item.href} aria-current={item.activo ? "page" : undefined} aria-label={item.name} className="absolute -top-[26px] grid h-[60px] w-[60px] place-items-center rounded-full border-4" style={{ background: C.lime, color: C.onLime, borderColor: C.bg }}>
+                  <Icono className="h-[24px] w-[24px]" />
+                </Link>
+                <span className="pb-[1px] text-[11px] font-bold" style={{ color: C.okFg }}>{item.mobileLabel || item.name}</span>
+              </div>
+            )
+          }
           return (
             <Link key={item.name} to={item.href} aria-current={item.activo ? "page" : undefined} className="flex flex-col items-center justify-center gap-[3px] rounded-2xl text-[11px] font-semibold" style={{ background: item.activo ? C.okBg : "transparent", color: item.activo ? C.okFg : C.muted }}>
               <Icono className="h-[21px] w-[21px]" />
