@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import apiClient from "@/api"
+import apiClient, { enviarFormulario } from "@/api"
 import { useCelular } from "./contexto"
 import { Cabecera, Cuerpo, Extras, estilosHover } from "./pantallas/AbonosView"
 
@@ -107,6 +107,17 @@ export default function AbonosCelular() {
       planErr: tried && !elegido, planInv: tried && !elegido ? "true" : "false",
       metodos: METODOS.map(([val, l]) => { const ch = met === val; return { l, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => { setMet(val); if (elegido) setMonto(String(precio(elegido, val))) } } }),
       isTransf: met === "Transferencia",
+      adjuntar: () => document.getElementById("adj-ab")?.click(),
+      onAdjunto: async (ev) => {
+        const archivo = ev.target.files?.[0]
+        ev.target.value = ""
+        if (!archivo || !alumno?.id) return
+        if (archivo.size > 10 * 1024 * 1024) { avisar("El archivo pasa los 10 MB."); return }
+        const datos = new FormData()
+        datos.append("archivo", archivo)
+        try { await enviarFormulario("POST", `/documentos/usuario/${alumno.id}/subir`, datos); avisar("Comprobante adjuntado.") }
+        catch (err) { avisar(err.message || "No se pudo adjuntar el comprobante.") }
+      },
       monto, onMonto: (ev) => setMonto(ev.target.value.replace(/\D/g, "").slice(0, 8)),
       montoInv: tried && mErr ? "true" : "false", montoBd: tried && mErr ? c.errFg : c.line,
       montoH: tried && mErr ? "Ingresá el monto cobrado." : elegido ? `Precio del plan: ${pesos(elegido.precio)}${met === "Tarjeta Crédito" ? " + 10% por tarjeta de crédito" : ""}. Podés cambiarlo si hubo descuento.` : "Se completa al elegir el plan.", montoHFg: tried && mErr ? c.errFg : c.muted,

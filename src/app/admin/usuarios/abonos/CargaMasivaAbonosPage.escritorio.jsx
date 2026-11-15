@@ -125,6 +125,7 @@ export default function GestionAbonosPage() {
   const [filas, setFilas] = useState([filaVacia()])
   const [enviando, setEnviando] = useState(false)
   const busquedaRefs = useRef({})
+  const adjRefs = useRef({})
   const [dropdownPos, setDropdownPos] = useState({})
 
   // Comprobantes por fila de carga (idFila → array de docs)
@@ -327,6 +328,23 @@ export default function GestionAbonosPage() {
       const json = await r.json()
       setComprobantesAbonos(prev => ({ ...prev, [abonoId]: json.data || [] }))
     } catch { setComprobantesAbonos(prev => ({ ...prev, [abonoId]: [] })) }
+  }
+
+  // El admin adjunta un comprobante de transferencia a la cuenta del alumno de esa fila
+  const adjuntarComprobante = async (f, input) => {
+    const file = input.files?.[0]
+    input.value = ""
+    if (!file || !f.idUsuario) return
+    if (file.size > 10 * 1024 * 1024) { toast.error("El archivo pasa los 10 MB"); return }
+    const datos = new FormData()
+    datos.append("archivo", file)
+    try {
+      const r = await fetch(`/api/vv1/documentos/usuario/${f.idUsuario}/subir`, { method: "POST", body: datos })
+      const json = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(json.message || "No se pudo adjuntar el comprobante")
+      toast.success("Comprobante adjuntado")
+      cargarComprobantes(f._id, f.idUsuario)
+    } catch (err) { toast.error(err.message || "No se pudo adjuntar el comprobante") }
   }
 
   const aprobarComprobante = async (abonoId, idDocumento) => {
@@ -656,6 +674,12 @@ export default function GestionAbonosPage() {
                           <span className="text-sm font-black uppercase tracking-widest text-lime-700/70 dark:text-lime-400/70 shrink-0">
                             Comprobantes de transferencia
                           </span>
+                          <button type="button" onClick={() => adjRefs.current[f._id]?.click()}
+                            className="flex items-center gap-1.5 border border-dashed border-lime-400 px-3 py-1.5 text-sm font-bold text-lime-700 transition-colors hover:bg-lime-400/10 dark:text-lime-400">
+                            Adjuntar archivo
+                          </button>
+                          <input ref={el => { adjRefs.current[f._id] = el }} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden"
+                            onChange={e => adjuntarComprobante(f, e.target)} />
                           {comprobantesMap[f._id] === undefined ? (
                             <span className="text-sm text-foreground/50 animate-pulse">Cargando...</span>
                           ) : filtrados.length === 0 ? (
