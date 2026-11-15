@@ -43,6 +43,9 @@ const pwa = VitePWA({
     // Las páginas (la app al abrirse y cada pantalla) se piden SIEMPRE a la red cuando hay conexión, así una versión nueva
     // se ve enseguida. Sin conexión se usa la última copia guardada. Nunca se guardan respuestas de /api, /landing ni /uploads.
     cleanupOutdatedCaches: true,
+    // Abrir un comprobante o documento (/uploads/...) es una navegación: sin esto el service worker responde con la app
+    // (index.html) y la persona termina en la landing en vez de ver el archivo
+    navigateFallbackDenylist: [/^\/(api|landing|uploads)\//],
     // La versión nueva se activa sola en cuanto se descarga; main.jsx recarga la página cuando la persona cambia de pestaña
     skipWaiting: true,
     clientsClaim: true,
