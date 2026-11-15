@@ -103,11 +103,11 @@ export default function ProfesorPerfilPage() {
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))", gap: 16, alignItems: "start" }}>
-        <section aria-label="Foto de perfil" style={{ position: "relative", overflow: "hidden", padding: movil ? 16 : "28px 24px", borderRadius: movil ? 16 : 20, background: "#0e0e0e", color: "#ecefe4", border: `1px solid ${C.line}`, display: "flex", flexDirection: movil ? "row" : "column", alignItems: "center", gap: movil ? 14 : 10, textAlign: movil ? "left" : "center" }}>
+        <section aria-label="Foto de perfil" style={{ position: "relative", overflow: "hidden", padding: movil ? 16 : "28px 24px", borderRadius: movil ? 16 : 20, background: "#0e0e0e", color: "#ecefe4", border: `1px solid ${C.line}`, display: "flex", flexDirection: movil ? "row" : "column", flexWrap: movil ? "wrap" : undefined, alignItems: "center", gap: movil ? 14 : 10, textAlign: movil ? "left" : "center" }}>
           <span style={{ position: "relative", width: movil ? 64 : 112, height: movil ? 64 : 112, flexShrink: 0, borderRadius: "50%", background: "#2a2c24", border: `3px solid ${C.lime}`, boxSizing: "border-box", display: "grid", placeItems: "center", overflow: "hidden", font: movil ? "900 24px 'Big Shoulders Stencil Display'" : "900 40px 'Big Shoulders Stencil Display'", color: C.lime }}>
             {avatarUrl ? <img src={avatarUrl} alt={datos.nombre || "Foto de perfil"} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : iniciales(datos.nombre)}
           </span>
-          <h2 style={{ position: "relative", margin: movil ? 0 : "6px 0 0", font: movil ? "900 24px/1 'Big Shoulders Stencil Display'" : "900 30px/1 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>{datos.nombre || "Sin cargar"}</h2>
+          <h2 style={{ position: "relative", minWidth: 0, margin: movil ? 0 : "6px 0 0", font: movil ? "900 24px/1 'Big Shoulders Stencil Display'" : "900 30px/1 'Big Shoulders Stencil Display'", textTransform: "uppercase" }}>{datos.nombre || "Sin cargar"}</h2>
           <span style={{ position: "relative", padding: "3px 12px", borderRadius: 999, border: `1px solid ${C.okLine}`, background: "#16220a", color: C.lime, font: "700 11px Archivo", letterSpacing: ".08em" }}>PROFESOR</span>
           <input ref={inputFoto} type="file" accept={TIPOS_FOTO.join(",")} onChange={elegirFoto} style={{ display: "none" }} aria-label="Elegir foto de perfil" />
           {/* Celular: botón de cámara de 44 px a la derecha (como la referencia); en computadora, con texto */}
