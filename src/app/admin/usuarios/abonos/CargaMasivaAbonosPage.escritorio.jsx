@@ -605,7 +605,7 @@ export default function GestionAbonosPage() {
     vOn: !!visor,
     v: visor ? { al: visor.al, n: visor.doc.nombreArchivo || "comprobante", d: visor.doc.creadoEn ? fmtDoc(visor.doc.creadoEn) : "", url: visor.doc.urlArchivo, img: /\.(jpe?g|png|webp)$/i.test(visor.doc.urlArchivo || ""), pdf: /\.pdf$/i.test(visor.doc.urlArchivo || "") } : {},
     vClose: () => setVisor(null),
-    vUsarL: visor && filaDelVisor && compElegido(filaDelVisor) === visor.doc.idDocumento ? "USANDO ESTE" : "USAR ESTE COMPROBANTE",
+    vUsarL: visor && filaDelVisor && compElegido(filaDelVisor) === visor.doc.idDocumento ? "YA ESTÁ ELEGIDO" : "USAR ESTE COMPROBANTE",
     vUsar: () => { if (visor) { upd(visor.fid, "comp", visor.doc.idDocumento); setVisor(null) } },
     addFila: () => setFilas(prev => [...prev, filaNueva()]),
     resumen: (nAb === 1 ? "1 abono" : nAb + " abonos") + " · Total $" + totalAb.toLocaleString("es-AR"),
