@@ -305,7 +305,7 @@ export default function AdminLayout({ children }) {
           style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px 20px", borderTop: "1px solid var(--sh-line)", textDecoration: "none", color: "inherit" }}
         >
           <span style={{ width: "40px", height: "40px", flexShrink: 0, borderRadius: "50%", background: "var(--sh-avatar)", border: "2px solid var(--sh-accent)", display: "grid", placeItems: "center", font: "800 13px Archivo", color: "var(--sh-accent)" }}>
-            {avatarFallback}
+            {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} /> : avatarFallback}
           </span>
           <span style={{ flex: "1 1 0%", minWidth: "0px" }}>
             <span style={{ display: "block", font: "700 14px Archivo", color: "var(--sh-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userData.nombrecompleto}</span>
@@ -351,7 +351,7 @@ export default function AdminLayout({ children }) {
                   style={{ display: "flex", alignItems: "center", gap: "6px", height: "44px", padding: "0px 6px", border: "none", background: "transparent", color: "var(--sh-head)", cursor: "pointer" }}
                 >
                   <span style={{ width: "36px", height: "36px", flexShrink: 0, borderRadius: "50%", background: "var(--sh-avatar)", border: "2px solid var(--sh-accent)", display: "grid", placeItems: "center", font: "800 12px Archivo", color: "var(--sh-accent)" }}>
-                    {avatarFallback}
+                    {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} /> : avatarFallback}
                   </span>
                   <Icono d="m6 9 6 6 6-6" size={14} sw={2.4} />
                 </button>
