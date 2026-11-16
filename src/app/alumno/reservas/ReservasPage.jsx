@@ -73,7 +73,8 @@ export default function ReservasPage() {
         hora: r.horaInicio ? r.horaInicio.substring(0, 5) : "00:00",
         horaFin: r.horaFin ? r.horaFin.substring(0, 5) : null,
         tipo: r.tipoClase || null,
-        coach: r.nombreProfesor || "Staff Bravos"
+        coach: r.nombreProfesor || "Staff Bravos",
+        coachFoto: r.avatarProfesor || null
       }))
       
       // El backend ya calcula el estado real (completada/inasistencia/cancelada/proxima)

@@ -229,6 +229,7 @@ export default function ReservarClasePage() {
           horaFin: clase.horaFin ? clase.horaFin.substring(0, 5) : null,
           duracion: clase.horaFin ? `${calcularDuracion(clase.horaInicio, clase.horaFin)} min` : '60 min',
           coach: clase.nombreProfesor || "Staff Bravos",
+          coachFoto: clase.avatarProfesor || null,
           cuposDisponibles: clase.cupoDisponible ?? 0,
           cuposTotales: clase.cupoMaximo ?? 15,
           descripcion: clase.descripcion || clase.rutina?.descripcion || '',

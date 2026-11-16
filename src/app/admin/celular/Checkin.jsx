@@ -45,7 +45,7 @@ export default function CheckinCelular() {
       enlace: ENLACE, enlaceCorto: ENLACE.replace(/^https?:\/\//, ""),
       copy: () => { try { navigator.clipboard.writeText(ENLACE) } catch { /* sin portapapeles */ } setCopied(true); avisar("Enlace copiado.") }, copyL: copied ? "Copiado" : "Copiar",
       clases: (estado?.clasesHoy || []).map((cl) => ({ n: cl.nombre, s: cl.tipo, h: `${cl.inicio} – ${cl.fin}` })),
-      empty: !regs.length, hasList: regs.length > 0, list: regs.map((r, i) => ({ ini: ini(r.nombre), n: r.nombre, s: `${r.clase || "Asistencia libre"}${r.origen ? " · " + r.origen : ""}`, h: r.inicio, sep: i ? c.line2 : "transparent" })),
+      empty: !regs.length, hasList: regs.length > 0, list: regs.map((r, i) => ({ ini: ini(r.nombre), img: r.avatarUrl || null, n: r.nombre, s: `${r.clase || "Asistencia libre"}${r.origen ? " · " + r.origen : ""}`, h: r.inicio, sep: i ? c.line2 : "transparent" })),
       ks, openK: () => { if (puedeEditar) { setKs(true); setK(""); setShow(false) } }, closeK: () => setKs(false),
       k, onK: (ev) => setK(ev.target.value), kType: show ? "text" : "password", tog: () => setShow((x) => !x), eyeL: show ? "Ocultar clave" : "Mostrar clave",
       kBd: kl && !kOk ? c.errFg : c.line, kH: kOk ? "Clave válida." : kl ? `Faltan ${MINIMO - kl} caracteres.` : `Mínimo ${MINIMO} caracteres.`, kHFg: kOk ? c.okFg : kl ? c.errFg : c.muted,

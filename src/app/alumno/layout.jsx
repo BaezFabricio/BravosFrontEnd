@@ -330,7 +330,7 @@ export default function AlumnoLayout({ children }) {
         conTema
       />
 
-      <main className="p-4 pb-[calc(124px+env(safe-area-inset-bottom))]">
+      <main className="bv-panel-main p-4 pb-[calc(124px+env(safe-area-inset-bottom))]">
         <LayoutBxContext.Provider value={true}>{cuerpo}</LayoutBxContext.Provider>
       </main>
 

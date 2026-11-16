@@ -210,7 +210,7 @@ export default function ProfesorLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main className="p-4 lg:p-[24px] pb-36 lg:pb-6">
+        <main className="bv-panel-main p-4 lg:p-[24px] pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
@@ -270,7 +270,7 @@ export default function ProfesorLayout({ children }) {
         </button>
       </header>
 
-      <main className="flex min-h-0 flex-col gap-3.5 px-4 pt-4" style={{ paddingBottom: 124, overscrollBehavior: "contain" }}>
+      <main className="bv-panel-main flex min-h-0 flex-col gap-3.5 px-4 pt-4" style={{ paddingBottom: 124, overscrollBehavior: "contain" }}>
         <SlotTituloContext.Provider value={null}>{children}</SlotTituloContext.Provider>
       </main>
 

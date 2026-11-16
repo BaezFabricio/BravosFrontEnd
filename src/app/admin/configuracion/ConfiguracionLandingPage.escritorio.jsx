@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Save, Camera, ArrowLeft, Image as ImageIcon, Loader2, ExternalLink, Check } from "lucide-react"
 import { AdminFormSkeleton } from '@/components/AdminPageSkeleton'
@@ -69,6 +69,90 @@ const SelectorTres = ({ valor, onChange, etiquetas, nombre }) => (
     ))}
   </div>
 )
+
+// Vista previa en vivo del landing completo (solo escritorio). Al cambiar de sección, se desplaza a esa parte.
+function PreviewLanding({ seccion, titulo, tamano, alineacion, tipografia, logo, fotos, cards, imagenesClase, nosotros, contacto }) {
+  const [activa, setActiva] = useState(0)
+  const ref = useRef(null)
+  useEffect(() => {
+    const cont = ref.current
+    const el = cont && cont.querySelector(`[data-seccion="${seccion}"]`)
+    if (el) cont.scrollTo({ top: el.offsetTop, behavior: 'smooth' })
+  }, [seccion])
+  const escala = { '32': 18, '48': 26, '64': 36 }[tamano || '48'] || 26
+  const fuente = tipografia === 'stencil' ? '"Stencil", "Archivo Black", Impact, sans-serif' : 'Archivo, "Helvetica Neue", Arial, sans-serif'
+  const verde = '#9be600'
+  const ph = (t, n) => (t && t.trim() ? t : n)
+  return (
+    <aside aria-label="Vista previa del landing" className="hidden lg:block" style={{ position: 'sticky', top: 16, alignSelf: 'start' }}>
+      <p style={{ margin: '0 0 8px', font: '700 11px Archivo', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>Vista previa</p>
+      <div style={{ borderRadius: 16, border: '1px solid var(--border)', background: 'var(--card)', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid var(--border)' }}>
+          {[0, 1, 2].map((i) => <span key={i} style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--muted)' }} />)}
+          <span style={{ marginLeft: 8, flex: 1, padding: '3px 8px', borderRadius: 6, background: 'var(--input)', font: '500 11px Archivo', color: 'var(--muted-foreground)' }}>bravosbox.com.ar</span>
+        </div>
+        <div ref={ref} style={{ height: 620, overflowY: 'auto', background: '#0b0c09', color: '#fff' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(11,12,9,.92)' }}>
+            <img src={logo} alt="" style={{ height: 24, width: 'auto', objectFit: 'contain' }} />
+            <span style={{ display: 'flex', gap: 10, font: '700 11px Archivo' }}><span>Clases</span><span>Nosotros</span><span>Contacto</span></span>
+          </div>
+
+          <section data-seccion="hero" style={{ position: 'relative', height: 300, background: `#111 url(${fotos[activa]}) center / cover no-repeat` }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.8))' }} />
+            <div style={{ position: 'absolute', left: 14, right: 14, bottom: 44, textAlign: alineacion === 'center' ? 'center' : 'left', font: `900 ${escala}px ${fuente}`, textTransform: 'uppercase', lineHeight: 1.05 }}>
+              {ph(titulo, 'CENTRO DE ENTRENAMIENTO')}
+            </div>
+            <div style={{ position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 6 }}>
+              {fotos.map((_, i) => (
+                <button key={i} type="button" aria-label={`Ver foto ${i + 1}`} onClick={() => setActiva(i)}
+                  style={{ width: i === activa ? 22 : 8, height: 8, borderRadius: 999, border: 'none', cursor: 'pointer', padding: 0, background: i === activa ? verde : 'rgba(255,255,255,.6)', transition: 'width .3s' }} />
+              ))}
+            </div>
+          </section>
+
+          <section data-seccion="clases" style={{ padding: '18px 14px' }}>
+            <p style={{ margin: '0 0 10px', font: '800 12px Archivo', letterSpacing: '0.12em', color: verde }}>CLASES</p>
+            {[0, 1].map((i) => {
+              const c = cards[i] || {}
+              return (
+                <div key={i} style={{ position: 'relative', height: 130, borderRadius: 12, overflow: 'hidden', marginBottom: 10, background: `#222 url(${imagenesClase[i]}) center / cover no-repeat` }}>
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,.8), rgba(0,0,0,.2))' }} />
+                  <div style={{ position: 'absolute', left: 12, bottom: 10, right: 12 }}>
+                    <p style={{ margin: 0, font: '900 18px Archivo', textTransform: 'uppercase' }}>{c.icono} {ph(c.titulo, 'Clase')}</p>
+                    {c.descripcion ? <p style={{ margin: '2px 0 0', font: '500 11px Archivo', color: 'rgba(255,255,255,.85)' }}>{c.descripcion}</p> : null}
+                  </div>
+                </div>
+              )
+            })}
+          </section>
+
+          <section data-seccion="nosotros" style={{ padding: '18px 14px' }}>
+            <div style={{ height: 150, borderRadius: 12, marginBottom: 12, background: `#222 url(${nosotros.imagen}) center / cover no-repeat` }} />
+            <p style={{ margin: 0, font: '800 11px Archivo', letterSpacing: '0.12em', color: verde }}>NOSOTROS</p>
+            <p style={{ margin: '4px 0 6px', font: '900 20px Archivo', textTransform: 'uppercase' }}>{ph(nosotros.titulo, 'Sobre nosotros')}</p>
+            {nosotros.subtitulo ? <p style={{ margin: '0 0 6px', font: '700 12px Archivo', color: 'rgba(255,255,255,.85)' }}>{nosotros.subtitulo}</p> : null}
+            {nosotros.descripcion ? <p style={{ margin: '0 0 8px', font: '500 12px / 1.5 Archivo', color: 'rgba(255,255,255,.75)' }}>{nosotros.descripcion}</p> : null}
+            {nosotros.mision ? <p style={{ margin: 0, font: '500 12px / 1.5 Archivo', color: 'rgba(255,255,255,.75)' }}><b style={{ color: verde }}>Misión:</b> {nosotros.mision}</p> : null}
+          </section>
+
+          <section data-seccion="contacto" style={{ padding: '18px 14px 26px' }}>
+            <p style={{ margin: '0 0 8px', font: '800 11px Archivo', letterSpacing: '0.12em', color: verde }}>CONTACTO Y HORARIOS</p>
+            {contacto.direccion ? <p style={{ margin: '0 0 4px', font: '500 12px Archivo' }}>{contacto.direccion}</p> : null}
+            {contacto.telefono ? <p style={{ margin: '0 0 4px', font: '500 12px Archivo' }}>Tel: {contacto.telefono}</p> : null}
+            {contacto.email ? <p style={{ margin: '0 0 8px', font: '500 12px Archivo' }}>{contacto.email}</p> : null}
+            {[contacto.horarioSemana, contacto.horarioSabado, contacto.horarioDomingo].filter(Boolean).map((h) => (
+              <p key={h} style={{ margin: '0 0 2px', font: '500 12px Archivo', color: 'rgba(255,255,255,.8)' }}>{h}</p>
+            ))}
+            <div style={{ marginTop: 10, height: 90, borderRadius: 10, border: '1px dashed rgba(255,255,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 11px Archivo', color: 'rgba(255,255,255,.5)' }}>
+              {contacto.mapaUrl ? 'Mapa' : 'Mapa sin cargar'}
+            </div>
+          </section>
+        </div>
+      </div>
+      <p style={{ margin: '8px 2px 0', font: '500 12px Archivo', color: 'var(--muted-foreground)' }}>Así se ve en la web. Se actualiza mientras editás.</p>
+    </aside>
+  )
+}
 
 function ConfiguracionLandingPage() {
   const [loading, setLoading] = useState(true)
@@ -344,7 +428,7 @@ function ConfiguracionLandingPage() {
   ]
 
   return (
-    <div className="lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+    <div className={`lg:grid lg:items-start lg:gap-6 ${tab !== 'banco' ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)_24rem]' : 'lg:grid-cols-[18.5rem_minmax(0,1fr)]'}`}>
       <nav aria-label="Secciones de configuración" className="hidden lg:block" style={{ padding: 0 }}>
         {SECCIONES_NAV.map((g) => (
           <div key={g.grupo} style={{ marginTop: 8 }}>
@@ -428,13 +512,6 @@ function ConfiguracionLandingPage() {
                       {grupo('Tamaño', tamanos.map((t) => ({ ...t, id: t.px, texto: t.texto })), pxActual, (o) => setTituloSize(o.px), 1)}
                       {grupo('Alineación', alineaciones, tituloAlign === 'center' ? 'center' : 'left', (o) => setTituloAlign(o.id), 1)}
                       {grupo('Tipografía', tipografias, tipoActual, (o) => setTituloFont(o.id), 1)}
-                    </div>
-                    <span style={{ display: 'block', margin: '18px 0 8px', font: '700 11px Archivo', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>Vista previa</span>
-                    <div style={{ position: 'relative', height: 200, borderRadius: 12, overflow: 'hidden', background: `#111 url(${heroPreview1}) center / cover no-repeat` }}>
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.15))' }} />
-                      <div style={{ position: 'relative', height: '100%', display: 'flex', alignItems: 'center', justifyContent: alinear, padding: '0px 40px', textAlign: tituloAlign === 'center' ? 'center' : 'left' }}>
-                        <span style={{ font: `900 ${Number(pxActual) || 48}px / 1.05 ${fuente}`, letterSpacing: '0.02em', textTransform: 'uppercase', color: '#fff' }}>{tituloHero || 'CENTRO DE ENTRENAMIENTO'}</span>
-                      </div>
                     </div>
                   </>
                 )
@@ -963,6 +1040,21 @@ function ConfiguracionLandingPage() {
       </form>
       )}
       </div>
+      {tab !== 'banco' && (
+        <PreviewLanding
+          seccion={tab}
+          titulo={tituloHero}
+          tamano={tituloSize}
+          alineacion={tituloAlign}
+          tipografia={tituloFont}
+          logo={logoPreview}
+          fotos={[heroPreview1, heroPreview2, heroPreview3]}
+          cards={cards}
+          imagenesClase={imagenesClasePreview}
+          nosotros={{ titulo: tituloNosotros, subtitulo: subtituloNosotros, descripcion: descripcionNosotros, mision, imagen: imagenNosotrosPreview }}
+          contacto={{ direccion, telefono, email, horarioSemana, horarioSabado, horarioDomingo, mapaUrl }}
+        />
+      )}
     </div>
   )
 }

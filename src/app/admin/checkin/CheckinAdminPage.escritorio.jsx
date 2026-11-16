@@ -4,6 +4,7 @@ import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
 import { getPermisos } from "@/lib/paneles"
 import { TituloPagina } from "@/components/TituloPagina"
+import AvatarPersona from "@/components/AvatarPersona"
 import { EsqueletoAdmin } from "@/components/admin/kit"
 
 /*
@@ -177,7 +178,10 @@ export default function CheckinAdminPage() {
                   <ul style={{ listStyle: "none", margin: "0px", padding: "0px" }}>
                     {registrados.map((r, i) => (
                       <li key={`${r.nombre}-${r.inicio}-${i}`} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "8px", padding: "14px 22px" }}>
-                        <span style={{ font: "700 15px Archivo" }}>{r.nombre}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                          <AvatarPersona nombre={r.nombre} url={r.avatarUrl} size={34} fondo="var(--sh-avatar)" color="var(--primary)" font="800 12px Archivo" />
+                          <span style={{ font: "700 15px Archivo" }}>{r.nombre}</span>
+                        </span>
                         <span style={{ font: "500 13px Archivo", color: "var(--muted-foreground)" }}>{`${r.inicio} · ${r.clase} · ${r.origen}`}</span>
                       </li>
                     ))}

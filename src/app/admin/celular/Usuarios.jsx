@@ -59,7 +59,7 @@ export default function UsuariosCelular() {
       const plan = (u.planes || [])[0]
       const venc = fechaLarga(u.fechaVencimiento)
       return {
-        id, name: nombre, ini: iniciales(nombre), email: u.email || u.correo || "", dni: u.dni || "—", tel: u.telefono || "—", telRaw: u.telefono || "",
+        id, name: nombre, ini: iniciales(nombre), img: u.avatarUrl || null, email: u.email || u.correo || "", dni: u.dni || "—", tel: u.telefono || "—", telRaw: u.telefono || "",
         perfil: perfilTexto(u), k, cred: Number(u.creditos) || 0,
         planes: (u.planes || []).map((p) => String(p.idPlan)), horas: u.horas || [],
         plan: plan ? plan.nombre : "Sin plan activo",

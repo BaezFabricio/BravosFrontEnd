@@ -277,7 +277,7 @@ export default function ReservarMovil({
                 <div className="mt-3 flex items-end justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime-400/15 text-xs font-black text-lime-700 dark:text-lime-400">
-                      {iniciales(c.coach)}
+                      {c.coachFoto ? <img src={c.coachFoto} alt="" className="h-full w-full rounded-full object-cover" /> : iniciales(c.coach)}
                     </span>
                     <div className="min-w-0 text-xs">
                       <p className="text-foreground/50">Coach</p>

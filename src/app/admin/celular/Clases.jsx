@@ -160,7 +160,7 @@ export default function ClasesCelular() {
       rows: [["Tipo", dc.nombreTipo || nombreTipo(dc.tipoPlan)], ["Coach", dc.nombreProfesor || "Sin coach"], ["Horario", `${hh(dc.horaInicio)} a ${hh(dc.horaFin)}${dur > 0 ? ` · ${dur} min` : ""}`], ["Cupo", `${cupo} lugares`]].map(([k, val], j) => ({ k, v: val, sep: j ? c.line2 : "transparent" })),
       rutina: rutina || "Sin rutina cargada.", rFg: rutina ? c.ink : c.muted,
       noAl: !asistieron.length, hasAl: !!asistieron.length,
-      al: asistieron.map((r) => ({ ini: String(r.nombre || "?").trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase(), n: r.nombre, h: "Asistió" })),
+      al: asistieron.map((r) => ({ img: r.avatarUrl || null, ini: String(r.nombre || "?").trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase(), n: r.nombre, h: "Asistió" })),
       hrefBase: `/admin/clases/nueva?duplicar=${dsel}`,
     } : { rows: [], al: [], hrefBase: "/admin/clases/nueva" }
     const borrarClase = async () => {

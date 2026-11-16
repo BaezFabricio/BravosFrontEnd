@@ -5,6 +5,7 @@ import { toast } from "@/lib/notificar"
 import { useTemaProfesor } from "./paletaProfesor"
 import { useEsMovil, useCabeceraMovil } from "./movil"
 import { TituloPagina } from "@/components/TituloPagina"
+import AvatarPersona from "@/components/AvatarPersona"
 
 const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
@@ -232,7 +233,7 @@ export default function ProfesorDashboard() {
               const p = a.asistencia === "presente", x = a.asistencia === "ausente"
               return (
                 <li key={a.idReserva} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px 16px", padding: "12px 20px", borderTop: i ? `1px solid ${C.line2}` : "none", background: p ? C.okBg : x ? C.errBg : "transparent" }}>
-                  <span aria-hidden="true" style={{ width: 42, height: 42, flexShrink: 0, borderRadius: "50%", background: p ? C.lime : x ? C.errBg : C.surf, color: p ? C.onLime : x ? C.errFg : C.ink, display: "grid", placeItems: "center", font: "800 14px Archivo" }}>{iniciales(a.nombrecompleto)}</span>
+                  <AvatarPersona nombre={a.nombrecompleto} url={a.avatarUrl} size={42} fondo={p ? C.lime : x ? C.errBg : C.surf} color={p ? C.onLime : x ? C.errFg : C.ink} font="800 14px Archivo" />
                   <div style={{ flex: "1 1 180px", minWidth: 0 }}>
                     <div style={{ font: "700 16px Archivo" }}>{a.nombrecompleto}</div>
                     <div style={{ font: "500 13px Archivo", color: C.muted }}>Reservó · {i + 1}.º</div>
@@ -291,7 +292,7 @@ function AsistenciaMovil({ C, fecha, esHoy, clasesDelDia, estadoDe, claveDe, irD
             return (
               <li key={a.idReserva} style={{ padding: 12, borderRadius: 14, background: pres ? C.okBg : ause ? C.errBg : C.card, border: `1px solid ${C.line}`, display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span aria-hidden="true" style={{ width: 40, height: 40, flexShrink: 0, borderRadius: "50%", background: pres ? C.lime : ause ? C.errBg : C.surf, color: pres ? C.onLime : ause ? C.errFg : C.ink, display: "grid", placeItems: "center", font: "800 13px Archivo" }}>{iniciales(a.nombrecompleto)}</span>
+                  <AvatarPersona nombre={a.nombrecompleto} url={a.avatarUrl} size={40} fondo={pres ? C.lime : ause ? C.errBg : C.surf} color={pres ? C.onLime : ause ? C.errFg : C.ink} font="800 13px Archivo" />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: "block", font: "700 16px Archivo" }}>{a.nombrecompleto}</span>
                     <span style={{ display: "block", font: "500 12px Archivo", color: C.muted }}>Reservó · {i + 1}.º</span>

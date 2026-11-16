@@ -6,6 +6,7 @@ import { sanitizarHtml } from "@/lib/sanitizarHtml"
 import { Cargando } from "@/components/Cargando"
 import { ModalAdmin } from "@/components/ModalAdmin"
 import { BOTON_SECUNDARIO } from "@/components/estilosModal"
+import AvatarPersona from "@/components/AvatarPersona"
 import { yaTermino } from "./utilClases"
 
 /*
@@ -150,6 +151,7 @@ export default function DetalleClaseDialog({ clase, onCerrar }) {
                       const est = estadoDeReserva(r)
                       return (
                         <li key={r.idReserva} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", borderTop: i ? "1px solid var(--border)" : 0 }}>
+                          <AvatarPersona nombre={r.nombre} url={r.avatarUrl} size={30} fondo="var(--sh-avatar)" color="var(--primary)" font="800 11px Archivo" />
                           <span style={{ flex: "1 1 0%", minWidth: 0, font: "700 14px Archivo", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.nombre}</span>
                           <span style={{ padding: "2px 8px", borderRadius: "999px", border: `1px solid ${est.borde}`, background: est.fondo, color: est.color, font: "700 11px Archivo", whiteSpace: "nowrap" }}>{est.texto}</span>
                         </li>

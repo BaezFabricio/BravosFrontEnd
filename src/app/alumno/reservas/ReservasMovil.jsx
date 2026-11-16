@@ -57,7 +57,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
           <p className="mt-1.5 text-base font-black leading-snug text-foreground">{r.clase}</p>
           <p className="sr-only">{f.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400/15 text-[0.625rem] font-black text-lime-700 dark:text-lime-400" aria-hidden="true">{iniciales(r.coach)}</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400/15 text-[0.625rem] font-black text-lime-700 dark:text-lime-400" aria-hidden="true">{r.coachFoto ? <img src={r.coachFoto} alt="" className="h-full w-full rounded-full object-cover" /> : iniciales(r.coach)}</span>
             <p className="min-w-0 truncate text-xs"><span className="text-foreground/55">Coach </span><span className="font-bold text-foreground">{r.coach}</span></p>
           </div>
         </div>
