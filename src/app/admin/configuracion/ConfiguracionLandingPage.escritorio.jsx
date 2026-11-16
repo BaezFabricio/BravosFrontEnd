@@ -196,7 +196,7 @@ function ConfiguracionLandingPage() {
   const [descripcionNosotros, setDescripcionNosotros] = useState('')
   const [mision, setMision] = useState('')
   const [imagenNosotros, setImagenNosotros] = useState(null)
-  const [imagenNosotrosPreview, setImagenNosotrosPreview] = useState('/gym-interior.jpg')
+  const [imagenNosotrosPreview, setImagenNosotrosPreview] = useState('/nosotros-fondo.jpg')
 
   // Clases: dos tarjetas. La 1 es CrossFit (claseCard1 / imagenClase1) y la 2 es Planificación (claseCard3 / imagenClase3).
   const [cards, setCards] = useState([
@@ -204,7 +204,7 @@ function ConfiguracionLandingPage() {
     { titulo: 'Planificación', descripcion: '', icono: '📋' },
   ])
   const [imagenesClase, setImagenesClase] = useState([null, null])
-  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/gym-interior.jpg'])
+  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/nosotros-fondo.jpg'])
   // Foto elegida que se está ajustando antes de guardarla (null si no hay ninguna)
   const [recorte, setRecorte] = useState(null)
 

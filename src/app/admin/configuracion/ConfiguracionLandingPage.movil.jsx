@@ -111,7 +111,7 @@ function ConfiguracionLandingPage() {
   const [descripcionNosotros, setDescripcionNosotros] = useState('')
   const [mision, setMision] = useState('')
   const [imagenNosotros, setImagenNosotros] = useState(null)
-  const [imagenNosotrosPreview, setImagenNosotrosPreview] = useState('/gym-interior.jpg')
+  const [imagenNosotrosPreview, setImagenNosotrosPreview] = useState('/nosotros-fondo.jpg')
 
   // Clases (3 cards)
   const [cards, setCards] = useState([
@@ -120,7 +120,7 @@ function ConfiguracionLandingPage() {
     { titulo: 'Planificación', descripcion: '', icono: '📋' },
   ])
   const [imagenesClase, setImagenesClase] = useState([null, null, null])
-  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/wod-training.jpg', '/gym-interior.jpg'])
+  const [imagenesClasePreview, setImagenesClasePreview] = useState(['/hero-crossfit.jpg', '/wod-training.jpg', '/nosotros-fondo.jpg'])
 
   const updateCard = (i, field, val) =>
     setCards(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: val } : c))
