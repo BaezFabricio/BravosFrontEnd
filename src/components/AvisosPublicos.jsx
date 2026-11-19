@@ -1,3 +1,4 @@
+import AvisoDeslizable from './AvisoDeslizable'
 import { useEffect, useState } from 'react'
 import { Info } from 'lucide-react'
 import { ICONOS_TIPO, TOAST_COLORES, campanita } from '@/lib/avisosEstilos'
@@ -31,13 +32,13 @@ export default function AvisosPublicos() {
         const col = TOAST_COLORES[a.tipo] || TOAST_COLORES.info
         const generico = ['Éxito', 'Error', 'Atención', 'Info'].includes(a.titulo)
         return (
-          <div key={a.pid}
+          <AvisoDeslizable key={a.pid} onQuitar={() => setAvisos((prev) => prev.filter((x) => x.pid !== a.pid))}
             className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-2xl border-2 px-4 py-3.5 shadow-[0_0.875rem_2.25rem_-0.5rem_rgba(0,0,0,0.6)] animate-in slide-in-from-top-4 zoom-in-95 fade-in duration-300 ${col.caja}`}>
             <Icono className={`mt-0.5 h-5 w-5 flex-shrink-0 ${col.icono}`} />
             <p className="text-[0.8125rem] font-bold leading-snug">
               {!generico && <span className="font-black">{a.titulo}. </span>}{a.mensaje}
             </p>
-          </div>
+          </AvisoDeslizable>
         )
       })}
     </div>

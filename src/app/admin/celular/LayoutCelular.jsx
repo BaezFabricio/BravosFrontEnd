@@ -1,3 +1,4 @@
+import AvisoDeslizable from "@/components/AvisoDeslizable"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import apiClient from "@/api"
@@ -72,6 +73,7 @@ export default function LayoutCelular({ children }) {
   const [compacta, setCompacta] = useState(false)
   const reposo = useRef(0) // hasta cuándo se queda grande después de tocarlo
   const alTocarMenu = useCallback(() => { reposo.current = performance.now() + 2500; setCompacta(false) }, [])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setCompacta(false)
     let ultimo = window.scrollY
@@ -90,6 +92,50 @@ export default function LayoutCelular({ children }) {
     window.addEventListener("scroll", alScroll, { passive: true })
     return () => window.removeEventListener("scroll", alScroll)
   }, [pathname])
+  // Deslizar el dedo por el menú de abajo para elegir un módulo: la opción que queda bajo el dedo se resalta (y vibra un poquito
+  // al cambiar) y al soltar se abre. Un toque normal funciona igual que siempre.
+  const enlacesMenu = useRef([])
+  const inicioToque = useRef(null)
+  const arrastro = useRef(false)
+  const ignorarClic = useRef(false)
+  const [sobre, setSobre] = useState(null)
+  const [dedo, setDedo] = useState(null)
+  const opcionBajo = (x) => {
+    let mejor = null, distancia = Infinity
+    enlacesMenu.current.forEach((el, i) => {
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0
+      if (d < distancia) { distancia = d; mejor = i }
+    })
+    return mejor
+  }
+  const alBajarMenu = (e) => {
+    alTocarMenu()
+    inicioToque.current = { x: e.clientX, y: e.clientY }
+    arrastro.current = false
+    setDedo(e.clientX - e.currentTarget.getBoundingClientRect().left)
+  }
+  const alMoverMenu = (e) => {
+    if (!inicioToque.current || (e.pointerType === "mouse" && e.buttons === 0)) return
+    setDedo(e.clientX - e.currentTarget.getBoundingClientRect().left)
+    if (!arrastro.current && Math.hypot(e.clientX - inicioToque.current.x, e.clientY - inicioToque.current.y) > 12) arrastro.current = true
+    if (arrastro.current) {
+      const i = opcionBajo(e.clientX)
+      setSobre((previa) => { if (previa !== i && previa !== null) navigator.vibrate?.(8); return i })
+    }
+  }
+  const terminarToque = () => { inicioToque.current = null; arrastro.current = false; setSobre(null); setDedo(null) }
+  const alSoltarMenu = () => {
+    const elegida = arrastro.current && sobre !== null ? tabs[sobre] : null
+    if (elegida) {
+      ignorarClic.current = true // el navegador igual dispara un clic al soltar: se descarta
+      setTimeout(() => { ignorarClic.current = false }, 350)
+      if (elegida.href && elegida.href !== "#") navigate(elegida.href)
+    }
+    terminarToque()
+  }
+
   // Al entrar a una pantalla desliza desde la derecha; al volver (atrás), desde la izquierda
   const tipoNavegacion = useNavigationType()
   const sesion = useMemo(() => { try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} } }, [])
@@ -141,6 +187,7 @@ export default function LayoutCelular({ children }) {
 
   // Los enlaces del diseño navegan dentro de la app (sin recargar); los "#" solo disparan su acción
   const alTocar = (e) => {
+    if (ignorarClic.current) { e.preventDefault(); e.stopPropagation(); return }
     const a = e.target.closest?.("a[href]")
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === "_blank") return
     const href = a.getAttribute("href")
@@ -153,8 +200,8 @@ export default function LayoutCelular({ children }) {
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
-        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, alTocar: alTocarMenu }} /></div>}
-        <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<div key={a.id} style={{ padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</div>))}</div>
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, sobre, dedo, enlaces: enlacesMenu, alBajar: alBajarMenu, alMover: alMoverMenu, alSoltar: alSoltarMenu, alCancelar: terminarToque }} /></div>}
+        <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<AvisoDeslizable key={a.id} onQuitar={() => setAvisos((p) => p.filter((x) => x.id !== a.id))} style={{ pointerEvents: "auto", padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</AvisoDeslizable>))}</div>
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}
       </div>

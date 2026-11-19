@@ -302,6 +302,9 @@
 @media (max-width: 1023px) {
   html, body { overflow-x: clip; max-width: 100%; overscroll-behavior-x: none; }
   .dc-pantalla, .bv-panel-main { max-width: 100%; overflow-x: clip; touch-action: pan-y pinch-zoom; }
+  /* Paneles que se abren encima de la pantalla (bandeja de notificaciones, hojas, filtros): tampoco se mueven de costado */
+  .dcx > div, .dcx [role="dialog"] { overflow-x: clip; max-width: 100vw; touch-action: pan-y; }
+  .dcx [style*="overflow-y: auto"], .dcx [style*="overflow: auto"] { overflow-x: hidden !important; touch-action: pan-y !important; overscroll-behavior: contain; }
 }
 
 /* Las pantallas del admin en celular heredan content-box (.dc-pantalla): los componentes hechos con Tailwind necesitan border-box

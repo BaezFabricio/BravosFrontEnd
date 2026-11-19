@@ -1,3 +1,4 @@
+import AvisoDeslizable from './AvisoDeslizable'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck, Trash2, Info } from 'lucide-react'
@@ -310,13 +311,13 @@ export default function NotificacionesBell({ variante } = {}) {
             const col = TOAST_COLORES[t.tipo] || TOAST_COLORES.info
             const generico = ['Éxito', 'Error', 'Atención', 'Info'].includes(t.titulo)
             return (
-              <div key={t.pid} onClick={() => handleClickToast(t)}
+              <AvisoDeslizable key={t.pid} onClick={() => handleClickToast(t)} onQuitar={() => setToasts(prev => prev.filter(x => x.pid !== t.pid))}
                 className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-2xl border-2 px-4 py-3.5 shadow-[0_0.875rem_2.25rem_-0.5rem_rgba(0,0,0,0.6)] animate-in slide-in-from-top-4 zoom-in-95 fade-in duration-300 ${col.caja} ${t.link ? 'cursor-pointer' : ''}`}>
                 <Icono className={`mt-0.5 h-5 w-5 flex-shrink-0 ${col.icono}`} />
                 <p className="text-[0.8125rem] font-bold leading-snug">
                   {!generico && <span className="font-black">{t.titulo}. </span>}{t.mensaje}
                 </p>
-              </div>
+              </AvisoDeslizable>
             )
           })}
         </div>
