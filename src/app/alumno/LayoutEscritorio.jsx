@@ -179,7 +179,7 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
           />
         </header>
 
-        <main className="bv-panel-main mx-auto flex w-full max-w-[100rem] flex-col px-6 pb-[7.5rem] pt-6">
+        <main className="bv-panel-main flex w-full flex-col px-6 pb-[7.5rem] pt-6">
           <LayoutBxContext.Provider value={true}>{children}</LayoutBxContext.Provider>
         </main>
       </div>

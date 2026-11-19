@@ -47,7 +47,7 @@ export default function SeleccionarPanelPage() {
             </div>
             <img src="/acceso/dog-t.png" alt="" />
           </div>
-          <nav className="m-grid" aria-label="Elegir módulo">
+          <nav className="m-grid" data-n={disponibles.length} aria-label="Elegir módulo">
             {disponibles.map((panel, i) => {
               const foto = FOTO_PANEL[panel.key] || FOTO_PANEL.admin
               return (
