@@ -273,7 +273,7 @@ export default function DetalleUsuarioPage() {
                 {status.label}
               </span>
               <span className="rounded-full border border-border bg-foreground/5 px-2.5 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">
-                {user?.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" + ") : (user?.perfil || "Sin perfil")}
+                {user?.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" ") : (user?.perfil || "Sin perfil")}
               </span>
             </div>
           </div>

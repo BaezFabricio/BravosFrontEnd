@@ -88,7 +88,7 @@ export function useEdicionFicha(user, onGuardado) {
   const nombresDePerfiles = (ids = []) => ids
     .map((id) => perfiles?.find((p) => String(p.idPerfil) === id)?.nombrePerfil)
     .filter(Boolean)
-    .join(" + ")
+    .join(" ")
   const perfilNuevo = nombresDePerfiles(form?.idPerfiles)
   const cambiaPerfil = !!form && !!base && !mismosPerfiles(form.idPerfiles, base.idPerfiles)
   const desactiva = !!form && !!base && form.estado === "inactivo" && base.estado !== "inactivo"

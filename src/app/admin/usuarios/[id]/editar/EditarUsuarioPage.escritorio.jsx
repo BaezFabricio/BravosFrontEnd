@@ -270,7 +270,7 @@ export default function EditarUsuarioPage() {
               {[
                 { label: "DNI", value: formData.dni, icon: CreditCard },
                 { label: "Tel", value: formData.telefono, icon: Phone },
-                { label: "Perfil", value: perfilesElegidos.join(" + "), icon: ShieldCheck },
+                { label: "Perfil", value: perfilesElegidos.join(" "), icon: ShieldCheck },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-border bg-background/50 px-2.5 py-2">
                   <dt className="flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-widest text-foreground/45">

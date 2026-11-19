@@ -566,7 +566,9 @@ export default function UsuariosPage() {
   const [verFiltros, setVerFiltros] = useState(false)
   const [sinCuentaAbierto, setSinCuentaAbierto] = useState(false) // ventana para registrar un alumno sin cuenta
   const [orden, setOrden] = useState("alfabetico")
-  const [seleccionadoId, setSeleccionadoId] = useState(null) // usuario elegido en la lista de computadora
+  // Usuario elegido en la lista de computadora: se recuerda en la sesión para que al recargar no vuelva al primero
+  const [seleccionadoId, setSeleccionadoIdEstado] = useState(() => { try { const g = sessionStorage.getItem("bravos-usuario-elegido"); return g ? Number(g) : null } catch { return null } })
+  const setSeleccionadoId = (id) => { setSeleccionadoIdEstado(id); try { sessionStorage.setItem("bravos-usuario-elegido", String(id)) } catch { /* sin almacenamiento: no se recuerda */ } }
   // Todos los planes del módulo Planes y todas las horas de clase cargadas (no solo las de quienes ya tienen algo)
   const [opciones, setOpciones] = useState({ planes: [], horas: [] })
 
@@ -618,7 +620,7 @@ export default function UsuariosPage() {
       // 🟢 CAPTURA DIRECTA DE SQL: Si el backend manda nombrePerfil, lo usamos directo sin intermediarios
       // Con varios perfiles se muestran todos ("Admin + Alumno"); el principal es user.nombrePerfil
       const nombrePerfilReal = (Array.isArray(user.perfiles) && user.perfiles.length > 1
-        ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" + ")
+        ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" ")
         : "") || user.nombrePerfil || normalized.nombrePerfil || user.perfil || "";
       const idPerfilReal = user.idPerfil !== undefined ? user.idPerfil : normalized.idPerfil;
       const idReal = user.idUsuario || normalized.idUsuario || user.id || normalized.id;

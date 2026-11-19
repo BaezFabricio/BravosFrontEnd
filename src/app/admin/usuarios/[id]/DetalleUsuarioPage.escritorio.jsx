@@ -168,7 +168,7 @@ export default function DetalleUsuarioPage() {
   const docsPendientes = documentos.filter((d) => d.estado !== "aprobado").length
   const membresiaActiva = user?.membresia === "vigente" || user?.membresia === "activa"
   const estadoMembresiaTexto = membresiaActiva ? "Membresía activa" : user?.membresia === "por_vencer" ? "Por vencer" : "Vencida"
-  const perfilTexto = (user?.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" + ") : (user?.perfil || "")).trim()
+  const perfilTexto = (user?.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" ") : (user?.perfil || "")).trim()
   const perfilCapital = perfilTexto ? perfilTexto.charAt(0).toUpperCase() + perfilTexto.slice(1) : "Sin perfil"
   const iniciales = (nombre = "") => { const p = nombre.trim().split(/\s+/); return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : nombre.slice(0, 2).toUpperCase() }
   const etiquetaPestana = (activa) => ({ fontSize: 15, fontWeight: 700, fontFamily: "Archivo", padding: "0px 16px", minHeight: 48, marginBottom: -1, borderWidth: "0px 0px 3px", borderStyle: "none none solid", borderColor: `transparent transparent ${activa ? "var(--primary)" : "transparent"}`, background: "transparent", color: activa ? "var(--foreground)" : "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 8, cursor: "pointer" })
