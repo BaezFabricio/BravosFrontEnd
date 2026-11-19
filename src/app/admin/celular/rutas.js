@@ -29,6 +29,7 @@ const LISTAS = [
 const SIN_MENU = [
   /^\/admin\/clases\/editar\/\d+\/?$/,
   /^\/admin\/clases\/nueva\/?$/,
+  /^\/admin\/usuarios\/\d+\/?$/, // ficha del usuario: el menú tapaba las acciones de abajo
   /^\/admin\/usuarios\/\d+\/editar\/?$/,
   /^\/admin\/usuarios\/nuevo\/?$/,
 ]
