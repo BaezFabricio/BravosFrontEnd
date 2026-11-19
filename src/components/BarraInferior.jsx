@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import GotaAgua from "./GotaAgua"
 
 /*
  * Barra de abajo del celular (alumno, profesor y administrador): una píldora flotante, separada de los bordes,
@@ -116,6 +117,10 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
     setDedo(null)
   }
 
+  // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
+  const activoIdx = Math.max(0, items.findIndex((it) => it.activo))
+  const gotaEn = sobre !== null ? sobre : activoIdx
+
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden" aria-label="Navegación principal">
       <div
@@ -152,6 +157,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
             style={{ left: o.x - 20, top: o.y - 20 }}
           />
         ))}
+          <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={!!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 4 : 6} />
         </div>
 
         {items.map((item, idx) => {
@@ -172,7 +178,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
           // Cada opción es una píldora redondeada; la activa se rellena de verde y su ícono sube un poquito
           const base = `relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center rounded-[1.4rem] transition-all duration-300 active:scale-95 ${compacta ? "gap-0 py-2" : "gap-1 py-2.5"}`
           const estilo = resaltada
-              ? "bg-lime-400/20 text-lime-700 shadow-inner shadow-lime-400/10 dark:text-lime-400"
+              ? "text-lime-700 dark:text-lime-400"
               : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
           return (
             <Link key={item.name} ref={(el) => { enlaces.current[idx] = el }} to={item.href} data-guia={item.guia} onClick={(e) => { if (item.alTocar) { e.preventDefault(); item.alTocar() } onNavegar?.() }} aria-current={item.activo ? "page" : undefined} className={`${base} ${estilo}`}>

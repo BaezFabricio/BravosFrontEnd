@@ -1,7 +1,8 @@
 import { haySesion } from './lib/sesion'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { RecordarRutaPublica } from './lib/ultimaRutaPublica'
-import AvisosPublicos from './components/AvisosPublicos'
+import AvisosSileo from './components/AvisosSileo'
+import EscuchaNavegar from './components/EscuchaNavegar'
 import { iniciarSincronizacionDePermisos, usePermisosVivos } from './lib/sincronizarPermisos'
 import { useEffect } from 'react'
 
@@ -164,7 +165,8 @@ function App() {
   return (
     <BrowserRouter>
       <RecordarRutaPublica />
-      <AvisosPublicos />
+      <EscuchaNavegar />
+      <AvisosSileo />
       <Routes>
         <Route path="/" element={<Navigate to="/inicio" replace />} />
         <Route path="/inicio" element={<LandingPage />} />

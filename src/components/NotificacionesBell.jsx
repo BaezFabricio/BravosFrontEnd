@@ -1,14 +1,14 @@
-import AvisoDeslizable from './AvisoDeslizable'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck, Trash2, Info } from 'lucide-react'
 import apiClient from '@/api'
 import ActivarNotificaciones from '@/components/ActivarNotificaciones'
-import { ICONOS_TIPO, TOAST_COLORES, campanita } from '@/lib/avisosEstilos'
+import { ICONOS_TIPO, campanita } from '@/lib/avisosEstilos'
 import { parsearFecha, etiquetaDia, formatearFechaNotif } from '@/lib/fechasNotificaciones'
 import { Ico } from '@/components/bx/iconos'
 import { IC } from '@/components/bx/trazos'
-import { PanelNotificaciones, AvisosAbajo } from '@/components/bx/PanelNotificaciones'
+import { PanelNotificaciones } from '@/components/bx/PanelNotificaciones'
+import { mostrarAviso, quitarAvisos } from '@/lib/avisoSileo'
 import PanelNotificacionesAdmin from '@/components/PanelNotificacionesAdmin'
 import { useAnchoPanel } from '@/lib/useEscritorio'
 
@@ -52,7 +52,6 @@ export default function NotificacionesBell({ variante } = {}) {
   const [noLeidas, setNoLeidas] = useState(0)
   const [open, setOpen] = useState(false)
   const [limpiando, setLimpiando] = useState(false) // animación de salida al vaciar la bandeja
-  const [toasts, setToasts] = useState([]) // avisos que salen arriba en el medio: de acciones y de notificaciones nuevas
   const ref = useRef(null)
   const prevNoLeidas = useRef(null)
   const vistas = useRef(null) // ids de notificaciones que ya conocemos: solo las que aparecen después salen como aviso
@@ -77,13 +76,9 @@ export default function NotificacionesBell({ variante } = {}) {
       .catch(() => {})
   }
 
-  // Todo aviso sale arriba en el medio: máximo 3 a la vez, uno igual al que ya está no se repite, y se van solos.
-  // Los de notificaciones reales traen un link (al tocarlos abren esa pantalla).
-  const showToast = ({ tipo, titulo, mensaje, link = null, idNotificacion = null, accion = null }) => {
-    const pid = Date.now() + Math.random()
-    const dur = bx || tipo === 'error' || tipo === 'advertencia' ? 5000 : link ? 5000 : 2800
-    setToasts(prev => [...prev.filter(t => !(t.tipo === tipo && t.mensaje === mensaje && t.titulo === titulo)), { tipo, titulo, mensaje, link, idNotificacion, accion, pid }].slice(-3))
-    setTimeout(() => setToasts(prev => prev.filter(t => t.pid !== pid)), dur)
+  // Aviso de una notificación nueva del servidor: lo dibuja Sileo y su botón abre la pantalla de la notificación
+  const showToast = ({ tipo, titulo, mensaje, link = null, idNotificacion = null }) => {
+    mostrarAviso({ tipo, titulo, mensaje, link, alAbrir: idNotificacion ? () => marcarLeida(idNotificacion, false) : null })
   }
 
   useEffect(() => {
@@ -94,8 +89,7 @@ export default function NotificacionesBell({ variante } = {}) {
 
     // Escuchar eventos locales del sistema (toast.success, toast.error, etc.)
     const onNotif = (e) => {
-      const { tipo, titulo, mensaje, guardar, enlace } = e.detail
-      showToast({ tipo, titulo, mensaje, link: enlace?.to || null, accion: enlace?.texto || null })
+      const { tipo, titulo, mensaje, guardar } = e.detail // el aviso en pantalla ya lo mostró toast.*; acá solo se guarda en el historial
       // Lo importante queda registrado en el historial de la campanita (en el servidor, como no leído: suma al contador, sin repetir el aviso)
       if (guardar) apiClient.post('/notificaciones/registro', { tipo, titulo, mensaje }).then(() => cargar()).catch(() => {})
     }
@@ -135,7 +129,7 @@ export default function NotificacionesBell({ variante } = {}) {
   const limpiar = () => {
     if (limpiando) return
     setLimpiando(true)
-    setToasts([])
+    quitarAvisos()
     prevNoLeidas.current = 0
     const pedido = apiClient.delete('/notificaciones')
     const animacion = new Promise(r => setTimeout(r, Math.min(notifs.length, 8) * 60 + 380))
@@ -150,20 +144,12 @@ export default function NotificacionesBell({ variante } = {}) {
     })
   }
 
-  const dismissToast = (pid) => setToasts(prev => prev.filter(t => t.pid !== pid))
-
   const handleClickNotif = (n) => {
     if (!n.leida) marcarLeida(n.idNotificacion, n.local)
     if (n.link) {
       setOpen(false)
       navigate(n.link)
     }
-  }
-
-  const handleClickToast = (t) => {
-    dismissToast(t.pid)
-    if (t.idNotificacion) marcarLeida(t.idNotificacion, false)
-    if (t.link) navigate(t.link)
   }
 
   if (bx) {
@@ -213,7 +199,6 @@ export default function NotificacionesBell({ variante } = {}) {
             />
           )}
         </div>
-        <AvisosAbajo toasts={toasts} onClick={handleClickToast} />
       </>
     )
   }
@@ -303,25 +288,6 @@ export default function NotificacionesBell({ variante } = {}) {
         )}
       </div>
 
-      {/* Avisos arriba en el medio: de acciones y de notificaciones nuevas (todo queda en la bandeja) */}
-      {toasts.length > 0 && (
-        <div className="pointer-events-none fixed inset-x-0 top-[4.25rem] z-[110] flex flex-col items-center gap-2 px-4" role="status" aria-live="polite">
-          {toasts.map(t => {
-            const Icono = ICONOS_TIPO[t.tipo] || Info
-            const col = TOAST_COLORES[t.tipo] || TOAST_COLORES.info
-            const generico = ['Éxito', 'Error', 'Atención', 'Info'].includes(t.titulo)
-            return (
-              <AvisoDeslizable key={t.pid} onClick={() => handleClickToast(t)} onQuitar={() => setToasts(prev => prev.filter(x => x.pid !== t.pid))}
-                className={`pointer-events-auto flex max-w-sm items-start gap-3 rounded-2xl border-2 px-4 py-3.5 shadow-[0_0.875rem_2.25rem_-0.5rem_rgba(0,0,0,0.6)] animate-in slide-in-from-top-4 zoom-in-95 fade-in duration-300 ${col.caja} ${t.link ? 'cursor-pointer' : ''}`}>
-                <Icono className={`mt-0.5 h-5 w-5 flex-shrink-0 ${col.icono}`} />
-                <p className="text-[0.8125rem] font-bold leading-snug">
-                  {!generico && <span className="font-black">{t.titulo}. </span>}{t.mensaje}
-                </p>
-              </AvisoDeslizable>
-            )
-          })}
-        </div>
-      )}
     </>
   )
 }

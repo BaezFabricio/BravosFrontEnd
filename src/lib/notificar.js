@@ -9,11 +9,14 @@
  * Si el sistema ya crea su propia notificación (reservas, por ejemplo), conviene { guardar: false } para no repetirla.
  * Un aviso de éxito puede llevar un enlace de acción: toast.success('Listo', { enlace: { to: '/alumno/reservas', texto: 'Ver mis reservas' } })
  */
+import { mostrarAviso } from './avisoSileo'
+
 // Cuándo se mostró el último aviso de error o advertencia (lo usa api.js para no repetir el aviso de "sin permiso")
 export let ultimoAvisoDeError = 0
 
 function dispatch(tipo, titulo, mensaje, guardar, enlace) {
   if (tipo === 'error' || tipo === 'advertencia') ultimoAvisoDeError = Date.now()
+  mostrarAviso({ tipo, titulo, mensaje, link: enlace?.to || null, accion: enlace?.texto || null })
   window.dispatchEvent(new CustomEvent('bravos:notif', {
     detail: { tipo, titulo, mensaje, guardar, enlace, id: Date.now() }
   }))

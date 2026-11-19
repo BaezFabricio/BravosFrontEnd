@@ -1,4 +1,3 @@
-import AvisoDeslizable from "@/components/AvisoDeslizable"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import apiClient from "@/api"
@@ -53,14 +52,10 @@ export default function LayoutCelular({ children }) {
     window.addEventListener("keydown", tecla)
     return () => window.removeEventListener("keydown", tecla)
   }, [panel])
-  // Avisos globales (toast.success, toast.error…): salen abajo, arriba del menú, y se van solos
-  const [avisos, setAvisos] = useState([])
+  // Avisos globales (toast.success, toast.error…): los dibuja Sileo; acá solo se guarda en el historial lo importante
   useEffect(() => {
     const alAviso = (e) => {
       const { tipo, titulo, mensaje, guardar } = e.detail || {}
-      const id = Date.now() + Math.random()
-      setAvisos((p) => [...p.filter((a) => !(a.titulo === titulo && a.mensaje === mensaje)), { id, tipo, titulo, mensaje }].slice(-3))
-      setTimeout(() => setAvisos((p) => p.filter((a) => a.id !== id)), tipo === "error" || tipo === "advertencia" ? 5000 : 3500)
       if (guardar) apiClient.post("/notificaciones/registro", { tipo, titulo, mensaje }).then(() => recargarNotifs()).catch(() => {})
     }
     window.addEventListener("bravos:notif", alAviso)
@@ -215,7 +210,6 @@ export default function LayoutCelular({ children }) {
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
         {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, sobre, dedo, ondas, quitarOnda: (id) => setOndas((prev) => prev.filter((o) => o.id !== id)), enlaces: enlacesMenu, alBajar: alBajarMenu, alMover: alMoverMenu, alSoltar: alSoltarMenu, alCancelar: terminarToque }} /></div>}
-        <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<AvisoDeslizable key={a.id} onQuitar={() => setAvisos((p) => p.filter((x) => x.id !== a.id))} style={{ pointerEvents: "auto", padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</AvisoDeslizable>))}</div>
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}
       </div>

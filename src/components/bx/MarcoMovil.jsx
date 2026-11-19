@@ -1,3 +1,4 @@
+import GotaAgua from "@/components/GotaAgua"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Ico } from "@/components/bx/iconos"
@@ -122,6 +123,9 @@ export function MenuInferior({ items, onNavegar }) {
     setSobre(null)
     setDedo(null)
   }
+  // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
+  const activoIdx = Math.max(0, items.findIndex((it) => it.activo))
+  const gotaEn = sobre !== null ? sobre : activoIdx
   const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }
 
   return (
@@ -157,6 +161,7 @@ export function MenuInferior({ items, onNavegar }) {
                 style={{ left: o.x - 20, top: o.y - 20 }}
               />
             ))}
+            <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={!!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 5 : 7} />
           </div>
 
           {items.map((item, idx) => {
@@ -190,7 +195,7 @@ export function MenuInferior({ items, onNavegar }) {
                 aria-current={item.activo ? "page" : undefined}
                 className={`relative z-10 flex h-full min-w-0 flex-col items-center justify-center gap-[3px] text-[0.6875rem] transition-colors duration-200 ${resaltada ? "font-bold text-bx-ok-fg" : "font-semibold text-bx-muted hover:text-bx-ink"}`}
               >
-                <span className={`relative grid h-[1.875rem] w-[3.25rem] place-items-center rounded-[0.9375rem] transition-[background-color,transform] duration-300 active:scale-90 ${resaltada ? "bg-bx-ok-bg -translate-y-0.5 scale-110" : "bg-transparent"}`}>
+                <span className={`relative grid h-[1.875rem] w-[3.25rem] place-items-center rounded-[0.9375rem] transition-[background-color,transform] duration-300 active:scale-90 ${resaltada ? "-translate-y-0.5 scale-110" : ""}`}>
                   <Ico d={item.d} size={22} sw={1.9} />
                   {item.insignia > 0 && (
                     <span className="absolute right-0.5 top-0 grid h-4 min-w-4 place-items-center rounded-full bg-bx-lima px-1 text-[0.5625rem] font-extrabold leading-none text-bx-negro ring-2 ring-bx-card" aria-label={`${item.insignia} reservas próximas`}>

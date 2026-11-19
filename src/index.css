@@ -668,3 +668,6 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 .bv-panel-main > *:not(.aparece-tarde):nth-child(4) { animation-delay: 0.15s; }
 .bv-panel-main > *:not(.aparece-tarde):nth-child(n+5) { animation-delay: 0.2s; }
 @media (prefers-reduced-motion: reduce) { .bv-panel-main > * { animation: none; } }
+
+/* Avisos (Sileo): el texto va como se escribe, sin poner cada palabra en mayúscula */
+[data-sileo-title] { text-transform: none !important; }
