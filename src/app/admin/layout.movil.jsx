@@ -324,7 +324,7 @@ export default function AdminLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main className="bv-panel-main p-4 lg:p-6 pb-36 lg:pb-6">
+        <main key={pathname} className="bv-panel-main p-4 lg:p-6 pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
