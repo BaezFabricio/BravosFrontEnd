@@ -58,7 +58,7 @@ export default function FichaCelular() {
     const u = user || {}
     const nombre = u.nombre || u.nombrecompleto || (error ? "No se pudo cargar" : "Cargando…")
     const perfil = String(u.perfil || "").trim()
-    const perfilCap = perfil ? perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase() : "Sin perfil"
+    const perfilCap = u.perfiles?.length > 1 ? u.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" + ") : (perfil ? perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase() : "Sin perfil")
     const off = u.estado === "inactivo"
     const mem = u.membresia
     const vigente = ficha?.vigente || null

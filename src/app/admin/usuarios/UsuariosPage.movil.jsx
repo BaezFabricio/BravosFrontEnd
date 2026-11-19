@@ -525,7 +525,10 @@ export default function UsuariosPage() {
       const normalized = normalizarUsuario ? normalizarUsuario(user) : user
       
       // 🟢 CAPTURA DIRECTA DE SQL: Si el backend manda nombrePerfil, lo usamos directo sin intermediarios
-      const nombrePerfilReal = user.nombrePerfil || normalized.nombrePerfil || user.perfil || "";
+      // Con varios perfiles se muestran todos ("Admin + Alumno"); el principal es user.nombrePerfil
+      const nombrePerfilReal = (Array.isArray(user.perfiles) && user.perfiles.length > 1
+        ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" + ")
+        : "") || user.nombrePerfil || normalized.nombrePerfil || user.perfil || "";
       const idPerfilReal = user.idPerfil !== undefined ? user.idPerfil : normalized.idPerfil;
       const idReal = user.idUsuario || normalized.idUsuario || user.id || normalized.id;
 
