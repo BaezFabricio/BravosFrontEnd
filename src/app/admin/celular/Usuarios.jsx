@@ -13,7 +13,10 @@ const fechaLarga = (valor) => {
   if (!y || !m || !d) return ""
   return new Date(y, m - 1, d).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }).replace(/\./g, "")
 }
-const perfilTexto = (u) => { const p = String(u.nombrePerfil || u.perfil || "").trim(); return p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : "Sin perfil" }
+const cap = (p) => { const t = String(p || "").trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "" }
+// Un usuario puede tener varios perfiles (ej.: Admin y Alumno): se muestran todos, separados por un espacio
+const nombresPerfiles = (u) => (Array.isArray(u.perfiles) && u.perfiles.length ? u.perfiles.map((p) => cap(p.nombrePerfil)) : [cap(u.nombrePerfil || u.perfil)]).filter(Boolean)
+const perfilTexto = (u) => nombresPerfiles(u).join(" ") || "Sin perfil"
 const iniciales = (n = "") => n.trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "?"
 
 // Usuarios del admin en celular (referencia 02): lista, filtros y ficha corta. Los datos son los de /usuarios.
@@ -60,7 +63,7 @@ export default function UsuariosCelular() {
       const venc = fechaLarga(u.fechaVencimiento)
       return {
         id, name: nombre, ini: iniciales(nombre), img: u.avatarUrl || null, email: u.email || u.correo || "", dni: u.dni || "—", tel: u.telefono || "—", telRaw: u.telefono || "",
-        perfil: perfilTexto(u), k, cred: Number(u.creditos) || 0,
+        perfil: perfilTexto(u), perfilesNombres: nombresPerfiles(u), k, cred: Number(u.creditos) || 0,
         planes: (u.planes || []).map((p) => String(p.idPlan)), horas: u.horas || [],
         plan: plan ? plan.nombre : "Sin plan activo",
         vence: venc ? `${k === "act" ? "Vence" : "Venció"} el ${venc}` : "Sin vencimiento",
@@ -72,7 +75,7 @@ export default function UsuariosCelular() {
     const busqueda = q.trim().toLowerCase()
     const AP = ap || DEF, DR = dr || AP
     const correr = (F) => U.filter((u) => (f === "todos" || u.k === f) && (!busqueda || (u.name + u.dni + u.email).toLowerCase().includes(busqueda))
-      && (!F.perfil || u.perfil === F.perfil) && (!F.plan || u.planes.includes(F.plan)) && (!F.hora || u.horas.includes(F.hora)))
+      && (!F.perfil || u.perfilesNombres.includes(F.perfil)) && (!F.plan || u.planes.includes(F.plan)) && (!F.hora || u.horas.includes(F.hora)))
       .sort((a, b) => F.orden === "activa" ? ((a.k === "act" ? 0 : 1) - (b.k === "act" ? 0 : 1)) || a.name.localeCompare(b.name) : a.name.localeCompare(b.name))
     const lista = loading ? [] : correr(AP)
     const nBorrador = correr(DR).length
@@ -86,7 +89,7 @@ export default function UsuariosCelular() {
     const deco = (u, i) => {
       const s = ST[u.k]
       return {
-        ...u, sep: i ? c.line2 : "transparent", admin: u.perfil === "Admin", st: s[0], stFg: s[1], dot: s[2],
+        ...u, sep: i ? c.line2 : "transparent", admin: u.perfilesNombres.includes("Admin"), st: s[0], stFg: s[1], dot: s[2],
         avBg: u.k === "act" ? "#9be600" : c.surf, avFg: u.k === "act" ? "#0b0b0b" : c.ink,
         cred: u.cred === 1 ? "1 crédito" : u.cred + " créditos", credN: String(u.cred), credFg: u.cred ? c.okFg : c.muted,
         aria: `${u.name}, ${s[0]}, ${u.cred} créditos. Ver detalle`,
