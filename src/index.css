@@ -305,8 +305,10 @@
    escalonados. Al tocar un botón o un enlace se hunde un poco. */
 @keyframes bv-ruta-adelante { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
 @keyframes bv-ruta-atras { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
-.bv-ruta-adelante { animation: bv-ruta-adelante 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.bv-ruta-atras { animation: bv-ruta-atras 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+/* backwards (no both): al terminar no queda nada aplicado. Con both el contenedor seguía siendo una capa propia y los paneles que se abren
+   encima de la pantalla (ficha corta, filtros) quedaban por debajo del menú de abajo y de la mascota. */
+.bv-ruta-adelante { animation: bv-ruta-adelante 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.bv-ruta-atras { animation: bv-ruta-atras 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 .bv-ruta-adelante main > *, .bv-ruta-atras main > * { animation: bv-sube 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 .bv-ruta-adelante main > *:nth-child(2), .bv-ruta-atras main > *:nth-child(2) { animation-delay: 0.05s; }
 .bv-ruta-adelante main > *:nth-child(3), .bv-ruta-atras main > *:nth-child(3) { animation-delay: 0.1s; }
