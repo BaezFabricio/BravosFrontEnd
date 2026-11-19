@@ -107,13 +107,14 @@
    tarjetas cuando la ventana era más baja. Tres bandas: barra superior, bloque central (título + tarjetas) y pie. ===== */
 @media (min-width:900px){
 .ea .screen.modulos{position:relative;inset:auto;margin:0;width:100%;height:100%;display:flex;flex-direction:column;overflow-y:auto;
-  padding:clamp(20px,3.2vh,40px) clamp(28px,4vw,80px) clamp(20px,3vh,36px)}
+  padding:clamp(14px,2.2vh,26px) clamp(28px,4vw,80px) clamp(20px,3vh,36px)}
 .ea .modulos .m-top{position:static;flex:none}
-.ea .modulos .m-top .brand img{width:46px;height:46px;border-radius:9px}
-.ea .modulos .m-top .brand span{font-size:22px}
-.ea .modulos .m-btn{height:46px;padding:0 22px;font-size:16px}
-.ea .modulos .m-chip{font-size:14px}
-.ea .modulos .m-chip::before{width:9px;height:9px}
+.ea .modulos .m-top .brand img{width:36px;height:36px;border-radius:8px}
+.ea .modulos .m-top .brand span{font-size:17px;letter-spacing:.26em}
+.ea .modulos .m-top .brand{gap:12px}
+.ea .modulos .m-btn{height:38px;padding:0 18px;font-size:14px}
+.ea .modulos .m-chip{font-size:12px}
+.ea .modulos .m-chip::before{width:7px;height:7px}
 /* título, tarjetas y pie comparten el mismo ancho y el mismo borde izquierdo */
 .ea .modulos .m-head,.ea .modulos .m-grid,.ea .modulos .m-foot,.ea .modulos .m-aviso{width:100%;max-width:1480px;margin-inline:auto}
 .ea .modulos .m-head{position:static;flex:none;margin-top:auto;margin-bottom:clamp(18px,3.4vh,40px);align-items:flex-end;gap:24px}
