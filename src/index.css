@@ -296,6 +296,14 @@
 .aparece-tarde { opacity: 0; animation: aparece-tarde 150ms ease-out 200ms forwards; }
 @media (prefers-reduced-motion: reduce) { .aparece-tarde { animation-duration: 1ms; } }
 
+/* Celular y tableta: la pantalla solo se mueve hacia arriba y hacia abajo. Si algún elemento se pasa del ancho, no deja arrastrar la
+   pantalla de costado (overflow-x: clip no crea una caja de scroll, así que lo que está "pegado" arriba o abajo sigue funcionando).
+   El gesto solo vertical (pan-y) vale dentro de los paneles; las listas con scroll lateral propio (chips, carruseles) se siguen deslizando. */
+@media (max-width: 1023px) {
+  html, body { overflow-x: clip; max-width: 100%; overscroll-behavior-x: none; }
+  .dc-pantalla, .bv-panel-main { max-width: 100%; overflow-x: clip; touch-action: pan-y pinch-zoom; }
+}
+
 /* Esqueletos de carga: latido suave (animate-pulse bajaba mucho la opacidad y se sentía como un parpadeo) */
 @keyframes bv-latido { 0%, 100% { opacity: 1; } 50% { opacity: 0.62; } }
 .bv-esq { animation: bv-latido 1.8s ease-in-out infinite; }
