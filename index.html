@@ -18,7 +18,10 @@
     <!-- Panel de administración: aplica el modo guardado antes de dibujar la página (sin parpadeo) -->
     <!-- Pantalla de arranque: se ve enseguida, mientras carga el código de la app (la quita main.jsx al montar) -->
     <style>
-      #arranque { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; background: #0a0a0a; transition: opacity 0.35s ease, visibility 0.35s; }
+      /* Solo en el celular (menos de 900 px): en escritorio queda el esqueleto de carga de siempre */
+      #arranque { display: none; }
+      @media (max-width: 899px) { #arranque { display: flex; } }
+      #arranque { position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; background: #0a0a0a; transition: opacity 0.35s ease, visibility 0.35s; }
       #arranque.salir { opacity: 0; visibility: hidden; }
       @media (prefers-color-scheme: light) { #arranque { background: #e9e7e1; } }
       #arranque img { width: 88px; height: 88px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); animation: arranque-subir 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -27,7 +30,17 @@
       @keyframes arranque-subir { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
       @keyframes arranque-correr { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
       @media (prefers-reduced-motion: reduce) { #arranque img, #arranque .arranque-barra span { animation: none; } }
+      html.sin-arranque #arranque { display: none !important; }
     </style>
+    <script>
+      // La pantalla de arranque sale solo al entrar a la app (una vez por sesión), no al cambiar de módulo ni al recargar
+      (function () {
+        try {
+          if (sessionStorage.getItem("bravos-arranque")) document.documentElement.classList.add("sin-arranque");
+          else sessionStorage.setItem("bravos-arranque", "1");
+        } catch (e) { /* sin almacenamiento: se muestra siempre */ }
+      })();
+    </script>
     <script>
       (function () {
         try {
