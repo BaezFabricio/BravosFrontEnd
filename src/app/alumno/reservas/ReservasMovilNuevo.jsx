@@ -26,7 +26,7 @@ function faltanDosHoras(fecha, hora) {
 // Hora límite para cancelar sin perder el crédito: 2 horas antes
 function horaLimite(hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
-  const t = Math.max(0, h * 60 + m - reglasBox().horasCancelar * 60)
+  const t = Math.max(0, h * 60 + m - reglasBox().minutosCancelar)
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`
 }
 

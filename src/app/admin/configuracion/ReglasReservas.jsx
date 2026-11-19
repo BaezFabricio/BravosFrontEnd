@@ -12,40 +12,68 @@ import { cargarReglasBox } from "@/lib/reglasBox"
 const unidad = (n, uno, varios) => (Number(n) === 1 ? uno : varios)
 const hhmm = (min) => { const t = ((min % 1440) + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}` }
 
+// Un tiempo en minutos como lo diría una persona: "30 minutos", "2 horas", "1 hora y 30 min"
+const tiempo = (minutos) => {
+  const m = Math.round(Number(minutos) || 0)
+  if (m < 60) return `${m} ${m === 1 ? "minuto" : "minutos"}`
+  const h = Math.floor(m / 60), r = m % 60
+  return `${h} ${h === 1 ? "hora" : "horas"}${r ? ` y ${r} min` : ""}`
+}
+// Para el contador: el número grande y su unidad (30 / MINUTOS · 2 / HORAS · 1:30 / HORAS)
+const partesTiempo = (m) => {
+  if (m < 60) return { grande: String(m), chica: m === 1 ? "minuto" : "minutos" }
+  if (m % 60 === 0) return { grande: String(m / 60), chica: m / 60 === 1 ? "hora" : "horas" }
+  return { grande: `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`, chica: "horas" }
+}
+// Paso de cada toque: fino al principio (5 min) y más grande a medida que el tiempo crece, así llegar a varias horas no lleva cien toques.
+// Sube y baja por los mismos escalones.
+const pasoMinutos = (valor, dir) => {
+  if (dir > 0) return valor < 120 ? 5 : valor < 360 ? 15 : valor < 1440 ? 30 : 60
+  return valor <= 120 ? 5 : valor <= 360 ? 15 : valor <= 1440 ? 30 : 60
+}
+
 const REGLAS = [
   {
-    id: "horasReservar",
+    id: "minutosReservar",
     titulo: "Reservar con anticipación",
-    detalle: "Las reservas se cierran esta cantidad de horas antes de que empiece la clase.",
-    unidad: (n) => unidad(n, "hora", "horas"),
-    ejemplo: (n) => (n === 0 ? "Se puede reservar hasta que empieza la clase." : `Una clase de las 19:00 se puede reservar hasta las ${hhmm(19 * 60 - n * 60)}.`),
+    detalle: "Las reservas se cierran este tiempo antes de que empiece la clase.",
+    formato: tiempo,
+    partes: partesTiempo,
+    paso: pasoMinutos,
+    atajos: [15, 30, 60, 120, 180],
+    ejemplo: (n) => (n === 0 ? "Se puede reservar hasta que empieza la clase." : `Una clase de las 19:00 se puede reservar hasta las ${hhmm(19 * 60 - n)}.`),
   },
   {
-    id: "horasCancelar",
+    id: "minutosCancelar",
     titulo: "Cancelar sin perder el crédito",
-    detalle: "Si el alumno cancela con al menos esta cantidad de horas de anticipación, recupera el crédito.",
-    unidad: (n) => unidad(n, "hora", "horas"),
-    ejemplo: (n) => (n === 0 ? "Recupera el crédito mientras la clase no haya empezado." : `Una clase de las 19:00 se cancela con crédito hasta las ${hhmm(19 * 60 - n * 60)}.`),
+    detalle: "Si el alumno cancela con al menos este tiempo de anticipación, recupera el crédito.",
+    formato: tiempo,
+    partes: partesTiempo,
+    paso: pasoMinutos,
+    atajos: [15, 30, 60, 120, 180],
+    ejemplo: (n) => (n === 0 ? "Recupera el crédito mientras la clase no haya empezado." : `Una clase de las 19:00 se cancela con crédito hasta las ${hhmm(19 * 60 - n)}.`),
   },
   {
     id: "diasAdelante",
     titulo: "Días hacia adelante para reservar",
     detalle: "Cuántos días antes pueden empezar a reservar. Con 0, solo se reservan las clases del día.",
-    unidad: (n) => unidad(n, "día", "días"),
+    formato: (n) => `${n} ${unidad(n, "día", "días")}`,
+    partes: (n) => ({ grande: String(n), chica: unidad(n, "día", "días") }),
+    paso: () => 1,
     ejemplo: (n) => (n === 0 ? "Los alumnos solo reservan las clases de hoy." : `Los alumnos reservan clases de hoy y de los próximos ${n} ${unidad(n, "día", "días")}.`),
   },
 ]
 
-function Contador({ valor, min, max, onCambio, deshabilitado, etiqueta, unidadTexto }) {
+function Contador({ valor, min, max, onCambio, deshabilitado, etiqueta, partes }) {
   const boton = "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-35"
   return (
-    <div role="group" aria-label={etiqueta} className="flex w-full items-center justify-between rounded-2xl border border-border bg-background/60 p-1.5 sm:w-[15rem] sm:shrink-0">
+    <div role="group" aria-label={etiqueta} className="flex w-full items-center justify-between rounded-2xl border border-border bg-background/60 p-1.5">
       <button type="button" className={boton} onClick={() => onCambio(-1)} disabled={deshabilitado || valor <= min} aria-label={`Una menos: ${etiqueta}`}>
         <Minus className="h-5 w-5" aria-hidden="true" />
       </button>
       <output className="flex flex-1 flex-col items-center justify-center" aria-live="polite">
-        <span className="text-3xl font-black leading-none tabular-nums text-foreground">{valor}</span>
-        <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-foreground/55">{unidadTexto}</span>
+        <span className="text-3xl font-black leading-none tabular-nums text-foreground">{partes.grande}</span>
+        <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-foreground/55">{partes.chica}</span>
       </output>
       <button type="button" className={boton} onClick={() => onCambio(1)} disabled={deshabilitado || valor >= max} aria-label={`Una más: ${etiqueta}`}>
         <Plus className="h-5 w-5" aria-hidden="true" />
@@ -58,7 +86,7 @@ export default function ReglasReservas({ puedeModificar }) {
   const [valores, setValores] = useState(null) // lo que se ve en pantalla
   const [guardados, setGuardados] = useState(null) // lo que hay en el servidor
   const [limites, setLimites] = useState({})
-  const [porDefecto, setPorDefecto] = useState({ horasReservar: 2, horasCancelar: 2, diasAdelante: 0 })
+  const [porDefecto, setPorDefecto] = useState({ minutosReservar: 120, minutosCancelar: 120, diasAdelante: 0 })
   const [error, setError] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
@@ -67,7 +95,7 @@ export default function ReglasReservas({ puedeModificar }) {
     return apiClient.get("/reglas-box")
       .then((r) => {
         const d = r.data?.data
-        const v = { horasReservar: d.horasReservar, horasCancelar: d.horasCancelar, diasAdelante: d.diasAdelante }
+        const v = { minutosReservar: d.minutosReservar, minutosCancelar: d.minutosCancelar, diasAdelante: d.diasAdelante }
         setValores(v); setGuardados(v); setLimites(d.limites || {}); setPorDefecto((p) => d.porDefecto || p)
       })
       .catch(() => setError(true))
@@ -76,9 +104,14 @@ export default function ReglasReservas({ puedeModificar }) {
   useEffect(() => { cargar() }, [cargar])
 
   // Suma o resta sobre el valor más reciente (dos toques rápidos seguidos cuentan los dos)
-  const cambiar = (id, delta) => {
+  const cambiar = (id, dir) => {
     const { min = 0, max = 99 } = limites[id] || {}
-    setValores((v) => ({ ...v, [id]: Math.min(max, Math.max(min, v[id] + delta)) }))
+    const regla = REGLAS.find((r) => r.id === id)
+    setValores((v) => ({ ...v, [id]: Math.min(max, Math.max(min, v[id] + dir * regla.paso(v[id], dir))) }))
+  }
+  const fijar = (id, valor) => {
+    const { min = 0, max = 99 } = limites[id] || {}
+    setValores((v) => ({ ...v, [id]: Math.min(max, Math.max(min, valor)) }))
   }
   const hayCambios = valores && guardados && Object.keys(valores).some((k) => valores[k] !== guardados[k])
   const sonLasDeSiempre = valores && Object.keys(porDefecto).every((k) => valores[k] === porDefecto[k])
@@ -88,7 +121,7 @@ export default function ReglasReservas({ puedeModificar }) {
     try {
       const r = await apiClient.put("/reglas-box", valores)
       const d = r.data?.data
-      const v = { horasReservar: d.horasReservar, horasCancelar: d.horasCancelar, diasAdelante: d.diasAdelante }
+      const v = { minutosReservar: d.minutosReservar, minutosCancelar: d.minutosCancelar, diasAdelante: d.diasAdelante }
       setValores(v); setGuardados(v)
       cargarReglasBox(true)
       toast.success("Reglas guardadas", { description: "Valen desde ahora para las reservas y cancelaciones nuevas.", guardar: false })
@@ -123,10 +156,26 @@ export default function ReglasReservas({ puedeModificar }) {
                 <p className="m-0 text-base font-extrabold leading-tight text-foreground">{r.titulo}</p>
                 <p className="mt-1.5 text-sm leading-snug text-foreground/65">{r.detalle}</p>
                 <p className="mt-3 text-[0.8125rem] font-semibold leading-snug text-lime-700 dark:text-lime-400">{r.ejemplo(valores[r.id])}</p>
-                <p className="mt-1 text-xs text-foreground/45">Entre {min} y {max}. Valor de siempre: {porDefecto[r.id]}.</p>
+                <p className="mt-1 text-xs text-foreground/45">Entre {r.formato(min)} y {r.formato(max)}. Valor de siempre: {r.formato(porDefecto[r.id])}.</p>
               </div>
-              <Contador valor={valores[r.id]} min={min} max={max} onCambio={(delta) => cambiar(r.id, delta)} deshabilitado={!puedeModificar || guardando}
-                etiqueta={r.titulo} unidadTexto={r.unidad(valores[r.id])} />
+              <div className="flex w-full flex-col gap-3 sm:w-[15rem] sm:shrink-0">
+                <Contador valor={valores[r.id]} min={min} max={max} onCambio={(dir) => cambiar(r.id, dir)} deshabilitado={!puedeModificar || guardando}
+                  etiqueta={r.titulo} partes={r.partes(valores[r.id])} />
+                {r.atajos && (
+                  <div role="group" aria-label={`Valores rápidos: ${r.titulo}`} className="flex flex-wrap justify-center gap-1.5">
+                    {r.atajos.filter((m) => m >= min && m <= max).map((m) => {
+                      const activo = valores[r.id] === m
+                      return (
+                        <button key={m} type="button" onClick={() => fijar(r.id, m)} disabled={!puedeModificar || guardando} aria-pressed={activo}
+                          className={`h-9 rounded-full border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-40 ${
+                            activo ? "border-lime-400 bg-lime-400 text-black" : "border-border text-foreground/70 hover:bg-foreground/5 hover:text-foreground"}`}>
+                          {m < 60 ? `${m} min` : `${m / 60} h`}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </li>
           )
         })}

@@ -91,7 +91,7 @@ export function limiteCancelacion(f, hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
   const inicio = fechaDeTexto(f)
   inicio.setHours(h, m || 0, 0, 0)
-  const limite = new Date(inicio.getTime() - reglasBox().horasCancelar * 3600000)
+  const limite = new Date(inicio.getTime() - reglasBox().minutosCancelar * 60000)
   return {
     hora: `${String(limite.getHours()).padStart(2, "0")}:${String(limite.getMinutes()).padStart(2, "0")}`,
     pasado: Date.now() > limite.getTime(),

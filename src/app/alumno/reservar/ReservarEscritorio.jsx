@@ -20,7 +20,7 @@ const fechaLarga = (d) => `${NOMBRES_DIA[d.getDay()]} ${d.getDate()} de ${MESES[
 // "21:00" → "19:00": hasta esa hora se puede cancelar y recuperar el crédito
 function horaLimite(hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
-  const total = Math.max(0, h * 60 + m - reglasBox().horasCancelar * 60)
+  const total = Math.max(0, h * 60 + m - reglasBox().minutosCancelar)
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
 }
 
