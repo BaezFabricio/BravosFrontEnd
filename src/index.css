@@ -610,7 +610,12 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
   }
 }
 
-/* Paneles (admin, alumno, profesor): la pantalla entra con un solo fundido corto al cambiar de módulo (el main se vuelve a crear
-   por ruta). No se anima cada bloque: el paso de esqueleto a contenido es directo, sin segunda animación. */
-.bv-panel-main { animation: bv-sube 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-@media (prefers-reduced-motion: reduce) { .bv-panel-main { animation: none; } }
+/* Paneles (admin, alumno, profesor): cada bloque de la pantalla entra con un pequeño retraso, como siempre.
+   El esqueleto de carga (.aparece-tarde) queda afuera: solo aparece con suavidad, así no se anima dos veces
+   (una vez el esqueleto y otra el contenido real). El main se vuelve a crear en cada ruta, por eso se repite al cambiar de módulo. */
+.bv-panel-main > *:not(.aparece-tarde) { animation: bv-sube 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.bv-panel-main > *:not(.aparece-tarde):nth-child(2) { animation-delay: 0.05s; }
+.bv-panel-main > *:not(.aparece-tarde):nth-child(3) { animation-delay: 0.1s; }
+.bv-panel-main > *:not(.aparece-tarde):nth-child(4) { animation-delay: 0.15s; }
+.bv-panel-main > *:not(.aparece-tarde):nth-child(n+5) { animation-delay: 0.2s; }
+@media (prefers-reduced-motion: reduce) { .bv-panel-main > * { animation: none; } }
