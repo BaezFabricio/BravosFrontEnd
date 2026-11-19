@@ -1,49 +1,44 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { CheckCircle2 } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { CheckCircle2, Info } from "lucide-react"
+import PanelLateral, { Campo, Seccion, Divisor, estiloInput, botonSecundario, botonPrincipal } from "@/components/PanelLateral"
 
 /*
  * Alumno sin cuenta: para quien va al gimnasio pero no usa el sistema (por ejemplo, personas mayores).
  * Se registra solo con sus datos personales, sin contraseña ni acceso. El administrador le gestiona
  * membresías y pagos como a cualquier alumno, así no se pierde su registro ni lo que paga.
  * El servidor lo guarda siempre con el perfil Alumno y sin contraseña (el cliente no puede cambiarlo).
+ * Se abre como panel lateral sobre la lista de usuarios.
  */
 const VACIO = { nombrecompleto: "", dni: "", telefono: "", correo: "" }
-
-const estiloInput = { width: "100%", boxSizing: "border-box", height: 46, padding: "0px 14px", borderRadius: 10, border: "1px solid var(--input-line)", background: "var(--input)", color: "var(--foreground)", font: "500 15px Archivo" }
-
-function Campo({ id, etiqueta, opcional, obligatorio, children }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label htmlFor={id} style={{ font: "700 13px Archivo", color: "var(--foreground)" }}>
-        {etiqueta}{obligatorio && " *"} {opcional && <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>(opcional)</span>}
-      </label>
-      {children}
-    </div>
-  )
-}
 
 export default function AlumnoSinCuentaDialog({ open, onOpenChange, onCreado }) {
   const navigate = useNavigate()
   const [form, setForm] = useState(VACIO)
+  const [errores, setErrores] = useState({})
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState("")
   const [creado, setCreado] = useState(null)
 
-  const cambiar = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }))
+  const cambiar = (campo) => (e) => {
+    setForm((f) => ({ ...f, [campo]: e.target.value }))
+    setErrores((x) => (x[campo] ? { ...x, [campo]: undefined } : x))
+  }
 
   const cerrar = (abierto) => {
     onOpenChange(abierto)
-    if (!abierto) { setForm(VACIO); setError(""); setCreado(null) }
+    if (!abierto) { setForm(VACIO); setErrores({}); setError(""); setCreado(null) }
   }
 
   const guardar = async (e) => {
-    e.preventDefault()
+    e?.preventDefault()
     setError("")
-    if (!form.nombrecompleto.trim()) return setError("Escribí el nombre y apellido.")
-    if (!form.dni.trim()) return setError("Escribí el DNI.")
+    const nuevos = {}
+    if (form.nombrecompleto.trim().length < 2) nuevos.nombrecompleto = "Escribí el nombre y apellido."
+    if (!/^\d{6,10}$/.test(form.dni.trim())) nuevos.dni = "Entre 6 y 10 números, sin puntos."
+    if (form.correo.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim())) nuevos.correo = "El correo no es válido."
+    setErrores(nuevos)
+    if (Object.keys(nuevos).length) return
     setEnviando(true)
     try {
       const res = await fetch("/api/vv1/usuarios/sin-cuenta", {
@@ -62,68 +57,71 @@ export default function AlumnoSinCuentaDialog({ open, onOpenChange, onCreado }) 
     }
   }
 
+  const pie = creado ? (
+    <>
+      <button type="button" onClick={() => cerrar(false)} style={botonSecundario}>Listo</button>
+      <button type="button" onClick={() => { cerrar(false); navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${creado.idUsuario}`) }} style={botonPrincipal(false)}>
+        Cargar membresía
+      </button>
+    </>
+  ) : (
+    <>
+      <button type="button" onClick={() => cerrar(false)} disabled={enviando} style={botonSecundario}>Cancelar</button>
+      <button type="submit" form="form-alumno-sin-cuenta" disabled={enviando} style={botonPrincipal(enviando)}>
+        {enviando ? "Registrando…" : "Registrar alumno"}
+      </button>
+    </>
+  )
+
   return (
-    <Dialog open={open} onOpenChange={cerrar}>
-      <DialogContent className="max-w-md" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, padding: 24 }}>
-        {creado ? (
-          <div className="space-y-4 py-2 text-center">
-            <CheckCircle2 className="mx-auto h-12 w-12 text-lime-600 dark:text-lime-400" aria-hidden="true" />
-            <DialogHeader className="text-center sm:text-center">
-              <DialogTitle>Alumno registrado</DialogTitle>
-              <DialogDescription>
-                {creado.nombrecompleto} ya figura en la lista de usuarios como alumno sin cuenta. Ahora le podés cargar su membresía.{creado.correo ? " Si más adelante quiere usar el sistema, puede activar su cuenta con su correo y te vamos a avisar." : ""}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-              <Button onClick={() => { cerrar(false); navigate(`/admin/usuarios/abonos/carga-masiva?usuario=${creado.idUsuario}`) }}
-                className="bg-lime-400 font-black uppercase tracking-wide text-black hover:bg-lime-300">
-                Cargar membresía
-              </Button>
-              <Button variant="outline" onClick={() => cerrar(false)}>Listo</Button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={guardar} style={{ display: "flex", flexDirection: "column", gap: 16 }} noValidate>
-            <DialogHeader>
-              <DialogTitle className="bv-admin-titulo" style={{ font: "800 20px Archivo", margin: 0 }}>Alumno sin cuenta</DialogTitle>
-              <DialogDescription style={{ font: "500 14px / 1.5 Archivo", color: "var(--muted-foreground)" }}>
-                Para quien entrena en el box pero no usa la app. Queda registrado sin contraseña y vos gestionás las membresías y los pagos.
-              </DialogDescription>
-            </DialogHeader>
-
-            <Campo id="sc-nombre" etiqueta="Nombre y apellido" obligatorio>
-              <input id="sc-nombre" value={form.nombrecompleto} onChange={cambiar("nombrecompleto")} maxLength={100} autoComplete="off" autoFocus placeholder="Ej: Rosa Gómez" style={estiloInput} />
+    <PanelLateral
+      open={open}
+      onOpenChange={cerrar}
+      titulo={creado ? "Alumno registrado" : "Alumno sin cuenta"}
+      descripcion={creado ? undefined : "Entrena en el box pero no usa la app. Queda sin contraseña y vos gestionás sus membresías y pagos."}
+      pie={pie}
+    >
+      {creado ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "32px 0", textAlign: "center" }}>
+          <CheckCircle2 size={48} className="text-lime-600 dark:text-lime-400" aria-hidden="true" />
+          <p style={{ margin: 0, font: "500 15px/1.55 Archivo, sans-serif", color: "var(--muted-foreground)", maxWidth: 360 }}>
+            <strong style={{ color: "var(--foreground)" }}>{creado.nombrecompleto}</strong> ya figura en la lista de usuarios como alumno sin cuenta. Ahora le podés cargar su membresía.
+            {creado.correo ? " Si más adelante quiere usar el sistema, puede activar su cuenta con su correo y te vamos a avisar." : ""}
+          </p>
+        </div>
+      ) : (
+        <form id="form-alumno-sin-cuenta" onSubmit={guardar} noValidate>
+          <Seccion titulo="Datos personales">
+            <Campo id="sc-nombre" etiqueta="Nombre y apellido" error={errores.nombrecompleto}>
+              <input id="sc-nombre" value={form.nombrecompleto} onChange={cambiar("nombrecompleto")} maxLength={100} autoComplete="off" autoFocus placeholder="Ej: Rosa Gómez" style={estiloInput(errores.nombrecompleto)} />
             </Campo>
-            <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-              <Campo id="sc-dni" etiqueta="DNI" obligatorio>
-                <input id="sc-dni" value={form.dni} onChange={cambiar("dni")} inputMode="numeric" maxLength={10} autoComplete="off" placeholder="Sin puntos" style={estiloInput} />
+            <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(2, minmax(0, 1fr))", alignItems: "start" }}>
+              <Campo id="sc-dni" etiqueta="DNI" ayuda="Con el DNI hace check-in en recepción." error={errores.dni}>
+                <input id="sc-dni" value={form.dni} onChange={cambiar("dni")} inputMode="numeric" maxLength={10} autoComplete="off" placeholder="Sin puntos" style={estiloInput(errores.dni)} />
               </Campo>
-              <Campo id="sc-tel" etiqueta="Teléfono" opcional>
-                <input id="sc-tel" value={form.telefono} onChange={cambiar("telefono")} inputMode="tel" maxLength={30} autoComplete="off" placeholder="Ej: 3704 123456" style={estiloInput} />
+              <Campo id="sc-tel" etiqueta="Teléfono" opcional ayuda="Para avisos por WhatsApp.">
+                <input id="sc-tel" value={form.telefono} onChange={cambiar("telefono")} inputMode="tel" maxLength={30} autoComplete="off" placeholder="3704 123456" style={estiloInput(false)} />
               </Campo>
             </div>
-            <Campo id="sc-correo" etiqueta="Correo" opcional>
-              <input id="sc-correo" type="email" value={form.correo} onChange={cambiar("correo")} maxLength={100} autoComplete="off" placeholder="correo@ejemplo.com" aria-describedby="sc-correo-ayuda" style={estiloInput} />
-              <p id="sc-correo-ayuda" style={{ margin: 0, font: "500 12px / 1.5 Archivo", color: "var(--muted-foreground)" }}>
-                Le llegan los comprobantes. Si algún día quiere usar la app, toca "Olvidé mi contraseña" con este correo y conserva sus membresías. Poné solo el correo de la persona.
-              </p>
+          </Seccion>
+
+          <Divisor />
+
+          <Seccion titulo="Comprobantes por correo">
+            <Campo id="sc-correo" etiqueta="Correo" opcional ayuda="Le llegan los comprobantes de pago. Solo el correo de la persona." error={errores.correo}>
+              <input id="sc-correo" type="email" value={form.correo} onChange={cambiar("correo")} maxLength={100} autoComplete="off" placeholder="nombre@correo.com" style={estiloInput(errores.correo)} />
             </Campo>
-
-            {error && <p role="alert" style={{ margin: 0, borderRadius: 10, border: "1px solid var(--sh-danger-line)", background: "var(--sh-danger-bg)", padding: "8px 12px", font: "600 13px Archivo", color: "var(--sh-danger)" }}>{error}</p>}
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button type="button" onClick={() => cerrar(false)} disabled={enviando}
-                style={{ height: 40, padding: "0px 16px", borderRadius: 10, border: "1px solid var(--sh-control-line)", background: "transparent", color: "var(--foreground)", font: "700 14px Archivo", cursor: "pointer" }}>
-                Cancelar
-              </button>
-              <button type="submit" disabled={enviando}
-                style={{ height: 40, padding: "0px 18px", borderRadius: 10, border: "none", background: "var(--primary)", color: "var(--primary-foreground)", font: "800 13px Archivo", letterSpacing: "0.04em", textTransform: "uppercase", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.6 : 1 }}>
-                {enviando ? "Registrando…" : "Registrar alumno"}
-              </button>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "14px 16px", borderRadius: 10, border: "1px solid var(--border)", font: "500 13px/1.5 Archivo, sans-serif" }}>
+              <Info size={16} aria-hidden="true" style={{ flex: "none", marginTop: 2, color: "var(--muted-foreground)" }} />
+              <span>Si algún día quiere usar la app, toca «Olvidé mi contraseña» con este correo y conserva sus membresías.</span>
             </div>
-          </form>
-        )}
-      </DialogContent>
-    </Dialog>
+          </Seccion>
+
+          {error && (
+            <p role="alert" style={{ margin: "20px 0 0", borderRadius: 10, border: "1px solid var(--sh-danger-line)", background: "var(--sh-danger-bg)", padding: "10px 14px", font: "600 13px Archivo, sans-serif", color: "var(--sh-danger)" }}>{error}</p>
+          )}
+        </form>
+      )}
+    </PanelLateral>
   )
 }

@@ -41,6 +41,7 @@ import apiClient, { cambiarEstadoUsuario, eliminarUsuario, normalizarUsuario } f
 import { toast } from '@/lib/notificar'
 import { Cargando } from '@/components/Cargando'
 import AlumnoSinCuentaDialog from "./AlumnoSinCuentaDialog"
+import NuevoUsuarioPanel from "./NuevoUsuarioPanel"
 import { useEdicionFicha } from "./useEdicionFicha"
 import { TituloPagina } from "@/components/TituloPagina"
 import BotonWhatsApp from "@/components/BotonWhatsApp"
@@ -566,7 +567,8 @@ export default function UsuariosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [verFiltros, setVerFiltros] = useState(false)
-  const [sinCuentaAbierto, setSinCuentaAbierto] = useState(false) // ventana para registrar un alumno sin cuenta
+  const [sinCuentaAbierto, setSinCuentaAbierto] = useState(false) // panel para registrar un alumno sin cuenta
+  const [nuevoAbierto, setNuevoAbierto] = useState(false) // panel para crear un usuario con cuenta
   const [orden, setOrden] = useState("alfabetico")
   // Usuario elegido en la lista de computadora: se recuerda en la sesión para que al recargar no vuelva al primero
   const [seleccionadoId, setSeleccionadoIdEstado] = useState(() => { try { const g = sessionStorage.getItem("bravos-usuario-elegido"); return g ? Number(g) : null } catch { return null } })
@@ -975,10 +977,10 @@ export default function UsuariosPage() {
             </button>
           )}
           {permisos.includes("usuarios:alta") && (
-            <Link to="/admin/usuarios/nuevo" style={estiloBotonLima}>
+            <button type="button" onClick={() => setNuevoAbierto(true)} style={estiloBotonLima}>
               <Plus className="h-4 w-4" aria-hidden="true" />
               NUEVO USUARIO
-            </Link>
+            </button>
           )}
         </div>
 
@@ -1205,6 +1207,7 @@ export default function UsuariosPage() {
 
       {/* Alumno sin cuenta: al registrarlo se vuelve a cargar la lista */}
       <AlumnoSinCuentaDialog open={sinCuentaAbierto} onOpenChange={setSinCuentaAbierto} onCreado={() => cargarUsuarios()} />
+      <NuevoUsuarioPanel open={nuevoAbierto} onOpenChange={setNuevoAbierto} onCreado={() => cargarUsuarios()} />
 
       {/* Diálogos de Confirmación de Estado */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
