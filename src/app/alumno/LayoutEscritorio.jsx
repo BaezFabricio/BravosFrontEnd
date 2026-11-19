@@ -64,6 +64,11 @@ const esActivo = (item, pathname) =>
 
 const LEE_MENU = () => { try { return localStorage.getItem("bx-menu-cerrado") !== "1" } catch { return true } }
 
+// Textos del menú: con el menú oculto no ocupan lugar y aparecen cuando la franja se despliega por el mouse o el foco
+const etiqueta = (abierto) => abierto
+  ? ""
+  : "w-0 overflow-hidden opacity-0 transition-[opacity] duration-200 group-hover/menu:w-auto group-hover/menu:opacity-100 group-focus-within/menu:w-auto group-focus-within/menu:opacity-100"
+
 export default function LayoutEscritorio({ userData, avatarUrl, onLogout, children }) {
   const { pathname } = useLocation()
   const { theme, setTheme } = useTheme()
@@ -82,23 +87,25 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
   return (
     <ContenedorPortal.Provider value={anfitrion}>
     <div ref={setRaiz} className="bx min-h-screen bg-bx-bg text-bx-ink">
+      {/* Abierto: 17 rem con nombres. Oculto: franja de íconos (4.5 rem); al pasar el mouse (o el foco) se despliega encima del contenido */}
       <aside
         style={{ height: "var(--bv-vh, 100vh)" }}
         aria-label="Menú del alumno"
-        inert={!menuAbierto}
-        className={`fixed left-0 top-0 z-20 flex h-screen w-[17rem] flex-col bg-bx-lateral text-[#ecefe4] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "translate-x-0" : "-translate-x-full"}`}
+        className={`group/menu fixed left-0 top-0 z-20 flex h-screen flex-col overflow-hidden bg-bx-lateral text-[#ecefe4] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "w-[17rem]" : "w-[4.5rem] hover:w-[17rem] focus-within:w-[17rem] hover:shadow-[6px_0_24px_rgba(0,0,0,0.3)] focus-within:shadow-[6px_0_24px_rgba(0,0,0,0.3)]"}`}
       >
-        <div className="flex h-[4.75rem] items-center gap-3 border-b border-[#26281f] px-5">
-          <img src="/logo.jpg" alt="" className="h-10 w-10 rounded-lg object-cover" />
-          <span className="flex-1 text-lg font-extrabold tracking-[0.12em]">BRAVOS</span>
-          <button
-            type="button"
-            onClick={() => cambiarMenu(false)}
-            aria-label="Ocultar el menú"
-            className="grid h-11 w-11 place-items-center rounded-lg text-[#8b8e80] transition-[background-color,color,transform] duration-200 hover:bg-[#1f2119] hover:text-white active:scale-90"
-          >
-            <Ico d="m15 6-6 6 6 6" size={20} sw={2} />
-          </button>
+        <div className="flex h-[4.75rem] shrink-0 items-center gap-3 border-b border-[#26281f] px-5">
+          <img src="/logo.jpg" alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+          <span className={`flex-1 min-w-0 text-lg font-extrabold tracking-[0.12em] ${etiqueta(menuAbierto)}`}>BRAVOS</span>
+          {menuAbierto && (
+            <button
+              type="button"
+              onClick={() => cambiarMenu(false)}
+              aria-label="Ocultar el menú"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-[#8b8e80] transition-[background-color,color,transform] duration-200 hover:bg-[#1f2119] hover:text-white active:scale-90"
+            >
+              <Ico d="m15 6-6 6 6 6" size={20} sw={2} />
+            </button>
+          )}
         </div>
 
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
@@ -106,15 +113,20 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
             const activo = esActivo(n, pathname)
             return (
               <div key={n.href} className="contents">
-                {n.grupo && <div className="px-3 pb-1.5 pt-[1.125rem] text-[0.6875rem] font-bold tracking-[0.12em] text-[#8b8e80]">{n.grupo}</div>}
+                {n.grupo && (
+                  <>
+                    <div className={`whitespace-nowrap px-3 pb-1.5 pt-[1.125rem] text-[0.6875rem] font-bold tracking-[0.12em] text-[#8b8e80] ${menuAbierto ? "" : "hidden group-hover/menu:block"}`}>{n.grupo}</div>
+                    <div aria-hidden="true" className={`mx-3 my-3 h-px bg-[#26281f] ${menuAbierto ? "hidden" : "group-hover/menu:hidden"}`} />
+                  </>
+                )}
                 <Link
                   to={n.href}
                   aria-current={activo ? "page" : undefined}
-                  className={`group relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-[0.9375rem] font-semibold transition-[background-color,color,transform] duration-200 active:scale-[0.98] ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
+                  className={`group relative flex min-h-11 items-center rounded-lg px-3 text-[0.9375rem] font-semibold transition-[background-color,color,transform,gap,padding] duration-200 active:scale-[0.98] ${menuAbierto ? "gap-3" : "justify-center gap-0 px-0 group-hover/menu:justify-start group-hover/menu:gap-3 group-hover/menu:px-3"} ${activo ? "bg-[#1f2a0e] text-bx-lima" : "text-[#c9ccbe] hover:bg-[#1f2119] hover:text-white"}`}
                 >
                   {activo && <span aria-hidden="true" className="bx-barra-v absolute bottom-2 left-0 top-2 w-[0.1875rem] rounded-full bg-bx-lima" />}
-                  <span className="flex transition-transform duration-200 group-hover:translate-x-0.5"><Ico d={n.icono} /></span>
-                  <span>{n.name}</span>
+                  <span className="flex shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"><Ico d={n.icono} /></span>
+                  <span className={`whitespace-nowrap ${etiqueta(menuAbierto)}`}>{n.name}</span>
                 </Link>
               </div>
             )
@@ -122,16 +134,16 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
         </nav>
 
         {/* Tocar la tarjeta lleva al perfil */}
-        <Link to="/alumno/perfil" title="Ver mi perfil" className="flex items-center gap-3 border-t border-[#26281f] px-5 py-4 transition-colors duration-200 hover:bg-[#1f2119]">
+        <Link to="/alumno/perfil" title="Ver mi perfil" className="flex shrink-0 items-center gap-3 border-t border-[#26281f] px-5 py-4 transition-colors duration-200 hover:bg-[#1f2119]">
           <AvatarBx nombre={userData.nombrecompleto} url={avatarUrl} className="!bg-[#2a2c24]" />
-          <div className="min-w-0">
+          <div className={`min-w-0 ${etiqueta(menuAbierto)}`}>
             <div className="truncate text-sm font-semibold">{userData.nombrecompleto}</div>
             <div className="truncate text-xs text-[#8b8e80]">{userData.correo}</div>
           </div>
         </Link>
       </aside>
 
-      <div className={`flex min-h-screen min-w-0 flex-col transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "pl-[17rem]" : "pl-0"}`}>
+      <div className={`flex min-h-screen min-w-0 flex-col transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "pl-[17rem]" : "pl-[4.5rem]"}`}>
         <header className="sticky top-0 z-10 flex h-[4.5rem] items-center gap-3 border-b border-bx-line bg-bx-bg px-6">
           {!menuAbierto && (
             <button

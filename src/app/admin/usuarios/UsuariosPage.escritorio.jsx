@@ -342,18 +342,29 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
                 <Pencil className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 text-lime-700 dark:text-lime-400" aria-hidden="true" />
               </div>
               {mensaje(errores.nombre)}
-              <div className="mt-1.5 max-w-[15rem]">
-                {lista(
-                  "Perfil de acceso",
-                  form.idPerfil,
-                  (v) => ed.cambiar("idPerfil", v),
-                  ed.perfiles === null
-                    ? [{ valor: form.idPerfil, texto: "Cargando perfiles…" }]
-                    : [{ valor: "", texto: "Elegí un perfil" }, ...ed.perfiles.map((p) => ({ valor: String(p.idPerfil), texto: p.nombrePerfil }))],
-                  { deshabilitada: ed.perfiles === null },
+              <div className="mt-1.5">
+                <p className="mb-1 text-[0.6875rem] font-bold uppercase tracking-wide text-foreground/55">Perfiles de acceso</p>
+                {ed.perfiles === null ? (
+                  <p className="text-xs text-foreground/55">Cargando perfiles…</p>
+                ) : (
+                  <div role="group" aria-label="Perfiles de acceso" className="flex flex-wrap gap-1.5">
+                    {ed.perfiles.map((p) => {
+                      const elegido = form.idPerfiles.includes(String(p.idPerfil))
+                      return (
+                        <button key={p.idPerfil} type="button" role="checkbox" aria-checked={elegido}
+                          onClick={() => ed.cambiar("idPerfiles", elegido
+                            ? form.idPerfiles.filter((x) => x !== String(p.idPerfil))
+                            : [...form.idPerfiles, String(p.idPerfil)])}
+                          className={`rounded-full border px-2.5 py-1 text-xs font-bold transition-colors ${elegido ? "border-lime-500 bg-lime-400/15 text-foreground" : "border-border text-foreground/65 hover:text-foreground"}`}>
+                          {p.nombrePerfil}
+                        </button>
+                      )
+                    })}
+                  </div>
                 )}
+                <p className="mt-1 text-[0.6875rem] text-foreground/55">Podés elegir más de uno. El primero es el principal.</p>
               </div>
-              {mensaje(errores.idPerfil)}
+              {mensaje(errores.idPerfiles)}
             </div>
           ) : (
             <>

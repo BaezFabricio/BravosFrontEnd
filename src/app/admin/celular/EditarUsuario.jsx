@@ -20,9 +20,11 @@ export default function EditarUsuarioCelular() {
   const [orig, setOrig] = useState(null)
   const [vals, setVals] = useState(null)
   const [perfiles, setPerfiles] = useState([])
-  const [perfil, setPerfil] = useState("")
+  // Varios perfiles por usuario: lista de ids (texto); el primero es el principal
+  const [perfil, setPerfil] = useState([])
   const [activo, setActivo] = useState(true)
-  const [origPA, setOrigPA] = useState({ perfil: "", activo: true })
+  const [origPA, setOrigPA] = useState({ perfil: [], activo: true })
+  const mismos = (a = [], b = []) => a.length === b.length && a.every((x) => b.includes(x))
   const [tried, setTried] = useState(false)
   const [saving, setSaving] = useState(false)
   const [ask, setAsk] = useState(false)
@@ -51,7 +53,8 @@ export default function EditarUsuarioCelular() {
         } catch { /* sin ficha de alumno: se editan igual los demás datos */ }
         if (!vigente) return
         setPerfiles(lista); setOrig(datos); setVals(datos)
-        setPerfil(String(idPerfil || "")); setActivo((u.estado || "activo") === "activo"); setOrigPA({ perfil: String(idPerfil || ""), activo: (u.estado || "activo") === "activo" })
+        const ini = Array.isArray(u.perfiles) && u.perfiles.length ? u.perfiles.map((p) => String(p.idPerfil)) : (idPerfil ? [String(idPerfil)] : [])
+        setPerfil(ini); setActivo((u.estado || "activo") === "activo"); setOrigPA({ perfil: ini, activo: (u.estado || "activo") === "activo" })
       } catch { if (vigente) setFallo(true) }
     })()
     return () => { vigente = false }
@@ -69,8 +72,8 @@ export default function EditarUsuarioCelular() {
       nac: "", emN: "",
       emT: V.emT && V.emT.replace(/\D/g, "").length < 10 ? "Tiene que tener 10 números." : "",
     }
-    const nErr = Object.values(E).filter(Boolean).length + (perfil ? 0 : 1)
-    const changed = Object.keys(O).filter((k) => V[k] !== O[k]).length + (perfil !== origPA.perfil ? 1 : 0) + (activo !== origPA.activo ? 1 : 0)
+    const nErr = Object.values(E).filter(Boolean).length + (perfil.length ? 0 : 1)
+    const changed = Object.keys(O).filter((k) => V[k] !== O[k]).length + (!mismos(perfil, origPA.perfil) ? 1 : 0) + (activo !== origPA.activo ? 1 : 0)
     const H = { dni: "Lo usa para el check-in en recepción.", email: "Con este correo entra a la app y recibe los comprobantes." }
     const IM = { nombre: "text", dni: "numeric", email: "email", tel: "tel", nac: "text", emN: "text", emT: "tel" }
     const f = {}
@@ -79,15 +82,15 @@ export default function EditarUsuarioCelular() {
       f[k] = { v: V[k], im: IM[k], inv: err ? "true" : "false", bd: err ? c.errFg : (V[k] !== O[k] ? c.okLine : c.line), h: err || H[k] || false, hFg: err ? c.errFg : c.muted, on: (ev) => { const val = k === "dni" ? ev.target.value.replace(/\D/g, "").slice(0, 10) : ev.target.value; setVals((s) => ({ ...(s || VACIO), [k]: val })) } }
     })
     const noSave = saving || !changed || !puede
-    const nombrePerfil = (perfiles.find((p) => String(p.idPerfil) === perfil) || {}).nombrePerfil || ""
+    const nombrePerfil = (perfiles.find((p) => String(p.idPerfil) === perfil[0]) || {}).nombrePerfil || "" // la ayuda explica el principal
     const guardar = async () => {
       if (noSave) return
       if (nErr) { setTried(true); setTimeout(() => document.getElementById("err-sum")?.focus(), 0); return }
-      if (propia && perfil !== origPA.perfil && !(await pedirConfirmacion("Vas a cambiar tu propio perfil. Al guardar se cierra tu sesión y vas a entrar con los permisos del perfil nuevo. ¿Seguimos?"))) return
+      if (propia && !mismos(perfil, origPA.perfil) && !(await pedirConfirmacion("Vas a cambiar tu propio perfil. Al guardar se cierra tu sesión y vas a entrar con los permisos del perfil nuevo. ¿Seguimos?"))) return
       setSaving(true); setErrorServidor("")
       try {
         const email = V.email.trim().toLowerCase()
-        const res = await apiClient.put(`/usuarios/${id}`, { nombre: V.nombre.trim(), dni: V.dni.trim(), email, telefono: V.tel.trim(), username: email, idPerfil: parseInt(perfil, 10), ...(propia ? {} : { estado: activo ? "activo" : "inactivo" }) })
+        const res = await apiClient.put(`/usuarios/${id}`, { nombre: V.nombre.trim(), dni: V.dni.trim(), email, telefono: V.tel.trim(), username: email, idPerfiles: perfil.map((n) => parseInt(n, 10)), ...(propia ? {} : { estado: activo ? "activo" : "inactivo" }) })
         await apiClient.put(`/usuarios/${id}/datos-ficha`, { fechaNacimiento: V.nac || null, contactoEmergencia: V.emN.trim() || null, telefonoEmergencia: V.emT.trim() || null })
         if (propia && res.data?.data?.sesionesCerradas) { logoutUsuario(); return }
         setOrig(V); setOrigPA({ perfil, activo }); setTried(false); avisar("Cambios guardados.")
@@ -99,7 +102,7 @@ export default function EditarUsuarioCelular() {
     }
     return {
       c, f, scheme: oscuro ? "dark" : "light", nombreUsuario: O.nombre || (fallo ? "No se pudo cargar" : "Cargando…"),
-      perfiles: perfiles.map((p) => { const ch = perfil === String(p.idPerfil); return { l: p.nombrePerfil, ch: ch ? "true" : "false", bg: ch ? "#9be600" : "transparent", fg: ch ? "#0b0b0b" : c.ink, pick: () => setPerfil(String(p.idPerfil)) } }),
+      perfiles: perfiles.map((p) => { const id = String(p.idPerfil); const ch = perfil.includes(id); return { l: p.nombrePerfil, ch: ch ? "true" : "false", bg: ch ? "#9be600" : "transparent", fg: ch ? "#0b0b0b" : c.ink, pick: () => setPerfil((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])) } }),
       perfilHint: PERFIL_AYUDA[String(nombrePerfil).toLowerCase()] || "",
       activo: activo ? "true" : "false", toggleAct: () => { if (!propia) setActivo((x) => !x) },
       actDesc: propia ? "No podés desactivar tu propia cuenta." : activo ? "Activa: puede iniciar sesión con su correo." : "Inactiva: no puede iniciar sesión. Sus datos y pagos se conservan.",

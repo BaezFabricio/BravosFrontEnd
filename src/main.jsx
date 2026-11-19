@@ -100,3 +100,11 @@ createRoot(document.getElementById('root')).render(
     </ThemeProvider>
   </StrictMode>,
 )
+
+// La pantalla de arranque (index.html) se desvanece cuando la app ya se dibujó
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  const arranque = document.getElementById('arranque')
+  if (!arranque) return
+  arranque.classList.add('salir')
+  setTimeout(() => arranque.remove(), 400)
+}))

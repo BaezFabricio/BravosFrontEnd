@@ -11,12 +11,19 @@ const esMiCuenta = (id) => {
   try { return Number(JSON.parse(localStorage.getItem("usuario") || "{}").idUsuario) === Number(id) } catch { return false }
 }
 
+// Varios perfiles por usuario: el primero de la lista es el principal
+const perfilesDeUsuario = (user) => {
+  if (Array.isArray(user.perfiles) && user.perfiles.length) return user.perfiles.map((p) => String(p.idPerfil))
+  return user.idPerfil ? [String(user.idPerfil)] : []
+}
+const mismosPerfiles = (a = [], b = []) => a.length === b.length && a.every((x) => b.includes(x))
+
 const datosIniciales = (user) => ({
   nombre: user.nombre || "",
   dni: user.dni || "",
   email: user.email || user.correo || "",
   telefono: user.telefono || "",
-  idPerfil: user.idPerfil ? String(user.idPerfil) : "",
+  idPerfiles: perfilesDeUsuario(user),
   estado: user.estado || "activo",
 })
 
@@ -44,14 +51,14 @@ export function useEdicionFicha(user, onGuardado) {
       .then((r) => {
         const lista = r.success && Array.isArray(r.data) ? r.data : []
         setPerfiles(lista)
-        if (!ini.idPerfil) {
+        if (ini.idPerfiles.length === 0) {
           // Si el servidor no manda el id del perfil, se busca por el nombre (igual que la pantalla de editar)
           const nombre = String(user.nombrePerfil || user.perfil || "").trim().toLowerCase()
           const encontrado = lista.find((p) => String(p.nombrePerfil || "").trim().toLowerCase() === nombre)
           if (encontrado) {
-            const idEncontrado = String(encontrado.idPerfil)
-            setBase((prev) => (prev ? { ...prev, idPerfil: idEncontrado } : prev))
-            setForm((prev) => (prev ? { ...prev, idPerfil: idEncontrado } : prev))
+            const idEncontrado = [String(encontrado.idPerfil)]
+            setBase((prev) => (prev ? { ...prev, idPerfiles: idEncontrado } : prev))
+            setForm((prev) => (prev ? { ...prev, idPerfiles: idEncontrado } : prev))
           }
         }
       })
@@ -73,20 +80,24 @@ export function useEdicionFicha(user, onGuardado) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = "El correo no es válido"
     if (!form.telefono.trim()) e.telefono = "El teléfono es requerido"
     else if (!/^[\d\s+()-]{6,30}$/.test(form.telefono.trim())) e.telefono = "Solo números, espacios, + y guiones"
-    if (!form.idPerfil) e.idPerfil = "Elegí un perfil"
+    if (form.idPerfiles.length === 0) e.idPerfiles = "Elegí al menos un perfil"
     setErrores(e)
     return Object.keys(e).length === 0
   }
 
-  const perfilNuevo = perfiles?.find((p) => String(p.idPerfil) === form?.idPerfil)
-  const cambiaPerfil = !!form && !!base && form.idPerfil !== base.idPerfil
+  const nombresDePerfiles = (ids = []) => ids
+    .map((id) => perfiles?.find((p) => String(p.idPerfil) === id)?.nombrePerfil)
+    .filter(Boolean)
+    .join(" + ")
+  const perfilNuevo = nombresDePerfiles(form?.idPerfiles)
+  const cambiaPerfil = !!form && !!base && !mismosPerfiles(form.idPerfiles, base.idPerfiles)
   const desactiva = !!form && !!base && form.estado === "inactivo" && base.estado !== "inactivo"
   const requiereConfirmar = cambiaPerfil || desactiva
 
   const textoConfirmacion = propia && cambiaPerfil
-    ? `Vas a cambiar tu propio perfil a ${perfilNuevo?.nombrePerfil}. Al guardar se cierra tu sesión y volvés a entrar con los permisos del perfil nuevo.`
+    ? `Vas a cambiar tu propio perfil a ${perfilNuevo}. Al guardar se cierra tu sesión y volvés a entrar con los permisos del perfil nuevo.`
     : [
-      cambiaPerfil ? `${user.nombre} pasa de ${user.nombrePerfil || user.perfil || "sin perfil"} a ${perfilNuevo?.nombrePerfil}: cambian los permisos que tiene en el sistema.` : null,
+      cambiaPerfil ? `${user.nombre} pasa de ${user.nombrePerfil || user.perfil || "sin perfil"} a ${perfilNuevo}: cambian los permisos que tiene en el sistema.` : null,
       desactiva ? `${user.nombre} queda inactivo: no podrá entrar ni reservar, y se cierra su sesión.` : null,
     ].filter(Boolean).join(" ")
 
@@ -105,7 +116,7 @@ export function useEdicionFicha(user, onGuardado) {
           email,
           telefono: form.telefono.trim(),
           username: email,
-          idPerfil: parseInt(form.idPerfil, 10),
+          idPerfiles: form.idPerfiles.map((n) => parseInt(n, 10)),
           // El estado de la propia cuenta no se manda (el servidor igual lo rechaza)
           ...(propia ? {} : { estado: form.estado }),
         }),
@@ -126,8 +137,12 @@ export function useEdicionFicha(user, onGuardado) {
         email,
         correo: email,
         telefono: form.telefono.trim(),
-        idPerfil: parseInt(form.idPerfil, 10),
-        nombrePerfil: perfilNuevo?.nombrePerfil ?? user.nombrePerfil,
+        idPerfil: parseInt(form.idPerfiles[0], 10),
+        perfiles: form.idPerfiles.map((id) => ({
+          idPerfil: parseInt(id, 10),
+          nombrePerfil: perfiles?.find((p) => String(p.idPerfil) === id)?.nombrePerfil || "",
+        })),
+        nombrePerfil: perfilNuevo || user.nombrePerfil,
         ...(propia ? {} : { estado: form.estado }),
       })
       setEditando(false)

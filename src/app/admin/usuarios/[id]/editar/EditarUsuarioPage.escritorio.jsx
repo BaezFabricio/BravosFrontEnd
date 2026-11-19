@@ -26,13 +26,21 @@ const emptyForm = {
   dni: "",
   email: "",
   telefono: "",
-  idPerfil: "",
+  idPerfiles: [], // varios perfiles por usuario; el primero es el principal
   estado: "activo",
   avatarUrl: "",
   fechaNacimiento: "",
   contactoEmergencia: "",
   telefonoEmergencia: "",
 }
+
+// Varios perfiles por usuario: el primero de la lista es el principal (el que se muestra por defecto)
+const perfilesIniciales = (u, principal) => {
+  const lista = Array.isArray(u?.perfiles) ? u.perfiles.map((p) => String(p.idPerfil)) : []
+  if (lista.length === 0 && principal) lista.push(String(principal))
+  return lista
+}
+const mismosPerfiles = (a = [], b = []) => a.length === b.length && a.every((x) => b.includes(x))
 
 const inputCls = (error) =>
   `h-12 w-full rounded-xl border ${error ? "border-red-600/50 dark:border-red-500/50" : "border-border"} bg-background/60 pl-10 pr-3.5 text-base font-semibold text-foreground placeholder:font-normal placeholder:text-foreground/35 outline-none transition-colors focus:border-lime-500 focus:ring-2 focus:ring-lime-400/25 sm:text-sm`
@@ -122,7 +130,7 @@ export default function EditarUsuarioPage() {
           dni: usuarioReal.dni || "",
           email: usuarioReal.email || "",
           telefono: usuarioReal.telefono || "",
-          idPerfil: String(idPerfil || ""),
+          idPerfiles: perfilesIniciales(usuarioReal, idPerfil),
           estado: usuarioReal.estado || "activo",
           avatarUrl: usuarioReal.avatarUrl || "",
         }
@@ -154,7 +162,7 @@ export default function EditarUsuarioPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) e.email = "El correo no es válido"
     if (!formData.telefono.trim()) e.telefono = "El teléfono es requerido"
     else if (!/^[\d\s+()-]{6,30}$/.test(formData.telefono.trim())) e.telefono = "Solo números, espacios, + y guiones"
-    if (!formData.idPerfil) e.idPerfil = "Elegí un perfil"
+    if (formData.idPerfiles.length === 0) e.idPerfiles = "Elegí al menos un perfil"
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -162,7 +170,7 @@ export default function EditarUsuarioPage() {
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault()
     if (!validateForm()) return
-    const cambiaMiPerfil = propia && formData.idPerfil !== original.idPerfil
+    const cambiaMiPerfil = propia && !mismosPerfiles(formData.idPerfiles, original.idPerfiles)
     if (cambiaMiPerfil && !(await pedirConfirmacion("Vas a cambiar tu propio perfil. Al guardar se cierra tu sesión y vas a entrar con los permisos del perfil nuevo. ¿Seguimos?"))) return
     setIsSaving(true)
     try {
@@ -173,7 +181,7 @@ export default function EditarUsuarioPage() {
         email,
         telefono: formData.telefono.trim(),
         username: email,
-        idPerfil: parseInt(formData.idPerfil),
+        idPerfiles: formData.idPerfiles.map((n) => parseInt(n, 10)),
         // El estado de la propia cuenta no se manda (el servidor igual lo rechaza)
         ...(propia ? {} : { estado: formData.estado }),
       }
@@ -210,9 +218,9 @@ export default function EditarUsuarioPage() {
     return <AdminFormSkeleton />
   }
 
-  const perfilSeleccionado = perfilesBD.find((p) => String(p.idPerfil) === formData.idPerfil)
+  const perfilesElegidos = formData.idPerfiles.map((id) => perfilesBD.find((p) => String(p.idPerfil) === id)?.nombrePerfil).filter(Boolean)
   const activo = formData.estado === "activo"
-  const cambioAcceso = formData.idPerfil !== original.idPerfil || (formData.estado === "inactivo" && original.estado !== "inactivo")
+  const cambioAcceso = !mismosPerfiles(formData.idPerfiles, original.idPerfiles) || (formData.estado === "inactivo" && original.estado !== "inactivo")
 
   return (
     <>
@@ -262,7 +270,7 @@ export default function EditarUsuarioPage() {
               {[
                 { label: "DNI", value: formData.dni, icon: CreditCard },
                 { label: "Tel", value: formData.telefono, icon: Phone },
-                { label: "Perfil", value: perfilSeleccionado?.nombrePerfil, icon: ShieldCheck },
+                { label: "Perfil", value: perfilesElegidos.join(" + "), icon: ShieldCheck },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-border bg-background/50 px-2.5 py-2">
                   <dt className="flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-widest text-foreground/45">
@@ -325,12 +333,15 @@ export default function EditarUsuarioPage() {
                   {perfilesBD.length === 0 ? (
                     <p className="text-sm text-foreground/55">No se pudieron cargar los perfiles.</p>
                   ) : (
-                    <div role="radiogroup" aria-labelledby="etiqueta-perfil" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <div role="group" aria-labelledby="etiqueta-perfil" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {perfilesBD.map((p) => {
-                        const elegido = formData.idPerfil === String(p.idPerfil)
+                        const posicion = formData.idPerfiles.indexOf(String(p.idPerfil))
+                        const elegido = posicion !== -1
                         return (
-                          <button key={p.idPerfil} type="button" role="radio" aria-checked={elegido}
-                            onClick={() => cambiar("idPerfil", String(p.idPerfil))}
+                          <button key={p.idPerfil} type="button" role="checkbox" aria-checked={elegido}
+                            onClick={() => cambiar("idPerfiles", elegido
+                              ? formData.idPerfiles.filter((x) => x !== String(p.idPerfil))
+                              : [...formData.idPerfiles, String(p.idPerfil)])}
                             className={`flex min-h-[3rem] items-center justify-between gap-2 rounded-xl border px-3 text-left text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                               elegido
                                 ? "border-lime-500 bg-lime-400/15 text-foreground"
@@ -347,8 +358,13 @@ export default function EditarUsuarioPage() {
                       })}
                     </div>
                   )}
-                  {errors.idPerfil && (
-                    <p className="flex items-center gap-1 text-xs text-red-700 dark:text-red-400"><AlertCircle className="h-3 w-3" /> {errors.idPerfil}</p>
+                  {perfilesBD.length > 0 && (
+                    <p className="text-xs text-foreground/55">
+                      Podés elegir más de uno (ej.: Alumno y Profesor). Los permisos de todos se suman. El primero que elegiste es el principal, el que se muestra por defecto.
+                    </p>
+                  )}
+                  {errors.idPerfiles && (
+                    <p className="flex items-center gap-1 text-xs text-red-700 dark:text-red-400"><AlertCircle className="h-3 w-3" /> {errors.idPerfiles}</p>
                   )}
                 </div>
 
