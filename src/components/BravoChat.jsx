@@ -130,6 +130,9 @@ export default function BravoChat({ rol = "alumno" }) {
     return () => window.removeEventListener("resize", medir)
   }, [])
 
+  // Si el botón quedó pegado al borde izquierdo, el globo no entra a su izquierda: se muestra a la derecha
+  const globoALaDerecha = !!posVista && posVista.x < 230
+
   const alPresionar = (e) => {
     const r = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture?.(e.pointerId)
@@ -336,14 +339,19 @@ export default function BravoChat({ rol = "alumno" }) {
 
       {/* Globito de saludo */}
       {globoVisible && (
+        // El de afuera solo ubica el globo junto al botón (con transform); el de adentro hace la animación de entrada,
+        // porque una animación con transform pisaría el de la ubicación.
         <div
-          className={`bravo-anim fixed z-[15] max-w-[12.5rem] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
-          style={{
-            animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both",
-            ...(posVista ? { left: Math.max(8, posVista.x - 190) / escala, top: Math.max(8, posVista.y - 84) / escala } : {}),
-          }}
+          className={`fixed z-[15] w-max max-w-[12.5rem] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
+          style={posVista ? {
+            left: posVista.x / escala,
+            top: posVista.y / escala + 3.25 * 16 + 4,
+            // Se apoya al lado del botón (a la izquierda; a la derecha si no entra) con su base a la altura de la base del botón
+            transform: globoALaDerecha ? "translate(calc(3.25rem + 0.75rem), -100%)" : "translate(calc(-100% - 0.75rem), -100%)",
+          } : undefined}
         >
-          <div className="relative rounded-2xl rounded-br-sm bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2">
+        <div className="bravo-anim" style={{ animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both" }}>
+          <div className={`relative rounded-2xl bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2 ${globoALaDerecha ? "rounded-bl-sm" : "rounded-br-sm"}`}>
             <button
               onClick={() => { setAbierto(true); setGlobo(false); setGloboHover(false) }}
               className="text-left text-[0.8125rem] font-semibold text-foreground leading-snug"
@@ -358,8 +366,9 @@ export default function BravoChat({ rol = "alumno" }) {
               <X className="h-3.5 w-3.5" />
             </button>
             {/* colita que apunta al botón */}
-            <span className="absolute -right-[0.4375rem] bottom-3 h-3 w-3 rotate-45 bg-card border-t border-r border-lime-400/50" />
+            <span className={`absolute bottom-3 h-3 w-3 rotate-45 bg-card border-lime-400/50 ${globoALaDerecha ? "-left-[0.4375rem] border-b border-l" : "-right-[0.4375rem] border-t border-r"}`} />
           </div>
+        </div>
         </div>
       )}
 

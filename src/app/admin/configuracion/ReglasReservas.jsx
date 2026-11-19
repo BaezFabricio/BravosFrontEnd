@@ -6,11 +6,10 @@ import { cargarReglasBox } from "@/lib/reglasBox"
 
 /*
  * Reglas de reservas del box (Configuración del box → Reglas de reservas): cuántas horas antes se puede reservar,
- * cuántas horas antes se puede cancelar recuperando el crédito y cuántos días hacia adelante se puede reservar.
+ * y cuánto antes se puede cancelar recuperando el crédito.
  * El servidor valida los límites y es quien las aplica en cada reserva y cancelación; esta pantalla solo las edita.
  */
-const unidad = (n, uno, varios) => (Number(n) === 1 ? uno : varios)
-const hhmm = (min) => { const t = ((min % 1440) + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}` }
+const hhmm = (min) => { const t = ((Number(min) || 0) % 1440 + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}` }
 
 // Un tiempo en minutos como lo diría una persona: "30 minutos", "2 horas", "1 hora y 30 min"
 const tiempo = (minutos) => {
@@ -32,6 +31,15 @@ const pasoMinutos = (valor, dir) => {
   return valor <= 120 ? 5 : valor <= 360 ? 15 : valor <= 1440 ? 30 : 60
 }
 
+// Siempre números válidos: si el servidor todavía manda horas (versión anterior) se pasan a minutos; si falta algo, se usa el valor de siempre
+const DEFECTO = { minutosReservar: 120, minutosCancelar: 120, diasAdelante: 0 }
+const numero = (...c) => { for (const x of c) { const n = Number(x); if (x !== undefined && x !== null && x !== "" && Number.isFinite(n)) return n } return undefined }
+const normalizar = (d) => ({
+  minutosReservar: numero(d.minutosReservar, d.horasReservar !== undefined ? Number(d.horasReservar) * 60 : undefined, DEFECTO.minutosReservar),
+  minutosCancelar: numero(d.minutosCancelar, d.horasCancelar !== undefined ? Number(d.horasCancelar) * 60 : undefined, DEFECTO.minutosCancelar),
+  diasAdelante: numero(d.diasAdelante, DEFECTO.diasAdelante), // ya no se edita en pantalla; se conserva tal cual
+})
+
 const REGLAS = [
   {
     id: "minutosReservar",
@@ -52,15 +60,6 @@ const REGLAS = [
     paso: pasoMinutos,
     atajos: [15, 30, 60, 120, 180],
     ejemplo: (n) => (n === 0 ? "Recupera el crédito mientras la clase no haya empezado." : `Una clase de las 19:00 se cancela con crédito hasta las ${hhmm(19 * 60 - n)}.`),
-  },
-  {
-    id: "diasAdelante",
-    titulo: "Días hacia adelante para reservar",
-    detalle: "Cuántos días antes pueden empezar a reservar. Con 0, solo se reservan las clases del día.",
-    formato: (n) => `${n} ${unidad(n, "día", "días")}`,
-    partes: (n) => ({ grande: String(n), chica: unidad(n, "día", "días") }),
-    paso: () => 1,
-    ejemplo: (n) => (n === 0 ? "Los alumnos solo reservan las clases de hoy." : `Los alumnos reservan clases de hoy y de los próximos ${n} ${unidad(n, "día", "días")}.`),
   },
 ]
 
@@ -94,8 +93,8 @@ export default function ReglasReservas({ puedeModificar }) {
     setError(false)
     return apiClient.get("/reglas-box")
       .then((r) => {
-        const d = r.data?.data
-        const v = { minutosReservar: d.minutosReservar, minutosCancelar: d.minutosCancelar, diasAdelante: d.diasAdelante }
+        const d = r.data?.data || {}
+        const v = normalizar(d)
         setValores(v); setGuardados(v); setLimites(d.limites || {}); setPorDefecto((p) => d.porDefecto || p)
       })
       .catch(() => setError(true))
@@ -113,15 +112,14 @@ export default function ReglasReservas({ puedeModificar }) {
     const { min = 0, max = 99 } = limites[id] || {}
     setValores((v) => ({ ...v, [id]: Math.min(max, Math.max(min, valor)) }))
   }
-  const hayCambios = valores && guardados && Object.keys(valores).some((k) => valores[k] !== guardados[k])
-  const sonLasDeSiempre = valores && Object.keys(porDefecto).every((k) => valores[k] === porDefecto[k])
+  const hayCambios = valores && guardados && REGLAS.some((r) => valores[r.id] !== guardados[r.id])
+  const sonLasDeSiempre = valores && REGLAS.every((r) => valores[r.id] === porDefecto[r.id])
 
   const guardar = async () => {
     setGuardando(true)
     try {
       const r = await apiClient.put("/reglas-box", valores)
-      const d = r.data?.data
-      const v = { minutosReservar: d.minutosReservar, minutosCancelar: d.minutosCancelar, diasAdelante: d.diasAdelante }
+      const v = normalizar(r.data?.data || {})
       setValores(v); setGuardados(v)
       cargarReglasBox(true)
       toast.success("Reglas guardadas", { description: "Valen desde ahora para las reservas y cancelaciones nuevas.", guardar: false })

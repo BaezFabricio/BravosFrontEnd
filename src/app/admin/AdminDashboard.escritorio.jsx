@@ -477,7 +477,7 @@ export default function AdminDashboard() {
             <ul className="divide-y divide-border">
               {[
                 { t: "Pagos pendientes de confirmar", n: loading ? null : Number(atencion.pagosPendientes) || 0, href: "/admin/usuarios/abonos/carga-masiva" },
-                { t: "Documentos para revisar", n: loading ? null : Number(atencion.documentosPorRevisar) || 0, href: "/admin/usuarios" },
+                { t: "Documentos para revisar", n: loading ? null : Number(atencion.documentosPorRevisar) || 0, href: atencion.documentoDeUsuario ? `/admin/usuarios/${atencion.documentoDeUsuario}` : "/admin/usuarios" },
                 { t: "Cuentas sin verificar el correo", n: loading ? null : Number(atencion.cuentasSinVerificar) || 0, href: "/admin/usuarios" },
               ].map((fila) => (
                 <li key={fila.t}>

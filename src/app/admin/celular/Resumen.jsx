@@ -55,7 +55,7 @@ export default function ResumenCelular() {
     const alertList = [
       ...sus.slice(0, 5).map((u) => ({ t: `${u.name} no pagó`, s: u.daysOverdue > 0 ? `${u.daysOverdue} días sin pagar · Cargar abono` : "Sin créditos · Cargar abono", d: I.alert, bg: c.errBg, fg: c.errFg, href: "/admin/usuarios/abonos/carga-masiva" })),
       ...(Number(atencion.pagosPendientes) > 0 ? [{ t: `${plural(Number(atencion.pagosPendientes), "pago pendiente", "pagos pendientes")} de confirmar`, s: "Revisar abonos", d: I.money, bg: c.warnBg, fg: c.warnFg, href: "/admin/usuarios/abonos/carga-masiva" }] : []),
-      ...(Number(atencion.documentosPorRevisar) > 0 ? [{ t: `${plural(Number(atencion.documentosPorRevisar), "documento", "documentos")} para revisar`, s: "Ver usuarios", d: I.doc, bg: c.warnBg, fg: c.warnFg, href: "/admin/usuarios" }] : []),
+      ...(Number(atencion.documentosPorRevisar) > 0 ? [{ t: `${plural(Number(atencion.documentosPorRevisar), "documento", "documentos")} para revisar`, s: atencion.documentoDeUsuario ? "Abrir la ficha" : "Ver usuarios", d: I.doc, bg: c.warnBg, fg: c.warnFg, href: atencion.documentoDeUsuario ? `/admin/usuarios/${atencion.documentoDeUsuario}` : "/admin/usuarios" }] : []),
       ...(Number(atencion.cuentasSinVerificar) > 0 ? [{ t: `${plural(Number(atencion.cuentasSinVerificar), "cuenta", "cuentas")} sin verificar el correo`, s: "Ver usuarios", d: I.clock, bg: c.warnBg, fg: c.warnFg, href: "/admin/usuarios" }] : []),
     ].map((a, i) => ({ ...a, sep: i ? c.line2 : "transparent" }))
 
