@@ -37,18 +37,18 @@ const REGLAS = [
 ]
 
 function Contador({ valor, min, max, onCambio, deshabilitado, etiqueta, unidadTexto }) {
-  const boton = "flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background/60 text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-40"
+  const boton = "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-35"
   return (
-    <div role="group" aria-label={etiqueta} className="flex items-center gap-3">
+    <div role="group" aria-label={etiqueta} className="flex w-full items-center justify-between rounded-2xl border border-border bg-background/60 p-1.5 sm:w-[15rem] sm:shrink-0">
       <button type="button" className={boton} onClick={() => onCambio(-1)} disabled={deshabilitado || valor <= min} aria-label={`Una menos: ${etiqueta}`}>
-        <Minus className="h-4 w-4" aria-hidden="true" />
+        <Minus className="h-5 w-5" aria-hidden="true" />
       </button>
-      <output className="min-w-[5.5rem] text-center" aria-live="polite">
-        <span className="block text-3xl font-black leading-none tabular-nums text-foreground">{valor}</span>
-        <span className="mt-1 block text-xs font-semibold text-foreground/55">{unidadTexto}</span>
+      <output className="flex flex-1 flex-col items-center justify-center" aria-live="polite">
+        <span className="text-3xl font-black leading-none tabular-nums text-foreground">{valor}</span>
+        <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-foreground/55">{unidadTexto}</span>
       </output>
       <button type="button" className={boton} onClick={() => onCambio(1)} disabled={deshabilitado || valor >= max} aria-label={`Una más: ${etiqueta}`}>
-        <Plus className="h-4 w-4" aria-hidden="true" />
+        <Plus className="h-5 w-5" aria-hidden="true" />
       </button>
     </div>
   )
@@ -113,16 +113,16 @@ export default function ReglasReservas({ puedeModificar }) {
   if (!valores) return <div className="bv-esq space-y-3" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-28 rounded-2xl border border-border bg-foreground/[0.05]" />)}</div>
 
   return (
-    <section aria-label="Reglas de reservas" className="space-y-4">
+    <section aria-label="Reglas de reservas" className="bv-reglas flex flex-col gap-5">
       <ul className="m-0 flex list-none flex-col gap-4 p-0">
         {REGLAS.map((r) => {
           const { min = 0, max = 99 } = limites[r.id] || {}
           return (
-            <li key={r.id} className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+            <li key={r.id} className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
               <div className="min-w-0 flex-1">
-                <p className="m-0 text-base font-extrabold text-foreground">{r.titulo}</p>
-                <p className="mt-1 text-sm leading-snug text-foreground/65">{r.detalle}</p>
-                <p className="mt-2 text-[0.8125rem] font-semibold text-lime-700 dark:text-lime-400">{r.ejemplo(valores[r.id])}</p>
+                <p className="m-0 text-base font-extrabold leading-tight text-foreground">{r.titulo}</p>
+                <p className="mt-1.5 text-sm leading-snug text-foreground/65">{r.detalle}</p>
+                <p className="mt-3 text-[0.8125rem] font-semibold leading-snug text-lime-700 dark:text-lime-400">{r.ejemplo(valores[r.id])}</p>
                 <p className="mt-1 text-xs text-foreground/45">Entre {min} y {max}. Valor de siempre: {porDefecto[r.id]}.</p>
               </div>
               <Contador valor={valores[r.id]} min={min} max={max} onCambio={(delta) => cambiar(r.id, delta)} deshabilitado={!puedeModificar || guardando}
@@ -133,20 +133,20 @@ export default function ReglasReservas({ puedeModificar }) {
       </ul>
 
       {puedeModificar ? (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <button type="button" onClick={guardar} disabled={!hayCambios || guardando}
-            className="inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 text-xs font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-50">
+            className="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl bg-lime-400 px-6 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:bg-foreground/10 disabled:text-foreground/40 sm:w-auto">
             {guardando ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Save className="h-4 w-4" aria-hidden="true" />}
             {guardando ? "Guardando…" : "Guardar reglas"}
           </button>
           <button type="button" onClick={() => setValores({ ...porDefecto })} disabled={sonLasDeSiempre || guardando}
-            className="inline-flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground transition-colors hover:bg-foreground/5 disabled:cursor-not-allowed disabled:opacity-40">
+            className="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">
             <RotateCcw className="h-4 w-4" aria-hidden="true" /> Volver a los valores de siempre
           </button>
-          {hayCambios && <span role="status" className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">Tenés cambios sin guardar.</span>}
+          {hayCambios && <span role="status" className="text-center text-sm font-semibold text-yellow-700 dark:text-yellow-400 sm:text-left">Tenés cambios sin guardar.</span>}
         </div>
       ) : (
-        <p className="text-sm text-foreground/55">Solo podés ver las reglas: para cambiarlas hace falta el permiso de modificar la configuración.</p>
+        <p className="m-0 text-sm text-foreground/55">Solo podés ver las reglas: para cambiarlas hace falta el permiso de modificar la configuración.</p>
       )}
     </section>
   )

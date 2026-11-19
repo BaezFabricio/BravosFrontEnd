@@ -304,6 +304,10 @@
   .dc-pantalla, .bv-panel-main { max-width: 100%; overflow-x: clip; touch-action: pan-y pinch-zoom; }
 }
 
+/* Las pantallas del admin en celular heredan content-box (.dc-pantalla): los componentes hechos con Tailwind necesitan border-box
+   o el relleno agranda cada caja y los elementos se montan unos sobre otros. */
+.bv-reglas, .bv-reglas *, .bv-reglas *::before, .bv-reglas *::after { box-sizing: border-box !important; }
+
 /* Esqueletos de carga: latido suave (animate-pulse bajaba mucho la opacidad y se sentía como un parpadeo) */
 @keyframes bv-latido { 0%, 100% { opacity: 1; } 50% { opacity: 0.62; } }
 .bv-esq { animation: bv-latido 1.8s ease-in-out infinite; }
