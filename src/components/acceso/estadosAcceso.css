@@ -103,11 +103,42 @@
 .ea .m-head img{width:calc(180*var(--u));height:calc(180*var(--u));margin-bottom:calc(-9*var(--u))}
 .ea .m-grid{position:absolute;left:calc(120*var(--u));right:calc(120*var(--u));top:calc(470*var(--u));height:calc(500*var(--u));display:flex;justify-content:center;gap:calc(21*var(--u))}
 .ea .tile{position:relative;overflow:hidden;display:block;flex:0 0 calc((1680*var(--u) - 42*var(--u)) / 3);text-align:left;font:inherit;padding:0;cursor:pointer;text-decoration:none;color:var(--ink);border:calc(2*var(--u)) solid var(--line);border-radius:calc(20*var(--u));background:#0b0c09}
-/* Con dos módulos las tarjetas reparten todo el ancho (alineadas con el título y la mascota); con uno, una sola tarjeta media */
+/* ===== Elegir módulo (escritorio): diseño fluido. Ya no es un lienzo de 1920x1080 escalado, que pisaba el pie con las
+   tarjetas cuando la ventana era más baja. Tres bandas: barra superior, bloque central (título + tarjetas) y pie. ===== */
 @media (min-width:900px){
-.ea .m-grid[data-n="2"] .tile{flex:1 1 0}
-.ea .m-grid[data-n="1"] .tile{flex:0 0 calc((1680*var(--u) - 21*var(--u)) / 2)}
+.ea .screen.modulos{position:relative;inset:auto;margin:0;width:100%;height:100%;display:flex;flex-direction:column;overflow-y:auto;
+  padding:clamp(20px,3.2vh,40px) clamp(28px,4vw,80px) clamp(20px,3vh,36px)}
+.ea .modulos .m-top{position:static;flex:none}
+.ea .modulos .m-top .brand img{width:46px;height:46px;border-radius:9px}
+.ea .modulos .m-top .brand span{font-size:22px}
+.ea .modulos .m-btn{height:46px;padding:0 22px;font-size:16px}
+.ea .modulos .m-chip{font-size:14px}
+.ea .modulos .m-chip::before{width:9px;height:9px}
+/* título, tarjetas y pie comparten el mismo ancho y el mismo borde izquierdo */
+.ea .modulos .m-head,.ea .modulos .m-grid,.ea .modulos .m-foot,.ea .modulos .m-aviso{width:100%;max-width:1480px;margin-inline:auto}
+.ea .modulos .m-head{position:static;flex:none;margin-top:auto;margin-bottom:clamp(18px,3.4vh,40px);align-items:flex-end;gap:24px}
+.ea .modulos .m-head .hi{font-size:18px;letter-spacing:.02em;text-transform:none;margin-bottom:12px}
+.ea .modulos .m-head h2{font-size:clamp(46px,min(6vw,11vh),96px);white-space:normal;text-wrap:balance}
+.ea .modulos .m-head img{width:clamp(96px,min(10vw,17vh),170px);height:auto;margin-bottom:-6px;flex:none}
+.ea .modulos .m-grid{position:static;height:auto;flex:0 1 clamp(250px,44vh,460px);min-height:0;display:grid;gap:20px;
+  grid-template-columns:repeat(3,minmax(0,1fr))}
+.ea .modulos .m-grid[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ea .modulos .m-grid[data-n="1"]{grid-template-columns:minmax(0,560px)}
+.ea .modulos .tile{flex:none;min-height:0;height:100%;border-width:1px;border-radius:18px;transition:border-color .2s}
+.ea .modulos .tile img{transition:filter .3s}
+.ea .modulos .tile:hover img,.ea .modulos .tile:focus-visible img{filter:grayscale(1) contrast(1.1) brightness(1)}
+.ea .modulos .tile:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.ea .modulos .tile .n{display:none} /* los paneles no son una secuencia: sin numeración */
+.ea .modulos .tile .info{left:28px;right:28px;bottom:26px}
+.ea .modulos .tile .name{font-size:clamp(38px,min(4vw,7vh),64px)}
+.ea .modulos .tile .sub{font-size:17px;margin-top:8px}
+.ea .modulos .tile .go{width:56px;height:56px;border-radius:14px;font-size:28px;transition:transform .2s}
+.ea .modulos .tile:hover .go,.ea .modulos .tile:focus-visible .go{transform:translateX(5px)}
+.ea .modulos .m-aviso{max-width:760px;font-size:18px;padding:24px}
+.ea .modulos .m-foot{position:static;flex:none;margin-top:auto;padding-top:clamp(18px,3vh,36px)}
+.ea .modulos .m-foot span{font-size:13px;color:var(--muted)}
 }
+@media (prefers-reduced-motion:reduce){.ea .modulos .tile img,.ea .modulos .tile .go{transition:none}}
 .ea .tile:hover{border-color:var(--lime)}
 .ea .tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.1) brightness(.8)}
 .ea .tile::before{content:"";position:absolute;inset:0;z-index:1;background:#4a5626;mix-blend-mode:multiply;opacity:.55}
