@@ -99,7 +99,9 @@ export default function LayoutCelular({ children }) {
   const arrastro = useRef(false)
   const ignorarClic = useRef(false)
   const [sobre, setSobre] = useState(null)
-  const [dedo, setDedo] = useState(null)
+  const [dedo, setDedo] = useState(null) // { x, y } del dedo dentro del menú, mientras lo toca
+  const [ondas, setOndas] = useState([]) // ondas de agua: [{ id, x, y }]
+  const ultimaOnda = useRef({ x: -999, t: 0 })
   const opcionBajo = (x) => {
     let mejor = null, distancia = Infinity
     enlacesMenu.current.forEach((el, i) => {
@@ -110,20 +112,32 @@ export default function LayoutCelular({ children }) {
     })
     return mejor
   }
+  const posicionEnMenu = (e) => { const r = e.currentTarget.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top } }
+  // Efecto agua: al tocar sale una onda del dedo y, al deslizar, deja una estela de ondas a su paso
+  const soltarOnda = (p) => {
+    setOndas((prev) => [...prev.slice(-3), { id: performance.now() + Math.random(), x: p.x, y: p.y }])
+    ultimaOnda.current = { x: p.x, t: performance.now() }
+  }
   const alBajarMenu = (e) => {
     alTocarMenu()
+    const p = posicionEnMenu(e)
     inicioToque.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
-    setDedo(e.clientX - e.currentTarget.getBoundingClientRect().left)
+    setDedo(p)
+    soltarOnda(p)
   }
   const alMoverMenu = (e) => {
     if (!inicioToque.current || (e.pointerType === "mouse" && e.buttons === 0)) return
-    setDedo(e.clientX - e.currentTarget.getBoundingClientRect().left)
+    const p = posicionEnMenu(e)
+    setDedo(p)
     if (!arrastro.current && Math.hypot(e.clientX - inicioToque.current.x, e.clientY - inicioToque.current.y) > 12) arrastro.current = true
     if (arrastro.current) {
       const i = opcionBajo(e.clientX)
       setSobre((previa) => { if (previa !== i && previa !== null) navigator.vibrate?.(8); return i })
     }
+    // Una onda nueva cada ~56 px recorridos (o cada 380 ms): parece una estela en el agua
+    const ult = ultimaOnda.current
+    if (Math.abs(p.x - ult.x) > 56 || performance.now() - ult.t > 380) soltarOnda(p)
   }
   const terminarToque = () => { inicioToque.current = null; arrastro.current = false; setSobre(null); setDedo(null) }
   const alSoltarMenu = () => {
@@ -200,7 +214,7 @@ export default function LayoutCelular({ children }) {
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
-        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, sobre, dedo, enlaces: enlacesMenu, alBajar: alBajarMenu, alMover: alMoverMenu, alSoltar: alSoltarMenu, alCancelar: terminarToque }} /></div>}
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, sobre, dedo, ondas, quitarOnda: (id) => setOndas((prev) => prev.filter((o) => o.id !== id)), enlaces: enlacesMenu, alBajar: alBajarMenu, alMover: alMoverMenu, alSoltar: alSoltarMenu, alCancelar: terminarToque }} /></div>}
         <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<AvisoDeslizable key={a.id} onQuitar={() => setAvisos((p) => p.filter((x) => x.id !== a.id))} style={{ pointerEvents: "auto", padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</AvisoDeslizable>))}</div>
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}

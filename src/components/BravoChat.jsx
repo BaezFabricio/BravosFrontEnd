@@ -118,6 +118,18 @@ export default function BravoChat({ rol = "alumno" }) {
   })
   const posVista = posicion ? ajustar(posicion.x, posicion.y) : null
 
+  // En escritorio el panel se escala con zoom (ver useZoomLienzo): el mouse da coordenadas reales de la ventana, pero un "left" o "top" CSS
+  // dentro del panel se multiplica por ese zoom. Sin esta corrección el globo se corre más rápido (o más lento) que el cursor al arrastrarlo.
+  // La escala se mide con una pieza invisible de 100 px que está en el mismo lugar que el globo.
+  const medidor = useRef(null)
+  const [escala, setEscala] = useState(1)
+  useEffect(() => {
+    const medir = () => { const w = medidor.current?.getBoundingClientRect().width; if (w) setEscala(w / 100) }
+    medir()
+    window.addEventListener("resize", medir)
+    return () => window.removeEventListener("resize", medir)
+  }, [])
+
   const alPresionar = (e) => {
     const r = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture?.(e.pointerId)
@@ -328,7 +340,7 @@ export default function BravoChat({ rol = "alumno" }) {
           className={`bravo-anim fixed z-[15] max-w-[12.5rem] ${posVista ? "" : "right-[4.6rem] bottom-[6.6rem] lg:bottom-[1.1rem]"}`}
           style={{
             animation: "bravoGloboIn 0.35s cubic-bezier(.2,.9,.3,1.2) both",
-            ...(posVista ? { left: Math.max(8, posVista.x - 190), top: Math.max(8, posVista.y - 84) } : {}),
+            ...(posVista ? { left: Math.max(8, posVista.x - 190) / escala, top: Math.max(8, posVista.y - 84) / escala } : {}),
           }}
         >
           <div className="relative rounded-2xl rounded-br-sm bg-card border border-lime-400/50 shadow-lg pl-3.5 pr-7 py-2">
@@ -352,6 +364,7 @@ export default function BravoChat({ rol = "alumno" }) {
       )}
 
       {/* Botón flotante: círculo verde con la mascota apoyada; la cabeza asoma por arriba del círculo */}
+      <span ref={medidor} aria-hidden="true" style={{ position: "fixed", left: 0, top: 0, width: 100, height: 0, visibility: "hidden", pointerEvents: "none" }} />
       <button
         ref={botonRef}
         data-guia="chat"
@@ -360,7 +373,7 @@ export default function BravoChat({ rol = "alumno" }) {
         onPointerMove={alMover}
         onPointerUp={alSoltar}
         onPointerCancel={alSoltar}
-        style={posVista ? { left: posVista.x, top: posVista.y, right: "auto", bottom: "auto" } : undefined}
+        style={posVista ? { left: posVista.x / escala, top: posVista.y / escala, right: "auto", bottom: "auto" } : undefined}
         onMouseEnter={() => setGloboHover(true)}
         onMouseLeave={() => setGloboHover(false)}
         onFocus={() => setGloboHover(true)}
