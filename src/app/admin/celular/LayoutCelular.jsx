@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import apiClient from "@/api"
 import { useTheme } from "@/components/theme-provider"
 import BravoChat from "@/components/BravoChat"
@@ -66,6 +66,24 @@ export default function LayoutCelular({ children }) {
     return () => window.removeEventListener("bravos:notif", alAviso)
   }, [recargarNotifs])
   const [menuOculto, setMenuOculto] = useState(false) // pantallas que lo piden (formularios con botón fijo abajo)
+
+  // El menú de abajo se achica al bajar por la pantalla y vuelve a su tamaño al subir, al llegar arriba o al cambiar de pantalla
+  const [compacta, setCompacta] = useState(false)
+  useEffect(() => {
+    setCompacta(false)
+    let ultimo = window.scrollY
+    const alScroll = () => {
+      const y = window.scrollY
+      const dy = y - ultimo
+      if (Math.abs(dy) < 6) return // ignora temblores
+      ultimo = y
+      setCompacta(!(y < 40 || dy < 0))
+    }
+    window.addEventListener("scroll", alScroll, { passive: true })
+    return () => window.removeEventListener("scroll", alScroll)
+  }, [pathname])
+  // Al entrar a una pantalla desliza desde la derecha; al volver (atrás), desde la izquierda
+  const tipoNavegacion = useNavigationType()
   const sesion = useMemo(() => { try { return JSON.parse(localStorage.getItem("usuario") || "{}") } catch { return {} } }, [])
 
   const tabs = useMemo(() => {
@@ -126,8 +144,8 @@ export default function LayoutCelular({ children }) {
     <ContextoCelular.Provider value={{ c, oscuro, notifs, noLeidas, recargarNotifs, setNoLeidas, setNotifs, sesion, abrirNotif, abrirCuenta, setMenuOculto }}>
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
-        {children}
-        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs }} /></div>}
+        <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta }} /></div>}
         <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<div key={a.id} style={{ padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</div>))}</div>
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}

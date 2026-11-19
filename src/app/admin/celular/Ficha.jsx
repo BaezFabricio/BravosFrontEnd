@@ -24,6 +24,7 @@ export default function FichaCelular() {
 
   const [user, setUser] = useState(null)
   const [ficha, setFicha] = useState(null)
+  const [fichaLista, setFichaLista] = useState(false) // la ficha de alumno ya respondió (bien o mal)
   const [reservas, setReservas] = useState([])
   const [pagos, setPagos] = useState([])
   const [docs, setDocs] = useState([])
@@ -42,7 +43,7 @@ export default function FichaCelular() {
   useEffect(() => {
     if (!id || !puedeVer) return
     getUsuarioById(id).then((u) => setUser(u?.data || u)).catch(() => setError(true))
-    apiClient.get(`/usuarios/${id}/ficha`).then((r) => setFicha(r.data?.data || null)).catch(() => setFicha(null))
+    apiClient.get(`/usuarios/${id}/ficha`).then((r) => setFicha(r.data?.data || null)).catch(() => setFicha(null)).finally(() => setFichaLista(true))
     apiClient.get(`/reservas/admin/usuario/${id}`).then((r) => setReservas(r.data?.data || r.data || [])).catch(() => {})
     apiClient.get(`/usuarios/${id}/pagos`).then((r) => setPagos(r.data?.data || [])).catch(() => {})
     apiClient.get(`/documentos/usuario/${id}`).then((r) => setDocs(r.data?.data || r.data || [])).catch(() => {})
@@ -61,6 +62,9 @@ export default function FichaCelular() {
     const perfilCap = u.perfiles?.length > 1 ? u.perfiles.map((p) => p.nombrePerfil).filter(Boolean).join(" ") : (perfil ? perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase() : "Sin perfil")
     const off = u.estado === "inactivo"
     const mem = u.membresia
+    // Mientras llegan los datos no se muestra un estado inventado ("vencida" por defecto): primero "Cargando…" y recién después el real
+    const cargando = !user && !error
+    const memCargando = cargando || !fichaLista
     const vigente = ficha?.vigente || null
     const esAlumno = ficha?.esAlumno !== false
     const dp = ficha?.datosPersona || {}
@@ -71,9 +75,9 @@ export default function FichaCelular() {
     const estadoTxt = mem === "vigente" || mem === "activa" ? "Activa" : mem === "por_vencer" ? "Por vencer" : "Vencida"
     const grupos = [
       ...(esAlumno ? [{ t: "MEMBRESÍA", rows: sep([
-        R("Plan", vigente?.plan || ultimo?.plan || "Sin plan activo"),
-        R("Estado", estadoTxt, estadoTxt === "Activa" ? { fg: c.okFg } : { fg: c.warnFg }),
-        ...(vigente ? [R("Inicio", fecha(vigente.inicio)), R("Vence", fecha(vigente.vencimiento)), R("Créditos", `${vigente.creditos} de ${vigente.totalCreditos}`)] : [R("Créditos", "0")]),
+        R("Plan", memCargando ? "Cargando…" : (vigente?.plan || ultimo?.plan || "Sin plan activo"), memCargando ? { fg: c.muted } : {}),
+        R("Estado", memCargando ? "Cargando…" : estadoTxt, memCargando ? { fg: c.muted } : estadoTxt === "Activa" ? { fg: c.okFg } : { fg: c.warnFg }),
+        ...(memCargando ? [] : vigente ? [R("Inicio", fecha(vigente.inicio)), R("Vence", fecha(vigente.vencimiento)), R("Créditos", `${vigente.creditos} de ${vigente.totalCreditos}`)] : [R("Créditos", "0")]),
         ...(ultimo ? [R("Último pago", `${pesos(ultimo.importe)} · ${corta(ultimo.fecha)}`)] : []),
       ]) }] : []),
       { t: "DATOS PERSONALES", rows: sep([
@@ -98,14 +102,14 @@ export default function FichaCelular() {
       try { await cambiarEstadoUsuario(id, estado); setUser((x) => ({ ...x, estado })); setDlg(null); setMenu(false); avisar(estado === "inactivo" ? `Desactivaste a ${nombre}.` : `${nombre} está activo de nuevo.`) }
       catch (err) { setDlg(null); avisar(err.response?.data?.message || "No se pudo cambiar el estado.") } finally { setBusy(false) }
     }
-    const chip = off ? "DESACTIVADO" : mem === "vigente" || mem === "activa" ? "MEMBRESÍA ACTIVA" : mem === "por_vencer" ? "POR VENCER" : "MEMBRESÍA VENCIDA"
-    const chOk = !off && (mem === "vigente" || mem === "activa")
+    const chip = cargando ? "CARGANDO…" : off ? "DESACTIVADO" : mem === "vigente" || mem === "activa" ? "MEMBRESÍA ACTIVA" : mem === "por_vencer" ? "POR VENCER" : "MEMBRESÍA VENCIDA"
+    const chOk = !cargando && !off && (mem === "vigente" || mem === "activa")
     return {
       c,
       tabs2: [["datos", "Datos"], ["res", "Reservas"], ["ab", "Abonos"], ["doc", "Docs"]].map(([tid, l]) => { const s = tid === tab; return { id: "tb-" + tid, l, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, pick: () => setTab(tid) } }),
       tabId: "tb-" + tab, tDatos: tab === "datos", tOtro: tab !== "datos",
       grupos, oIcon: o.icon, oList: o.rows.length > 0, oEmpty: !o.rows.length, oEmptyT: o.et, oEmptyS: o.es, oRows: sep(o.rows),
-      chip, chBg: off ? "transparent" : chOk ? c.okBg : c.warnBg, chBd: off ? c.btnLine : chOk ? c.okLine : c.warnLine, chFg: off ? c.muted : chOk ? c.okFg : c.warnFg, inactivo: off,
+      chip, chBg: off || cargando ? "transparent" : chOk ? c.okBg : c.warnBg, chBd: off || cargando ? c.btnLine : chOk ? c.okLine : c.warnLine, chFg: off || cargando ? c.muted : chOk ? c.okFg : c.warnFg, inactivo: off,
       reactivar: () => { if (puedeEditar && !propia) cambiarEstado("activo") },
       menu, openMenu: () => setMenu(true), closeAll: cerrar,
       togIcon: off ? "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5z" : "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 9v6M14 9v6", togT: off ? "Reactivar usuario" : "Desactivar usuario", togS: off ? "Vuelve a poder reservar y entrar a la app." : "No podrá reservar. Se guardan sus datos.",
@@ -124,7 +128,7 @@ export default function FichaCelular() {
       faltan: esAlumno && faltan > 0, faltanTxt: `Faltan ${faltan} ${faltan === 1 ? "dato" : "datos"}: ${[dp.fechaNacimiento ? null : "nacimiento", dp.contactoEmergencia ? null : "contacto de emergencia"].filter(Boolean).join(" y ")}`,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, ficha, reservas, pagos, docs, error, tab, menu, dlg, conf, busy, deleted, toast, c, oscuro, id, propia, puedeEditar, puedeBaja])
+  }, [user, ficha, fichaLista, reservas, pagos, docs, error, tab, menu, dlg, conf, busy, deleted, toast, c, oscuro, id, propia, puedeEditar, puedeBaja])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver usuarios.</div>
 

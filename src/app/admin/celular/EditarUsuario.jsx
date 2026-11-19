@@ -60,7 +60,8 @@ export default function EditarUsuarioCelular() {
     return () => { vigente = false }
   }, [id])
 
-  const volver = useCallback(() => navigate(`/admin/usuarios/${id}`), [navigate, id])
+  // Si se llegó desde la ficha, "atrás" de verdad (así la pantalla anterior entra deslizando hacia el lado correcto)
+  const volver = useCallback(() => (window.history.state?.idx > 0 ? navigate(-1) : navigate(`/admin/usuarios/${id}`)), [navigate, id])
 
   const v = useMemo(() => {
     const V = vals || VACIO, O = orig || VACIO

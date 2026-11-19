@@ -301,6 +301,24 @@
 .bv-esq { animation: bv-latido 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .bv-esq { animation: none; } }
 
+/* Admin en celular: la pantalla entra deslizando (desde la derecha al avanzar, desde la izquierda al volver) y sus bloques aparecen
+   escalonados. Al tocar un botón o un enlace se hunde un poco. */
+@keyframes bv-ruta-adelante { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes bv-ruta-atras { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+.bv-ruta-adelante { animation: bv-ruta-adelante 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.bv-ruta-atras { animation: bv-ruta-atras 0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.bv-ruta-adelante main > *, .bv-ruta-atras main > * { animation: bv-sube 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.bv-ruta-adelante main > *:nth-child(2), .bv-ruta-atras main > *:nth-child(2) { animation-delay: 0.05s; }
+.bv-ruta-adelante main > *:nth-child(3), .bv-ruta-atras main > *:nth-child(3) { animation-delay: 0.1s; }
+.bv-ruta-adelante main > *:nth-child(4), .bv-ruta-atras main > *:nth-child(4) { animation-delay: 0.15s; }
+.bv-ruta-adelante main > *:nth-child(n+5), .bv-ruta-atras main > *:nth-child(n+5) { animation-delay: 0.2s; }
+.dc-pantalla button, .dc-pantalla a { transition: transform 0.15s ease; }
+.dc-pantalla button:active, .dc-pantalla a[href]:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .bv-ruta-adelante, .bv-ruta-atras, .bv-ruta-adelante main > *, .bv-ruta-atras main > * { animation: none; }
+  .dc-pantalla button:active, .dc-pantalla a[href]:active { transform: none; }
+}
+
 /* Escritorio: el tamaño lo da el zoom del lienzo (useZoomLienzo), ya no se achica la letra base al 90 %. */
 
 /* ── Menú lateral y barra de arriba del admin (marcación de la referencia). Oscuro = valores exactos de la referencia;
