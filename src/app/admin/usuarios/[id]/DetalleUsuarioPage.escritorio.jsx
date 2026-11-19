@@ -197,7 +197,9 @@ export default function DetalleUsuarioPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 24px Archivo" }}>{user?.nombre}</h2>
             <span style={membresiaActiva ? pastilla("var(--sh-active-bg)", "rgba(155, 230, 0, 0.3)", "var(--primary)") : user?.membresia === "por_vencer" ? pastilla("var(--sh-warn-bg)", "var(--sh-warn-line)", "var(--sh-warn)") : pastilla("var(--sh-danger-bg)", "var(--sh-danger-line)", "var(--sh-danger)")}>{estadoMembresiaTexto}</span>
-            <span style={pastilla("transparent", "var(--sh-control-line)", "var(--sh-link)")}>{perfilCapital}</span>
+            {(user?.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean) : [perfilCapital]).map((nombrePerfil) => (
+              <span key={nombrePerfil} style={pastilla("transparent", "var(--sh-control-line)", "var(--sh-link)")}>{nombrePerfil}</span>
+            ))}
             {estaInactivo && <span style={pastilla("transparent", "var(--sh-control-line)", "var(--muted-foreground)")}>Inactivo</span>}
           </div>
           <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 8, font: "500 14px Archivo", color: "var(--sh-link)" }}>

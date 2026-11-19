@@ -310,9 +310,11 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="truncate text-base font-black leading-tight text-foreground">{user.nombre}</h2>
-                <span className="rounded-md border border-lime-500/40 bg-lime-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
-                  {user.nombrePerfil || user.perfil || "Sin perfil"}
-                </span>
+                {(user.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean) : [user.nombrePerfil || user.perfil || "Sin perfil"]).map((nombrePerfil) => (
+                  <span key={nombrePerfil} className="rounded-md border border-lime-500/40 bg-lime-400/10 px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-lime-700 dark:text-lime-400">
+                    {nombrePerfil}
+                  </span>
+                ))}
                 {user.sinAcceso && <span className="rounded-md border border-border px-2 py-0.5 text-[0.625rem] font-black uppercase tracking-widest text-foreground/60">Sin cuenta</span>}
               </div>
               <p className="mt-1 text-sm text-foreground/70">{textoCuenta(user)}</p>

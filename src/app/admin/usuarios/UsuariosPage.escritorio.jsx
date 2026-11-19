@@ -370,9 +370,11 @@ function FichaUsuario({ user, permisos, navigate, onCambiarEstado, onEliminar, o
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <h2 className="bv-admin-titulo" style={{ margin: 0, font: "800 22px Archivo" }}>{user.nombre}</h2>
-                <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--sh-control-line)", color: "var(--muted-foreground)", font: "700 11px Archivo", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  {(user.nombrePerfil || user.perfil || "Sin perfil").trim()}
-                </span>
+                {(user.perfiles?.length > 1 ? user.perfiles.map((p) => p.nombrePerfil).filter(Boolean) : [(user.nombrePerfil || user.perfil || "Sin perfil").trim()]).map((nombrePerfil) => (
+                  <span key={nombrePerfil} style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--sh-control-line)", color: "var(--muted-foreground)", font: "700 11px Archivo", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    {nombrePerfil}
+                  </span>
+                ))}
               </div>
               <p style={{ margin: "4px 0 0", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>{user.email || "Sin correo"}</p>
             </>
