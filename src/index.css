@@ -270,6 +270,16 @@
 }
 .onda-agua { animation: onda-agua 600ms cubic-bezier(.2,.7,.3,1) forwards; }
 
+/* Gota del menú de abajo: al llegar a una opción se estira de costado y se junta con un rebote, como agua */
+@keyframes gota-agua {
+  0%   { transform: scale(1.55, 0.8); }
+  45%  { transform: scale(0.9, 1.1); }
+  75%  { transform: scale(1.05, 0.97); }
+  100% { transform: scale(1, 1); }
+}
+.gota-agua { animation: gota-agua 640ms cubic-bezier(.3,.8,.4,1) both; transform-origin: 50% 60%; }
+@media (prefers-reduced-motion: reduce) { .gota-agua { animation: none; } }
+
 /* Botón del medio de la barra de abajo: halo verde que late despacio para que destaque */
 @keyframes latido-centro {
   0%, 100% { box-shadow: 0 6px 14px -4px rgba(163, 230, 53, 0.3), 0 0 0 0 rgba(163, 230, 53, 0.22); }

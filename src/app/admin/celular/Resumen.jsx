@@ -95,7 +95,7 @@ export default function ResumenCelular() {
 
     return {
       c, loading, ready: !loading, kpis, allOk: alertList.length === 0, alertas: alertList.length > 0, alertList,
-      acciones: [{ t: "Nuevo usuario", href: "/admin/usuarios/nuevo", d: "M15 19a6 6 0 0 0-12 0M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M16 11h6" }, { t: "Crear clase", href: "/admin/clases/nueva", d: "M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 10h18" }, { t: "Check‑in", href: "/admin/checkin", d: "M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8" }],
+      acciones: [{ t: "Nuevo usuario", href: "/admin/usuarios/nuevo", d: "M15 19a6 6 0 0 0-12 0M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M16 11h6" }, { t: "Crear clase", href: "/admin/clases/nueva", d: "M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 10h18" }, { t: "Check‑in", href: "/admin/check-in", d: "M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8" }],
       filtros: [["todo", "Todo"], ["pagos", "Pagos"], ["res", "Reservas"]].map(([id, l]) => { const p = filtro === id; return { l, p: p ? "true" : "false", bg: p ? "#9be600" : "transparent", fg: p ? "#0b0b0b" : c.ink, pick: () => { setFiltro(id); setTodo(false) } } }),
       grupos, actEmpty: !loading && grupos.length === 0, more: !loading && filtradas.length > visibles.length, showMore: () => setTodo(true),
       toast: null,
