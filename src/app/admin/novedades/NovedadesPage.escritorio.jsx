@@ -174,7 +174,7 @@ export default function NovedadesPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <TituloPagina descripcion={"Comunicados, eventos y promos que se ven en la portada de los alumnos con sesión iniciada."}>Novedades</TituloPagina>
           {puedeEditar && (
-            <BotonAdmin variante="principal" onClick={() => setEditando({ ...VACIO })} className="ml-auto">
+            <BotonAdmin variante="principal" onClick={() => setEditando({ ...VACIO })} className={`ml-auto ${lista && lista.length > 0 ? "xl:hidden" : ""}`}>
               <Plus className="h-4 w-4" aria-hidden="true" /> NUEVA NOVEDAD
             </BotonAdmin>
           )}
@@ -203,6 +203,11 @@ export default function NovedadesPage() {
                   </button>
                 ))}
               </div>
+              {puedeEditar && (
+                <BotonAdmin variante="principal" onClick={() => setEditando({ ...VACIO })} className="ml-auto">
+                  <Plus className="h-4 w-4" aria-hidden="true" /> NUEVA NOVEDAD
+                </BotonAdmin>
+              )}
             </div>
 
             {lista.filter((x) => x.vigente).length === 0 && (
@@ -229,7 +234,7 @@ export default function NovedadesPage() {
                       return (
                         <li key={n.idNovedad} className="grid grid-cols-[minmax(0,1fr)_260px_170px] items-center gap-4 px-5 py-4">
                           <div className="flex min-w-0 items-center gap-4">
-                            <div className="relative h-[72px] w-[104px] shrink-0 overflow-hidden rounded-[10px]" style={n.imagen ? undefined : { background: color }}>
+                            <div className="relative h-[72px] w-[104px] shrink-0 overflow-hidden rounded-[10px]" style={n.imagen ? undefined : { background: color.hex }}>
                               {n.imagen && <img src={n.imagen} alt="" className="h-full w-full object-cover" />}
                               <span className="absolute bottom-1.5 left-1.5 rounded px-1.5 py-0.5 text-[10px] font-black uppercase tracking-[.1em] text-white" style={{ background: "rgba(0,0,0,.6)" }}>{tipoNombre}</span>
                             </div>
@@ -237,12 +242,17 @@ export default function NovedadesPage() {
                               <p className={`truncate text-[16px] font-extrabold ${vencida ? "text-muted-foreground" : "text-foreground"}`}>{n.titulo}</p>
                               {n.texto && <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{n.texto}</p>}
                               <p className="mt-1 text-[12px] text-muted-foreground">
-                                {tipoNombre} · Publicada el {fechaDDMM(n.creadaEn)}{n.enlace ? " · Con botón" : ""}
+                                {tipoNombre} · Publicada el {n.fecha || fechaDDMM(n.creadaEn)}{n.enlace ? " · Con botón" : ""}
                               </p>
                             </div>
                           </div>
                           <div>
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[.12em] ${estado.clase}`}>{estado.texto}</span>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[12px] font-bold ${
+                              estado.texto === "Visible" ? "border-lime-500/40 bg-lime-400/10 text-lime-700 dark:text-lime-400"
+                                : estado.texto === "Vencida" ? "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400"
+                                : "border-border bg-foreground/5 text-muted-foreground"}`}>
+                              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />{estado.texto}
+                            </span>
                             {n.hasta && <p className="mt-1.5 text-[13px] text-muted-foreground">{vencida ? "Venció el" : "Vence el"} {fechaCorta(n.hasta)}</p>}
                           </div>
                           <div className="flex items-center justify-end gap-2">
