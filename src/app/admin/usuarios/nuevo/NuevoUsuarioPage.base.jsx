@@ -38,7 +38,7 @@ export default function NuevoUsuarioPage() {
     dni: "",
     email: "",
     telefono: "",
-    perfil: "",
+    perfil: [], // ids de perfil (texto); puede tener varios y el primero es el principal
     password: "",
   })
   const [errors, setErrors] = useState({})
@@ -56,7 +56,7 @@ export default function NuevoUsuarioPage() {
           // Por defecto, el perfil de alumno (el alta más común). Nunca uno con más poder:
           // antes quedaba elegido el primero de la lista, que era "Admin".
           const alumno = datos.data.find(p => String(p.nombrePerfil || "").toLowerCase().includes("alumno"))
-          if (alumno) setFormData(prev => ({ ...prev, perfil: String(alumno.idPerfil) }))
+          if (alumno) setFormData(prev => ({ ...prev, perfil: [String(alumno.idPerfil)] }))
         }
       } catch (error) {
         console.error("Error al cargar perfiles:", error)
@@ -76,7 +76,7 @@ export default function NuevoUsuarioPage() {
     if (!formData.dni.trim()) newErrors.dni = "El DNI es requerido"
     if (!formData.email.trim()) newErrors.email = "El email es requerido"
     if (!formData.telefono.trim()) newErrors.telefono = "El teléfono es requerido"
-    if (!formData.perfil) newErrors.perfil = "El perfil es requerido"
+    if (formData.perfil.length === 0) newErrors.perfil = "Elegí al menos un perfil"
     if (!formData.password) newErrors.password = "La contraseña es requerida"
     else if (problemaContrasena(formData.password)) newErrors.password = problemaContrasena(formData.password)
     return newErrors
@@ -128,7 +128,7 @@ export default function NuevoUsuarioPage() {
         dni: formData.dni.trim(),
         email: formData.email.trim().toLowerCase(),
         telefono: formData.telefono.trim(),
-        perfil: formData.perfil, // Ahora es idPerfil (número como string)
+        perfiles: formData.perfil, // ids de perfil; el primero es el principal
         password: formData.password,
         estado: "activo",
         membresia: "vencida",
@@ -248,12 +248,13 @@ export default function NuevoUsuarioPage() {
                 ) : perfiles.length === 0 ? (
                   <p className="text-sm text-red-700 dark:text-red-400">No hay perfiles creados. Creá uno en Perfiles.</p>
                 ) : (
-                  <div role="radiogroup" aria-labelledby="etiqueta-perfil" className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-background/60 p-1">
+                  <div role="group" aria-labelledby="etiqueta-perfil" className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-background/60 p-1">
                     {perfiles.map((p) => {
-                      const activo = formData.perfil === String(p.idPerfil)
+                      const id = String(p.idPerfil)
+                      const activo = formData.perfil.includes(id)
                       return (
-                        <button key={p.idPerfil} type="button" role="radio" aria-checked={activo}
-                          onClick={() => setFormData({ ...formData, perfil: String(p.idPerfil) })}
+                        <button key={p.idPerfil} type="button" role="checkbox" aria-checked={activo}
+                          onClick={() => setFormData({ ...formData, perfil: activo ? formData.perfil.filter((x) => x !== id) : [...formData.perfil, id] })}
                           className={`flex min-h-[2.5rem] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500 ${
                             activo ? "bg-lime-400 text-black" : "text-foreground/65 hover:bg-foreground/5 hover:text-foreground"
                           }`}>
@@ -263,6 +264,9 @@ export default function NuevoUsuarioPage() {
                       )
                     })}
                   </div>
+                )}
+                {perfiles.length > 0 && (
+                  <p className="text-xs text-foreground/55">Podés elegir más de uno (ej.: Alumno y Profesor). Los permisos se suman y el primero es el principal.</p>
                 )}
                 {error(errors.perfil)}
               </div>

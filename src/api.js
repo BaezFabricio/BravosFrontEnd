@@ -166,58 +166,26 @@ export const getUsuarioById = async (id) => {
 }
 
 /**
- * Crea un nuevo usuario
- * POST /auth/registro (fallback: /usuarios)
+ * Crea un nuevo usuario desde el panel del administrador (POST /usuarios, exige el permiso usuarios:alta).
+ * La cuenta nace activa, con el correo verificado y una contraseña temporal. "perfiles" es la lista de ids de
+ * perfil (el primero es el principal); "perfil" (un solo id) sigue aceptándose.
+ * Antes pasaba por /auth/registro, que es el registro público: ignoraba el perfil elegido y dejaba la cuenta pendiente.
  */
 export const crearUsuario = async (usuarioData) => {
   try {
-    const payloadRegistro = {
+    const perfiles = (Array.isArray(usuarioData.perfiles) ? usuarioData.perfiles : [usuarioData.perfil])
+      .map((n) => parseInt(n, 10))
+      .filter((n) => Number.isInteger(n) && n > 0)
+    const response = await apiClient.post('/usuarios', {
       nombrecompleto: usuarioData.nombre,
       dni: usuarioData.dni,
       correo: usuarioData.email,
       telefono: usuarioData.telefono,
       username: usuarioData.email,
       password: usuarioData.password,
-    }
-
-    try {
-      const responseRegistro = await apiClient.post('/auth/registro', payloadRegistro)
-      const idUsuario =
-        responseRegistro?.data?.data?.usuario?.idUsuario ??
-        responseRegistro?.data?.usuario?.idUsuario ??
-        responseRegistro?.data?.idUsuario
-
-      if (idUsuario && (usuarioData.perfil || usuarioData.creditos !== undefined || usuarioData.estado || usuarioData.membresia)) {
-        try {
-          await apiClient.put(`/usuarios/${idUsuario}`, construirPayloadUsuario(usuarioData))
-        } catch (syncError) {
-          console.warn('Usuario creado en auth, pero no se pudieron sincronizar campos extra:', syncError)
-        }
-      }
-
-      return responseRegistro.data
-    } catch (errorRegistro) {
-      if (errorRegistro.response?.status === 404 || errorRegistro.response?.status === 405) {
-        const responseFallback = await apiClient.post('/usuarios', {
-          nombrecompleto: usuarioData.nombre,
-          nombre: usuarioData.nombre,
-          dni: usuarioData.dni,
-          correo: usuarioData.email,
-          email: usuarioData.email,
-          username: usuarioData.email,
-          telefono: usuarioData.telefono,
-          password: usuarioData.password,
-          perfil: usuarioData.perfil,
-          rol: usuarioData.perfil,
-          creditos: usuarioData.creditos,
-          estado: usuarioData.estado,
-          membresia: usuarioData.membresia,
-        })
-        return responseFallback.data
-      }
-
-      throw errorRegistro
-    }
+      idPerfiles: perfiles,
+    })
+    return response.data
   } catch (error) {
     if (error.response?.status !== 409) {
       console.error('Error al crear usuario:', error)

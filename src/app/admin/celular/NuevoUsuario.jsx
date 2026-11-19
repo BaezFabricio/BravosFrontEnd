@@ -22,7 +22,7 @@ export default function NuevoUsuarioCelular() {
   const puedeAlta = useMemo(() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]").includes("usuarios:alta") } catch { return false } }, [])
   const [tipo, setTipo] = useState(params.get("sin") ? "sin" : "con")
   const [perfiles, setPerfiles] = useState([])
-  const [perfil, setPerfil] = useState("")
+  const [perfil, setPerfil] = useState([]) // ids de perfil (texto); puede tener varios y el primero es el principal
   const [vals, setVals] = useState({ nombre: "", dni: "", tel: "", email: "" })
   const [pass, setPass] = useState("")
   const [show, setShow] = useState(false)
@@ -43,7 +43,7 @@ export default function NuevoUsuarioCelular() {
       setPerfiles(l)
       // Por defecto el de alumno; nunca uno con más poder
       const alumno = l.find((p) => String(p.nombrePerfil || "").toLowerCase().includes("alumno"))
-      if (alumno) setPerfil(String(alumno.idPerfil))
+      if (alumno) setPerfil([String(alumno.idPerfil)])
     }).catch(() => avisar("No se pudieron cargar los perfiles."))
   }, [avisar])
 
@@ -57,7 +57,7 @@ export default function NuevoUsuarioCelular() {
       email: con && !vals.email ? "Necesitamos el correo para que pueda entrar a la app." : (vals.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(vals.email) ? "El correo no es válido." : ""),
     }
     const passErr = con && R.some((x) => !x[1])
-    const perfilErr = con && !perfil
+    const perfilErr = con && perfil.length === 0
     const nErr = Object.values(E).filter(Boolean).length + (passErr ? 1 : 0) + (perfilErr ? 1 : 0)
     const H = { nombre: "", dni: "Lo usa para el check-in en recepción.", tel: "Para avisos por WhatsApp.", email: con ? "Con este correo entra a la app." : "Le llegan los comprobantes." }
     const IM = { nombre: "text", dni: "numeric", tel: "tel", email: "email" }
@@ -71,7 +71,7 @@ export default function NuevoUsuarioCelular() {
       if (nErr) { setTried(true); setTimeout(() => document.getElementById("err-sum")?.focus(), 0); return }
       setSending(true); setErrorServidor("")
       try {
-        if (con) await crearUsuario({ nombre: vals.nombre.trim(), dni: vals.dni.trim(), email: vals.email.trim().toLowerCase(), telefono: vals.tel.trim(), perfil, password: pass, estado: "activo", membresia: "vencida" })
+        if (con) await crearUsuario({ nombre: vals.nombre.trim(), dni: vals.dni.trim(), email: vals.email.trim().toLowerCase(), telefono: vals.tel.trim(), perfiles: perfil, password: pass, estado: "activo", membresia: "vencida" })
         else await apiClient.post("/usuarios/sin-cuenta", { nombrecompleto: vals.nombre.trim(), dni: vals.dni.trim(), telefono: vals.tel.trim(), correo: vals.email.trim().toLowerCase() })
         setDone(true)
       } catch (err) {
@@ -79,11 +79,11 @@ export default function NuevoUsuarioCelular() {
         setTried(true)
       } finally { setSending(false) }
     }
-    const nombrePerfil = (perfiles.find((p) => String(p.idPerfil) === perfil) || {}).nombrePerfil || ""
+    const nombrePerfil = (perfiles.find((p) => String(p.idPerfil) === perfil[0]) || {}).nombrePerfil || "" // la ayuda explica el principal
     return {
       c, f, done, form: !done, conCuenta: con, sinCuenta: !con, doneConCuenta: con,
       tipos: [["con", "Sí, con cuenta", "Entra con correo y contraseña."], ["sin", "No, sin cuenta", "Vos gestionás sus pagos."]].map(([id, t, s]) => { const ch = tipo === id; return { t, s, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line, bg: ch ? c.okBg : c.card, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => { setTipo(id); setTried(false) } } }),
-      perfiles: perfiles.map((p) => { const ch = perfil === String(p.idPerfil); return { l: p.nombrePerfil, ch: ch ? "true" : "false", bg: ch ? "#9be600" : "transparent", fg: ch ? "#0b0b0b" : c.ink, pick: () => setPerfil(String(p.idPerfil)) } }),
+      perfiles: perfiles.map((p) => { const id = String(p.idPerfil); const ch = perfil.includes(id); return { l: p.nombrePerfil, ch: ch ? "true" : "false", bg: ch ? "#9be600" : "transparent", fg: ch ? "#0b0b0b" : c.ink, pick: () => setPerfil((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id])) } }),
       perfilHint: PERFIL_AYUDA[String(nombrePerfil).toLowerCase()] || "",
       pass, onPass: (ev) => setPass(ev.target.value), gen: () => { setPass(generar()); setShow(true) },
       showPass: show ? "true" : "false", passType: show ? "text" : "password", eyeLabel: show ? "Ocultar contraseña" : "Mostrar contraseña", togglePass: () => setShow((x) => !x),
