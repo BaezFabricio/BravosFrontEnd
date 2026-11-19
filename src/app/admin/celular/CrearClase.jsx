@@ -12,14 +12,9 @@ const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0
 const fDate = (s) => { if (!s) return ""; const [y, m, d] = s.split("-").map(Number); const dt = new Date(y, m - 1, d); return WDL[dt.getDay()].replace(/^./, (x) => x.toUpperCase()) + " " + d + " " + MES[m - 1] }
 const toMin = (t) => { if (!t) return null; const [a, b] = t.split(":").map(Number); return a * 60 + b }
 const ini = (n = "") => n.trim().split(/\s+/).slice(0, 2).map((x) => x[0] || "").join("").toUpperCase() || "?"
-const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-// La rutina se escribe como texto simple y se guarda como párrafos (el servidor y el alumno la leen como HTML)
-const aHtml = (t) => t.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => (/^[^:]{1,30}:$/.test(l) ? `<h3>${esc(l)}</h3>` : `<p>${esc(l)}</p>`)).join("")
-// De HTML a texto simple (para volver a mostrar la rutina guardada)
-const aTexto = (html = "") => {
-  const d = new DOMParser().parseFromString(String(html).replace(/<\/(p|div|li|h\d)>|<br\s*\/?>/gi, "\n"), "text/html")
-  return (d.body.textContent || "").replace(/\n{3,}/g, "\n\n").trim()
-}
+// La descripción y la rutina se escriben con el editor de texto con formato y se guardan como HTML (igual que en tableta y escritorio).
+// Cuando el editor está vacío devuelve <p></p>: se trata como sin contenido.
+const sinContenido = (html = "") => !String(html).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim()
 const horaLocal = (d) => `${iso(d)} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:00`
 
 // Crear clase del admin en celular (referencia 08): cuatro pasos y botón fijo abajo
@@ -53,9 +48,8 @@ export default function CrearClaseCelular() {
       if (!k) return
       let desc = k.rutina?.descripcion || "", cont = k.rutina?.contenido || ""
       try { const p = JSON.parse(k.rutina?.descripcion || ""); if (p && typeof p.rutina !== "undefined") { desc = p.desc || ""; cont = p.rutina || "" } } catch { /* texto plano */ }
-      const texto = aTexto
       setOriginal(k)
-      setSt((s) => ({ ...s, name: k.nombreClase || "", coach: String(k.idProfesor || ""), desc: texto(desc), rutina: texto(cont), fecha: k.fechaEspecifica ? String(k.fechaEspecifica).slice(0, 10) : s.fecha, ini: String(k.horaInicio || "").slice(0, 5), fin: String(k.horaFin || "").slice(0, 5), cupo: Number(k.cupoMaximo) || 15, avisar: false }))
+      setSt((s) => ({ ...s, name: k.nombreClase || "", coach: String(k.idProfesor || ""), desc, rutina: cont, fecha: k.fechaEspecifica ? String(k.fechaEspecifica).slice(0, 10) : s.fecha, ini: String(k.horaInicio || "").slice(0, 5), fin: String(k.horaFin || "").slice(0, 5), cupo: Number(k.cupoMaximo) || 15, avisar: false }))
     }).catch(() => set({ error: "No se pudo cargar la clase.", tried: true }))
   }, [esEdicion, id]) // eslint-disable-line react-hooks/exhaustive-deps
   const tipoCod = (original && original.tipoPlan) || params.get("tipo") || (tipos.find((t) => t.activo) || {}).codigo || ""
@@ -74,7 +68,7 @@ export default function CrearClaseCelular() {
     const curT = (() => { const i = TB.findIndex(([, it]) => it.some(([a, b]) => S.ini === a && S.fin === b)); if (i >= 0) return i; const m = toMin(S.ini); return m == null ? 2 : turnoDe(S.ini) })()
     const dur = hrOk ? toMin(S.fin) - toMin(S.ini) : 0
     const go = (n) => set({ step: n, tried: false })
-    const nb = (S.rutina.match(/\n?[A-ZÁÉÍÓÚ][A-Za-záéíóú ]+:/g) || []).length
+    const nb = (S.rutina.match(/<p>|<li>|<h[23]>/g) || []).length // bloques de la rutina (párrafos, ítems y títulos)
     const avMsg = S.cuando === "ya" ? "Se envía apenas crees la clase." : S.avDt ? `Se envía el ${fDate(S.avDt.slice(0, 10))} a las ${S.avDt.slice(11, 16)}.` : "Elegí cuándo enviarlo."
     const coach = profes.find((p) => String(p.idProfesor) === S.coach)
     const crear = async () => {
@@ -82,7 +76,7 @@ export default function CrearClaseCelular() {
       try {
         const turno = NOMBRE_TURNO[turnoDe(S.ini)]
         const fechaPublicacion = !S.avisar ? (esEdicion ? (original?.fechaPublicacion || null) : null) : S.cuando === "ya" ? horaLocal(new Date()) : (S.avDt ? horaLocal(new Date(S.avDt)) : horaLocal(new Date()))
-        const payload = { nombreClase: S.name.trim(), tipoClase: "Grupal", cupoMaximo: S.cupo, cupoDisponible: S.cupo, estado: (esEdicion && original?.estado) || "Activo", idGimnasio: 1, idProfesor: parseInt(S.coach, 10), ...(esEdicion && !original?.fechaEspecifica ? { diasSemana: original?.diasSemana ? String(original.diasSemana).split(",") : [] } : { fechaEspecifica: S.fecha }), horaInicio: S.ini, horaFin: S.fin, turno, tipoPlan: tipoCod, fechaPublicacion, rutina: { descripcion: S.desc, ejercicios: aHtml(S.rutina) } }
+        const payload = { nombreClase: S.name.trim(), tipoClase: "Grupal", cupoMaximo: S.cupo, cupoDisponible: S.cupo, estado: (esEdicion && original?.estado) || "Activo", idGimnasio: 1, idProfesor: parseInt(S.coach, 10), ...(esEdicion && !original?.fechaEspecifica ? { diasSemana: original?.diasSemana ? String(original.diasSemana).split(",") : [] } : { fechaEspecifica: S.fecha }), horaInicio: S.ini, horaFin: S.fin, turno, tipoPlan: tipoCod, fechaPublicacion, rutina: { descripcion: S.desc, ejercicios: S.rutina } }
         const r = esEdicion ? await apiClient.put(`/clases/${id}`, payload) : await apiClient.post("/clases", payload)
         if (r.data && r.data.success === false) throw new Error(r.data.message || "Error al crear la clase")
         set({ sending: false, done: true })
@@ -95,8 +89,7 @@ export default function CrearClaseCelular() {
       err: err || (S.tried && S.error ? S.error : ""), name: S.name, onName: (e) => set({ name: e.target.value }), nameInv: err && step === 1 ? "true" : "false", nameBd: err && step === 1 ? c.errFg : c.line,
       sugs: ["WOD Competitivo", "Open Box", "Fuerza", "Funcional"].map((l) => { const on = S.name === l; return { l, bg: on ? "#9be600" : "transparent", fg: on ? "#0b0b0b" : c.ink, bd: on ? "#9be600" : c.btnLine, pick: () => set({ name: l }) } }),
       coaches: profes.map((k) => { const ch = S.coach === String(k.idProfesor); return { id: k.idProfesor, n: k.nombreProfesor, ini: ini(k.nombreProfesor), img: k.avatarUrl || null, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line, bg: ch ? c.okBg : c.card, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => set({ coach: String(k.idProfesor) }) } }),
-      desc: S.desc, onDesc: (e) => set({ desc: e.target.value }), rutina: S.rutina, onRut: (e) => set({ rutina: e.target.value }),
-      bloques: ["Warm Up", "Fuerza", "AMRAP", "For Time"].map((l) => ({ l, aria: "Agregar bloque " + l, add: () => set({ rutina: (S.rutina ? S.rutina.replace(/\s*$/, "") + "\n\n" : "") + l + ":\n" }) })),
+      desc: S.desc, onDesc: (h) => set({ desc: sinContenido(h) ? "" : h }), rutina: S.rutina, onRut: (h) => set({ rutina: sinContenido(h) ? "" : h }),
       dias: dias.map((d) => { const ch = S.fecha === d.iso; return { ...d, ch: ch ? "true" : "false", aria: d.long, bg: ch ? "#9be600" : c.card, fg: ch ? "#0b0b0b" : c.ink, bd: ch ? "#9be600" : (S.tried && !S.fecha ? c.errFg : c.line), pick: () => set({ fecha: d.iso }) } }),
       fecha: S.fecha, onFecha: (e) => set({ fecha: e.target.value }),
       turnosBox: TB.map(([t, items], i) => { const sel = (S.turno ?? curT) === i, has = items.some(([a, b]) => S.ini === a && S.fin === b); return { t: t.replace("Turno ", "").replace(/^./, (x) => x.toUpperCase()), sel: sel ? "true" : "false", bg: sel ? c.ink : "transparent", fg: sel ? c.bg : c.ink, dot: has, dotC: "#9be600", pick: () => set({ turno: i }) } }),

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Minus, Plus, RotateCcw, Save, Loader2 } from "lucide-react"
 import apiClient from "@/api"
 import { toast } from "@/lib/notificar"
@@ -62,19 +62,18 @@ export default function ReglasReservas({ puedeModificar }) {
   const [error, setError] = useState(false)
   const [guardando, setGuardando] = useState(false)
 
-  useEffect(() => {
-    let vigente = true
-    apiClient.get("/reglas-box")
+  const cargar = useCallback(() => {
+    setError(false)
+    return apiClient.get("/reglas-box")
       .then((r) => {
-        if (!vigente) return
         const d = r.data?.data
         const v = { horasReservar: d.horasReservar, horasCancelar: d.horasCancelar, diasAdelante: d.diasAdelante }
-        setValores(v); setGuardados(v); setLimites(d.limites || {}); setPorDefecto(d.porDefecto || porDefecto)
+        setValores(v); setGuardados(v); setLimites(d.limites || {}); setPorDefecto((p) => d.porDefecto || p)
       })
-      .catch(() => { if (vigente) setError(true) })
-    return () => { vigente = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch(() => setError(true))
   }, [])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { cargar() }, [cargar])
 
   // Suma o resta sobre el valor más reciente (dos toques rápidos seguidos cuentan los dos)
   const cambiar = (id, delta) => {
@@ -100,7 +99,17 @@ export default function ReglasReservas({ puedeModificar }) {
     }
   }
 
-  if (error) return <p role="alert" className="rounded-2xl border border-border bg-card p-6 text-sm text-foreground/70">No se pudieron cargar las reglas. Recargá la página para intentar de nuevo.</p>
+  if (error) {
+    return (
+      <div role="alert" className="flex flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6 text-sm text-foreground/70">
+        <p className="m-0">No se pudieron cargar las reglas. Si el sistema se actualizó hace un momento, puede faltar reiniciar el servidor.</p>
+        <button type="button" onClick={cargar}
+          className="inline-flex min-h-[2.75rem] items-center gap-2 rounded-xl border border-border px-5 text-sm font-bold text-foreground transition-colors hover:bg-foreground/5">
+          <RotateCcw className="h-4 w-4" aria-hidden="true" /> Reintentar
+        </button>
+      </div>
+    )
+  }
   if (!valores) return <div className="bv-esq space-y-3" role="status" aria-label="Cargando">{[0, 1, 2].map((i) => <div key={i} className="h-28 rounded-2xl border border-border bg-foreground/[0.05]" />)}</div>
 
   return (

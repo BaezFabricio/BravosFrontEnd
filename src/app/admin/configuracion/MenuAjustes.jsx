@@ -19,15 +19,15 @@ const GRUPOS = [
     ],
   },
   {
-    titulo: 'Cobros',
-    items: [
-      { texto: 'Datos bancarios', detalle: 'Banco, CBU/CVU y alias para transferencias', icono: Landmark, a: '?seccion=banco', permiso: 'configuracion:consulta' },
-    ],
-  },
-  {
     titulo: 'Reservas',
     items: [
       { texto: 'Reglas de reservas', detalle: 'Horas y días para reservar y cancelar', icono: CalendarClock, a: '?seccion=reglas', permiso: 'configuracion:consulta' },
+    ],
+  },
+  {
+    titulo: 'Cobros',
+    items: [
+      { texto: 'Datos bancarios', detalle: 'Banco, CBU/CVU y alias para transferencias', icono: Landmark, a: '?seccion=banco', permiso: 'configuracion:consulta' },
     ],
   },
 ]

@@ -143,7 +143,7 @@ export default function ConfiguracionCelular() {
     return {
       c, menuOn: !sec, sec: !!sec, padL: sec ? "0" : "10px", hT: s ? s[0] : "Configuración", hS: s ? s[3].charAt(0) + s[3].slice(1).toLowerCase() : "",
       back: () => { setSec(null); setVals({ ...S0 }); setArchivos({}); setTried(false) },
-      grupos: [["WEB PÚBLICA", ["portada", "sobre", "tarjetas", "contacto"]], ["COBROS", ["banco"]], ["RESERVAS", ["reglas"]]].map(([t, ks]) => ({ t, items: ks.map((k, i) => ({ t: SECS[k][0], s: SECS[k][1], d: SECS[k][2], sep: i ? c.line2 : "transparent", open: () => { setSec(k); setTab(0); setCarI(0); setTried(false) } })) })),
+      grupos: [["WEB PÚBLICA", ["portada", "sobre", "tarjetas", "contacto"]], ["RESERVAS", ["reglas"]], ["COBROS", ["banco"]]].map(([t, ks]) => ({ t, items: ks.map((k, i) => ({ t: SECS[k][0], s: SECS[k][1], d: SECS[k][2], sep: i ? c.line2 : "transparent", open: () => { setSec(k); setTab(0); setCarI(0); setTried(false) } })) })),
       secDesc: s ? s[4] : "", hasTabs: sec === "tarjetas",
       stabs: [V.t0n || "Tarjeta 1", V.t1n || "Tarjeta 2"].map((l, i) => { const on = tab === i; return { l, sel: on ? "true" : "false", bg: on ? "#9be600" : "transparent", fg: on ? "#0b0b0b" : c.ink, pick: () => setTab(i) } }),
       fields, note: sec === "banco" ? "Revisalos bien: es la cuenta a la que los alumnos van a transferir. Si borrás un dato, deja de mostrarse." : false,

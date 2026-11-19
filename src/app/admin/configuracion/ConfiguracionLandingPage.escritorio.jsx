@@ -424,11 +424,11 @@ function ConfiguracionLandingPage() {
       { id: 'clases', texto: 'Tarjetas de clases', detalle: 'Las 3 disciplinas de la portada' },
       { id: 'contacto', texto: 'Contacto, horarios y mapa', detalle: 'Teléfono, redes, horarios y datos legales' },
     ] },
-    { grupo: 'Cobros', items: [
-      { id: 'banco', texto: 'Datos bancarios', detalle: 'Banco, CBU/CVU y alias para transferencias' },
-    ] },
     { grupo: 'Reservas', items: [
       { id: 'reglas', texto: 'Reglas de reservas', detalle: 'Horas y días para reservar y cancelar' },
+    ] },
+    { grupo: 'Cobros', items: [
+      { id: 'banco', texto: 'Datos bancarios', detalle: 'Banco, CBU/CVU y alias para transferencias' },
     ] },
   ]
 
