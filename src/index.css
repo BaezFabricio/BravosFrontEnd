@@ -314,6 +314,17 @@
 .bv-ruta-adelante main > *:nth-child(3), .bv-ruta-atras main > *:nth-child(3) { animation-delay: 0.1s; }
 .bv-ruta-adelante main > *:nth-child(4), .bv-ruta-atras main > *:nth-child(4) { animation-delay: 0.15s; }
 .bv-ruta-adelante main > *:nth-child(n+5), .bv-ruta-atras main > *:nth-child(n+5) { animation-delay: 0.2s; }
+/* Alumno, profesor y admin en tableta: la pantalla entra deslizando (adelante o atrás) y los botones se hunden al tocarlos */
+@media (max-width: 1023px) {
+  .bv-panel-main[data-nav="adelante"] { animation: bv-ruta-adelante 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .bv-panel-main[data-nav="atras"] { animation: bv-ruta-atras 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .bv-panel-main button, .bv-panel-main a[href] { transition: transform 0.15s ease; }
+  .bv-panel-main button:active, .bv-panel-main a[href]:active { transform: scale(0.97); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bv-panel-main[data-nav] { animation: none; }
+  .bv-panel-main button:active, .bv-panel-main a[href]:active { transform: none; }
+}
 .dc-pantalla button, .dc-pantalla a { transition: transform 0.15s ease; }
 .dc-pantalla button:active, .dc-pantalla a[href]:active { transform: scale(0.97); }
 @media (prefers-reduced-motion: reduce) {

@@ -4,7 +4,7 @@ import { SlotTituloContext } from "@/lib/slotTitulo"
 import { usePermisosVivos } from "@/lib/sincronizarPermisos"
 import UserMenu from "@/components/UserMenu"
 import { panelesPermitidos } from "@/lib/paneles"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import { useEsMovil, CabeceraMovilContext } from "./movil"
 import { useTemaProfesor } from "./paletaProfesor"
@@ -58,6 +58,7 @@ export default function ProfesorLayout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const pathname = location.pathname
+  const tipoNavegacion = useNavigationType() // "POP" = volver atrás: la pantalla entra desde el otro lado
   const movil = useEsMovil()
   const C = useTemaProfesor()
   const [cabecera, setCabecera] = useState(null) // la pone cada página en el celular (título, subtítulo, volver)
@@ -210,7 +211,7 @@ export default function ProfesorLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main key={pathname} className="bv-panel-main p-4 lg:p-[24px] pb-36 lg:pb-6">
+        <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main p-4 lg:p-[24px] pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
@@ -270,7 +271,7 @@ export default function ProfesorLayout({ children }) {
         </button>
       </header>
 
-      <main key={pathname} className="bv-panel-main flex min-h-0 flex-col gap-3.5 px-4 pt-4" style={{ paddingBottom: 124, overscrollBehavior: "contain" }}>
+      <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main flex min-h-0 flex-col gap-3.5 px-4 pt-4" style={{ paddingBottom: 124, overscrollBehavior: "contain" }}>
         <SlotTituloContext.Provider value={null}>{children}</SlotTituloContext.Provider>
       </main>
 

@@ -42,10 +42,10 @@ const iniciales = (nombre) => String(nombre || "?").trim().split(/\s+/).slice(0,
 const leerUltimos = () => { try { return JSON.parse(localStorage.getItem(CLAVE_ULTIMOS) || "{}") } catch { return {} } }
 const fechaLarga = (iso) => new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "long" }).toUpperCase()
 
-function Avatar({ texto, activo }) {
+function Avatar({ texto, activo, url }) {
   return (
-    <span aria-hidden="true" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-black ${activo ? "bg-lime-400 text-black" : "bg-foreground/10 text-foreground/80"}`}>
-      {texto}
+    <span aria-hidden="true" className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-black ${activo ? "bg-lime-400 text-black" : "bg-foreground/10 text-foreground/80"}`}>
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : texto}
     </span>
   )
 }
@@ -320,7 +320,7 @@ export default function AvisosPage() {
               </div>
             ) : lista.map((u) => (
               <button key={u.id} type="button" onClick={() => elegirDestino(String(u.id))} aria-pressed={String(aQuien) === String(u.id)} className={itemCls(String(aQuien) === String(u.id))}>
-                <Avatar texto={iniciales(u.nombre)} activo={String(aQuien) === String(u.id)} />
+                <Avatar texto={iniciales(u.nombre)} url={u.avatarUrl} activo={String(aQuien) === String(u.id)} />
                 <span className="min-w-0"><span className="block truncate text-sm font-bold text-foreground">{u.nombre}</span><span className="block truncate text-xs tabular-nums text-muted-foreground">{u.telefono}</span></span>
               </button>
             ))}
@@ -332,7 +332,7 @@ export default function AvisosPage() {
         <section className={`min-h-0 min-w-0 flex-col min-[720px]:flex ${vista === "lista" ? "hidden" : "flex"}`} aria-label="Chat">
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
-              <Avatar texto={aQuien === "grupo" ? "AB" : iniciales(elegido?.nombre)} activo />
+              <Avatar texto={aQuien === "grupo" ? "AB" : iniciales(elegido?.nombre)} url={aQuien === "grupo" ? null : elegido?.avatarUrl} activo />
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-foreground">{aQuien === "grupo" ? "Alumnos Bravos" : elegido?.nombre || "Alumno"}</p>
                 <p className="truncate text-xs text-muted-foreground">{aQuien === "grupo" ? "Grupo o lista de difusión" : elegido?.telefono}</p>

@@ -2,7 +2,7 @@ import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState, useRef } from "react"
 import { SlotTituloContext } from "@/lib/slotTitulo"
 import { EVENTO_PERMISOS } from "@/lib/sincronizarPermisos"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigationType } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 
 // Submódulo = una pantalla dentro de un módulo (ej. /admin/usuarios/5/editar): su "Volver" lleva a la pantalla de arriba
@@ -84,6 +84,7 @@ export default function AdminLayout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
+  const tipoNavegacion = useNavigationType() // "POP" = volver atrás: la pantalla entra desde el otro lado
   const menuRef = useRef(null)
 
   useEffect(() => {
@@ -324,7 +325,7 @@ export default function AdminLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main key={pathname} className="bv-panel-main p-4 lg:p-6 pb-36 lg:pb-6">
+        <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main p-4 lg:p-6 pb-36 lg:pb-6">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>

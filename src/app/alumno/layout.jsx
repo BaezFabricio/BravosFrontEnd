@@ -2,7 +2,7 @@ import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState } from "react"
 import { SlotTituloContext } from "@/lib/slotTitulo"
 import { usePermisosVivos } from "@/lib/sincronizarPermisos"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import { BotonVolver } from "@/components/BotonVolver"
 import {
   Calendar,
@@ -102,6 +102,7 @@ export default function AlumnoLayout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
+  const tipoNavegacion = useNavigationType() // "POP" = volver atrás: la pantalla entra desde el otro lado
 
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario")
@@ -323,7 +324,7 @@ export default function AlumnoLayout({ children }) {
         conTema
       />
 
-      <main key={pathname} className="bv-panel-main p-4 pb-[calc(124px+env(safe-area-inset-bottom))]">
+      <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main p-4 pb-[calc(124px+env(safe-area-inset-bottom))]">
         <LayoutBxContext.Provider value={true}>{cuerpo}</LayoutBxContext.Provider>
       </main>
 

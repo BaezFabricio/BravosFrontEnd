@@ -32,7 +32,7 @@ export default function WhatsappCelular() {
   }, [puedeVer, avisar])
 
   const v = useMemo(() => {
-    const A = (usuarios || []).map((u) => ({ n: u.nombre || u.nombrecompleto || "", t: u.telefono || "", dni: u.dni || "", activo: u.estado !== "inactivo" })).filter((u) => u.n && u.t && u.activo).sort((a, b) => a.n.localeCompare(b.n))
+    const A = (usuarios || []).map((u) => ({ n: u.nombre || u.nombrecompleto || "", t: u.telefono || "", dni: u.dni || "", img: u.avatarUrl || null, activo: u.estado !== "inactivo" })).filter((u) => u.n && u.t && u.activo).sort((a, b) => a.n.localeCompare(b.n))
     const busq = q.trim().toLowerCase()
     const L = A.filter((a) => !busq || (a.n + a.dni).toLowerCase().includes(busq))
     const primero = to && to.all ? "todos" : to ? (to.n.split(" ")[1] || to.n) : ""
@@ -44,7 +44,7 @@ export default function WhatsappCelular() {
       c, lista: !to, comp: !!to, hT: to ? (to.all ? "Alumnos Bravos" : to.n) : "Avisos por WhatsApp", hS: to ? (to.all ? "Grupo o lista de difusión" : to.t) : "", back: () => setTo(null),
       q, onQ: (ev) => setQ(ev.target.value), nA: L.length, noRes: usuarios !== null && !L.length, lBd: L.length ? c.line : "transparent",
       pickAll: () => setTo({ all: true }),
-      alumnos: L.map((a, i) => ({ ini: ini(a.n), n: a.n, t: a.t, sep: i ? c.line2 : "transparent", aria: "Escribir a " + a.n, pick: () => setTo(a) })),
+      alumnos: L.map((a, i) => ({ ini: ini(a.n), img: a.img, n: a.n, t: a.t, sep: i ? c.line2 : "transparent", aria: "Escribir a " + a.n, pick: () => setTo(a) })),
       modelos: Object.keys(MOD).map((l) => { const p = mod === l; return { l, p: p ? "true" : "false", bg: p ? c.ink : "transparent", fg: p ? c.bg : c.ink, bd: p ? c.ink : c.btnLine, pick: () => { setMod(l); setTit(MOD[l][0]); setMsg(MOD[l][1]) } } }),
       tit, onTit: (ev) => setTit(ev.target.value), msg, onMsg: (ev) => { setMsg(ev.target.value); setMod(null) },
       ph: "Escribí el aviso para " + primero + "…", mN: String(msg.length), mInv: "false", mBd: c.line,
