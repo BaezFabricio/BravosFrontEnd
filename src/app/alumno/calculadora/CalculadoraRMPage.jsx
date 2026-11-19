@@ -55,7 +55,7 @@ function CalculadoraMovil() {
   const mover = (setter, actual, delta, min) => setter(fmtNum(Math.max(min, (Number(actual) || 0) + delta)))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="space-y-4">
       <div className="text-center">
         <TituloPagina descripcion={"Estimá tu repetición máxima (1RM) a partir de una serie, sin tener que probar tu máximo real."}>Calculadora RM</TituloPagina>
       </div>

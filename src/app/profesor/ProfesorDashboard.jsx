@@ -135,7 +135,7 @@ export default function ProfesorDashboard() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1152, width: "100%", margin: "0 auto", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
       <TituloPagina descripcion="Tomá lista de tus clases">Asistencia</TituloPagina>
       {/* Elegir día */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>

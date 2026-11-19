@@ -73,7 +73,7 @@ export default function RutinasPage() {
   const pestanas = [["prox", "Próximas", contProx], ["hist", "Historial", contHist]]
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1152, width: "100%", margin: "0 auto", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
       {!movil && <TituloPagina descripcion="Las rutinas que el administrador asignó a tus clases">Mis rutinas</TituloPagina>}
       {/* Celular: las pestañas quedan fijas arriba al hacer scroll */}
       <div role="tablist" aria-label="Rutinas" style={movil ? { display: "grid", gridTemplateColumns: "1fr 1fr", position: "sticky", top: -16, zIndex: 2, margin: "-16px -16px 0", padding: "0 16px", background: C.bg, borderBottom: `1px solid ${C.line}` } : { display: "flex", gap: 4, borderBottom: `1px solid ${C.line}` }}>

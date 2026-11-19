@@ -75,7 +75,7 @@ export default function DetalleRutinaPage() {
   const tomarLista = () => navigate("/profesor", { state: { fecha, idClase: rutina.idClase, idHorario: Number(idHorario) || null } })
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1152, width: "100%", margin: "0 auto", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
       {!movil && <TituloPagina descripcion={fecha ? fechaLarga(fecha) : rutina.nombre}>{`${rutina.nombreClase || rutina.nombre}${hora ? ` · ${hora}` : ""}`}</TituloPagina>}
       <section aria-labelledby="t-rd" style={{ position: "relative", overflow: "hidden", padding: movil ? 18 : 24, borderRadius: movil ? 16 : 20, background: "#0e0e0e", color: "#ecefe4", border: `1px solid ${C.line}`, display: "flex", flexWrap: "wrap", alignItems: "center", gap: "16px 28px" }}>
         <div style={{ flex: "1 1 260px", minWidth: 0 }}>

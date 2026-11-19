@@ -85,7 +85,7 @@ export default function CheckinAdminPage() {
   return (
     <>
       {dialogoConfirmar}
-      <div style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "1720px", width: "100%" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%" }}>
         <TituloPagina descripcion={"La pantalla donde el alumno escribe su DNI para registrar su asistencia al llegar"}>Check-in</TituloPagina>
 
         {!estado ? (

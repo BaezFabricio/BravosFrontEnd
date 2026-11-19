@@ -15,7 +15,7 @@ export default function AvisosProfesorPage() {
   const irA = (aviso) => { if (aviso.link) navigate(aviso.link) }
 
   return (
-    <div style={{ maxWidth: 1152, width: "100%", margin: "0 auto" }}>
+    <div style={{ width: "100%" }}>
       {!movil && <TituloPagina descripcion="Reservas, rutinas y listas por tomar">Avisos</TituloPagina>}
       <ListaAvisos avisos={avisos} noLeidas={noLeidas} cargando={cargando} onLeer={marcarLeido} onLeerTodos={marcarTodos} onAbrir={irA} />
     </div>

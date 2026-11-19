@@ -90,7 +90,7 @@ export default function ProfesorPerfilPage() {
   const campoEstilo = { width: "100%", height: 48, boxSizing: "border-box", padding: "0 14px", borderRadius: 10, border: `1px solid ${C.btnLine}`, background: C.surf, color: C.ink, font: "500 16px Archivo", outline: "none" }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1152, width: "100%", margin: "0 auto", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", color: C.ink, fontFamily: "Archivo, sans-serif" }}>
       {!movil && <TituloPagina descripcion="Tus datos de contacto">Mi perfil</TituloPagina>}
       {panelesPermitidos().alumno && (
         <Link to="/alumno" style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, background: C.okBg, border: `1px solid ${C.okLine}`, color: C.ink, textDecoration: "none" }}>

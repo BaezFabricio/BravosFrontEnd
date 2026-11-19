@@ -27,7 +27,7 @@ export default function NovedadesAlumnoPage() {
   const [destacada, ...otrasNuevas] = nuevas
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8">
+    <div className="w-full space-y-8">
       <header className="space-y-3">
         <p className="text-[0.6875rem] font-black uppercase tracking-[0.2em] text-lime-700 dark:text-[#9be600]">Lo último del box y de la comunidad</p>
         <h1 className="text-5xl font-black uppercase leading-none tracking-tight text-foreground md:text-7xl">Novedades</h1>
