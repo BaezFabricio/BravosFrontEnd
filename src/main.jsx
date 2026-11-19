@@ -101,10 +101,14 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// La pantalla de arranque (index.html) se desvanece cuando la app ya se dibujó
+// La pantalla de arranque (index.html) se desvanece cuando la app ya se dibujó Y pasó el tiempo mínimo para que la animación
+// se vea completa (se cuenta desde que empezó a cargar la página: si la app tardó más que eso, sale enseguida).
+const TIEMPO_MINIMO_ARRANQUE = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 900 : 2800
 requestAnimationFrame(() => requestAnimationFrame(() => {
   const arranque = document.getElementById('arranque')
   if (!arranque) return
-  arranque.classList.add('salir')
-  setTimeout(() => arranque.remove(), 400)
+  setTimeout(() => {
+    arranque.classList.add('salir')
+    setTimeout(() => arranque.remove(), 600)
+  }, Math.max(0, TIEMPO_MINIMO_ARRANQUE - performance.now()))
 }))

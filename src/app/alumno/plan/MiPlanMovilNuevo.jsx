@@ -101,7 +101,7 @@ export default function MiPlanMovilNuevo() {
             </section>
 
             <aside aria-label="Consejo de Bravo" className="flex items-center gap-3 rounded-2xl border border-bx-line bg-bx-card p-3.5">
-              <img src="/dog-t.png" alt="" className="h-[3.25rem] w-[3.25rem] shrink-0 rounded-full object-cover" />
+              <img src="/acceso/dog-t.png" alt="" className="h-[3.5rem] w-[3.5rem] shrink-0 object-contain" />
               <p className="m-0 text-sm leading-normal"><strong>Consejo de Bravo:</strong> renová antes del vencimiento y seguís reservando sin cortes.</p>
             </aside>
 

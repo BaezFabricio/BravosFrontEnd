@@ -15,32 +15,81 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&family=Archivo:wdth,wght@62..125,100..900&family=Big+Shoulders+Stencil+Display:wght@700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <!-- Panel de administración: aplica el modo guardado antes de dibujar la página (sin parpadeo) -->
-    <!-- Pantalla de arranque: se ve enseguida, mientras carga el código de la app (la quita main.jsx al montar) -->
+    <link rel="preload" as="image" href="/acceso/dog-t.png" />
+
+    <!-- Pantalla de arranque (solo celular, menos de 900 px): aparece SIEMPRE al abrir la app y la quita main.jsx cuando la app
+         ya se dibujó y pasó el tiempo mínimo para que se vea completa. No sale al cambiar de módulo (eso no recarga la página). -->
     <style>
-      /* Solo en el celular (menos de 900 px): en escritorio queda el esqueleto de carga de siempre */
       #arranque { display: none; }
       @media (max-width: 899px) { #arranque { display: flex; } }
-      #arranque { position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; background: #0a0a0a; transition: opacity 0.35s ease, visibility 0.35s; }
-      #arranque.salir { opacity: 0; visibility: hidden; }
-      @media (prefers-color-scheme: light) { #arranque { background: #e9e7e1; } }
-      #arranque img { width: 88px; height: 88px; border-radius: 20px; object-fit: cover; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); animation: arranque-subir 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-      #arranque .arranque-barra { width: 120px; height: 3px; border-radius: 9px; background: rgba(163, 230, 53, 0.15); overflow: hidden; }
-      #arranque .arranque-barra span { display: block; height: 100%; width: 40%; border-radius: 9px; background: #a3e635; animation: arranque-correr 1.1s ease-in-out infinite; }
-      @keyframes arranque-subir { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
-      @keyframes arranque-correr { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
-      @media (prefers-reduced-motion: reduce) { #arranque img, #arranque .arranque-barra span { animation: none; } }
+      #arranque { position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #0a0a0a; color: #ecefe4;
+        transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s; }
+      #arranque.salir { opacity: 0; transform: scale(1.05); visibility: hidden; }
       html.sin-arranque #arranque { display: none !important; }
+      /* resplandor verde que respira detrás de todo */
+      #arranque::before { content: ""; position: absolute; left: 50%; top: 44%; width: 140vmax; height: 140vmax; transform: translate(-50%, -50%);
+        background: radial-gradient(closest-side, rgba(155, 230, 0, 0.17), rgba(155, 230, 0, 0) 62%); animation: arr-respira 3.2s ease-in-out infinite; }
+      .arr-escena { position: relative; display: grid; place-items: center; width: 132px; height: 132px; }
+      .arr-onda { position: absolute; inset: 8px; border: 2px solid #9be600; border-radius: 30px; opacity: 0; animation: arr-onda 2.1s ease-out infinite; }
+      .arr-onda:nth-of-type(2) { animation-delay: 0.7s; }
+      .arr-logo { position: relative; width: 96px; height: 96px; border-radius: 24px; object-fit: cover;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(155, 230, 0, 0.4); animation: arr-pop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+      /* título: cada letra cae y rebota, una tras otra */
+      .arr-titulo { position: relative; display: flex; margin-top: 22px; font: 900 36px/1 'Big Shoulders Stencil Display', 'Barlow Condensed', Impact, sans-serif; letter-spacing: 0.2em; color: #9be600; text-transform: uppercase; }
+      .arr-titulo span { display: inline-block; opacity: 0; transform: translateY(-22px) rotate(-8deg);
+        animation: arr-letra 0.55s cubic-bezier(0.22, 1.5, 0.36, 1) forwards; animation-delay: calc(0.5s + var(--i) * 0.075s); }
+      .arr-titulo .esp { width: 0.45em; }
+      /* barra que se llena, como una serie que se completa */
+      .arr-barra { position: relative; margin-top: 28px; width: min(230px, 62vw); height: 5px; border-radius: 9px; background: rgba(155, 230, 0, 0.14); overflow: hidden; }
+      .arr-barra span { display: block; width: 100%; height: 100%; border-radius: 9px; transform-origin: left center;
+        background: linear-gradient(90deg, #5f9300, #9be600, #c4ff3d); box-shadow: 0 0 14px rgba(155, 230, 0, 0.75); animation: arr-llena 2.2s cubic-bezier(0.3, 0.7, 0.2, 1) 0.35s both; }
+      .arr-frase { position: relative; margin-top: 16px; width: 280px; height: 20px; text-align: center; font: 600 13px/20px Archivo, system-ui, sans-serif; letter-spacing: 0.07em; color: #a8ad98; }
+      .arr-frase span { position: absolute; inset: 0; opacity: 0; animation: arr-frase 0.95s ease-in-out forwards; }
+      .arr-frase span:nth-child(1) { animation-delay: 0.3s; }
+      .arr-frase span:nth-child(2) { animation-delay: 1.15s; }
+      .arr-frase span:nth-child(3) { animation-delay: 2s; animation-name: arr-frase-fin; animation-duration: 0.5s; color: #9be600; font-weight: 800; }
+      /* Bravo se asoma desde abajo y se balancea */
+      .arr-bravo { position: absolute; left: 50%; bottom: 0; width: min(190px, 50vw); height: auto; transform: translate(-50%, 108%); transform-origin: 50% 100%;
+        animation: arr-asoma 0.9s cubic-bezier(0.34, 1.35, 0.64, 1) 1.15s forwards, arr-balanceo 2.6s ease-in-out 2.1s infinite; filter: drop-shadow(0 -6px 18px rgba(0, 0, 0, 0.5)); }
+      @keyframes arr-respira { 0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(0.94); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } }
+      @keyframes arr-onda { 0% { opacity: 0.7; transform: scale(0.82); } 100% { opacity: 0; transform: scale(1.55); } }
+      @keyframes arr-pop { 0% { opacity: 0; transform: scale(0.45) rotate(-10deg); } 100% { opacity: 1; transform: none; } }
+      @keyframes arr-letra { 0% { opacity: 0; transform: translateY(-22px) rotate(-8deg); } 100% { opacity: 1; transform: none; } }
+      @keyframes arr-llena { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      @keyframes arr-frase { 0% { opacity: 0; transform: translateY(8px); } 20%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+      @keyframes arr-frase-fin { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
+      @keyframes arr-asoma { from { transform: translate(-50%, 108%); } to { transform: translate(-50%, 6%); } }
+      @keyframes arr-balanceo { 0%, 100% { transform: translate(-50%, 6%) rotate(-2.5deg); } 50% { transform: translate(-50%, 6%) rotate(2.5deg); } }
+      @media (prefers-color-scheme: light) {
+        #arranque { background: #e9e7e1; color: #1b1d16; }
+        #arranque::before { background: radial-gradient(closest-side, rgba(95, 147, 0, 0.18), rgba(95, 147, 0, 0) 62%); }
+        .arr-onda { border-color: #5f9300; }
+        .arr-logo { box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(95, 147, 0, 0.5); }
+        .arr-titulo { color: #4a7400; }
+        .arr-barra { background: rgba(95, 147, 0, 0.16); }
+        .arr-frase { color: #55584a; }
+        .arr-frase span:nth-child(3) { color: #4a7400; }
+      }
+      /* con "menos movimiento": todo queda en su lugar, solo se completa la barra */
+      @media (prefers-reduced-motion: reduce) {
+        #arranque::before, .arr-onda, .arr-logo, .arr-titulo span, .arr-frase span, .arr-bravo { animation: none; }
+        .arr-titulo span { opacity: 1; transform: none; }
+        .arr-onda, .arr-frase span:nth-child(1), .arr-frase span:nth-child(2) { display: none; }
+        .arr-frase span:nth-child(3) { opacity: 1; }
+        .arr-bravo { transform: translate(-50%, 6%); }
+      }
     </style>
     <script>
-      // La pantalla de arranque sale solo al entrar a la app (una vez por sesión), no al cambiar de módulo ni al recargar
+      // Siempre se muestra al abrir la app. Solo se omite cuando la página se recarga (tirar para actualizar o una versión nueva),
+      // para no hacer esperar a quien ya estaba usando la app.
       (function () {
         try {
-          if (sessionStorage.getItem("bravos-arranque")) document.documentElement.classList.add("sin-arranque");
-          else sessionStorage.setItem("bravos-arranque", "1");
-        } catch (e) { /* sin almacenamiento: se muestra siempre */ }
+          var nav = window.performance && performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+          if (nav && nav.type === "reload") document.documentElement.classList.add("sin-arranque");
+        } catch (e) { /* si no se puede saber, se muestra */ }
       })();
     </script>
+    <!-- Panel de administración: aplica el modo guardado antes de dibujar la página (sin parpadeo) -->
     <script>
       (function () {
         try {
@@ -57,8 +106,16 @@
   </head>
   <body>
     <div id="arranque" role="status" aria-label="Cargando Bravos Box">
-      <img src="/logo.jpg" alt="" />
-      <div class="arranque-barra"><span></span></div>
+      <div class="arr-escena">
+        <i class="arr-onda"></i><i class="arr-onda"></i>
+        <img class="arr-logo" src="/logo.jpg" alt="" />
+      </div>
+      <div class="arr-titulo" aria-hidden="true">
+        <span style="--i:0">B</span><span style="--i:1">R</span><span style="--i:2">A</span><span style="--i:3">V</span><span style="--i:4">O</span><span style="--i:5">S</span><span class="esp" style="--i:6"></span><span style="--i:7">B</span><span style="--i:8">O</span><span style="--i:9">X</span>
+      </div>
+      <div class="arr-barra" aria-hidden="true"><span></span></div>
+      <div class="arr-frase" aria-hidden="true"><span>Calentando motores</span><span>Armando tus clases</span><span>¡A entrenar!</span></div>
+      <img class="arr-bravo" src="/acceso/dog-t.png" alt="" />
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
