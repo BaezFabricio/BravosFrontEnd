@@ -102,8 +102,8 @@ export default function UserMenu({ userData, avatarUrl, userMenuOpen, setUserMen
         {/* Quién está conectado */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <div className="flex h-10 w-10 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-lime-400 text-sm font-black leading-none text-black">
-            {avatarUrl && !sinAcordeon
-              ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+            {avatarUrl
+              ?<img src={avatarUrl} alt="" className="h-full w-full object-cover" />
               : <Iniciales nombre={userData.nombrecompleto} />}
           </div>
           <div className="min-w-0 flex-1">
