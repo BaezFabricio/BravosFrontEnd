@@ -296,6 +296,11 @@
 .aparece-tarde { opacity: 0; animation: aparece-tarde 150ms ease-out 200ms forwards; }
 @media (prefers-reduced-motion: reduce) { .aparece-tarde { animation-duration: 1ms; } }
 
+/* Esqueletos de carga: latido suave (animate-pulse bajaba mucho la opacidad y se sentía como un parpadeo) */
+@keyframes bv-latido { 0%, 100% { opacity: 1; } 50% { opacity: 0.62; } }
+.bv-esq { animation: bv-latido 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .bv-esq { animation: none; } }
+
 /*
  * Escritorio: la app se ve por defecto como con el zoom del navegador al 90%. En las notebooks con Windows al 125% de escala
  * quedaba apretada. Todo está en rem (Tailwind y las medidas fijas que antes eran px), así que se achica junto.

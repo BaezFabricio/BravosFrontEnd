@@ -1,7 +1,7 @@
 export function AdminPageSkeleton({ rows = 6, showHeader = true }) {
   return (
     <div className="aparece-tarde">
-    <div className="space-y-6 animate-pulse">
+    <div className="space-y-6 bv-esq">
       {showHeader && (
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -46,7 +46,7 @@ export function AdminPageSkeleton({ rows = 6, showHeader = true }) {
 export function AdminFormSkeleton() {
   return (
     <div className="aparece-tarde">
-    <div className="space-y-6 animate-pulse max-w-2xl">
+    <div className="space-y-6 bv-esq">
       <div className="space-y-2">
         <div className="h-7 w-52 bg-foreground/10 rounded" />
         <div className="h-4 w-80 bg-foreground/5 rounded" />

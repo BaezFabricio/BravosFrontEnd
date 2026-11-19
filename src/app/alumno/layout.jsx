@@ -16,6 +16,7 @@ import {
   Wallet,
 } from "lucide-react"
 import NovedadesPortada from "@/components/NovedadesPortada"
+import { EsqueletoPagina } from "@/components/Cargando"
 import apiClient from "@/api"
 import RenovarMembresia from "@/components/RenovarMembresia"
 import SinMembresiaHero from "@/components/SinMembresiaHero"
@@ -223,18 +224,10 @@ export default function AlumnoLayout({ children }) {
           {/* Pop-up de novedades: sale al entrar (una vez por dispositivo) y se vuelve a abrir desde el botón de arriba */}
           <NovedadesPortada conAviso soloAviso />
           {validandoAcceso ? (
-            <div className="max-w-5xl mx-auto space-y-4 animate-pulse" role="status" aria-label="Cargando">
-              <div className="h-7 w-48 rounded bg-foreground/10" />
-              <div className="h-24 rounded-md bg-foreground/10" />
-              <div className="grid grid-cols-2 gap-3">
-                <div className="h-28 rounded-md bg-foreground/10" />
-                <div className="h-28 rounded-md bg-foreground/10" />
-              </div>
-              <div className="h-40 rounded-md bg-foreground/10" />
-            </div>
+            <EsqueletoPagina />
           ) : !tieneAbonoActivo && !['/alumno/pago-exitoso', '/alumno/pago-pendiente', '/alumno/pago-fallido'].includes(pathname) ? (
             /* 🛑 CORTE DE FLUJO: sin membresía activa → mostrar renovación */
-            <div className="mx-auto mt-4 max-w-5xl space-y-8">
+            <div className="mx-auto mt-4 w-full max-w-5xl space-y-8">
               <SinMembresiaHero onSalir={handleLogout} />
               <div id="planes" className="scroll-mt-24">
                 <RenovarMembresia variante="sinMembresia" onRenovado={() => window.location.reload()} />
