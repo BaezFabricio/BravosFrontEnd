@@ -301,14 +301,7 @@
 .bv-esq { animation: bv-latido 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .bv-esq { animation: none; } }
 
-/*
- * Escritorio: la app se ve por defecto como con el zoom del navegador al 90%. En las notebooks con Windows al 125% de escala
- * quedaba apretada. Todo está en rem (Tailwind y las medidas fijas que antes eran px), así que se achica junto.
- * Los puntos de corte de pantalla (lg: = 1024 px) no cambian: las media queries usan el tamaño de letra del navegador, no este.
- */
-@media (min-width: 1024px) {
-  html { font-size: 90%; }
-}
+/* Escritorio: el tamaño lo da el zoom del lienzo (useZoomLienzo), ya no se achica la letra base al 90 %. */
 
 /* ── Menú lateral y barra de arriba del admin (marcación de la referencia). Oscuro = valores exactos de la referencia;
    claro = colores del tema claro del panel. Se usan con var(--sh-…) en layout.jsx ── */

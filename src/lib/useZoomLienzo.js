@@ -1,10 +1,12 @@
 import { useEffect } from "react"
 
-// Las pantallas de escritorio se diseñan sobre un lienzo de 1920 px. En una ventana más angosta (por ejemplo 1536 px:
-// pantalla de 1920 con la escala de Windows al 125 %) se achican con "zoom" igual que verlas al 80 %.
+// Las pantallas de escritorio se diseñan sobre un lienzo de LIENZO px de ancho y se escalan con "zoom" para llenar la ventana,
+// manteniendo las proporciones: en una ventana de 1920 px se ven al 114 %, en una de 1536 px al 91 %, en una de 1280 px al 76 %.
+// Para ver todo más grande, bajá LIENZO; para verlo más chico, subilo. ZOOM_MAXIMO evita que en pantallas enormes se agrande de más.
 // Debajo de 1024 px no hay zoom: se ve la versión responsive (celular y tableta).
-export const LIENZO = 1920
-export const calcularZoom = (ancho = window.innerWidth) => (ancho >= 1024 ? Math.min(1, ancho / LIENZO) : 1)
+export const LIENZO = 1680
+const ZOOM_MAXIMO = 1.5
+export const calcularZoom = (ancho = window.innerWidth) => (ancho >= 1024 ? Math.min(ZOOM_MAXIMO, ancho / LIENZO) : 1)
 
 function aplicarZoom(elemento, anfitrion) {
   const z = calcularZoom()
