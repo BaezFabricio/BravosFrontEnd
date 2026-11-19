@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import apiClient from "@/api"
 import { useTheme } from "@/components/theme-provider"
@@ -67,17 +67,25 @@ export default function LayoutCelular({ children }) {
   }, [recargarNotifs])
   const [menuOculto, setMenuOculto] = useState(false) // pantallas que lo piden (formularios con botón fijo abajo)
 
-  // El menú de abajo se achica al bajar por la pantalla y vuelve a su tamaño al subir, al llegar arriba o al cambiar de pantalla
+  // El menú de abajo se achica cuando se baja un buen tramo y vuelve a su tamaño al subir, al llegar arriba, al cambiar de pantalla
+  // o al tocarlo (así el toque siempre cae en un botón grande). En pantallas cortas (sin scroll de verdad) no se achica.
   const [compacta, setCompacta] = useState(false)
+  const reposo = useRef(0) // hasta cuándo se queda grande después de tocarlo
+  const alTocarMenu = useCallback(() => { reposo.current = performance.now() + 2500; setCompacta(false) }, [])
   useEffect(() => {
     setCompacta(false)
     let ultimo = window.scrollY
+    let bajado = 0 // cuánto se bajó seguido (se reinicia al subir)
     const alScroll = () => {
       const y = window.scrollY
       const dy = y - ultimo
-      if (Math.abs(dy) < 6) return // ignora temblores
+      if (Math.abs(dy) < 4) return // ignora temblores
       ultimo = y
-      setCompacta(!(y < 40 || dy < 0))
+      if (performance.now() < reposo.current) return
+      const sobra = document.documentElement.scrollHeight - window.innerHeight
+      if (y < 40 || dy < 0 || sobra < 160) { bajado = 0; setCompacta(false); return }
+      bajado += dy
+      if (bajado > 48) setCompacta(true)
     }
     window.addEventListener("scroll", alScroll, { passive: true })
     return () => window.removeEventListener("scroll", alScroll)
@@ -145,7 +153,7 @@ export default function LayoutCelular({ children }) {
       <div className="dc-pantalla" onClickCapture={alTocar} style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", position: "relative", background: c.bg, color: c.ink, fontFamily: "Archivo, sans-serif" }}>
         <style>{".dc-pantalla *, .dc-pantalla *::before, .dc-pantalla *::after { box-sizing: content-box; } .dc-pantalla img, .dc-pantalla svg { display: inline; vertical-align: baseline; } .dcx > * { pointer-events: auto; }"}</style>
         <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
-        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta }} /></div>}
+        {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, alTocar: alTocarMenu }} /></div>}
         <div role="status" aria-live="polite" style={{ position: "fixed", left: "16px", right: "16px", bottom: "calc(108px + env(safe-area-inset-bottom, 0px))", zIndex: 70, display: "flex", flexDirection: "column", gap: "8px", pointerEvents: "none" }}>{avisos.map((a) => (<div key={a.id} style={{ padding: "12px 14px", borderRadius: "12px", background: "#141510", color: "#ecefe4", border: `1px solid ${a.tipo === "error" ? "#6b2a24" : "#3d5a10"}`, font: "600 14px Archivo" }}>{a.titulo}{a.mensaje ? <span style={{ display: "block", font: "400 13px Archivo", color: "#a3a698" }}>{a.mensaje}</span> : null}</div>))}</div>
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}
