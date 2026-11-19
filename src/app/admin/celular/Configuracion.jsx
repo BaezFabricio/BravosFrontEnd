@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useCelular } from "./contexto"
 import { Cabecera, Cuerpo, Extras, estilosHover } from "./pantallas/ConfiguracionView"
+import ReglasReservas from "../configuracion/ReglasReservas"
 
 const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
 const MAX_IMAGEN = 5 * 1024 * 1024
@@ -13,6 +14,7 @@ const SECS = {
   contacto: ["Contacto y horarios", "Teléfono, redes, dirección y horarios", "M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", "WEB PÚBLICA", "Cómo encontrar y contactar al box.", ["tel", "ig", "dir", "hor"]],
   banco: ["Datos bancarios", "La cuenta para transferencias", "M3 10h18L12 4zM5 10v8M9 10v8M15 10v8M19 10v8M3 20h18", "COBROS", "La cuenta a la que transfieren los alumnos. La ven al pagar.", ["banco", "titular", "cbu", "alias", "cuit"]],
 }
+SECS.reglas = ["Reglas de reservas", "Horas y días para reservar y cancelar", "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM12 14v3l2 1", "RESERVAS", "Cuántas horas antes se reserva y se cancela, y cuántos días hacia adelante.", []]
 const FD = {
   titulo: ["Título principal", "in"], logo: ["Logo de la barra superior", "img", 0, "3/1", "contain"], car: ["Fotos del carrusel", "car"],
   soFoto: ["Foto de fondo", "img", 0, "16/9", "cover"], soT: ["Título de la sección", "in"], soS: ["Frase corta", "in", 1], soD: ["Historia del box", "ta", 0, 6], soM: ["Misión", "ta", 0, 4],
@@ -141,7 +143,7 @@ export default function ConfiguracionCelular() {
     return {
       c, menuOn: !sec, sec: !!sec, padL: sec ? "0" : "10px", hT: s ? s[0] : "Configuración", hS: s ? s[3].charAt(0) + s[3].slice(1).toLowerCase() : "",
       back: () => { setSec(null); setVals({ ...S0 }); setArchivos({}); setTried(false) },
-      grupos: [["WEB PÚBLICA", ["portada", "sobre", "tarjetas", "contacto"]], ["COBROS", ["banco"]]].map(([t, ks]) => ({ t, items: ks.map((k, i) => ({ t: SECS[k][0], s: SECS[k][1], d: SECS[k][2], sep: i ? c.line2 : "transparent", open: () => { setSec(k); setTab(0); setCarI(0); setTried(false) } })) })),
+      grupos: [["WEB PÚBLICA", ["portada", "sobre", "tarjetas", "contacto"]], ["COBROS", ["banco"]], ["RESERVAS", ["reglas"]]].map(([t, ks]) => ({ t, items: ks.map((k, i) => ({ t: SECS[k][0], s: SECS[k][1], d: SECS[k][2], sep: i ? c.line2 : "transparent", open: () => { setSec(k); setTab(0); setCarI(0); setTried(false) } })) })),
       secDesc: s ? s[4] : "", hasTabs: sec === "tarjetas",
       stabs: [V.t0n || "Tarjeta 1", V.t1n || "Tarjeta 2"].map((l, i) => { const on = tab === i; return { l, sel: on ? "true" : "false", bg: on ? "#9be600" : "transparent", fg: on ? "#0b0b0b" : c.ink, pick: () => setTab(i) } }),
       fields, note: sec === "banco" ? "Revisalos bien: es la cuenta a la que los alumnos van a transferir. Si borrás un dato, deja de mostrarse." : false,
@@ -160,8 +162,17 @@ export default function ConfiguracionCelular() {
     <>
       <style>{estilosHover(v)}</style>
       <div style={{ position: "sticky", top: 0, zIndex: 20, paddingTop: "env(safe-area-inset-top, 0px)", background: c.bg }}><Cabecera v={v} /></div>
-      <Cuerpo v={v} />
-      <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 40 }}><Extras v={v} /></div>
+      {sec === "reglas" ? (
+        <main style={{ padding: "8px 16px 40px", display: "flex", flexDirection: "column", gap: "14px" }}>
+          <p style={{ margin: 0, font: "500 14px/1.45 Archivo", color: c.muted }}>{SECS.reglas[4]}</p>
+          <ReglasReservas puedeModificar={puedeEditar} />
+        </main>
+      ) : (
+        <>
+          <Cuerpo v={v} />
+          <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 40 }}><Extras v={v} /></div>
+        </>
+      )}
       <input ref={selector} type="file" accept={TIPOS_IMAGEN.join(",")} onChange={elegirArchivo} style={{ display: "none" }} />
     </>
   )

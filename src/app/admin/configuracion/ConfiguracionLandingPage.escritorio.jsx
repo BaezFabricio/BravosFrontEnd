@@ -1,3 +1,4 @@
+import ReglasReservas from './ReglasReservas'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Save, Camera, ArrowLeft, Image as ImageIcon, Loader2, ExternalLink, Check } from "lucide-react"
@@ -16,6 +17,7 @@ const SECCIONES = {
   clases:   { grupo: 'Web pública', titulo: 'Tarjetas de clases', detalle: 'Las 2 tarjetas que presentan las clases en la portada.' },
   contacto: { grupo: 'Web pública', titulo: 'Contacto, horarios y mapa', detalle: 'Cómo encontrarte y los datos legales del gimnasio.' },
   banco:    { grupo: 'Cobros', titulo: 'Datos bancarios', detalle: 'La cuenta a la que transfieren los alumnos.' },
+  reglas:   { grupo: 'Reservas', titulo: 'Reglas de reservas', detalle: 'Cuántas horas antes se reserva y se cancela, y cuántos días hacia adelante.' },
 }
 
 const Field = ({ label, hint, children }) => (
@@ -392,7 +394,7 @@ function ConfiguracionLandingPage() {
   if (!tab) return <MenuAjustes />
 
   const seccion = SECCIONES[tab]
-  const esLanding = tab !== 'banco'
+  const esLanding = tab !== 'banco' && tab !== 'reglas' // solo las secciones de la web pública tienen vista previa y guardado propio
 
   if (esLanding && loading) {
     return <AdminFormSkeleton />
@@ -425,10 +427,13 @@ function ConfiguracionLandingPage() {
     { grupo: 'Cobros', items: [
       { id: 'banco', texto: 'Datos bancarios', detalle: 'Banco, CBU/CVU y alias para transferencias' },
     ] },
+    { grupo: 'Reservas', items: [
+      { id: 'reglas', texto: 'Reglas de reservas', detalle: 'Horas y días para reservar y cancelar' },
+    ] },
   ]
 
   return (
-    <div className={`lg:grid lg:items-start lg:gap-6 ${tab !== 'banco' ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)_24rem]' : 'lg:grid-cols-[18.5rem_minmax(0,1fr)]'}`}>
+    <div className={`lg:grid lg:items-start lg:gap-6 ${esLanding ? 'lg:grid-cols-[18.5rem_minmax(0,1fr)_24rem]' : 'lg:grid-cols-[18.5rem_minmax(0,1fr)]'}`}>
       <nav aria-label="Secciones de configuración" className="hidden lg:block" style={{ padding: 0 }}>
         {SECCIONES_NAV.map((g) => (
           <div key={g.grupo} style={{ marginTop: 8 }}>
@@ -471,6 +476,7 @@ function ConfiguracionLandingPage() {
 
       {/* Los datos bancarios se guardan aparte (su propia ruta en el servidor) */}
       {tab === 'banco' && <DatosBancarios puedeModificar={puedeModificar} />}
+      {tab === 'reglas' && <ReglasReservas puedeModificar={puedeModificar} />}
 
       {esLanding && (
       <form id="form-landing" onSubmit={handleSubmit} className="space-y-5 lg:flex lg:flex-col lg:min-h-[calc(var(--bv-vh,100dvh)-13.5rem)]">
@@ -1040,7 +1046,7 @@ function ConfiguracionLandingPage() {
       </form>
       )}
       </div>
-      {tab !== 'banco' && (
+      {esLanding && (
         <PreviewLanding
           seccion={tab}
           titulo={tituloHero}

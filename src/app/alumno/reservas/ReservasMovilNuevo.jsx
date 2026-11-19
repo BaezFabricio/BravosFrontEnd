@@ -1,3 +1,4 @@
+import { useReglasBox, reglasBox, hs } from "@/lib/reglasBox"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { BottomSheet } from "@/components/bx/BottomSheet"
@@ -19,13 +20,13 @@ const DIAS_LARGOS = ["domingo", "lunes", "martes", "miércoles", "jueves", "vier
 
 // ¿Faltan 2 horas o más? (mismo criterio que el servidor para devolver el crédito)
 function faltanDosHoras(fecha, hora) {
-  return (new Date(`${fecha}T${hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
+  return (new Date(`${fecha}T${hora || "00:00"}:00`) - new Date()) / 3600000 >= reglasBox().horasCancelar
 }
 
 // Hora límite para cancelar sin perder el crédito: 2 horas antes
 function horaLimite(hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
-  const t = Math.max(0, h * 60 + m - 120)
+  const t = Math.max(0, h * 60 + m - reglasBox().horasCancelar * 60)
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`
 }
 
@@ -83,6 +84,7 @@ function Tarjeta({ r, onCancelar, onVerRutina, semana }) {
 }
 
 export default function ReservasMovilNuevo({ proximas, historial, cargando, errorCarga, onReintentar, onConfirmarCancelar, semana }) {
+  const reglas = useReglasBox()
   const [pestana, setPestana] = useState("prox")
   const [filtro, setFiltro] = useState("todas")
   const [rutinaDe, setRutinaDe] = useState(null)
@@ -210,7 +212,7 @@ export default function ReservasMovilNuevo({ proximas, historial, cargando, erro
         onCerrar={() => setACancelar(null)}
         titulo="¿Cancelar esta reserva?"
         alerta
-        descripcion={aCancelar ? `${aCancelar.clase} · ${DIAS_LARGOS[new Date(`${aCancelar.fecha}T12:00:00`).getDay()]} ${new Date(`${aCancelar.fecha}T12:00:00`).getDate()} a las ${aCancelar.hora}. ${semana ? "En tu plan, cancelar no devuelve el crédito." : faltanDosHoras(aCancelar.fecha, aCancelar.hora) ? "Como faltan más de 2 horas, te devolvemos 1 crédito." : "Faltan menos de 2 horas: el crédito no se devuelve."}` : ""}
+        descripcion={aCancelar ? `${aCancelar.clase} · ${DIAS_LARGOS[new Date(`${aCancelar.fecha}T12:00:00`).getDay()]} ${new Date(`${aCancelar.fecha}T12:00:00`).getDate()} a las ${aCancelar.hora}. ${semana ? "En tu plan, cancelar no devuelve el crédito." : faltanDosHoras(aCancelar.fecha, aCancelar.hora) ? `Como faltan más de ${hs(reglas.horasCancelar)}, te devolvemos 1 crédito.` : `Faltan menos de ${hs(reglas.horasCancelar)}: el crédito no se devuelve.`}` : ""}
         pie={
           <div className="flex w-full flex-col gap-2.5">
             <button type="button" autoFocus onClick={() => setACancelar(null)} className="h-[3.25rem] rounded-xl border border-bx-btn-line text-[0.9375rem] font-bold text-bx-ink">Mantener reserva</button>

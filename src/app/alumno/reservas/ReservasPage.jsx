@@ -1,3 +1,4 @@
+import { useReglasBox, reglasBox, hs } from "@/lib/reglasBox"
 import { useSemanaCreditos } from "@/lib/semanaCreditos"
 import { useCreditosDisponibles } from "@/lib/creditosAlumno"
 import { useEffect, useState } from "react"
@@ -31,6 +32,7 @@ const formatFechaFront = (fechaStr) => {
 }
 
 export default function ReservasPage() {
+  const reglas = useReglasBox()
   const semana = useSemanaCreditos() // plan con créditos por semana (o null): cancelar no devuelve el crédito
   const escritorio = useAnchoPanel() // desde 1024 px: diseño de escritorio; por debajo, el del celular
   const creditos = useCreditosDisponibles()
@@ -41,7 +43,7 @@ export default function ReservasPage() {
   const [cancelDialog, setCancelDialog] = useState({ open: false, idReserva: null, claseNombre: "", fechaStr: "", fecha: "", hora: "" })
   // Mismo criterio que el servidor: con 2 horas o más de anticipación se devuelve el crédito
   const devuelveCredito = semana ? false : cancelDialog.fecha
-    ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
+    ? (new Date(`${cancelDialog.fecha}T${cancelDialog.hora || "00:00"}:00`) - new Date()) / 3600000 >= reglas.horasCancelar
     : true
   const abrirCancelar = (reserva) => setCancelDialog({
     open: true,
@@ -122,10 +124,10 @@ export default function ReservasPage() {
     try {
       await apiClient.patch(`/reservas/${r.idReserva}/cancelar`)
       const fechaCorta = r.fecha
-      const devuelve = !semana && (new Date(`${fechaCorta}T${r.hora || "00:00"}:00`) - new Date()) / 3600000 >= 2
+      const devuelve = !semana && (new Date(`${fechaCorta}T${r.hora || "00:00"}:00`) - new Date()) / 3600000 >= reglasBox().horasCancelar
       if (semana) toast.warning("Reserva cancelada", { description: "En tu plan el crédito no se devuelve al cancelar.", guardar: false })
       else if (devuelve) toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto.", guardar: false })
-      else toast.warning("Reserva cancelada", { description: "El crédito no fue devuelto porque faltaban menos de 2 horas.", guardar: false })
+      else toast.warning("Reserva cancelada", { description: `El crédito no fue devuelto porque faltaban menos de ${hs(reglasBox().horasCancelar)}.`, guardar: false })
       await cargarReservas()
       window.dispatchEvent(new CustomEvent("bravos:reservas-cambiaron"))
     } catch (err) {
@@ -180,14 +182,14 @@ export default function ReservasPage() {
             <Alert className="bg-green-500/10 border-green-500/20">
               <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-500" />
               <AlertDescription className="text-green-700/80 dark:text-green-500/80">
-                Faltan 2 horas o más: tu crédito se devuelve automáticamente.
+                Faltan {hs(reglas.horasCancelar)} o más: tu crédito se devuelve automáticamente.
               </AlertDescription>
             </Alert>
           ) : (
             <Alert className="bg-red-500/10 border-red-500/20">
               <AlertTriangle className="h-4 w-4 text-red-700 dark:text-red-500" />
               <AlertDescription className="text-red-700/80 dark:text-red-500/80">
-                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de 2 horas para la clase: el crédito <strong>no</strong> se devuelve.</>}
+                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de {hs(reglas.horasCancelar)} para la clase: el crédito <strong>no</strong> se devuelve.</>}
               </AlertDescription>
             </Alert>
           )}

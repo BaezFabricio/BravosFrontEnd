@@ -1,3 +1,4 @@
+import { cargarReglasBox } from "@/lib/reglasBox"
 import { cerrarSesionEnServidor } from "@/lib/sesion"
 import { useEffect, useState } from "react"
 import { SlotTituloContext } from "@/lib/slotTitulo"
@@ -102,6 +103,7 @@ export default function AlumnoLayout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = location.pathname
+  useEffect(() => { cargarReglasBox() }, []) // reglas de reservas del box (horas y días): el servidor es quien decide, acá solo se muestran
   const tipoNavegacion = useNavigationType() // "POP" = volver atrás: la pantalla entra desde el otro lado
 
   useEffect(() => {

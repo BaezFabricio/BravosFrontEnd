@@ -1,3 +1,4 @@
+import { useReglasBox, reglasBox, hs } from "@/lib/reglasBox"
 import { useSemanaCreditos } from "@/lib/semanaCreditos"
 import { useEffect, useMemo, useState } from "react"
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
@@ -66,20 +67,25 @@ function horasHastaClase(fechaDate, horaInicio) {
   return (claseDatetime - new Date()) / 3600000
 }
 
-// Solo se reservan las clases del día (el servidor lo exige igual) y hasta 2 horas antes de que empiecen
+// Solo se reservan las clases dentro de los días que permite el box (por defecto, solo las de hoy) y hasta las horas de anticipación
+// que pide (por defecto, 2): el servidor lo exige igual. Se sigue llamando esDeHoy por las pantallas que ya la usan.
 function esDeHoy(fechaDate) {
-  return fechaDate.toDateString() === new Date().toDateString()
+  const hoy = new Date(); hoy.setHours(12, 0, 0, 0)
+  const dia = new Date(fechaDate); dia.setHours(12, 0, 0, 0)
+  const dias = Math.round((dia - hoy) / 86400000)
+  return dias >= 0 && dias <= reglasBox().diasAdelante
 }
 
 function puedeReservar(fechaDate, horaInicio) {
-  return esDeHoy(fechaDate) && horasHastaClase(fechaDate, horaInicio) >= 2
+  return esDeHoy(fechaDate) && horasHastaClase(fechaDate, horaInicio) >= reglasBox().horasReservar
 }
 
 function puedeCancelar(fechaDate, horaInicio) {
-  return horasHastaClase(fechaDate, horaInicio) >= 2
+  return horasHastaClase(fechaDate, horaInicio) >= reglasBox().horasCancelar
 }
 
 export default function ReservarClasePage() {
+  const reglas = useReglasBox()
   const [selectedDate, setSelectedDate]       = useState(new Date())
   const [clasesOriginales, setClasesOriginales] = useState([])
   const [planes, setPlanes]                   = useState([])
@@ -311,7 +317,7 @@ export default function ReservarClasePage() {
         toast.success("Reserva cancelada", { description: "Tu crédito fue devuelto.", guardar: false })
         setCreditosReales(prev => prev + 1)
       } else {
-        toast.warning("Reserva cancelada", { description: "El crédito no fue devuelto porque cancelaste con menos de 2 horas de anticipación.", guardar: false })
+        toast.warning("Reserva cancelada", { description: `El crédito no fue devuelto porque cancelaste con menos de ${hs(reglas.horasCancelar)} de anticipación.`, guardar: false })
       }
       await cargarReservas()
       window.dispatchEvent(new CustomEvent('bravos:reservas-cambiaron'))
@@ -428,7 +434,7 @@ export default function ReservarClasePage() {
           <Alert className="bg-yellow-500/10 border-yellow-500/20">
             <AlertCircle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />
             <AlertDescription className="text-yellow-700/80 dark:text-yellow-500/80">
-              {semana ? `Se descontará 1 crédito. En tu plan podés reservar hasta ${semana.porSemana} clases por semana y cancelar no devuelve el crédito.` : "Se descontará 1 crédito. Si cancelás con menos de 2 horas de anticipación, el crédito no se devuelve."}
+              {semana ? `Se descontará 1 crédito. En tu plan podés reservar hasta ${semana.porSemana} clases por semana y cancelar no devuelve el crédito.` : `Se descontará 1 crédito. Si cancelás con menos de ${hs(reglas.horasCancelar)} de anticipación, el crédito no se devuelve.`}
             </AlertDescription>
           </Alert>
           <DialogFooter>
@@ -466,14 +472,14 @@ export default function ReservarClasePage() {
             <Alert className="bg-green-500/10 border-green-500/20">
               <CheckCircle2 className="h-4 w-4 text-green-700 dark:text-green-500" />
               <AlertDescription className="text-green-700/80 dark:text-green-500/80">
-                Cancelás con más de 2 horas de anticipación. Tu crédito será devuelto.
+                Cancelás con más de {hs(reglas.horasCancelar)} de anticipación. Tu crédito será devuelto.
               </AlertDescription>
             </Alert>
           ) : (
             <Alert className="bg-red-500/10 border-red-500/20">
               <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-500" />
               <AlertDescription className="text-red-700/80 dark:text-red-500/80">
-                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de 2 horas para la clase. El crédito <strong>no</strong> será devuelto.</>}
+                {semana ? <>En tu plan, cancelar <strong>no</strong> devuelve el crédito: cuenta para los de esta semana.</> : <>Faltan menos de {hs(reglas.horasCancelar)} para la clase. El crédito <strong>no</strong> será devuelto.</>}
               </AlertDescription>
             </Alert>
           )}

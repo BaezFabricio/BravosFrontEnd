@@ -1,3 +1,4 @@
+import { useReglasBox, reglasBox, hs } from "@/lib/reglasBox"
 import { useState } from "react"
 import { Boton, Desplegable, Dialogo, ErrorBanner, Esqueleto, Pantalla, Progreso, Tarjeta, Vacio } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
@@ -19,7 +20,7 @@ const fechaLarga = (d) => `${NOMBRES_DIA[d.getDay()]} ${d.getDate()} de ${MESES[
 // "21:00" → "19:00": hasta esa hora se puede cancelar y recuperar el crédito
 function horaLimite(hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
-  const total = Math.max(0, h * 60 + m - 120)
+  const total = Math.max(0, h * 60 + m - reglasBox().horasCancelar * 60)
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
 }
 
@@ -35,6 +36,7 @@ export default function ReservarEscritorio({
   confirmDialog, setConfirmDialog, selectedClass, handleReservar,
   cancelDialog, setCancelDialog, handleCancelar, isLoading,
 }) {
+  const reglas = useReglasBox()
   const [rutinaAbierta, setRutinaAbierta] = useState({})
   const hoy = hoyTexto()
   const sinCreditos = !cargandoCreditos && creditos <= 0
@@ -58,8 +60,8 @@ export default function ReservarEscritorio({
 
   // Descripción del límite de reserva cuando el botón está deshabilitado
   const motivoNoReservable = esDeHoy(selectedDate)
-    ? "Solo se puede reservar hasta 2 horas antes de la clase."
-    : "Solo se reservan las clases del día."
+    ? `Solo se puede reservar hasta ${hs(reglas.horasReservar)} antes de la clase.`
+    : reglas.diasAdelante === 0 ? "Solo se reservan las clases del día." : `Solo se reservan las clases de hoy y de los próximos ${reglas.diasAdelante} días.`
 
   return (
     <Pantalla className="gap-5">
@@ -76,7 +78,7 @@ export default function ReservarEscritorio({
           <div className="text-sm leading-[1.45] text-bx-muted">
             {semana
               ? `Podés reservar hasta ${semana.porSemana} clases por semana (esta semana usaste ${semana.usadas}). Lo que no uses se pierde al terminar la semana y cancelar no devuelve el crédito.`
-              : "Cada reserva consume 1 crédito. Si cancelás con 2 horas o más de anticipación, te lo devolvemos."}
+              : `Cada reserva consume 1 crédito. Si cancelás con ${hs(reglas.horasCancelar)} o más de anticipación, te lo devolvemos.`}
           </div>
         </div>
         {sinCreditos
@@ -371,8 +373,8 @@ export default function ReservarEscritorio({
               {semana
                 ? "En tu plan, cancelar no devuelve el crédito: cuenta para los de esta semana."
                 : puedeCancelar(selectedDate, cancelDialog.clase.hora)
-                  ? "Cancelás con más de 2 horas de anticipación: te devolvemos el crédito."
-                  : "Faltan menos de 2 horas para la clase: el crédito no se devuelve."}
+                  ? `Cancelás con más de ${hs(reglas.horasCancelar)} de anticipación: te devolvemos el crédito.`
+                  : `Faltan menos de ${hs(reglas.horasCancelar)} para la clase: el crédito no se devuelve.`}
             </p>
           </div>
         )}

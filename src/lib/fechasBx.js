@@ -1,3 +1,4 @@
+import { reglasBox } from "./reglasBox"
 // Fechas legibles del módulo Alumno ("11 nov 2026", "Hoy, miércoles · 21:00"). Sin formato ISO y sin segundos.
 // Las fechas llegan como texto "AAAA-MM-DD" y se leen a las 12:00 para que la zona horaria (UTC-3) no corra el día.
 
@@ -90,7 +91,7 @@ export function limiteCancelacion(f, hora) {
   const [h, m] = String(hora || "00:00").split(":").map(Number)
   const inicio = fechaDeTexto(f)
   inicio.setHours(h, m || 0, 0, 0)
-  const limite = new Date(inicio.getTime() - 2 * 3600000)
+  const limite = new Date(inicio.getTime() - reglasBox().horasCancelar * 3600000)
   return {
     hora: `${String(limite.getHours()).padStart(2, "0")}:${String(limite.getMinutes()).padStart(2, "0")}`,
     pasado: Date.now() > limite.getTime(),

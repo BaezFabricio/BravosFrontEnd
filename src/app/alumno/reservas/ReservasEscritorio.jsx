@@ -1,3 +1,4 @@
+import { useReglasBox, hs } from "@/lib/reglasBox"
 import { useState } from "react"
 import { Boton, Dialogo, ErrorBanner, Esqueleto, FiltroChips, Pantalla, Pestanas } from "@/components/bx"
 import { Ico } from "@/components/bx/iconos"
@@ -32,6 +33,7 @@ export default function ReservasEscritorio({
   proximas, historial, cargando, errorCarga, onReintentar, semana, creditos,
   onCancelar, cancelDialog, cerrarCancelar, devuelveCredito, handleCancelar, cancelando,
 }) {
+  const reglas = useReglasBox()
   const [pestana, setPestana] = useState("prox")
   const [filtro, setFiltro] = useState("todas")
   const [rutinaDe, setRutinaDe] = useState(null) // reserva cuya rutina se está viendo (la pide PizarronRutina)
@@ -112,7 +114,7 @@ export default function ReservasEscritorio({
                       {semana
                         ? "En tu plan, cancelar no devuelve el crédito: cuenta para los de la semana."
                         : limite.pasado
-                          ? "Faltan menos de 2 horas: si cancelás, el crédito no se devuelve."
+                          ? `Faltan menos de ${hs(reglas.horasCancelar)}: si cancelás, el crédito no se devuelve.`
                           : `Podés cancelar sin perder el crédito hasta las ${limite.hora}.`}
                     </div>
                   </div>
@@ -192,8 +194,8 @@ export default function ReservasEscritorio({
           {semana
             ? "En tu plan, cancelar no devuelve el crédito: cuenta para los de esta semana."
             : devuelveCredito
-              ? "Como faltan más de 2 horas, te devolvemos 1 crédito."
-              : "Faltan menos de 2 horas para la clase: el crédito no se devuelve."}
+              ? `Como faltan más de ${hs(reglas.horasCancelar)}, te devolvemos 1 crédito.`
+              : `Faltan menos de ${hs(reglas.horasCancelar)} para la clase: el crédito no se devuelve.`}
         </p>
       </Dialogo>
 

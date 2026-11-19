@@ -1,3 +1,4 @@
+import { useReglasBox, reglasBox, hs } from "@/lib/reglasBox"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { CalendarPlus, CheckCircle2, ChevronRight, Clock, Dumbbell, Loader2, Search, XCircle, Ban } from "lucide-react"
@@ -26,10 +27,11 @@ const iniciales = (n) => {
 // ¿Faltan 2 horas o más? (mismo criterio que el servidor para devolver el crédito)
 function devuelveCredito(fecha, hora) {
   const inicio = new Date(`${fecha}T${hora || "00:00"}:00`)
-  return (inicio - new Date()) / 3600000 >= 2
+  return (inicio - new Date()) / 3600000 >= reglasBox().horasCancelar
 }
 
 function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
+  const reglas = useReglasBox()
   const e = ESTADOS[r.estado] || ESTADOS.cancelada
   const f = new Date(`${r.fecha}T12:00:00`)
   const dia = f.toLocaleDateString("es-AR", { weekday: "short" }).replace(".", "")
@@ -83,7 +85,7 @@ function TarjetaReserva({ r, onCancelar, onVerRutina, semana }) {
             >
               <XCircle className="h-4 w-4" aria-hidden="true" /> Cancelar
             </button>
-            <p className="text-xs leading-snug text-foreground/55">{conDevolucion ? "Si cancelás, te devolvemos el crédito." : semana ? "En tu plan, cancelar no devuelve el crédito." : "Si cancelás ahora no se devuelve el crédito (faltan menos de 2 h)."}</p>
+            <p className="text-xs leading-snug text-foreground/55">{conDevolucion ? "Si cancelás, te devolvemos el crédito." : semana ? "En tu plan, cancelar no devuelve el crédito." : `Si cancelás ahora no se devuelve el crédito (faltan menos de ${hs(reglas.horasCancelar)}).`}</p>
           </div>
         )}
       </div>

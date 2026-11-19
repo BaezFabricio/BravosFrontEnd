@@ -1,3 +1,4 @@
+import { useReglasBox, hs } from "@/lib/reglasBox"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { BottomSheet } from "@/components/bx/BottomSheet"
@@ -43,6 +44,7 @@ export default function ReservarMovilNuevo({
   turnos, turnoFiltro, setTurnoFiltro, clases, cargando, puedeReservar, esDeHoy, puedeCancelar,
   rutinaPublicada, onReservar, onCancelar, irAProximoDiaConClases,
 }) {
+  const reglas = useReglasBox()
   const [creditosAbiertos, setCreditosAbiertos] = useState(false)
   const [rutinaAbierta, setRutinaAbierta] = useState({})
   const [hojaClase, setHojaClase] = useState(null) // clase que se confirma en la hoja
@@ -98,7 +100,7 @@ export default function ReservarMovilNuevo({
           <p id="como-funcionan" className="m-0 border-t border-bx-line2 px-4 py-3 text-sm leading-normal text-bx-muted">
             {semana
               ? `Podés reservar hasta ${semana.porSemana} clases por semana (esta semana usaste ${semana.usadas}). Lo que no uses se pierde al terminar la semana y cancelar no devuelve el crédito.`
-              : "Se descuenta 1 crédito por cada clase que reservás. Si cancelás con 2 horas o más de anticipación, te lo devolvemos. Las reservas cierran 2 horas antes de cada clase."}
+              : `Se descuenta 1 crédito por cada clase que reservás. Si cancelás con ${hs(reglas.horasCancelar)} o más de anticipación, te lo devolvemos. Las reservas cierran ${hs(reglas.horasReservar)} antes de cada clase.`}
           </p>
         )}
       </section>
@@ -245,13 +247,13 @@ export default function ReservarMovilNuevo({
                         <button type="button" onClick={() => onCancelar(c)} className="h-12 rounded-xl border border-bx-btn-line bg-transparent text-[0.9375rem] font-bold text-bx-err-fg active:bg-bx-err-bg">Cancelar reserva</button>
                       </>
                     ) : (
-                      <span className="text-[0.8125rem] text-bx-muted">Ya no se puede cancelar: faltan menos de 2 horas.</span>
+                      <span className="text-[0.8125rem] text-bx-muted">Ya no se puede cancelar: faltan menos de {hs(reglas.horasCancelar)}.</span>
                     )}
                   </div>
                 ) : sinCupos ? (
                   <button type="button" disabled className="h-12 cursor-not-allowed rounded-xl bg-bx-line2 text-[0.9375rem] font-bold text-bx-muted">Sin lugares</button>
                 ) : cerrada ? (
-                  <span className="text-[0.8125rem] text-bx-muted">Las reservas cerraron 2 horas antes de la clase.</span>
+                  <span className="text-[0.8125rem] text-bx-muted">Las reservas cerraron {hs(reglas.horasReservar)} antes de la clase.</span>
                 ) : sinCreditos ? (
                   <button type="button" disabled className="h-12 cursor-not-allowed rounded-xl bg-bx-line2 text-[0.9375rem] font-bold text-bx-muted">Sin créditos</button>
                 ) : (
@@ -289,7 +291,7 @@ export default function ReservarMovilNuevo({
             </div>
             <ul className="m-0 list-disc pl-5 text-sm leading-relaxed text-bx-muted">
               <li>Usa 1 crédito. Te quedan <strong className="text-bx-ink">{Math.max(0, creditos - 1)}</strong>.</li>
-              <li>Podés cancelar sin perder el crédito hasta las {hojaClase.hora} (2 h antes).</li>
+              <li>Podés cancelar sin perder el crédito hasta las {hojaClase.hora} ({hs(reglas.horasCancelar)} antes).</li>
             </ul>
           </div>
         )}

@@ -1,3 +1,4 @@
+import ReglasReservas from './ReglasReservas'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Save, Camera, ArrowLeft, Image as ImageIcon, Loader2 } from 'lucide-react'
@@ -15,6 +16,7 @@ const SECCIONES = {
   clases:   { grupo: 'Web pública', titulo: 'Tarjetas de clases', detalle: 'Las 3 tarjetas que presentan las disciplinas en la portada.' },
   contacto: { grupo: 'Web pública', titulo: 'Contacto, horarios y mapa', detalle: 'Cómo encontrarte y los datos legales del gimnasio.' },
   banco:    { grupo: 'Cobros', titulo: 'Datos bancarios', detalle: 'La cuenta a la que transfieren los alumnos.' },
+  reglas:   { grupo: 'Reservas', titulo: 'Reglas de reservas', detalle: 'Cuántas horas antes se reserva y se cancela, y cuántos días hacia adelante.' },
 }
 
 const Field = ({ label, hint, children }) => (
@@ -290,7 +292,7 @@ function ConfiguracionLandingPage() {
   if (!activeTab) return <MenuAjustes />
 
   const seccion = SECCIONES[activeTab]
-  const esLanding = activeTab !== 'banco'
+  const esLanding = activeTab !== 'banco' && activeTab !== 'reglas' // solo las secciones de la web pública tienen guardado propio
 
   if (esLanding && loading) {
     return <AdminFormSkeleton />
@@ -326,6 +328,7 @@ function ConfiguracionLandingPage() {
 
       {/* Los datos bancarios se guardan aparte (su propia ruta en el servidor) */}
       {activeTab === 'banco' && <DatosBancarios puedeModificar={puedeModificar} />}
+      {activeTab === 'reglas' && <ReglasReservas puedeModificar={puedeModificar} />}
 
       {esLanding && (
       <form id="form-landing" onSubmit={handleSubmit} className="space-y-5">
