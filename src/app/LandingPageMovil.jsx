@@ -196,7 +196,6 @@ export default function LandingPageMovil() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0b0b0b] text-[#ecefe4] selection:bg-[#9be600] selection:text-[#0b0b0b]" style={{ fontFamily: 'Archivo, sans-serif' }}>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&display=swap" precedence="default" />
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-2 focus:z-[60] focus:rounded-lg focus:bg-[#9be600] focus:px-3.5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-[#0b0b0b]">
         Saltar al contenido
       </a>

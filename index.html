@@ -12,9 +12,27 @@
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-title" content="Bravos" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&family=Archivo:wdth,wght@62..125,100..900&family=Big+Shoulders+Stencil+Display:wght@700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Tipografías propias (sin Google Fonts): se cargan del mismo sitio, con font-display: block y precarga, para que al recargar no cambie la letra a mitad de carga -->
+    <link rel="preload" href="/fonts/archivo-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/big-shoulders-stencil-900.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      @font-face{font-family:'Archivo';font-style:normal;font-weight:100 900;font-display:block;font-stretch:62% 125%;src:url(/fonts/archivo-variable.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:400;font-display:block;src:url(/fonts/barlow-400.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:block;src:url(/fonts/barlow-500.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:600;font-display:block;src:url(/fonts/barlow-600.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:700;font-display:block;src:url(/fonts/barlow-700.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:800;font-display:block;src:url(/fonts/barlow-800.woff2) format('woff2')}
+      @font-face{font-family:'Barlow';font-style:normal;font-weight:900;font-display:block;src:url(/fonts/barlow-900.woff2) format('woff2')}
+      @font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:block;src:url(/fonts/barlow-condensed-700.woff2) format('woff2')}
+      @font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:800;font-display:block;src:url(/fonts/barlow-condensed-800.woff2) format('woff2')}
+      @font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:900;font-display:block;src:url(/fonts/barlow-condensed-900.woff2) format('woff2')}
+      @font-face{font-family:'Big Shoulders Stencil Display';font-style:normal;font-weight:700;font-display:block;src:url(/fonts/big-shoulders-stencil-700.woff2) format('woff2')}
+      @font-face{font-family:'Big Shoulders Stencil Display';font-style:normal;font-weight:900;font-display:block;src:url(/fonts/big-shoulders-stencil-900.woff2) format('woff2')}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:block;src:url(/fonts/jetbrains-mono-400.woff2) format('woff2')}
+      @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:block;src:url(/fonts/jetbrains-mono-500.woff2) format('woff2')}
+      @font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:700;font-display:block;src:url(/fonts/barlow-semi-condensed-700.woff2) format('woff2')}
+      @font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:800;font-display:block;src:url(/fonts/barlow-semi-condensed-800.woff2) format('woff2')}
+    </style>
     <link rel="preload" as="image" href="/acceso/dog-t.png" />
 
     <!-- Pantalla de arranque (solo celular, menos de 900 px): aparece SIEMPRE al abrir la app y la quita main.jsx cuando la app
