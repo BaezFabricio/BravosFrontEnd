@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect } from "react"
+import { precargarPantallasAdmin } from "./precarga"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import { useCelularActivo } from "./celular/rutas"
 const Escritorio = lazy(() => import("./layout.escritorio.jsx"))
@@ -10,6 +11,8 @@ import LayoutCelular from "./celular/LayoutCelular.jsx"
 export default function layoutDespacho(props) {
   const escritorio = useAnchoPanel()
   const celular = useCelularActivo()
+  // Apenas se abre el panel, el resto de las pantallas se descargan en segundo plano para que al tocarlas se abran al instante
+  useEffect(() => { precargarPantallasAdmin() }, [])
   if (escritorio) return <Suspense fallback={null}><Escritorio {...props} /></Suspense>
   return celular ? <LayoutCelular {...props} /> : <Movil {...props} />
 }

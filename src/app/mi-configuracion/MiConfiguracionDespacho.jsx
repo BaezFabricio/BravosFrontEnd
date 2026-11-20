@@ -1,3 +1,4 @@
+import EsqueletoPantalla from "@/components/EsqueletoPantalla"
 import { lazy, Suspense } from "react"
 import { useCelularActivo } from "../admin/celular/rutas"
 import { panelesPermitidos } from "@/lib/paneles"
@@ -8,5 +9,5 @@ const Celular = lazy(() => import("../admin/celular/Preferencias.jsx"))
 export default function MiConfiguracionDespacho(props) {
   const celular = useCelularActivo()
   const esAdmin = panelesPermitidos().admin
-  return celular && esAdmin ? <Suspense fallback={null}><Celular {...props} /></Suspense> : <MiConfiguracionPage {...props} />
+  return celular && esAdmin ? <Suspense fallback={<EsqueletoPantalla />}><Celular {...props} /></Suspense> : <MiConfiguracionPage {...props} />
 }

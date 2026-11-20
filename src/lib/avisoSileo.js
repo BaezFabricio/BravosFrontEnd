@@ -22,7 +22,6 @@ export function mostrarAviso({ tipo, titulo, mensaje, link = null, accion = null
     // Como en Sileo: un título corto con el estado y el detalle que se despliega debajo
     title: titulo || (generico ? "Aviso" : ""),
     description: mensaje && mensaje !== titulo ? mensaje : undefined,
-    fill: "#0d0e0a",
     duration: largo ? 6500 : link ? 6000 : 3800,
   }
   if (link) {

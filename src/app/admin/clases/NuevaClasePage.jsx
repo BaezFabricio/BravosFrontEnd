@@ -1,3 +1,4 @@
+import EsqueletoPantalla from "@/components/EsqueletoPantalla"
 import { lazy, Suspense } from "react"
 import { useAnchoPanel } from "@/lib/useEscritorio"
 import { useCelularActivo } from "../celular/rutas"
@@ -10,6 +11,6 @@ const Celular = lazy(() => import("../celular/CrearClase.jsx"))
 export default function NuevaClasePageDespacho(props) {
   const escritorio = useAnchoPanel()
   const celular = useCelularActivo()
-  if (escritorio) return <Suspense fallback={null}><Escritorio {...props} /></Suspense>
-  return <Suspense fallback={null}>{celular ? <Celular {...props} /> : <Movil {...props} />}</Suspense>
+  if (escritorio) return <Suspense fallback={<EsqueletoPantalla />}><Escritorio {...props} /></Suspense>
+  return <Suspense fallback={<EsqueletoPantalla />}>{celular ? <Celular {...props} /> : <Movil {...props} />}</Suspense>
 }
