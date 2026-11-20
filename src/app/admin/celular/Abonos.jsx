@@ -186,7 +186,7 @@ export default function AbonosCelular() {
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abonos, planes, alumno, m, sheet, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre, horaF, hor, docs, comp, visor])
+  }, [abonos, planes, alumno, m, sheet, elegir, busca, usuarios, abrirElegir, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre, horaF, hor, docs, comp, visor])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver los abonos.</div>
 
