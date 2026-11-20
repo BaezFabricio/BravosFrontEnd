@@ -1,5 +1,6 @@
+import { useVolver } from "@/components/BotonVolver"
 import React, { useEffect, useState, useRef } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Plus, Trash2, Loader2, CheckCircle2, AlertCircle, Pencil, FileText, ChevronLeft, ChevronRight, RefreshCw, X, Check } from "lucide-react"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import { toast } from "@/lib/notificar"
@@ -73,6 +74,8 @@ export default function GestionAbonosPage() {
   // Volver a donde se estaba (la lista o el perfil, según de dónde se llegó). Si
   // la página se abrió directo, sin historial previo, cae al perfil / la lista.
   const destinoVolver = usuarioPreId ? `/admin/usuarios/${usuarioPreId}` : "/admin/usuarios"
+  // "Volver" regresa a la pantalla donde se estaba (la lista, la ficha, el resumen…); el destino de arriba es solo si se abrió esta página directo
+  const volver = useVolver(destinoVolver)
 
   const [planes, setPlanes] = useState([])
   const [usuarios, setUsuarios] = useState([])
@@ -619,9 +622,9 @@ export default function GestionAbonosPage() {
     <div className="space-y-6">
 
       {/* Header */}
-      <Link to={destinoVolver} className="inline-flex min-h-[40px] items-center gap-1.5 self-start text-[14px] font-bold text-foreground no-underline">
-        <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Volver a Usuarios
-      </Link>
+      <button type="button" onClick={volver} className="inline-flex min-h-[40px] items-center gap-1.5 self-start border-0 bg-transparent p-0 text-[14px] font-bold text-foreground">
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Volver
+      </button>
       <div className="flex items-start gap-4">
         <div className="flex-1">
           <TituloPagina descripcion={"Cargá pagos y revisá las membresías de cada mes"}>Abonos</TituloPagina>
