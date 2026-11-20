@@ -7,6 +7,11 @@ import App from './App.jsx'
 import { ThemeProvider } from './components/theme-provider'
 import { registerSW } from 'virtual:pwa-register'
 import PullToRefresh from './components/PullToRefresh'
+import { recuperarDeVersionVieja } from './lib/recuperarVersion'
+
+// Vite avisa con este evento cuando no se pudo descargar el archivo de una pantalla (versión vieja abierta tras una actualización):
+// se limpia la copia guardada y se recarga sola, en vez de dejar la pantalla en negro
+window.addEventListener('vite:preloadError', (e) => { e.preventDefault(); recuperarDeVersionVieja() })
 
 /*
  * App instalable: se pide buscar una versión nueva cada vez que se abre o se vuelve a la app y cada 30 minutos.

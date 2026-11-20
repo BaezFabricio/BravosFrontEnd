@@ -49,9 +49,13 @@ export default function RichTextEditor({ value, onChange, placeholder = "Escrib√
   })
 
   useEffect(() => {
-    if (!editor) return
-    if (value !== editor.getHTML() && value !== undefined) {
-      editor.commands.setContent(value || "", false)
+    if (!editor || editor.isDestroyed) return
+    try {
+      if (value !== editor.getHTML() && value !== undefined) {
+        editor.commands.setContent(value || "", false)
+      }
+    } catch {
+      // el editor se estaba cerrando mientras se abr√≠a (pasa al montar dos veces en desarrollo): no tiene que romper la pantalla
     }
   }, [])
 
