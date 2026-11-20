@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useNavigationType } from "react-router-dom"
 import apiClient from "@/api"
 import { useTheme } from "@/components/theme-provider"
 import BravoChat from "@/components/BravoChat"
+import BandejaMovil from "@/components/BandejaMovil"
 import { ContextoCelular } from "./contexto"
 import { sinMenuCelular } from "./rutas"
 import { OSCURO, CLARO } from "./paleta"
@@ -172,6 +173,16 @@ export default function LayoutCelular({ children }) {
     setNotifs((prev) => prev.map((x) => ({ ...x, leida: true })))
     setNoLeidas(0)
   }
+  const borrarUna = (n) => {
+    setNotifs((prev) => prev.filter((x) => x.idNotificacion !== n.idNotificacion))
+    if (!n.leida) setNoLeidas((prev) => Math.max(0, prev - 1))
+    apiClient.delete(`/notificaciones/${n.idNotificacion}`).catch(() => recargarNotifs())
+  }
+  const borrarTodas = () => {
+    setNotifs([]); setNoLeidas(0)
+    apiClient.delete("/notificaciones").catch(() => recargarNotifs())
+  }
+  const abrirDeBandeja = (n) => { leerUna(n); if (n.link) { setPanel(null); navigate(n.link) } }
   const salir = () => { cerrarSesionEnServidor(); localStorage.removeItem("usuario"); localStorage.removeItem("avatarUrl"); localStorage.removeItem("permisos"); navigate("/login", { replace: true }) }
   const icono = (n) => (n.tipo === "credito" ? I.money : n.tipo === "reserva" || n.tipo === "asistencia" ? I.cal : /nueva clase|clase creada/i.test(n.titulo || "") ? "M12 5v14M5 12h14" : I.users)
   const vSuper = useMemo(() => {
@@ -189,7 +200,7 @@ export default function LayoutCelular({ children }) {
     const enIphone = /iPhone|iPad/.test(navigator.userAgent) && !window.navigator.standalone
     const nombre = (sesion.nombrecompleto || "").trim()
     return {
-      c, nOn: panel === "n", pOn: panel === "p", closeAll: cerrarPanel, unread: noLeidas, noUn: noLeidas === 0, raFg: noLeidas ? c.okFg : c.muted, readAll: leerTodas,
+      c, nOn: false, pOn: panel === "p", closeAll: cerrarPanel, unread: noLeidas, noUn: noLeidas === 0, raFg: noLeidas ? c.okFg : c.muted, readAll: leerTodas,
       nf: [["todas", "Todas", notifs.length], ["sin", "Sin leer", noLeidas]].map(([id, l, n]) => { const p = (filtroNotif === "todas") === (id === "todas"); return { l, n, p: p ? "true" : "false", bg: p ? c.ink : "transparent", fg: p ? c.bg : c.ink, bd: p ? c.ink : c.btnLine, pick: () => setFiltroNotif(id === "todas" ? "todas" : "sin") } }),
       tipOn: aviso && enIphone, hideTip: () => setAviso(false), nEmpty: lista.length === 0, ng,
       pans: PANELES.filter((p) => permitidos[p.key]).map((p) => ({ key: p.key, l: etiqueta[p.key], ch: p.key === "admin" ? "true" : "false", bg: p.key === "admin" ? "#9be600" : "transparent", fg: p.key === "admin" ? "#0b0b0b" : c.ink, pick: () => { if (p.key !== "admin") { setPanel(null); navigate(p.href) } } })),
@@ -215,6 +226,20 @@ export default function LayoutCelular({ children }) {
         <div key={pathname} className={tipoNavegacion === "POP" ? "bv-ruta-atras" : "bv-ruta-adelante"} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>{children}</div>
         {(sinMenuCelular(pathname) || menuOculto) ? null : <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}><Menu v={{ c, tabs, compacta, sobre, dedo, ondas, quitarOnda: (id) => setOndas((prev) => prev.filter((o) => o.id !== id)), enlaces: enlacesMenu, alBajar: alBajarMenu, alMover: alMoverMenu, alSoltar: alSoltarMenu, alCancelar: terminarToque }} /></div>}
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
+        {panel === "n" ? (
+          <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 61 }}>
+            <div role="dialog" aria-modal="true" aria-label="Notificaciones" style={{ position: "absolute", inset: 0, background: c.bg, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" }}>
+              <div style={{ flexShrink: 0, height: 60, display: "flex", alignItems: "center", padding: "0 10px 0 6px", borderBottom: `1px solid ${c.line}` }}>
+                <button onClick={cerrarPanel} aria-label="Cerrar notificaciones" style={{ width: 44, height: 44, border: "none", background: "transparent", color: c.ink, display: "grid", placeItems: "center", cursor: "pointer" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+              </div>
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "12px 16px 40px" }}>
+                <BandejaMovil notifs={notifs} filtro={filtroNotif} onFiltro={setFiltroNotif} noLeidas={noLeidas} onAbrir={abrirDeBandeja} onLeer={leerUna} onBorrar={borrarUna} onLeerTodo={leerTodas} onBorrarTodo={borrarTodas} />
+              </div>
+            </div>
+          </div>
+        ) : null}
         {(sinMenuCelular(pathname) || menuOculto) ? null : <BravoChat rol="admin" />}
       </div>
     </ContextoCelular.Provider>
