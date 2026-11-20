@@ -37,6 +37,44 @@
 
     <!-- Pantalla de arranque (solo celular, menos de 900 px): aparece SIEMPRE al abrir la app y la quita main.jsx cuando la app
          ya se dibujó y pasó el tiempo mínimo para que se vea completa. No sale al cambiar de módulo (eso no recarga la página). -->
+
+    <!-- Pantalla de falla (arranque y red de seguridad de la app): mismo lenguaje que la pantalla de arranque -->
+    <style>
+      .fa { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: hidden; overflow-y: auto; background: #0a0a0a; color: #ecefe4; font: 500 15px/1.5 Archivo, system-ui, sans-serif; }
+      .fa::before { content: ""; position: absolute; left: 50%; top: 38%; width: 130vmax; height: 130vmax; transform: translate(-50%, -50%); pointer-events: none; background: radial-gradient(closest-side, rgba(155, 230, 0, 0.13), rgba(155, 230, 0, 0) 60%); }
+      .fa-caja { position: relative; z-index: 1; width: 100%; max-width: 400px; margin: auto; display: flex; flex-direction: column; align-items: center; text-align: center; animation: fa-entra 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      .fa-logo { width: 84px; height: 84px; border-radius: 22px; object-fit: cover; transform: rotate(-6deg); box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(155, 230, 0, 0.4); }
+      .fa-tag { margin: 22px 0 0; font: 800 11px/1 Archivo, system-ui, sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: #9be600; }
+      .fa-titulo { margin: 10px 0 0; font: 900 44px/1 'Big Shoulders Stencil Display', 'Barlow Condensed', Impact, sans-serif; letter-spacing: 0.05em; text-transform: uppercase; }
+      .fa-texto { margin: 12px 0 0; max-width: 330px; color: #a8ad98; }
+      .fa-boton { margin-top: 26px; width: 100%; height: 52px; border: 0; border-radius: 14px; background: #9be600; color: #0a0a0a; font: 900 14px Archivo, system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 26px rgba(155, 230, 0, 0.28); transition: transform 0.15s ease, background-color 0.2s; }
+      .fa-boton:hover { background: #b2f21f; }
+      .fa-boton:active { transform: scale(0.98); }
+      .fa-sec { margin-top: 10px; width: 100%; height: 48px; border: 1px solid #34372c; border-radius: 14px; background: transparent; color: #ecefe4; font: 700 14px Archivo, system-ui, sans-serif; cursor: pointer; transition: border-color 0.2s, transform 0.15s ease; }
+      .fa-sec:hover { border-color: #9be600; }
+      .fa-sec:active { transform: scale(0.98); }
+      .fa-boton:focus-visible, .fa-sec:focus-visible, .fa-det summary:focus-visible { outline: 2px solid #9be600; outline-offset: 3px; }
+      .fa-det { margin-top: 20px; width: 100%; text-align: left; }
+      .fa-det summary { cursor: pointer; list-style: none; text-align: center; color: #7d8072; font: 700 11px/1 Archivo, system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 0; }
+      .fa-det summary::-webkit-details-marker { display: none; }
+      .fa-det pre { margin: 6px 0 0; padding: 12px; border-radius: 12px; background: #11120d; border: 1px solid #25271e; white-space: pre-wrap; word-break: break-word; font: 12px/1.5 'JetBrains Mono', ui-monospace, monospace; color: #8a8d7c; max-height: 140px; overflow: auto; }
+      .fa-copiar { margin-top: 8px; height: 40px; width: 100%; border: 0; border-radius: 10px; background: #1b1c15; color: #ecefe4; font: 700 12px Archivo, system-ui, sans-serif; cursor: pointer; }
+      .fa-perro { position: absolute; left: 50%; bottom: 0; z-index: 0; width: min(170px, 42vw); height: auto; transform: translate(-50%, 8%); transform-origin: 50% 100%; opacity: 0.95; animation: fa-balanceo 3s ease-in-out infinite; filter: drop-shadow(0 -6px 18px rgba(0, 0, 0, 0.5)); pointer-events: none; }
+      @media (max-height: 760px) { .fa-perro { display: none; } }
+      .fa.fa-aqui { position: relative; inset: auto; z-index: auto; min-height: min(78dvh, 620px); width: 100%; border-radius: 24px; }
+      .fa.fa-aqui .fa-perro { display: none; }
+      @keyframes fa-entra { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+      @keyframes fa-balanceo { 0%, 100% { transform: translate(-50%, 8%) rotate(-2.5deg); } 50% { transform: translate(-50%, 8%) rotate(2.5deg); } }
+      html.light .fa { background: #e9e7e1; color: #1b1d16; }
+      html.light .fa::before { background: radial-gradient(closest-side, rgba(95, 147, 0, 0.16), rgba(95, 147, 0, 0) 60%); }
+      html.light .fa-tag { color: #4a7400; }
+      html.light .fa-texto { color: #55584a; }
+      html.light .fa-sec { border-color: #c9c6bb; color: #1b1d16; }
+      html.light .fa-det summary { color: #6f7264; }
+      html.light .fa-det pre { background: #f2f0ea; border-color: #d6d3c9; color: #55584a; }
+      html.light .fa-copiar { background: #dcd9ce; color: #1b1d16; }
+      @media (prefers-reduced-motion: reduce) { .fa-caja, .fa-perro { animation: none; } }
+    </style>
     <style>
       /* Mientras la app todavía no dibujó nada (#root vacío) se ve una línea verde de carga, no un vacío */
       #root:empty::after { content: ""; position: fixed; left: 0; top: 0; height: 3px; width: 40%; border-radius: 2px; background: #9be600; box-shadow: 0 0 10px rgba(155, 230, 0, 0.7); animation: bv-precarga 1.1s ease-in-out infinite; }
@@ -168,15 +206,21 @@
           var caja = document.createElement("div")
           caja.id = "bv-fallo-arranque"
           caja.setAttribute("role", "alert")
-          caja.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0a0a;color:#ecefe4;font:500 15px/1.5 system-ui,sans-serif"
+          caja.className = "fa"
           var detalle = errores.length ? errores.slice(-3).join("\n") : "Sin detalle (la pantalla no terminó de dibujarse)."
-          caja.innerHTML = '<div style="max-width:420px;width:100%;border:1px solid #2a2c24;border-radius:16px;background:#141510;padding:24px;text-align:center">' +
-            '<p style="margin:0;font-weight:800;font-size:18px">La app no pudo abrirse</p>' +
-            '<p style="margin:8px 0 16px;color:#a3a698">Probá con el botón. Si sigue igual, mandanos lo que dice abajo.</p>' +
-            '<button id="bv-fallo-limpiar" style="width:100%;height:46px;border:0;border-radius:12px;background:#9be600;color:#000;font-weight:900;font-size:14px;cursor:pointer">LIMPIAR Y RECARGAR</button>' +
-            '<pre style="margin:14px 0 0;white-space:pre-wrap;word-break:break-word;text-align:left;font:12px/1.4 ui-monospace,monospace;color:#7d8072"></pre></div>'
+          caja.innerHTML = '<div class="fa-caja">' +
+            '<img class="fa-logo" src="/logo.jpg" alt="" />' +
+            '<p class="fa-tag">Algo salió mal</p>' +
+            '<h1 class="fa-titulo">Se nos cayó la barra</h1>' +
+            '<p class="fa-texto">La app no pudo abrirse. Le pasa hasta a los mejores: probá de nuevo y arrancamos.</p>' +
+            '<button id="bv-fallo-limpiar" class="fa-boton">Reintentar</button>' +
+            '<details class="fa-det"><summary>Detalle técnico</summary><pre></pre><button id="bv-fallo-copiar" class="fa-copiar">Copiar el detalle</button></details></div>' +
+            '<img class="fa-perro" src="/acceso/dog-t.png" alt="" />'
           caja.querySelector("pre").textContent = detalle + "\n" + location.pathname
           document.body.appendChild(caja)
+          document.getElementById("bv-fallo-copiar").onclick = function () {
+            try { navigator.clipboard.writeText(caja.querySelector("pre").textContent); this.textContent = "Copiado" } catch (e) { /* sin portapapeles */ }
+          }
           document.getElementById("bv-fallo-limpiar").onclick = function () {
             var fin = function () { location.reload() }
             var pasos = []

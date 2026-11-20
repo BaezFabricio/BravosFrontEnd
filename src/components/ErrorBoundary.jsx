@@ -26,29 +26,32 @@ class Limite extends Component {
     const { error } = this.state
     if (!error) return this.props.children
     const viejo = esErrorDeArchivoViejo(error)
+    const raiz = this.props.clave === "raiz" // la red de seguridad de toda la app tapa la pantalla; la de una pantalla deja el menú a la vista
     return (
-      <div role="alert" className="flex min-h-[100dvh] w-full items-center justify-center bg-background px-5 py-10 text-foreground">
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-lg">
-          <p className="m-0 text-lg font-extrabold">{viejo ? "Actualizando la app…" : "Esta pantalla no pudo abrirse"}</p>
-          <p className="mx-0 mb-5 mt-2 text-sm leading-snug text-foreground/70">
+      <div role="alert" className={`fa ${raiz ? "" : "fa-aqui"}`}>
+        <div className="fa-caja">
+          <img className="fa-logo" src="/logo.jpg" alt="" />
+          <p className="fa-tag">{viejo ? "Hay una versión nueva" : "Algo salió mal"}</p>
+          <h1 className="fa-titulo">{viejo ? "Actualizando la app" : "Esta pantalla no cargó"}</h1>
+          <p className="fa-texto">
             {viejo
-              ? "Hay una versión nueva. Se recarga sola; si no, tocá el botón."
+              ? "Se recarga sola; si no, tocá el botón."
               : "Algo falló al mostrarla. Probá de nuevo; si sigue igual, volvé al inicio."}
           </p>
-          <div className="flex flex-col gap-2.5">
-            <button type="button" onClick={() => (viejo ? window.location.reload() : this.setState({ error: null }))}
-              className="h-12 rounded-xl bg-lime-400 text-sm font-black uppercase tracking-widest text-black transition-colors hover:bg-lime-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-300">
-              {viejo ? "Recargar" : "Reintentar"}
-            </button>
-            {!viejo && (
-              <button type="button" onClick={() => { window.location.href = "/" }}
-                className="h-12 rounded-xl border border-border text-sm font-bold transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-500">
-                Ir al inicio
-              </button>
-            )}
-          </div>
-          {!viejo && error?.message && <p className="mb-0 mt-4 break-words text-[0.6875rem] text-foreground/40">{String(error.message).slice(0, 160)}</p>}
+          <button type="button" className="fa-boton" onClick={() => (viejo ? window.location.reload() : this.setState({ error: null }))}>
+            {viejo ? "Recargar" : "Reintentar"}
+          </button>
+          {!viejo && (
+            <button type="button" className="fa-sec" onClick={() => { window.location.href = "/" }}>Ir al inicio</button>
+          )}
+          {!viejo && error?.message && (
+            <details className="fa-det">
+              <summary>Detalle técnico</summary>
+              <pre>{String(error.message).slice(0, 200)}</pre>
+            </details>
+          )}
         </div>
+        {!viejo && raiz && <img className="fa-perro" src="/acceso/dog-t.png" alt="" />}
       </div>
     )
   }
