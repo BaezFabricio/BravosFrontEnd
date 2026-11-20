@@ -38,6 +38,10 @@
     <!-- Pantalla de arranque (solo celular, menos de 900 px): aparece SIEMPRE al abrir la app y la quita main.jsx cuando la app
          ya se dibujó y pasó el tiempo mínimo para que se vea completa. No sale al cambiar de módulo (eso no recarga la página). -->
     <style>
+      /* Mientras la app todavía no dibujó nada (#root vacío) se ve una línea verde de carga, no un vacío */
+      #root:empty::after { content: ""; position: fixed; left: 0; top: 0; height: 3px; width: 40%; border-radius: 2px; background: #9be600; box-shadow: 0 0 10px rgba(155, 230, 0, 0.7); animation: bv-precarga 1.1s ease-in-out infinite; }
+      @keyframes bv-precarga { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+      @media (prefers-reduced-motion: reduce) { #root:empty::after { animation: none; width: 100%; opacity: 0.5; } }
       #arranque { display: none; }
       @media (max-width: 899px) { #arranque { display: flex; } }
       #arranque { position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #0a0a0a; color: #ecefe4;
@@ -105,6 +109,21 @@
           var nav = window.performance && performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
           if (nav && nav.type === "reload") document.documentElement.classList.add("sin-arranque");
         } catch (e) { /* si no se puede saber, se muestra */ }
+      })();
+    </script>
+    <!-- Modo claro/oscuro: se aplica ANTES del primer dibujo (igual que hace la app al arrancar). Sin esto, al recargar la página
+         salía un instante con el color por defecto y después cambiaba: ese era el parpadeo. -->
+    <script>
+      (function () {
+        try {
+          var guardado = localStorage.getItem("vite-ui-theme") || "system";
+          var oscuro = guardado === "dark" || (guardado === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var raiz = document.documentElement;
+          raiz.classList.remove("light", "dark");
+          raiz.classList.add(oscuro ? "dark" : "light");
+          raiz.style.backgroundColor = oscuro ? "#0a0a0a" : "#e9e7e1";
+          raiz.style.colorScheme = oscuro ? "dark" : "light";
+        } catch (e) { /* sin acceso al almacenamiento: la app lo resuelve al arrancar */ }
       })();
     </script>
     <!-- Panel de administración: aplica el modo guardado antes de dibujar la página (sin parpadeo) -->
