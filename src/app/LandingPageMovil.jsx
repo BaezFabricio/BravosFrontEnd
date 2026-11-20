@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import FotoEnfocada from '@/components/FotoEnfocada'
+import { estadoAhora, leerHorario } from '@/lib/horarioAtencion'
 import { PANELES, panelesPermitidos } from '@/lib/paneles'
 
 /*
@@ -22,31 +23,6 @@ const DIAS = [
 
 const TEXTO_NOSOTROS = 'Nuestro centro de entrenamiento busca honrar la memoria de los héroes argentinos. Por los que volvieron y los que se quedaron velando por nuestras Islas.'
 const TEXTO_MISION = 'Somos una comunidad comprometida con el bienestar y el desarrollo integral de las personas. Trabajamos con atención, profesionalismo y compromiso, acompañando a cada alumno a superar sus propios límites a través del CrossFit.'
-
-// Horarios de atención escritos en Configuración ("Lun-Vie: 6:00 - 22:00", "Domingo: Cerrado")
-function leerHorario(texto) {
-  if (!texto) return null
-  const i = texto.indexOf(':')
-  const conEtiqueta = i > 0 && !/^\s*\d/.test(texto)
-  const etiqueta = conEtiqueta ? texto.slice(0, i).trim() : ''
-  const valor = (conEtiqueta ? texto.slice(i + 1) : texto).trim()
-  if (/cerrado/i.test(valor)) return { etiqueta, valor, cerrado: true }
-  const m = valor.match(/(\d{1,2})(?::(\d{2}))?\s*(?:a|-|–|hasta)\s*(\d{1,2})(?::(\d{2}))?/i)
-  const rango = m ? { desde: +m[1] * 60 + +(m[2] || 0), hasta: +m[3] * 60 + +(m[4] || 0) } : null
-  return { etiqueta, valor, rango }
-}
-
-// true / false si se puede saber con los horarios cargados; null si no
-function estaAbiertoAhora(semana, sabado, domingo) {
-  const ahora = new Date()
-  const dia = ahora.getDay()
-  const hoy = leerHorario(dia === 0 ? domingo : dia === 6 ? sabado : semana)
-  if (!hoy) return null
-  if (hoy.cerrado) return false
-  if (!hoy.rango) return null
-  const minutos = ahora.getHours() * 60 + ahora.getMinutes()
-  return minutos >= hoy.rango.desde && minutos < hoy.rango.hasta
-}
 
 // Número de WhatsApp solo con dígitos (wa.me pide 549 + característica + número)
 function digitosWhatsapp(valor) {
@@ -190,7 +166,8 @@ export default function LandingPageMovil() {
   const whatsapp = digitosWhatsapp(cfg.whatsapp || cfg.telefono)
   const direccion = cfg.direccion || 'Eva Perón 552'
   const [calle, ...resto] = direccion.split(',')
-  const abiertoAhora = estaAbiertoAhora(cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo)
+  const estadoBox = estadoAhora([cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo])
+  const abiertoAhora = estadoBox.abierto
   const filasHorario = [cfg.horario_semana || 'Lun-Vie: 6:00 - 22:00', cfg.horario_sabado || 'Sábado: 17:00 - 19:00', cfg.horario_domingo || 'Domingo: Cerrado'].map(leerHorario).filter(Boolean)
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(`${direccion}, Formosa`)}`
 
@@ -407,6 +384,7 @@ export default function LandingPageMovil() {
                       </span>
                     )}
                   </div>
+                  {abiertoAhora !== null && estadoBox.detalle && <p className="m-0 mt-1 text-xs text-[#a3a698]">{estadoBox.detalle}</p>}
                   <div className="mt-2 grid grid-cols-[1fr_auto] gap-y-1.5 text-sm">
                     {filasHorario.map((f, i) => (
                       <span key={i} className="contents">

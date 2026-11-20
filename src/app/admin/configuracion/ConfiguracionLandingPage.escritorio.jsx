@@ -8,6 +8,7 @@ import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import DatosBancarios from './DatosBancarios'
 import MenuAjustes from './MenuAjustes'
 import EnfoqueFoto from '@/components/EnfoqueFoto'
+import EditorHorarios from '@/components/EditorHorarios'
 import { TituloPagina } from "@/components/TituloPagina"
 import RecortarFoto from '@/components/RecortarFoto'
 
@@ -193,6 +194,7 @@ function ConfiguracionLandingPage() {
   const [heroPreview2, setHeroPreview2] = useState('/landing-hero-2.jpg')
   const [heroPreview3, setHeroPreview3] = useState('/landing-hero-3.jpg')
   // Punto de cada foto del carrusel ("x,y" en %): la portada del celular la deja centrada ahí
+  const [horariosOk, setHorariosOk] = useState(true)
   const [heroFocos, setHeroFocos] = useState(['', '', ''])
   const cambiarFoco = (i, v) => setHeroFocos((p) => { const n = [...p]; n[i] = v; return n })
 
@@ -330,6 +332,7 @@ function ConfiguracionLandingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!puedeModificar) return
+    if (!horariosOk) { toast.error('Corregí los horarios de atención antes de guardar'); return }
 
     try {
       setGuardando(true)
@@ -883,17 +886,7 @@ function ConfiguracionLandingPage() {
             </SectionCard>
 
             <SectionCard title="Horarios de atención" subtitle="Se muestran en la landing debajo de los datos de contacto.">
-              <div className="grid gap-4 md:grid-cols-3">
-                <Field label="Lunes a Viernes">
-                  <input disabled={!puedeModificar} type="text" value={horarioSemana} onChange={e => setHorarioSemana(e.target.value)} placeholder="6:00 - 22:00" className={inputCls} />
-                </Field>
-                <Field label="Sábado">
-                  <input disabled={!puedeModificar} type="text" value={horarioSabado} onChange={e => setHorarioSabado(e.target.value)} placeholder="17:00 - 19:00" className={inputCls} />
-                </Field>
-                <Field label="Domingo">
-                  <input disabled={!puedeModificar} type="text" value={horarioDomingo} onChange={e => setHorarioDomingo(e.target.value)} placeholder="Cerrado" className={inputCls} />
-                </Field>
-              </div>
+              <EditorHorarios key={String(loading)} valores={[horarioSemana, horarioSabado, horarioDomingo]} onChange={(i, texto) => [setHorarioSemana, setHorarioSabado, setHorarioDomingo][i](texto)} onValidez={setHorariosOk} disabled={!puedeModificar} />
             </SectionCard>
 
             <SectionCard title="Datos legales" subtitle="Aparecen en los Términos y condiciones y en la Política de privacidad. La ley exige identificar a quien presta el servicio.">
@@ -933,7 +926,6 @@ function ConfiguracionLandingPage() {
                 const campo = { width: '100%', boxSizing: 'border-box', height: 46, padding: '0px 14px', borderRadius: 10, border: '1px solid var(--input-line)', background: 'var(--input)', color: 'var(--foreground)', font: '500 15px Archivo' }
                 const ayuda = { margin: '6px 0 0', font: '500 12px Archivo', color: 'var(--muted-foreground)' }
                 const prefijo = { display: 'flex', alignItems: 'center', padding: '0px 14px', borderRadius: '10px 0px 0px 10px', border: '1px solid var(--input-line)', borderRight: 0, background: 'var(--muted)', color: 'var(--muted-foreground)', font: '600 15px Archivo' }
-                const filaHorario = { display: 'grid', gridTemplateColumns: '180px minmax(0, 1fr)', alignItems: 'center', gap: 16, padding: '14px 18px' }
                 return (
                   <>
                     <section style={tarjeta}>
@@ -973,18 +965,7 @@ function ConfiguracionLandingPage() {
                     <section style={tarjeta}>
                       <h2 className="bv-admin-titulo" style={titulo}>Horarios de atención</h2>
                       <p style={sub}>Se muestran debajo de los datos de contacto.</p>
-                      <div style={{ borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
-                        {[
-                          { id: 'semana', etiqueta: 'Lunes a viernes', valor: horarioSemana, set: setHorarioSemana, ph: '6:00 - 22:00' },
-                          { id: 'sabado', etiqueta: 'Sábado', valor: horarioSabado, set: setHorarioSabado, ph: '17:00 - 19:00' },
-                          { id: 'domingo', etiqueta: 'Domingo', valor: horarioDomingo, set: setHorarioDomingo, ph: 'Cerrado' },
-                        ].map((h, i) => (
-                          <div key={h.id} style={{ ...filaHorario, borderTop: i ? '1px solid var(--border)' : 0 }}>
-                            <label htmlFor={'con-h-' + h.id} style={{ font: '700 15px Archivo' }}>{h.etiqueta}</label>
-                            <input id={'con-h-' + h.id} disabled={!puedeModificar} type="text" value={h.valor} onChange={e => h.set(e.target.value)} placeholder={h.ph} style={campo} />
-                          </div>
-                        ))}
-                      </div>
+                      <EditorHorarios key={String(loading)} valores={[horarioSemana, horarioSabado, horarioDomingo]} onChange={(i, texto) => [setHorarioSemana, setHorarioSabado, setHorarioDomingo][i](texto)} onValidez={setHorariosOk} disabled={!puedeModificar} />
                     </section>
 
                     <section style={tarjeta}>

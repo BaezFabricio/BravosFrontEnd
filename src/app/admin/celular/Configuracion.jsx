@@ -42,6 +42,7 @@ export default function ConfiguracionCelular() {
   const [tab, setTab] = useState(0)
   const [tried, setTried] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [horOk, setHorOk] = useState(true)
   const [toast] = useState(null)
   const reloj = useRef(null)
   const selector = useRef(null)
@@ -90,10 +91,11 @@ export default function ConfiguracionCelular() {
       const d = FD[k] || FDT[k.slice(-1)]; const type = d[1]; const err = tried && errs[k]; const ck = claveImg(k)
       const src = archivos[ck]?.url || (type === "car" ? V[`car${carI}`] : V[k])
       return {
-        l: d[0], opt: !!d[2] && type === "in", isIn: type === "in", isTa: type === "ta", isImg: type === "img" || type === "car", multi: type === "car",
+        l: d[0], opt: !!d[2] && type === "in", isIn: type === "in", isTa: type === "ta" && k !== "hor", isImg: type === "img" || type === "car", multi: type === "car",
         v: V[k], on: upd(k), ph: "", im: type === "in" && typeof d[3] === "string" ? d[3] : "text", rows: type === "ta" ? d[3] : 3, inv: err ? "true" : "false", bd: err ? c.errFg : (V[k] !== S0[k] || archivos[ck] ? c.okLine : c.line),
         h: err || AYUDA[k] || false, hFg: err ? c.errFg : c.muted,
         bgSrc: `url('${src || ""}')`, alt: d[0], ratio: type === "car" ? "16/9" : (d[3] || "16/9"), fit: type === "car" ? "cover" : (d[4] || "cover"), imgBg: k === "logo" ? "#0e0e0e" : c.surf,
+        horarios: k === "hor" ? { valores: [0, 1, 2].map((i) => lineas(V.hor)[i] || ""), on: (i, texto) => setVals((s) => { const l = lineas(s.hor); while (l.length < 3) l.push(""); l[i] = texto; return { ...s, hor: l.join("\n") } }), valid: setHorOk, off: !puedeEditar, tema: { ink: c.ink, muted: c.muted, line: c.line, card: c.surf, campo: c.bg, campoLinea: c.line } } : null,
         enfoque: type === "car" && src ? { src, valor: V[`foco${carI}`] || "", off: !puedeEditar, on: (val) => setVals((s) => ({ ...s, [`foco${carI}`]: val })) } : null,
         imgs: type === "car" ? [0, 1, 2].map((i) => ({ n: "Foto " + (i + 1), src: `url('${archivos[`car${i}`]?.url || V[`car${i}`] || ""}')`, bd: carI === i ? "#9be600" : "transparent", aria: `Ver foto ${i + 1} del carrusel`, pick: () => setCarI(i) })) : [],
         chg: () => { if (puedeEditar) { objetivo.current = ck; selector.current?.click() } },
@@ -108,6 +110,7 @@ export default function ConfiguracionCelular() {
     const s = sec ? SECS[sec] : null
     const guardar = async () => {
       if (noSave) return
+      if (sec === "contacto" && !horOk) { avisar("Corregí los horarios antes de guardar."); return }
       if (anyErr) { setTried(true); return }
       setSaving(true)
       try {
@@ -155,7 +158,7 @@ export default function ConfiguracionCelular() {
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vals, saved, raw, bancoRaw, archivos, sec, carI, tab, tried, saving, toast, c, noLeidas, sesion, abrirNotif, abrirCuenta, puedeEditar])
+  }, [vals, saved, raw, bancoRaw, archivos, sec, carI, tab, tried, saving, toast, c, noLeidas, sesion, abrirNotif, abrirCuenta, puedeEditar, horOk])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver la configuración.</div>
   if (!vals) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>Cargando configuración…</div>

@@ -8,6 +8,7 @@ import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import DatosBancarios from './DatosBancarios'
 import MenuAjustes from './MenuAjustes'
 import EnfoqueFoto from '@/components/EnfoqueFoto'
+import EditorHorarios from '@/components/EditorHorarios'
 import { TituloPagina } from "@/components/TituloPagina"
 
 // Cada sección se abre desde el menú de Configuración con ?seccion=
@@ -108,6 +109,7 @@ function ConfiguracionLandingPage() {
   const [heroPreview2, setHeroPreview2] = useState('/landing-hero-2.jpg')
   const [heroPreview3, setHeroPreview3] = useState('/landing-hero-3.jpg')
   // Punto de cada foto del carrusel ("x,y" en %): la portada del celular la deja centrada ahí
+  const [horariosOk, setHorariosOk] = useState(true)
   const [heroFocos, setHeroFocos] = useState(['', '', ''])
   const cambiarFoco = (i, v) => setHeroFocos((p) => { const n = [...p]; n[i] = v; return n })
 
@@ -227,6 +229,7 @@ function ConfiguracionLandingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!puedeModificar) return
+    if (!horariosOk) { toast.error('Corregí los horarios de atención antes de guardar'); return }
 
     try {
       setGuardando(true)
@@ -539,17 +542,7 @@ function ConfiguracionLandingPage() {
             </SectionCard>
 
             <SectionCard title="Horarios de atención" subtitle="Se muestran en la landing debajo de los datos de contacto.">
-              <div className="grid gap-4 md:grid-cols-3">
-                <Field label="Lunes a Viernes">
-                  <input disabled={!puedeModificar} type="text" value={horarioSemana} onChange={e => setHorarioSemana(e.target.value)} placeholder="6:00 - 22:00" className={inputCls} />
-                </Field>
-                <Field label="Sábado">
-                  <input disabled={!puedeModificar} type="text" value={horarioSabado} onChange={e => setHorarioSabado(e.target.value)} placeholder="17:00 - 19:00" className={inputCls} />
-                </Field>
-                <Field label="Domingo">
-                  <input disabled={!puedeModificar} type="text" value={horarioDomingo} onChange={e => setHorarioDomingo(e.target.value)} placeholder="Cerrado" className={inputCls} />
-                </Field>
-              </div>
+              <EditorHorarios key={String(loading)} valores={[horarioSemana, horarioSabado, horarioDomingo]} onChange={(i, texto) => [setHorarioSemana, setHorarioSabado, setHorarioDomingo][i](texto)} onValidez={setHorariosOk} disabled={!puedeModificar} />
             </SectionCard>
 
             <SectionCard title="Datos legales" subtitle="Aparecen en los Términos y condiciones y en la Política de privacidad. La ley exige identificar a quien presta el servicio.">

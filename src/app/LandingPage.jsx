@@ -5,6 +5,7 @@ import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
 import FotoEnfocada from '@/components/FotoEnfocada'
+import { estadoAhora, leerHorario } from '@/lib/horarioAtencion'
 import UserMenu from '@/components/UserMenu'
 import CampanaPortada from '@/components/CampanaPortada'
 import NovedadesPortada from '@/components/NovedadesPortada'
@@ -58,34 +59,6 @@ const abrirAccion = (e, item) => {
   if (!item.accion) return
   e.preventDefault()
   if (item.accion === 'novedades') window.dispatchEvent(new Event('bravos:abrir-novedades'))
-}
-
-/*
- * Horarios de atención: se cargan en Configuración como texto libre ("Lun-Vie: 6:00 - 22:00", "Domingo: Cerrado").
- * Si se puede leer el rango de horas se calcula si el box está abierto ahora.
- */
-function leerHorario(texto) {
-  if (!texto) return null
-  const i = texto.indexOf(':')
-  const conEtiqueta = i > 0 && !/^\s*\d/.test(texto)
-  const etiqueta = conEtiqueta ? texto.slice(0, i).trim() : ''
-  const valor = (conEtiqueta ? texto.slice(i + 1) : texto).trim()
-  if (/cerrado/i.test(valor)) return { etiqueta, valor, cerrado: true }
-  const m = valor.match(/(\d{1,2})(?::(\d{2}))?\s*(?:a|-|–|hasta)\s*(\d{1,2})(?::(\d{2}))?/i)
-  const rango = m ? { desde: +m[1] * 60 + +(m[2] || 0), hasta: +m[3] * 60 + +(m[4] || 0) } : null
-  return { etiqueta, valor, rango }
-}
-
-// true / false si se puede saber con los horarios cargados; null si no
-function estaAbiertoAhora(semana, sabado, domingo) {
-  const ahora = new Date()
-  const dia = ahora.getDay()
-  const hoy = leerHorario(dia === 0 ? domingo : dia === 6 ? sabado : semana)
-  if (!hoy) return null
-  if (hoy.cerrado) return false
-  if (!hoy.rango) return null
-  const minutos = ahora.getHours() * 60 + ahora.getMinutes()
-  return minutos >= hoy.rango.desde && minutos < hoy.rango.hasta
 }
 
 // Número de WhatsApp solo con dígitos (wa.me pide 549 + característica + número)
@@ -236,7 +209,8 @@ function LandingPage() {
   const whatsapp = digitosWhatsapp(cfg.whatsapp || cfg.telefono)
   const direccion = cfg.direccion || 'Eva Perón 552'
   const [calle, ...resto] = direccion.split(',')
-  const abiertoAhora = estaAbiertoAhora(cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo)
+  const estadoBox = estadoAhora([cfg.horario_semana, cfg.horario_sabado, cfg.horario_domingo])
+  const abiertoAhora = estadoBox.abierto
   const filasHorario = [cfg.horario_semana || 'Lun-Vie: 6:00 - 22:00', cfg.horario_sabado || 'Sábado: 17:00 - 19:00', cfg.horario_domingo || 'Domingo: Cerrado'].map(leerHorario).filter(Boolean)
   // Reservar solo para alumnos con sesión iniciada (el resto ve los horarios sin poder reservar)
   const esAlumno = logueado && permisos.some((p) => p.startsWith('alumno'))
@@ -538,6 +512,7 @@ function LandingPage() {
                       </span>
                     )}
                   </div>
+                  {abiertoAhora !== null && estadoBox.detalle && <p className="m-0 mb-2.5 text-xs text-[#a3a698]">{estadoBox.detalle}</p>}
                   <dl className="m-0 grid grid-cols-[1fr_auto] gap-y-2 text-[0.9375rem]">
                     {filasHorario.map((f, i) => (
                       <div key={i} className="contents">
