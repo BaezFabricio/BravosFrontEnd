@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import GotaAgua from "./GotaAgua"
-import BrilloDedo from "./BrilloDedo"
 
 /*
  * Barra de abajo del celular (alumno, profesor y administrador): una píldora flotante, separada de los bordes,
@@ -29,7 +28,6 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
   const tocada = useRef(-1) // opción sobre la que se apoyó el dedo
   const [sobre, setSobre] = useState(null) // índice de la opción que está bajo el dedo mientras se desliza
   const ultimaOnda = useRef({ x: -999, t: 0 })
-  const [dedo, setDedo] = useState(null) // { x, y } mientras el dedo está sobre la barra
   const [ondas, setOndas] = useState([]) // [{ id, x, y }]
   const [compactaScroll, setCompacta] = useState(false)
   // Se achica también mientras el menú "Más" está abierto (compactaForzada)
@@ -79,7 +77,6 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
     reposo.current = performance.now() + 2500
     setCompacta(false)
     const p = posicion(e)
-    setDedo(p)
     soltarOnda(p.x, p.y)
     inicio.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
@@ -89,7 +86,6 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
   const alMover = (e) => {
     if (e.pointerType === "mouse" && e.buttons === 0) return // con mouse solo mientras se arrastra
     const p = posicion(e)
-    setDedo(p)
     // Deslizamiento: pasados ~12 px, la opción bajo el dedo se resalta y cambia al ir pasando
     if (inicio.current && !arrastro.current && Math.hypot(e.clientX - inicio.current.x, e.clientY - inicio.current.y) > 12) arrastro.current = true
     if (arrastro.current) {
@@ -119,7 +115,6 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
     arrastro.current = false
     inicio.current = null
     setSobre(null)
-    setDedo(null)
   }
 
   // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
@@ -133,14 +128,12 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
         onPointerDown={alTocar}
         onPointerMove={alMover}
         onPointerUp={alSoltar}
-        onPointerCancel={() => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }}
+        onPointerCancel={() => { arrastro.current = false; inicio.current = null; setSobre(null) }}
         onClickCapture={(e) => { if (ignorarClic.current) { e.preventDefault(); e.stopPropagation() } }}
         style={{ touchAction: "none" }}
         className={`pointer-events-auto relative mx-auto flex items-stretch gap-1 rounded-[2rem] border border-lime-500/25 bg-sidebar/95 shadow-xl shadow-black/30 ring-1 ring-lime-400/10 backdrop-blur motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-w-[19rem] p-1" : "max-w-md p-2"}`}
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-        {/* Brillo que sigue al dedo, con retraso (efecto gota de agua) */}
-        <BrilloDedo dedo={dedo} className="motion-reduce:hidden" />
 
         {/* Ondas que se expanden y se desvanecen */}
         {ondas.map((o) => (

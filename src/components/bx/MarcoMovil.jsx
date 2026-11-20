@@ -1,5 +1,4 @@
 import GotaAgua from "@/components/GotaAgua"
-import BrilloDedo from "@/components/BrilloDedo"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Ico } from "@/components/bx/iconos"
@@ -51,7 +50,6 @@ export function MenuInferior({ items, onNavegar }) {
   const ultimaOnda = useRef({ x: -999, t: 0 })
   const reposo = useRef(0)
   const [sobre, setSobre] = useState(null)
-  const [dedo, setDedo] = useState(null)
   const [ondas, setOndas] = useState([])
   const [compacta, setCompacta] = useState(false)
 
@@ -92,7 +90,6 @@ export function MenuInferior({ items, onNavegar }) {
     reposo.current = performance.now() + 2500
     setCompacta(false)
     const p = posicion(e)
-    setDedo(p)
     soltarOnda(p.x, p.y)
     inicio.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
@@ -101,7 +98,6 @@ export function MenuInferior({ items, onNavegar }) {
   const alMover = (e) => {
     if (e.pointerType === "mouse" && e.buttons === 0) return
     const p = posicion(e)
-    setDedo(p)
     if (inicio.current && !arrastro.current && Math.hypot(e.clientX - inicio.current.x, e.clientY - inicio.current.y) > 12) arrastro.current = true
     if (arrastro.current) {
       const i = opcionBajo(e.clientX)
@@ -126,12 +122,11 @@ export function MenuInferior({ items, onNavegar }) {
     arrastro.current = false
     inicio.current = null
     setSobre(null)
-    setDedo(null)
   }
   // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
   const activoReal = items.findIndex((it) => it.activo)
   const gotaEn = sobre !== null ? sobre : Math.max(0, activoReal)
-  const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }
+  const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null) }
 
   return (
     <div className="bx fixed inset-x-3 bottom-5 z-20 lg:hidden">
@@ -146,9 +141,7 @@ export function MenuInferior({ items, onNavegar }) {
           style={{ touchAction: "none" }}
           className={`relative grid grid-cols-5 rounded-[22px] border border-bx-line bg-bx-card shadow-[0_10px_30px_rgba(0,0,0,.35)] transition-[height] duration-300 ease-out ${compacta ? "h-14" : "h-[68px]"}`}
         >
-          {/* Brillo que sigue al dedo, con retraso, y ondas que se expanden desde donde se tocó */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
-            <BrilloDedo dedo={dedo} rgb="155,230,0" className="motion-reduce:hidden" />
             {ondas.map((o) => (
               <span
                 key={o.id}
