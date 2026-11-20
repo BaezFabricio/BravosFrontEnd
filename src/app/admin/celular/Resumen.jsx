@@ -53,7 +53,7 @@ export default function ResumenCelular() {
 
     // Requiere atención: usuarios sin pago y lo que está esperando una revisión
     const alertList = [
-      ...sus.slice(0, 5).map((u) => ({ t: `${u.name} no pagó`, s: u.daysOverdue > 0 ? `${u.daysOverdue} días sin pagar · Cargar abono` : "Sin créditos · Cargar abono", d: I.alert, bg: c.errBg, fg: c.errFg, href: "/admin/usuarios/abonos/carga-masiva" })),
+      ...sus.slice(0, 5).map((u) => ({ t: `${u.name} no pagó`, s: u.daysOverdue > 0 ? `${u.daysOverdue} días sin pagar · Cargar abono` : "Sin créditos · Cargar abono", d: I.alert, bg: c.errBg, fg: c.errFg, href: u.idUsuario ? `/admin/usuarios/abonos/carga-masiva?usuario=${u.idUsuario}&nuevo=1` : "/admin/usuarios/abonos/carga-masiva?nuevo=1" })),
       ...(Number(atencion.pagosPendientes) > 0 ? [{ t: `${plural(Number(atencion.pagosPendientes), "pago pendiente", "pagos pendientes")} de confirmar`, s: "Revisar abonos", d: I.money, bg: c.warnBg, fg: c.warnFg, href: "/admin/usuarios/abonos/carga-masiva" }] : []),
       ...(Number(atencion.documentosPorRevisar) > 0 ? [{ t: `${plural(Number(atencion.documentosPorRevisar), "documento", "documentos")} para revisar`, s: atencion.documentoDeUsuario ? "Abrir la ficha" : "Ver usuarios", d: I.doc, bg: c.warnBg, fg: c.warnFg, href: atencion.documentoDeUsuario ? `/admin/usuarios/${atencion.documentoDeUsuario}` : "/admin/usuarios" }] : []),
       ...(Number(atencion.cuentasSinVerificar) > 0 ? [{ t: `${plural(Number(atencion.cuentasSinVerificar), "cuenta", "cuentas")} sin verificar el correo`, s: "Ver usuarios", d: I.clock, bg: c.warnBg, fg: c.warnFg, href: "/admin/usuarios" }] : []),
@@ -102,7 +102,7 @@ export default function ResumenCelular() {
       fecha: fechaTxt, saludo: `Hola, ${nombre.split(/\s+/)[0] || "admin"}`, iniciales: nombre.split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "AD",
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`,
       abrirNotif, abrirCuenta,
-      hrefAbono: "/admin/usuarios/abonos/carga-masiva", hrefClases: "/admin/clases",
+      hrefAbono: "/admin/usuarios/abonos/carga-masiva?nuevo=1", hrefClases: "/admin/clases",
       ingresos: pesos(Number(tarjetas.ingresosMes) || 0),
       pagosTxt: error ? "No se pudo cargar" : "Pagos confirmados",
       hoy: { clases: hoyClases, titulo: "Hoy no hay clases", sub: "Cuando haya clases para hoy, aparecen acá." },

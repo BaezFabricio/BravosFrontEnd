@@ -26,6 +26,10 @@ export default function AbonosCelular() {
   const [alumno, setAlumno] = useState(null)
   const [m, setM] = useState(0)
   const [sheet, setSheet] = useState(false)
+  // Elegir el alumno sin salir de la hoja: lista con buscador (se carga la primera vez que se abre)
+  const [elegir, setElegir] = useState(false)
+  const [busca, setBusca] = useState("")
+  const [usuarios, setUsuarios] = useState(null)
   // Filtro por hora de las clases próximas del alumno ("all" = todas)
   const [horaF, setHoraF] = useState("all")
   const [plan, setPlan] = useState(null)
@@ -57,15 +61,30 @@ export default function AbonosCelular() {
     if (usuarioPre) apiClient.get(`/usuarios/${usuarioPre}`).then((r) => { const u = r.data?.data || r.data?.usuario || r.data; setAlumno({ id: usuarioPre, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "" }) }).catch(() => {})
   }, [puedeVer, cargar, usuarioPre])
 
+  const abrirElegir = useCallback(() => {
+    setBusca(""); setElegir(true)
+    if (usuarios === null) apiClient.get("/usuarios").then((r) => { const l = r.data?.data || r.data; setUsuarios(Array.isArray(l) ? l : []) }).catch(() => setUsuarios([]))
+  }, [usuarios])
+  // Desde el resumen se llega con ?nuevo=1: la hoja se abre sola y, si no se sabe el alumno, ya muestra para elegirlo
+  const abierto = useRef(false)
+  useEffect(() => {
+    if (abierto.current || !puedeAlta || params.get("nuevo") !== "1") return
+    abierto.current = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSheet(true)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!usuarioPre) abrirElegir()
+  }, [params, puedeAlta, usuarioPre, abrirElegir])
+
   const cargarDocs = useCallback((id) => (id ? apiClient.get(`/documentos/usuario/${id}`).then((r) => setDocs(r.data?.data || [])).catch(() => setDocs([])) : Promise.resolve(setDocs([]))), [])
   useEffect(() => { setComp(undefined); cargarDocs(alumno?.id) }, [alumno?.id, cargarDocs])
 
   useEffect(() => {
     // Esc cierra primero la pantalla del comprobante y después la hoja
-    const tecla = (e) => { if (e.key === "Escape") { if (visor) setVisor(null); else setSheet(false) } }
+    const tecla = (e) => { if (e.key === "Escape") { if (visor) setVisor(null); else if (elegir) setElegir(false); else setSheet(false) } }
     window.addEventListener("keydown", tecla)
     return () => window.removeEventListener("keydown", tecla)
-  }, [visor])
+  }, [visor, elegir])
 
   const v = useMemo(() => {
     const hoy = new Date()
@@ -112,7 +131,14 @@ export default function AbonosCelular() {
       horasOpc: [{ id: "all", label: "Todas" }, ...horasOpc.map((h) => ({ id: h, label: h }))].map((o) => { const ch = horaF === o.id; return { id: o.id, label: o.label, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => setHoraF(o.id) } }),
       lista: LF.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),
       sheet, openNew: () => { if (puedeAlta) { setSheet(true); setTried(false) } }, close: () => setSheet(false),
-      alu: { ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir", corto: primerNombre },
+      alu: { ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir", abrirElegir, corto: primerNombre },
+      pick: {
+        open: elegir, q: busca, onQ: (ev) => setBusca(ev.target.value), cerrar: () => setElegir(false), cargando: usuarios === null,
+        lista: (usuarios || []).map((u) => ({ id: u.idUsuario || u.id, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "" }))
+          .filter((u) => u.id && u.nombre && (!busca.trim() || (u.nombre + " " + u.dni).toLowerCase().includes(busca.trim().toLowerCase())))
+          .slice(0, 60)
+          .map((u) => ({ ...u, ini: u.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", elegir: () => { setAlumno({ id: String(u.id), nombre: u.nombre, dni: u.dni }); setElegir(false) } })),
+      },
       planes: planes.map((p) => { const ch = plan === String(p.idPlan); return { id: p.idPlan, n: p.nombre, s: `${p.cantidadCreditos} ${Number(p.cantidadCreditos) === 1 ? "crédito" : "créditos"}`, pr: pesos(p.precio), ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + (tried && !elegido ? c.errFg : c.line2), bg: ch ? c.okBg : c.surf, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => { setPlan(String(p.idPlan)); setMonto(String(precio(p, met))); setFin(masUnMes(ini)) } } }),
       planErr: tried && !elegido, planInv: tried && !elegido ? "true" : "false",
       metodos: METODOS.map(([val, l]) => { const ch = met === val; return { l, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => { setMet(val); if (elegido) setMonto(String(precio(elegido, val))) } } }),
