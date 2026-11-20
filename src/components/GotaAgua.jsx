@@ -13,6 +13,10 @@ import { useEffect, useRef } from "react"
 const RIGIDEZ = 210 // qué tan rápido la tira hacia su lugar
 const AMORTIGUACION = 17 // qué tan rápido se frena (menos = más rebote)
 
+// Dónde quedó la gota la última vez. Cada pantalla del panel dibuja su propio menú de abajo, así que sin esto la gota
+// aparecería ya colocada en la opción nueva; con esto arranca donde estaba y viaja hasta la opción nueva.
+let ultimaPosicion = null
+
 export default function GotaAgua({ enlaces, indice, oculta = false, clave, margenX = 4, margenY = 6, className = "" }) {
   const gota = useRef(null)
   const estado = useRef({ x: 0, w: 0, vx: 0, vw: 0, listo: false })
@@ -22,6 +26,7 @@ export default function GotaAgua({ enlaces, indice, oculta = false, clave, marge
     if (!el) return
     const reducido = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
     const s = estado.current
+    if (!s.listo && ultimaPosicion) Object.assign(s, { x: ultimaPosicion.x, w: ultimaPosicion.w, vx: 0, vw: 0, listo: true })
     let raf = 0
     let hasta = 0
     let ultimo = 0
@@ -34,6 +39,7 @@ export default function GotaAgua({ enlaces, indice, oculta = false, clave, marge
     const pintar = () => {
       // Se estira según la velocidad y se aplasta un poco hacia abajo: efecto líquido
       const estira = reducido ? 0 : Math.min(Math.abs(s.vx) * 0.045, 30)
+      ultimaPosicion = { x: s.x, w: s.w }
       el.style.width = `${Math.max(0, s.w + estira)}px`
       el.style.transform = `translate3d(${s.x - estira / 2}px, 0, 0) scaleY(${1 - estira / 220})`
     }
@@ -64,8 +70,8 @@ export default function GotaAgua({ enlaces, indice, oculta = false, clave, marge
       raf = requestAnimationFrame(paso)
     }
     el.style.opacity = oculta ? "0" : "1"
-    // La primera vez se coloca de inmediato (sin viajar desde la esquina)
-    if (!s.listo) { const m = medir(); if (m) { s.x = m.x; s.w = m.w; s.listo = true; pintar() } }
+    // Sin posición anterior (primera vez que se abre la app), se coloca de inmediato en su lugar
+    if (!s.listo) { const m = medir(); if (m) { s.x = m.x; s.w = m.w; s.listo = true; pintar() } } else pintar()
     despertar()
     window.addEventListener("resize", despertar)
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", despertar) }

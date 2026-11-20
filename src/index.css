@@ -671,5 +671,4 @@ html.bv-admin .bv-nav-link:not([aria-current="page"]):hover { background: rgba(1
 
 /* Avisos (Sileo): el texto va como se escribe, sin poner cada palabra en mayúscula */
 [data-sileo-title] { text-transform: none !important; }
-/* Avisos (Sileo): una sombra suave y un filo claro apenas visible para que la burbuja oscura se despegue de las pantallas oscuras */
-[data-sileo-canvas] { filter: drop-shadow(0 0 0.5px rgba(255, 255, 255, 0.4)) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5)); }
+

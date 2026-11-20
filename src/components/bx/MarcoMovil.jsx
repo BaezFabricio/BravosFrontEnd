@@ -165,7 +165,7 @@ export function MenuInferior({ items, onNavegar }) {
                 style={{ left: o.x - 20, top: o.y - 20 }}
               />
             ))}
-            <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={(sobre === null && activoReal < 0) || !!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 5 : 7} />
+            <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={sobre === null && activoReal < 0} clave={compacta} margenY={compacta ? 5 : 7} />
           </div>
 
           {items.map((item, idx) => {

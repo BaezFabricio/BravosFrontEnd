@@ -161,7 +161,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
             style={{ left: o.x - 20, top: o.y - 20 }}
           />
         ))}
-          <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={(sobre === null && activoReal < 0) || !!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 4 : 6} />
+          <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={sobre === null && activoReal < 0} clave={compacta} margenY={compacta ? 4 : 6} />
         </div>
 
         {items.map((item, idx) => {
