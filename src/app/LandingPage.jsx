@@ -102,7 +102,6 @@ function LandingPage() {
   const [turnosBox, setTurnosBox] = useState([])
   const [loadingHorarios, setLoadingHorarios] = useState(true)
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => ['LUNES', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'][new Date().getDay()])
-  const [mapaVisible, setMapaVisible] = useState(false)
 
   const logueado = !!sesion
 
@@ -553,19 +552,9 @@ function LandingPage() {
                 )}
               </div>
 
-              {/* Mapa: no carga hasta tocar "Cargar mapa" (Google Maps puede guardar cookies) */}
+              {/* Mapa de Google: se ve directo (está dicho en la política de cookies) */}
               <div className="relative min-h-[20rem] overflow-hidden rounded-2xl border border-[#262626] bg-[#161616]">
-                {mapaVisible ? (
-                  <iframe src={cfg.mapaUrl || `https://www.google.com/maps?q=${encodeURIComponent(`${direccion}, Formosa`)}&output=embed`} title="Mapa de ubicación" className="h-full min-h-[20rem] w-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
-                ) : (
-                  <div className="flex h-full min-h-[20rem] flex-col items-center justify-center gap-3 p-6 text-center">
-                    <MapPin className="h-8 w-8 text-[#9be600]" aria-hidden="true" />
-                    <button type="button" onClick={() => setMapaVisible(true)} className="h-[2.875rem] rounded-[calc(10*var(--u))] border border-[#333] px-5 text-sm font-bold text-[#ecefe4] transition-colors hover:border-[#9be600]">
-                      Cargar mapa
-                    </button>
-                    <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-normal text-[#a3a698]">El mapa lo muestra Google Maps, que puede guardar cookies propias.</p>
-                  </div>
-                )}
+                <iframe src={cfg.mapaUrl || `https://www.google.com/maps?q=${encodeURIComponent(`${direccion}, Formosa`)}&output=embed`} title="Mapa de ubicación" className="h-full min-h-[20rem] w-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
               </div>
             </div>
           </div>

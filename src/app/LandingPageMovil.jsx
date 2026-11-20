@@ -62,7 +62,6 @@ export default function LandingPageMovil() {
   const [loadingHorarios, setLoadingHorarios] = useState(true)
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => ['LUNES', 'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO'][new Date().getDay()])
   const [expandido, setExpandido] = useState(false)
-  const [mapaVisible, setMapaVisible] = useState(false)
   const [indiceHero, setIndiceHero] = useState(0)
   const botonMenuRef = useRef(null)
   const hojaRef = useRef(null)
@@ -397,14 +396,7 @@ export default function LandingPageMovil() {
               </div>
             </div>
 
-            <button type="button" onClick={() => setMapaVisible((v) => !v)} aria-expanded={mapaVisible}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl border border-[#333] bg-transparent text-sm font-bold text-[#ecefe4]">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /></svg>
-              {mapaVisible ? 'Ocultar mapa' : 'Ver mapa'}
-            </button>
-            {mapaVisible && (
-              <iframe src={cfg.mapaUrl || `https://www.google.com/maps?q=${encodeURIComponent(`${direccion}, Formosa`)}&output=embed`} title="Mapa de ubicación" className="h-64 w-full rounded-2xl border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-            )}
+            <iframe src={cfg.mapaUrl || `https://www.google.com/maps?q=${encodeURIComponent(`${direccion}, Formosa`)}&output=embed`} title="Mapa de ubicación" className="h-64 w-full rounded-2xl border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
         </section>
 

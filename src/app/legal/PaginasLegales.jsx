@@ -262,8 +262,8 @@ const FILAS_COOKIES = [
   },
   {
     nombre: "Google Maps",
-    tipo: "De terceros, opcionales",
-    para: "Mostrar el mapa del box. Se cargan solo si tocás «Ver mapa».",
+    tipo: "De terceros",
+    para: "Mostrar el mapa del box en la página principal. Se cargan cuando llegás a esa parte de la página.",
     dura: "Las define Google",
   },
   {
@@ -326,8 +326,9 @@ export function CookiesPage() {
       <H2>¿Por qué no aparece un cartel de cookies?</H2>
       <p>
         Porque al entrar al sitio solo se guarda lo estrictamente necesario para que funcione, y eso no
-        requiere un permiso aparte. Lo opcional (el mapa de Google y los videos de YouTube) recién se carga
-        cuando vos lo pedís, y ese gesto es tu consentimiento. Si en el futuro sumamos herramientas de
+        requiere un permiso aparte. Lo opcional (los videos de YouTube) recién se carga
+        cuando vos lo pedís, y ese gesto es tu consentimiento. El mapa de Google de la página principal
+        se muestra directamente: Google recibe tu dirección IP y puede guardar cookies propias. Si en el futuro sumamos herramientas de
         analítica o publicidad, te pediremos permiso antes de activarlas.
       </p>
 
