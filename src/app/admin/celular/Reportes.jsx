@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import apiClient from "@/api"
 import { descargarExcel } from "@/lib/exportarExcel"
@@ -19,9 +20,9 @@ export default function ReportesCelular() {
   const [tab, setTab] = useState("ing")
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState("")
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3000) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   useEffect(() => {

@@ -37,3 +37,13 @@ export function mostrarAviso({ tipo, titulo, mensaje, link = null, accion = null
 }
 
 export const quitarAvisos = () => sileo.clear()
+
+// Las pantallas nuevas del admin en celular avisan con un texto suelto ("Abono cargado.", "No se pudo guardar."):
+// acá se decide el tipo según cómo empieza el texto y se muestra con Sileo, igual que el resto del sistema.
+export function avisarTexto(texto) {
+  const t = String(texto || "").trim()
+  if (!t) return
+  const error = /(no se pudo|no pod[eé]s|no tienes|no ten[eé]s permiso|error|fall[oó]|no se guard|no se carg)/i.test(t)
+  const atencion = !error && /^(complet|eleg|ingres|escrib|revis|falta|sum|agreg|seleccion|ya |no hay)/i.test(t)
+  mostrarAviso({ tipo: error ? "error" : atencion ? "advertencia" : "exito", titulo: error ? "Error" : atencion ? "Atención" : "Éxito", mensaje: t })
+}

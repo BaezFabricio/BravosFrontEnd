@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import apiClient, { enviarFormulario } from "@/api"
@@ -67,9 +68,9 @@ export default function AbonosCelular() {
   const [tried, setTried] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errorServidor, setErrorServidor] = useState("")
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 4000) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   const cargar = useCallback(() => {
@@ -116,8 +117,8 @@ export default function AbonosCelular() {
     const clave = `${y}-${String(mn + 1).padStart(2, "0")}`
     const mes = MESES[mn].charAt(0).toUpperCase() + MESES[mn].slice(1) + " " + y
     const loading = abonos === null
-    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", img: a.avatarUrl || (usuarioPre ? alumno?.img : null) || null, plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre, horas: a.horas || [] })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
-    const total = L.reduce((s, x) => s + x.amt, 0)
+    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", img: a.avatarUrl || (usuarioPre ? alumno?.img : null) || null, plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, revocado: String(a.estado || "").toUpperCase() === "CANCELADO", idUsuario: a.idUsuario || usuarioPre, horas: a.horas || [] })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
+    const total = L.reduce((s, x) => s + (x.revocado ? 0 : x.amt), 0) // un abono revocado no cuenta en el total
     const horasOpc = [...new Set(L.flatMap((x) => x.horas || []))].sort()
     const LF = horaF === "all" ? L : L.filter((x) => (x.horas || []).includes(horaF))
     const elegido = planes.find((p) => String(p.idPlan) === plan)
@@ -149,7 +150,7 @@ export default function AbonosCelular() {
     return {
       c, mes, mesCorto: MESES[mn] + " " + y, actual: m === 0, notActual: m !== 0, nextFg: m === 0 ? c.muted : c.ink, nextOp: m === 0 ? 0.4 : 1,
       prev: () => setM((x) => x - 1), next: () => { if (m < 0) setM((x) => x + 1) }, hoy: () => setM(0),
-      total: pesos(total), countLabel: LF.length === 1 ? "1 abono" : LF.length + " abonos",
+      total: pesos(total), countLabel: (() => { const n = LF.filter((x) => !x.revocado).length; return n === 1 ? "1 abono" : n + " abonos" })(),
       loading, empty: !loading && !LF.length, hasList: LF.length > 0,
       horasOpc: [{ id: "all", label: "Todas" }, ...horasOpc.map((h) => ({ id: h, label: h }))].map((o) => { const ch = horaF === o.id; return { id: o.id, label: o.label, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => setHoraF(o.id) } }),
       lista: LF.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),

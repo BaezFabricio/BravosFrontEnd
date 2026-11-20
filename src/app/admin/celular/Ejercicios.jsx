@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import apiClient from "@/api"
 import { useCelular } from "./contexto"
@@ -20,9 +21,9 @@ export default function EjerciciosCelular() {
   const [f, setF] = useState(null) // { id, n, m, cnt, best } · id null = nuevo
   const [conf, setConf] = useState(false)
   const [tried, setTried] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3500) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   const cargar = useCallback(() => apiClient.get("/marcas/catalogo").then((r) => setLista(r.data?.data || [])).catch(() => { setLista([]); avisar("No se pudieron cargar los ejercicios.") }), [avisar])

@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import apiClient from "@/api"
@@ -64,9 +65,9 @@ export default function ClasesCelular() {
   const [dsel, setDsel] = useState(null)
   const [detalle, setDetalle] = useState(null)
   const [ddel, setDdel] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3500) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   const cargarClases = useCallback(() => apiClient.get("/clases").then((r) => setClases(r.data?.data || r.data || [])).catch(() => setError(true)), [])

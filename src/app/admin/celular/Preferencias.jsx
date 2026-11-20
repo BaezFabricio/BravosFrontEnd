@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "@/components/theme-provider"
 import { estadoPush, activarPush } from "@/lib/push"
@@ -13,9 +14,9 @@ export default function PreferenciasCelular() {
   const [push, setPush] = useState(null)
   const [ins, setIns] = useState(false)
   const [os, setOs] = useState(/iPhone|iPad/.test(navigator.userAgent) ? "ios" : "and")
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3000) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
   useEffect(() => { estadoPush().then(setPush).catch(() => setPush("no-soportado")) }, [])
 

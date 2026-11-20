@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import apiClient, { enviarFormulario } from "@/api"
 import { TIPOS_NOVEDAD, COLORES_NOVEDAD, colorDe } from "@/lib/novedades"
@@ -21,10 +22,10 @@ export default function NovedadesCelular() {
   const [conf, setConf] = useState(false)
   const [tried, setTried] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
   const archivo = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3500) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   const cargar = useCallback(() => apiClient.get("/novedades").then((r) => setLista(r.data?.data || r.data || [])).catch(() => { setLista([]); avisar("No se pudieron cargar las novedades.") }), [avisar])

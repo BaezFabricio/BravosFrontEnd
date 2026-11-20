@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useCelular } from "./contexto"
 import { Cabecera, Cuerpo, Extras, estilosHover } from "./pantallas/ConfiguracionView"
@@ -41,11 +42,11 @@ export default function ConfiguracionCelular() {
   const [tab, setTab] = useState(0)
   const [tried, setTried] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const reloj = useRef(null)
   const selector = useRef(null)
   const objetivo = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 3000) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
   useEffect(() => { setMenuOculto(!!sec); return () => setMenuOculto(false) }, [sec, setMenuOculto])
 

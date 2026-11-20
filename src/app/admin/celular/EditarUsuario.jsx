@@ -1,3 +1,4 @@
+import { avisarTexto } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import apiClient, { getUsuarioById, logoutUsuario } from "@/api"
@@ -29,10 +30,10 @@ export default function EditarUsuarioCelular() {
   const [saving, setSaving] = useState(false)
   const [ask, setAsk] = useState(false)
   const [errorServidor, setErrorServidor] = useState("")
-  const [toast, setToast] = useState(null)
+  const [toast] = useState(null)
   const [fallo, setFallo] = useState(false)
   const reloj = useRef(null)
-  const avisar = useCallback((t) => { setToast(t); clearTimeout(reloj.current); reloj.current = setTimeout(() => setToast(null), 4000) }, [])
+  const avisar = useCallback((t) => { avisarTexto(t) }, []) // los avisos los dibuja Sileo
   useEffect(() => () => clearTimeout(reloj.current), [])
 
   useEffect(() => {
