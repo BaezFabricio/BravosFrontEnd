@@ -195,8 +195,6 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
                 )}
               </span>
               <span className={`max-w-full truncate px-0.5 text-[0.5625rem] font-black uppercase leading-none tracking-wide motion-safe:transition-all motion-safe:duration-300 ${compacta ? "max-h-0 opacity-0" : "max-h-3 opacity-100"}`}>{item.mobileLabel}</span>
-              {/* Puntito verde bajo la opción activa */}
-              <span aria-hidden="true" className={`absolute bottom-[2px] h-[0.1875rem] rounded-full bg-lime-500 transition-all duration-300 dark:bg-lime-400 ${resaltada ? "w-3 opacity-100" : "w-0 opacity-0"}`} />
               {item.pista && (
                 <span role="status" className="pista-barra pointer-events-none absolute -top-12 left-1/2 z-20 -ml-10 w-20 rounded-lg bg-lime-400 px-2 py-1.5 text-center text-[0.625rem] font-black uppercase leading-tight tracking-wide text-black shadow-lg">
                   {item.pista}
