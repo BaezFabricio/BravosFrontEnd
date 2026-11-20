@@ -30,6 +30,7 @@ export default function NuevoUsuarioCelular() {
   const [tried, setTried] = useState(false)
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
+  const [idCreado, setIdCreado] = useState(null) // para que "Cargar abono" abra el abono de esta persona, no la lista general
   const [copied, setCopied] = useState(false)
   const [errorServidor, setErrorServidor] = useState("")
   const [toast] = useState(null)
@@ -72,8 +73,11 @@ export default function NuevoUsuarioCelular() {
       if (nErr) { setTried(true); setTimeout(() => document.getElementById("err-sum")?.focus(), 0); return }
       setSending(true); setErrorServidor("")
       try {
-        if (con) await crearUsuario({ nombre: vals.nombre.trim(), dni: vals.dni.trim(), email: vals.email.trim().toLowerCase(), telefono: vals.tel.trim(), perfiles: perfil, password: pass, estado: "activo", membresia: "vencida" })
-        else await apiClient.post("/usuarios/sin-cuenta", { nombrecompleto: vals.nombre.trim(), dni: vals.dni.trim(), telefono: vals.tel.trim(), correo: vals.email.trim().toLowerCase() })
+        let respuesta
+        if (con) respuesta = await crearUsuario({ nombre: vals.nombre.trim(), dni: vals.dni.trim(), email: vals.email.trim().toLowerCase(), telefono: vals.tel.trim(), perfiles: perfil, password: pass, estado: "activo", membresia: "vencida" })
+        else respuesta = await apiClient.post("/usuarios/sin-cuenta", { nombrecompleto: vals.nombre.trim(), dni: vals.dni.trim(), telefono: vals.tel.trim(), correo: vals.email.trim().toLowerCase() })
+        const datos = respuesta?.data?.data ?? respuesta?.data ?? {}
+        setIdCreado(datos.idUsuario ?? datos.id ?? null)
         setDone(true)
       } catch (err) {
         setErrorServidor(err.response?.data?.message || "No se pudo crear el usuario. Probá de nuevo.")
@@ -95,10 +99,10 @@ export default function NuevoUsuarioCelular() {
       doneTitle: (vals.nombre.trim() || "Usuario") + (con ? " ya tiene cuenta" : " quedó registrado"),
       doneSub: con ? `Perfil ${nombrePerfil}. Pasale su correo y esta contraseña temporal para que entre.` : "Ya podés cargarle un abono y registrar su asistencia con el DNI.",
       copy: () => { try { navigator.clipboard.writeText(pass) } catch { /* sin portapapeles */ } setCopied(true) }, copyLabel: copied ? "Copiada" : "Copiar",
-      reset: () => { setVals({ nombre: "", dni: "", tel: "", email: "" }); setPass(""); setTried(false); setDone(false); setCopied(false); setShow(false); setErrorServidor("") },
-      hrefAbono: "/admin/usuarios/abonos/carga-masiva", toast,
+      reset: () => { setVals({ nombre: "", dni: "", tel: "", email: "" }); setPass(""); setTried(false); setDone(false); setIdCreado(null); setCopied(false); setShow(false); setErrorServidor("") },
+      hrefAbono: idCreado ? `/admin/usuarios/abonos/carga-masiva?usuario=${idCreado}&nuevo=1` : "/admin/usuarios/abonos/carga-masiva?nuevo=1", toast,
     }
-  }, [tipo, perfiles, perfil, vals, pass, show, tried, sending, done, copied, errorServidor, toast, c])
+  }, [tipo, perfiles, perfil, vals, pass, show, tried, sending, done, idCreado, copied, errorServidor, toast, c])
 
   if (!puedeAlta) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para crear usuarios.</div>
 

@@ -162,7 +162,7 @@ export default function FichaCelular() {
       ini: nombre.trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "?", nombre,
       subtitulo: `${perfilCap} · DNI ${u.dni || "—"}`,
       wa: enlaceWhatsApp(u.telefono, "") || "#", telHref: u.telefono ? `tel:${u.telefono}` : "#",
-      hrefEditar: `/admin/usuarios/${id}/editar`, hrefAbono: `/admin/usuarios/abonos/carga-masiva?usuario=${id}`,
+      hrefEditar: `/admin/usuarios/${id}/editar`, hrefAbono: `/admin/usuarios/abonos/carga-masiva?usuario=${id}&nuevo=1`,
       faltan: esAlumno && faltan > 0, faltanTxt: `Faltan ${faltan} ${faltan === 1 ? "dato" : "datos"}: ${[dp.fechaNacimiento ? null : "nacimiento", dp.contactoEmergencia ? null : "contacto de emergencia"].filter(Boolean).join(" y ")}`,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
