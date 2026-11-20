@@ -173,6 +173,10 @@ export default function LayoutCelular({ children }) {
     setNotifs((prev) => prev.map((x) => ({ ...x, leida: true })))
     setNoLeidas(0)
   }
+  // La hoja de notificaciones se desliza al abrir y al cerrar (al cerrar espera a que termine la salida)
+  const [cerrandoNotif, setCerrandoNotif] = useState(false)
+  const [nodoEncab, setNodoEncab] = useState(null) // donde la bandeja dibuja el cartel de nuevas y sus acciones
+  const cerrarNotif = () => { setCerrandoNotif(true); setTimeout(() => { setPanel(null); setCerrandoNotif(false) }, 240) }
   const borrarUna = (n) => {
     setNotifs((prev) => prev.filter((x) => x.idNotificacion !== n.idNotificacion))
     if (!n.leida) setNoLeidas((prev) => Math.max(0, prev - 1))
@@ -182,7 +186,7 @@ export default function LayoutCelular({ children }) {
     setNotifs([]); setNoLeidas(0)
     apiClient.delete("/notificaciones").catch(() => recargarNotifs())
   }
-  const abrirDeBandeja = (n) => { leerUna(n); if (n.link) { setPanel(null); navigate(n.link) } }
+  const abrirDeBandeja = (n) => { leerUna(n); if (n.link) { cerrarNotif(); setTimeout(() => navigate(n.link), 120) } }
   const salir = () => { cerrarSesionEnServidor(); localStorage.removeItem("usuario"); localStorage.removeItem("avatarUrl"); localStorage.removeItem("permisos"); navigate("/login", { replace: true }) }
   const icono = (n) => (n.tipo === "credito" ? I.money : n.tipo === "reserva" || n.tipo === "asistencia" ? I.cal : /nueva clase|clase creada/i.test(n.titulo || "") ? "M12 5v14M5 12h14" : I.users)
   const vSuper = useMemo(() => {
@@ -228,14 +232,16 @@ export default function LayoutCelular({ children }) {
         {panel ? <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 60 }}><style>{hoverSuperpuestos(vSuper)}</style><Superpuestos v={vSuper} /></div> : null}
         {panel === "n" ? (
           <div className="dcx" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 61 }}>
-            <div role="dialog" aria-modal="true" aria-label="Notificaciones" style={{ position: "absolute", inset: 0, background: c.bg, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)" }}>
+            <style>{"@keyframes bn-hoja-entra{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}@keyframes bn-hoja-sale{from{opacity:1;transform:none}to{opacity:0;transform:translateY(32px)}}@media (prefers-reduced-motion:reduce){.bn-hoja{animation:none!important}}"}</style>
+            <div className="bn-hoja" role="dialog" aria-modal="true" aria-label="Notificaciones" style={{ position: "absolute", inset: 0, background: c.bg, display: "flex", flexDirection: "column", paddingTop: "env(safe-area-inset-top, 0px)", animation: cerrandoNotif ? "bn-hoja-sale .24s ease-in forwards" : "bn-hoja-entra .38s cubic-bezier(.16,1,.3,1) both" }}>
               <div style={{ flexShrink: 0, height: 60, display: "flex", alignItems: "center", padding: "0 10px 0 6px", borderBottom: `1px solid ${c.line}` }}>
-                <button onClick={cerrarPanel} aria-label="Cerrar notificaciones" style={{ width: 44, height: 44, border: "none", background: "transparent", color: c.ink, display: "grid", placeItems: "center", cursor: "pointer" }}>
+                <button onClick={cerrarNotif} aria-label="Cerrar notificaciones" style={{ width: 44, height: 44, flexShrink: 0, border: "none", background: "transparent", color: c.ink, display: "grid", placeItems: "center", cursor: "pointer" }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
                 </button>
+                <div ref={setNodoEncab} style={{ flex: 1, minWidth: 0, display: "flex" }} />
               </div>
               <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "12px 16px 40px" }}>
-                <BandejaMovil notifs={notifs} filtro={filtroNotif} onFiltro={setFiltroNotif} noLeidas={noLeidas} onAbrir={abrirDeBandeja} onLeer={leerUna} onBorrar={borrarUna} onLeerTodo={leerTodas} onBorrarTodo={borrarTodas} />
+                <BandejaMovil encabezadoEn={nodoEncab} notifs={notifs} filtro={filtroNotif} onFiltro={setFiltroNotif} noLeidas={noLeidas} onAbrir={abrirDeBandeja} onLeer={leerUna} onBorrar={borrarUna} onLeerTodo={leerTodas} onBorrarTodo={borrarTodas} />
               </div>
             </div>
           </div>
