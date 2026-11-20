@@ -263,7 +263,7 @@ const FILAS_COOKIES = [
   {
     nombre: "Google Maps",
     tipo: "De terceros",
-    para: "Mostrar el mapa del box en la página principal. Se cargan cuando llegás a esa parte de la página.",
+    para: "Mostrar el mapa del box. En la computadora se cargan al llegar a esa parte de la página principal; en el celular, solo si tocás «Ver mapa».",
     dura: "Las define Google",
   },
   {
@@ -327,8 +327,8 @@ export function CookiesPage() {
       <p>
         Porque al entrar al sitio solo se guarda lo estrictamente necesario para que funcione, y eso no
         requiere un permiso aparte. Lo opcional (los videos de YouTube) recién se carga
-        cuando vos lo pedís, y ese gesto es tu consentimiento. El mapa de Google de la página principal
-        se muestra directamente: Google recibe tu dirección IP y puede guardar cookies propias. Si en el futuro sumamos herramientas de
+        cuando vos lo pedís, y ese gesto es tu consentimiento. El mapa de Google se muestra directamente en la
+        página principal de la computadora (en el celular, solo si tocás «Ver mapa»): en ese caso Google recibe tu dirección IP y puede guardar cookies propias. Si en el futuro sumamos herramientas de
         analítica o publicidad, te pediremos permiso antes de activarlas.
       </p>
 
