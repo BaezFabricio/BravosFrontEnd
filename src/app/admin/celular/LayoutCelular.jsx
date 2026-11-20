@@ -93,6 +93,7 @@ export default function LayoutCelular({ children }) {
   const inicioToque = useRef(null)
   const arrastro = useRef(false)
   const ignorarClic = useRef(false)
+  const tocada = useRef(-1) // opción sobre la que se apoyó el dedo (un toque se decide por ella, no por lo que quede bajo el dedo al soltar)
   const [sobre, setSobre] = useState(null)
   const [dedo, setDedo] = useState(null) // { x, y } del dedo dentro del menú, mientras lo toca
   const [ondas, setOndas] = useState([]) // ondas de agua: [{ id, x, y }]
@@ -118,6 +119,7 @@ export default function LayoutCelular({ children }) {
     const p = posicionEnMenu(e)
     inicioToque.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
+    tocada.current = enlacesMenu.current.findIndex((el) => el && el.contains(e.target))
     setDedo(p)
     soltarOnda(p)
   }
@@ -134,9 +136,11 @@ export default function LayoutCelular({ children }) {
     const ult = ultimaOnda.current
     if (Math.abs(p.x - ult.x) > 56 || performance.now() - ult.t > 380) soltarOnda(p)
   }
-  const terminarToque = () => { inicioToque.current = null; arrastro.current = false; setSobre(null); setDedo(null) }
+  const terminarToque = () => { inicioToque.current = null; arrastro.current = false; tocada.current = -1; setSobre(null); setDedo(null) }
   const alSoltarMenu = () => {
-    const elegida = arrastro.current && sobre !== null ? tabs[sobre] : null
+    // Al apoyar el dedo en el menú achicado, éste se agranda y las opciones se corren: el toque se resuelve acá con la opción donde se
+    // apoyó el dedo, en vez de dejarlo al clic del navegador (que podía caer en otra opción o perderse).
+    const elegida = arrastro.current ? (sobre !== null ? tabs[sobre] : null) : (inicioToque.current && tocada.current >= 0 ? tabs[tocada.current] : null)
     if (elegida) {
       ignorarClic.current = true // el navegador igual dispara un clic al soltar: se descarta
       setTimeout(() => { ignorarClic.current = false }, 350)

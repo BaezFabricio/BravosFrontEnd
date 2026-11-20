@@ -67,7 +67,7 @@ export default function AbonosCelular() {
     if (!puedeVer) return
     cargar()
     apiClient.get("/planes").then((r) => setPlanes(r.data?.data || [])).catch(() => {})
-    if (usuarioPre) apiClient.get(`/usuarios/${usuarioPre}`).then((r) => { const u = r.data?.data || r.data?.usuario || r.data; setAlumno({ id: usuarioPre, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "" }) }).catch(() => {})
+    if (usuarioPre) apiClient.get(`/usuarios/${usuarioPre}`).then((r) => { const u = r.data?.data || r.data?.usuario || r.data; setAlumno({ id: usuarioPre, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "", img: u.avatarUrl || null }) }).catch(() => {})
   }, [puedeVer, cargar, usuarioPre])
 
   const abrirElegir = useCallback(() => {
@@ -102,7 +102,7 @@ export default function AbonosCelular() {
     const clave = `${y}-${String(mn + 1).padStart(2, "0")}`
     const mes = MESES[mn].charAt(0).toUpperCase() + MESES[mn].slice(1) + " " + y
     const loading = abonos === null
-    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre, horas: a.horas || [] })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
+    const L = (abonos || []).map((a) => ({ id: a.idAbono || a.id, inicio: dia(a.fechaInicio || a.inicio), vence: dia(a.fechaVencimiento || a.vencimiento), name: a.nombreAlumno || alumno?.nombre || "—", img: a.avatarUrl || (usuarioPre ? alumno?.img : null) || null, plan: a.tipoAbono || a.abono || "Abono", met: a.metodoPago || "—", amt: Number(a.importe) || 0, idUsuario: a.idUsuario || usuarioPre, horas: a.horas || [] })).filter((a) => a.inicio.startsWith(clave)).sort((a, b) => b.inicio.localeCompare(a.inicio))
     const total = L.reduce((s, x) => s + x.amt, 0)
     const horasOpc = [...new Set(L.flatMap((x) => x.horas || []))].sort()
     const LF = horaF === "all" ? L : L.filter((x) => (x.horas || []).includes(horaF))
@@ -140,13 +140,13 @@ export default function AbonosCelular() {
       horasOpc: [{ id: "all", label: "Todas" }, ...horasOpc.map((h) => ({ id: h, label: h }))].map((o) => { const ch = horaF === o.id; return { id: o.id, label: o.label, ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + c.line2, bg: ch ? c.okBg : c.surf, fg: ch ? c.okFg : c.ink, pick: () => setHoraF(o.id) } }),
       lista: LF.map((x, i) => ({ ...x, ini: x.name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", rango: `${fmtD(x.inicio)} → ${fmtD(x.vence)}`, amt: pesos(x.amt), sep: i ? c.line2 : "transparent", href: x.idUsuario ? `/admin/usuarios/${x.idUsuario}` : "/admin/usuarios", aria: `${x.name}, ${x.plan}, ${x.met}, ${pesos(x.amt)}, ${fmtD(x.inicio)} a ${fmtD(x.vence)}` })),
       sheet, openNew: () => { if (puedeAlta) { setSheet(true); setTried(false) } }, close: () => setSheet(false),
-      alu: { ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir", abrirElegir, corto: primerNombre },
+      alu: { img: alumno?.img || null, ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir", abrirElegir, corto: primerNombre },
       pick: {
         open: elegir, q: busca, onQ: (ev) => setBusca(ev.target.value), cerrar: () => setElegir(false), cargando: usuarios === null,
-        lista: (usuarios || []).map((u) => ({ id: u.idUsuario || u.id, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "" }))
+        lista: (usuarios || []).map((u) => ({ id: u.idUsuario || u.id, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "", img: u.avatarUrl || null }))
           .filter((u) => u.id && u.nombre && (!busca.trim() || (u.nombre + " " + u.dni).toLowerCase().includes(busca.trim().toLowerCase())))
           .slice(0, 60)
-          .map((u) => ({ ...u, ini: u.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", elegir: () => { setAlumno({ id: String(u.id), nombre: u.nombre, dni: u.dni }); setElegir(false) } })),
+          .map((u) => ({ ...u, ini: u.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() || "?", elegir: () => { setAlumno({ id: String(u.id), nombre: u.nombre, dni: u.dni, img: u.img }); setElegir(false) } })),
       },
       planes: planes.map((p) => { const ch = plan === String(p.idPlan); return { id: p.idPlan, n: p.nombre, s: `${p.cantidadCreditos} ${Number(p.cantidadCreditos) === 1 ? "crédito" : "créditos"}`, pr: pesos(p.precio), ch: ch ? "true" : "false", bd: ch ? "2px solid #9be600" : "1px solid " + (tried && !elegido ? c.errFg : c.line2), bg: ch ? c.okBg : c.surf, rd: ch ? "6px solid #9be600" : "2px solid " + c.btnLine, rBg: ch ? "#0b0b0b" : "transparent", pick: () => { setPlan(String(p.idPlan)); setMonto(String(precio(p, met))); setFin(masUnMes(ini)) } } }),
       planErr: tried && !elegido, planInv: tried && !elegido ? "true" : "false",

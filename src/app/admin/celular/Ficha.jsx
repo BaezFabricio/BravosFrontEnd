@@ -119,6 +119,7 @@ export default function FichaCelular() {
       delDis: !okConf || busy, delBg: okConf ? c.errFg : c.line2, delFg: okConf ? (oscuro ? "#1a0a08" : "#ffffff") : c.muted, delCur: okConf ? "pointer" : "not-allowed", delLabel: busy ? "Eliminando…" : "Eliminar para siempre",
       doDel: async () => { if (!okConf) return; setBusy(true); try { await eliminarUsuario(id); setDlg(null); setDeleted(true) } catch (err) { setDlg(null); avisar(err.response?.data?.message || "No se pudo eliminar el usuario.") } finally { setBusy(false) } },
       deleted, toast,
+      img: u.avatarUrl || null,
       ini: nombre.trim().split(/\s+/).map((x) => x[0]).slice(0, 2).join("").toUpperCase() || "?", nombre,
       subtitulo: `${perfilCap} · DNI ${u.dni || "—"}`,
       wa: enlaceWhatsApp(u.telefono, "") || "#", telHref: u.telefono ? `tel:${u.telefono}` : "#",

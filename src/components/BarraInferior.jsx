@@ -25,6 +25,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
   const inicio = useRef(null) // dónde empezó el toque
   const arrastro = useRef(false) // si el dedo se movió lo suficiente como para considerarse un deslizamiento
   const ignorarClic = useRef(false)
+  const tocada = useRef(-1) // opción sobre la que se apoyó el dedo
   const [sobre, setSobre] = useState(null) // índice de la opción que está bajo el dedo mientras se desliza
   const ultimaOnda = useRef({ x: -999, t: 0 })
   const [dedo, setDedo] = useState(null) // { x, y } mientras el dedo está sobre la barra
@@ -81,6 +82,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
     soltarOnda(p.x, p.y)
     inicio.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
+    tocada.current = enlaces.current.findIndex((el) => el && el.contains(e.target))
   }
 
   const alMover = (e) => {
@@ -103,12 +105,14 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
 
   const alSoltar = () => {
     // Al soltar después de deslizar, se abre la opción que quedó bajo el dedo
-    if (arrastro.current && sobre !== null && items[sobre]) {
+    // Un toque simple se resuelve con la opción donde se apoyó el dedo: al apoyarlo la barra se agranda y las opciones se corren
+    const elegida = arrastro.current ? sobre : (inicio.current ? tocada.current : -1)
+    if (elegida !== null && elegida >= 0 && items[elegida]) {
       ignorarClic.current = true // el navegador igual dispara un clic al soltar: se descarta
       setTimeout(() => { ignorarClic.current = false }, 350)
       // Un ítem con "alTocar" hace una acción en vez de navegar (por ejemplo "Más" abre el menú)
-      if (items[sobre].alTocar) items[sobre].alTocar()
-      else navigate(items[sobre].href)
+      if (items[elegida].alTocar) items[elegida].alTocar()
+      else navigate(items[elegida].href)
       onNavegar?.()
     }
     arrastro.current = false

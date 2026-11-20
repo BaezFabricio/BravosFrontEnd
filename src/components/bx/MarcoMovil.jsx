@@ -46,6 +46,7 @@ export function MenuInferior({ items, onNavegar }) {
   const inicio = useRef(null)
   const arrastro = useRef(false)
   const ignorarClic = useRef(false)
+  const tocada = useRef(-1) // opción sobre la que se apoyó el dedo
   const ultimaOnda = useRef({ x: -999, t: 0 })
   const reposo = useRef(0)
   const [sobre, setSobre] = useState(null)
@@ -94,6 +95,7 @@ export function MenuInferior({ items, onNavegar }) {
     soltarOnda(p.x, p.y)
     inicio.current = { x: e.clientX, y: e.clientY }
     arrastro.current = false
+    tocada.current = enlaces.current.findIndex((el) => el && el.contains(e.target))
   }
   const alMover = (e) => {
     if (e.pointerType === "mouse" && e.buttons === 0) return
@@ -111,11 +113,13 @@ export function MenuInferior({ items, onNavegar }) {
     if (Math.abs(p.x - ult.x) > 56 || performance.now() - ult.t > 380) soltarOnda(p.x, p.y)
   }
   const alSoltar = () => {
-    if (arrastro.current && sobre !== null && items[sobre]) {
+    // Un toque simple se resuelve con la opción donde se apoyó el dedo: al apoyarlo la barra se agranda y las opciones se corren
+    const elegida = arrastro.current ? sobre : (inicio.current ? tocada.current : -1)
+    if (elegida !== null && elegida >= 0 && items[elegida]) {
       ignorarClic.current = true // el navegador igual dispara un clic al soltar: se descarta
       setTimeout(() => { ignorarClic.current = false }, 350)
-      if (items[sobre].alTocar) items[sobre].alTocar()
-      else navigate(items[sobre].href)
+      if (items[elegida].alTocar) items[elegida].alTocar()
+      else navigate(items[elegida].href)
       onNavegar?.()
     }
     arrastro.current = false
