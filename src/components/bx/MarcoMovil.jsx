@@ -1,4 +1,5 @@
 import GotaAgua from "@/components/GotaAgua"
+import BrilloDedo from "@/components/BrilloDedo"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Ico } from "@/components/bx/iconos"
@@ -147,16 +148,7 @@ export function MenuInferior({ items, onNavegar }) {
         >
           {/* Brillo que sigue al dedo, con retraso, y ondas que se expanden desde donde se tocó */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px]">
-            <span
-              className="pointer-events-none absolute z-0 h-14 w-14 rounded-full bg-[radial-gradient(circle,rgba(155,230,0,0.22)_0%,rgba(155,230,0,0.07)_50%,transparent_72%)] motion-reduce:hidden"
-              style={{
-                left: dedo ? dedo.x : "50%",
-                top: dedo ? dedo.y : "50%",
-                opacity: dedo ? 1 : 0,
-                transform: `translate(-50%, -50%) scale(${dedo ? 1 : 0.6})`,
-                transition: "left 160ms cubic-bezier(.2,.8,.3,1), top 160ms cubic-bezier(.2,.8,.3,1), opacity 300ms ease-out, transform 300ms ease-out",
-              }}
-            />
+            <BrilloDedo dedo={dedo} rgb="155,230,0" className="motion-reduce:hidden" />
             {ondas.map((o) => (
               <span
                 key={o.id}

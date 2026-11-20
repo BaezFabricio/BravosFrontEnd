@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import GotaAgua from "./GotaAgua"
+import BrilloDedo from "./BrilloDedo"
 
 /*
  * Barra de abajo del celular (alumno, profesor y administrador): una píldora flotante, separada de los bordes,
@@ -139,17 +140,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
       >
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
         {/* Brillo que sigue al dedo, con retraso (efecto gota de agua) */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute z-0 h-14 w-14 rounded-full bg-[radial-gradient(circle,rgba(163,230,53,0.22)_0%,rgba(163,230,53,0.07)_50%,transparent_72%)] motion-reduce:hidden"
-          style={{
-            left: dedo ? dedo.x : "50%",
-            top: dedo ? dedo.y : "50%",
-            opacity: dedo ? 1 : 0,
-            transform: `translate(-50%, -50%) scale(${dedo ? 1 : 0.6})`,
-            transition: "left 160ms cubic-bezier(.2,.8,.3,1), top 160ms cubic-bezier(.2,.8,.3,1), opacity 300ms ease-out, transform 300ms ease-out",
-          }}
-        />
+        <BrilloDedo dedo={dedo} className="motion-reduce:hidden" />
 
         {/* Ondas que se expanden y se desvanecen */}
         {ondas.map((o) => (

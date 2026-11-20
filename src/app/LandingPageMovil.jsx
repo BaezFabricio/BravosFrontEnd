@@ -456,8 +456,8 @@ export default function LandingPageMovil() {
             {logueado ? (
               <div className="mt-3.5 flex items-center gap-3 pt-1">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-[13px] font-extrabold text-[#9be600]">
-                    {sesion.userData.nombrecompleto.trim().split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'UB'}
+                  <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-[#9be600] bg-[#1f2a0e] text-[13px] font-extrabold text-[#9be600]">
+                    {sesion.avatarUrl ? <img src={sesion.avatarUrl} alt="" className="h-full w-full object-cover" /> : sesion.userData.nombrecompleto.trim().split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'UB'}
                   </span>
                   <span className="min-w-0 truncate text-[15px] font-bold">{sesion.userData.nombrecompleto}</span>
                 </div>
