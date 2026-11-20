@@ -136,6 +136,38 @@
       <img class="arr-bravo" src="/acceso/dog-t.png" alt="" />
     </div>
     <div id="root"></div>
+    <!-- Control de arranque: si a los 9 segundos la app no dibujó nada (pantalla negra o trabada), muestra el motivo en lugar del vacío -->
+    <script>
+      (function () {
+        var errores = []
+        window.addEventListener("error", function (e) { errores.push((e.message || "Error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : "")) })
+        window.addEventListener("unhandledrejection", function (e) { errores.push("Promesa: " + ((e.reason && (e.reason.message || e.reason)) || "sin detalle")) })
+        setTimeout(function () {
+          var raiz = document.getElementById("root")
+          var vacia = !raiz || raiz.children.length === 0 || !(document.body.innerText || "").replace(/\s+/g, "")
+          if (!vacia || document.getElementById("bv-fallo-arranque")) return
+          var caja = document.createElement("div")
+          caja.id = "bv-fallo-arranque"
+          caja.setAttribute("role", "alert")
+          caja.style.cssText = "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#0a0a0a;color:#ecefe4;font:500 15px/1.5 system-ui,sans-serif"
+          var detalle = errores.length ? errores.slice(-3).join("\n") : "Sin detalle (la pantalla no terminó de dibujarse)."
+          caja.innerHTML = '<div style="max-width:420px;width:100%;border:1px solid #2a2c24;border-radius:16px;background:#141510;padding:24px;text-align:center">' +
+            '<p style="margin:0;font-weight:800;font-size:18px">La app no pudo abrirse</p>' +
+            '<p style="margin:8px 0 16px;color:#a3a698">Probá con el botón. Si sigue igual, mandanos lo que dice abajo.</p>' +
+            '<button id="bv-fallo-limpiar" style="width:100%;height:46px;border:0;border-radius:12px;background:#9be600;color:#000;font-weight:900;font-size:14px;cursor:pointer">LIMPIAR Y RECARGAR</button>' +
+            '<pre style="margin:14px 0 0;white-space:pre-wrap;word-break:break-word;text-align:left;font:12px/1.4 ui-monospace,monospace;color:#7d8072"></pre></div>'
+          caja.querySelector("pre").textContent = detalle + "\n" + location.pathname
+          document.body.appendChild(caja)
+          document.getElementById("bv-fallo-limpiar").onclick = function () {
+            var fin = function () { location.reload() }
+            var pasos = []
+            if (navigator.serviceWorker) pasos.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister() })) }))
+            if (window.caches) pasos.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k) })) }))
+            Promise.all(pasos).then(fin, fin)
+          }
+        }, 9000)
+      })()
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

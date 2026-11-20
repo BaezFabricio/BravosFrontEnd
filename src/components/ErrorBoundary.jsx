@@ -54,6 +54,18 @@ class Limite extends Component {
   }
 }
 
+// Para cualquier pieza suelta (por ejemplo los avisos): si falla, no se dibuja nada, pero el resto de la app sigue funcionando
+class Silencioso extends Component {
+  state = { fallo: false }
+  static getDerivedStateFromError() { return { fallo: true } }
+  componentDidCatch(error) { console.error("[pieza] Falló y se ocultó:", error) }
+  render() { return this.state.fallo ? null : this.props.children }
+}
+export function PiezaSegura({ children }) { return <Silencioso>{children}</Silencioso> }
+
+// Última red de seguridad, por fuera de todo (no depende del router): si algo falla fuera de las pantallas, se muestra el aviso en vez de negro
+export function ErrorBoundaryRaiz({ children }) { return <Limite clave="raiz">{children}</Limite> }
+
 // Se reinicia solo al cambiar de pantalla (la dirección es la "clave")
 export default function ErrorBoundary({ children }) {
   const { pathname } = useLocation()

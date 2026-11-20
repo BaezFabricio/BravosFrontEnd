@@ -11,6 +11,10 @@ const GENERICOS = ["Éxito", "Error", "Atención", "Info"]
 let ultimo = { clave: "", t: 0 }
 
 export function mostrarAviso({ tipo, titulo, mensaje, link = null, accion = null, alAbrir = null }) {
+  // Siempre texto: un objeto como título o detalle hacía fallar el dibujo de toda la app
+  const aTexto = (x) => (x == null ? "" : typeof x === "string" ? x : typeof x === "number" ? String(x) : x?.message ? String(x.message) : "")
+  titulo = aTexto(titulo)
+  mensaje = aTexto(mensaje)
   const clave = `${tipo}|${titulo}|${mensaje}`
   const ahora = Date.now()
   if (clave === ultimo.clave && ahora - ultimo.t < 1500) return

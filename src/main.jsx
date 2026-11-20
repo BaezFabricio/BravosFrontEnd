@@ -7,6 +7,7 @@ import App from './App.jsx'
 import { ThemeProvider } from './components/theme-provider'
 import { registerSW } from 'virtual:pwa-register'
 import PullToRefresh from './components/PullToRefresh'
+import { ErrorBoundaryRaiz } from './components/ErrorBoundary'
 import { recuperarDeVersionVieja } from './lib/recuperarVersion'
 
 // Vite avisa con este evento cuando no se pudo descargar el archivo de una pantalla (versión vieja abierta tras una actualización):
@@ -99,10 +100,12 @@ document.addEventListener('visibilitychange', () => {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* 2. Envolvemos toda la aplicación */}
+    <ErrorBoundaryRaiz>
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <App />
       <PullToRefresh />
     </ThemeProvider>
+    </ErrorBoundaryRaiz>
   </StrictMode>,
 )
 

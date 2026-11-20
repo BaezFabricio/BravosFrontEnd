@@ -2,7 +2,7 @@ import { haySesion } from './lib/sesion'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { RecordarRutaPublica } from './lib/ultimaRutaPublica'
 import AvisosSileo from './components/AvisosSileo'
-import ErrorBoundary from './components/ErrorBoundary'
+import ErrorBoundary, { PiezaSegura } from './components/ErrorBoundary'
 import EscuchaNavegar from './components/EscuchaNavegar'
 import { iniciarSincronizacionDePermisos, usePermisosVivos } from './lib/sincronizarPermisos'
 import { useEffect } from 'react'
@@ -167,7 +167,7 @@ function App() {
     <BrowserRouter>
       <RecordarRutaPublica />
       <EscuchaNavegar />
-      <AvisosSileo />
+      <PiezaSegura><AvisosSileo /></PiezaSegura>
       <ErrorBoundary>
       <Routes>
         <Route path="/" element={<Navigate to="/inicio" replace />} />
