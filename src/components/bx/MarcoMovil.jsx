@@ -128,8 +128,8 @@ export function MenuInferior({ items, onNavegar }) {
     setDedo(null)
   }
   // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
-  const activoIdx = Math.max(0, items.findIndex((it) => it.activo))
-  const gotaEn = sobre !== null ? sobre : activoIdx
+  const activoReal = items.findIndex((it) => it.activo)
+  const gotaEn = sobre !== null ? sobre : Math.max(0, activoReal)
   const cancelar = () => { arrastro.current = false; inicio.current = null; setSobre(null); setDedo(null) }
 
   return (
@@ -165,7 +165,7 @@ export function MenuInferior({ items, onNavegar }) {
                 style={{ left: o.x - 20, top: o.y - 20 }}
               />
             ))}
-            <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={!!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 5 : 7} />
+            <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={(sobre === null && activoReal < 0) || !!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 5 : 7} />
           </div>
 
           {items.map((item, idx) => {

@@ -122,8 +122,8 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
   }
 
   // La gota va a la opción activa, o a la que está bajo el dedo mientras se desliza
-  const activoIdx = Math.max(0, items.findIndex((it) => it.activo))
-  const gotaEn = sobre !== null ? sobre : activoIdx
+  const activoReal = items.findIndex((it) => it.activo)
+  const gotaEn = sobre !== null ? sobre : Math.max(0, activoReal)
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden" aria-label="Navegación principal">
@@ -161,7 +161,7 @@ export function BarraInferior({ items, onNavegar, compactaForzada = false }) {
             style={{ left: o.x - 20, top: o.y - 20 }}
           />
         ))}
-          <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={!!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 4 : 6} />
+          <GotaAgua enlaces={enlaces} indice={gotaEn} oculta={(sobre === null && activoReal < 0) || !!items[gotaEn]?.centro} clave={compacta} margenY={compacta ? 4 : 6} />
         </div>
 
         {items.map((item, idx) => {
