@@ -1,4 +1,4 @@
-import { avisarTexto } from "@/lib/avisoSileo"
+import { avisarTexto, conCarga } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import apiClient, { cambiarEstadoUsuario, eliminarUsuario, getUsuarioById } from "@/api"
@@ -122,12 +122,15 @@ export default function FichaCelular() {
         hacer: async () => {
           setRevBusy(true)
           try {
-            await apiClient.delete(`/usuarios/${id}/abonos/${pagoSel.idCredito}`)
+            await conCarga(apiClient.delete(`/usuarios/${id}/abonos/${pagoSel.idCredito}`), {
+              cargando: "Revocando abono…",
+              exito: { titulo: "Abono revocado", mensaje: "Ya no cuenta en las estadísticas." },
+              error: (err) => ({ titulo: "No se pudo revocar el abono", mensaje: err.response?.data?.message || "Probá de nuevo en un momento." }),
+            })
             const [rp, rf] = await Promise.all([apiClient.get(`/usuarios/${id}/pagos`), apiClient.get(`/usuarios/${id}/ficha`).catch(() => null)])
             setPagos(rp.data?.data || []); if (rf) setFicha(rf.data?.data || null)
             setPagoSel(null); setRevConfirm(false)
-            avisar("Abono revocado. Ya no cuenta en las estadísticas.")
-          } catch (err) { setRevConfirm(false); avisar(err.response?.data?.message || "No se pudo revocar el abono.") } finally { setRevBusy(false) }
+          } catch { setRevConfirm(false) /* el aviso de error ya lo mostró la burbuja de carga */ } finally { setRevBusy(false) }
         },
       },
     } : null

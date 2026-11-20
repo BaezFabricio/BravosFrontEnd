@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { Minus, Plus, RotateCcw, Save, Loader2 } from "lucide-react"
 import apiClient from "@/api"
-import { toast } from "@/lib/notificar"
+import { conCarga } from "@/lib/avisoSileo"
 import { cargarReglasBox } from "@/lib/reglasBox"
 
 /*
@@ -118,13 +118,16 @@ export default function ReglasReservas({ puedeModificar }) {
   const guardar = async () => {
     setGuardando(true)
     try {
-      const r = await apiClient.put("/reglas-box", valores)
+      const r = await conCarga(apiClient.put("/reglas-box", valores), {
+        cargando: "Guardando reglas…",
+        exito: { titulo: "Reglas guardadas", mensaje: "Valen desde ahora para las reservas y cancelaciones nuevas." },
+        error: (err) => ({ titulo: "No se guardaron las reglas", mensaje: err.response?.data?.message || "Revisá tu conexión e intentá de nuevo." }),
+      })
       const v = normalizar(r.data?.data || {})
       setValores(v); setGuardados(v)
       cargarReglasBox(true)
-      toast.success("Reglas guardadas", { description: "Valen desde ahora para las reservas y cancelaciones nuevas.", guardar: false })
-    } catch (err) {
-      toast.error("No se guardaron las reglas", { description: err.response?.data?.message || "Revisá tu conexión e intentá de nuevo." })
+    } catch {
+      // el aviso de error ya lo mostró la burbuja de carga
     } finally {
       setGuardando(false)
     }

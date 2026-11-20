@@ -38,6 +38,21 @@ export function mostrarAviso({ tipo, titulo, mensaje, link = null, accion = null
 
 export const quitarAvisos = () => sileo.clear()
 
+/*
+ * Un guardado con aviso de carga: la burbuja arranca con el icono girando ("Guardando…") y, cuando termina, la misma burbuja
+ * se transforma en éxito o en error. Devuelve la promesa original (si falla, sigue fallando para que quien llama lo maneje).
+ *   conCarga(apiClient.post(...), { cargando: "Guardando abono…", exito: { titulo, mensaje }, error: (err) => ({ titulo, mensaje }) })
+ * "exito" y "error" pueden ser un objeto o una función que recibe el resultado / el error.
+ */
+export function conCarga(promesa, { cargando, exito, error }) {
+  const armar = (x, dato, duration) => { const r = (typeof x === "function" ? x(dato) : x) || {}; return { title: r.titulo, description: r.mensaje, duration } }
+  return sileo.promise(promesa, {
+    loading: { title: cargando },
+    success: (dato) => armar(exito, dato, 3800),
+    error: (err) => armar(error, err, 6500),
+  })
+}
+
 // Las pantallas nuevas del admin en celular avisan con un texto suelto ("Abono cargado.", "No se pudo guardar."):
 // acá se decide el tipo según cómo empieza el texto y se muestra con Sileo, igual que el resto del sistema.
 export function avisarTexto(texto) {

@@ -1,4 +1,4 @@
-import { avisarTexto } from "@/lib/avisoSileo"
+import { avisarTexto, conCarga } from "@/lib/avisoSileo"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import apiClient, { enviarFormulario } from "@/api"
@@ -136,14 +136,17 @@ export default function AbonosCelular() {
       if (nErr) { setTried(true); setTimeout(() => document.getElementById("err-ab")?.focus(), 0); return }
       setSaving(true); setErrorServidor("")
       try {
-        await apiClient.post(`/usuarios/${alumno.id}/abonos`, { tipoAbono: elegido.nombre, fechaInicio: ini, fechaVencimiento: fin || undefined, metodoPago: met, importe: parseFloat(monto), idUsuarioOperador: sesion.idUsuario })
+        await conCarga(apiClient.post(`/usuarios/${alumno.id}/abonos`, { tipoAbono: elegido.nombre, fechaInicio: ini, fechaVencimiento: fin || undefined, metodoPago: met, importe: parseFloat(monto), idUsuarioOperador: sesion.idUsuario }), {
+          cargando: "Guardando abono…",
+          exito: { titulo: "Abono guardado", mensaje: `${pesos(monto)} de ${alumno.nombre}.` },
+          error: (err) => ({ titulo: "No se pudo guardar el abono", mensaje: err.response?.data?.message || "Revisá los datos e intentá de nuevo." }),
+        })
         // Pago por transferencia: se aprueba solo el comprobante que se eligió
         if (met === "Transferencia" && compSel) {
           try { await apiClient.patch(`/documentos/${compSel}/aprobar`) } catch { /* el abono ya quedó guardado */ }
         }
         await cargar()
         setSheet(false); setM(0); setPlan(null); setMonto(""); setTried(false); setHor(""); setComp(undefined); cargarDocs(alumno.id)
-        avisar(`Abono guardado: ${pesos(monto)} de ${alumno.nombre}.`)
       } catch (err) { setErrorServidor(err.response?.data?.message || "No se pudo guardar el abono."); setTried(true) } finally { setSaving(false) }
     }
     const nombre = (sesion.nombrecompleto || "").trim()
