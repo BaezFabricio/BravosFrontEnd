@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useSearchParams } from "react-router-dom"
 import apiClient, { cambiarEstadoUsuario, eliminarUsuario, getUsuarioById } from "@/api"
 import { enlaceWhatsApp } from "@/lib/whatsapp"
 import { useCelular } from "./contexto"
@@ -28,7 +28,9 @@ export default function FichaCelular() {
   const [pagos, setPagos] = useState([])
   const [docs, setDocs] = useState([])
   const [error, setError] = useState(false)
-  const [tab, setTab] = useState("datos")
+  const [params] = useSearchParams()
+  // Desde "Ver abonos" se llega con ?tab=abonos y la ficha abre directo en esa pestaña
+  const [tab, setTab] = useState(() => ({ abonos: "ab", reservas: "res", documentos: "doc" })[params.get("tab")] || "datos")
   const [menu, setMenu] = useState(false)
   const [dlg, setDlg] = useState(null)
   const [conf, setConf] = useState("")
@@ -72,12 +74,13 @@ export default function FichaCelular() {
     const sep = (rows) => rows.map((r, i) => ({ ...r, sep: i ? c.line2 : "transparent" }))
     const ultimo = pagos[0]
     const estadoTxt = mem === "vigente" || mem === "activa" ? "Activa" : mem === "por_vencer" ? "Por vencer" : "Vencida"
-    const grupos = [
-      ...(esAlumno ? [{ t: "MEMBRESÍA", rows: sep([
+    // La membresía (plan, estado, vencimiento, créditos) va en la pestaña Abonos, junto con los pagos; Datos queda con lo personal
+    const grupoMem = esAlumno ? { t: "MEMBRESÍA", rows: sep([
         R("Plan", memCargando ? "Cargando…" : (vigente?.plan || ultimo?.plan || "Sin plan activo"), memCargando ? { fg: c.muted } : {}),
         R("Estado", memCargando ? "Cargando…" : estadoTxt, memCargando ? { fg: c.muted } : estadoTxt === "Activa" ? { fg: c.okFg } : { fg: c.warnFg }),
         ...(memCargando ? [] : vigente ? [R("Inicio", fecha(vigente.inicio)), R("Vence", fecha(vigente.vencimiento)), R("Créditos", `${vigente.creditos} de ${vigente.totalCreditos}`)] : [R("Créditos", "0")]),
-      ]) }] : []),
+      ]) } : null
+    const grupos = [
       { t: "DATOS PERSONALES", rows: sep([
         R("DNI", u.dni || "—"), R("Correo", u.email || "—", { font: "700 13px Archivo" }), R("Teléfono", u.telefono || "—"),
         dp.fechaNacimiento ? R("Nacimiento", fecha(dp.fechaNacimiento)) : R("Nacimiento", "", falta),
@@ -106,7 +109,7 @@ export default function FichaCelular() {
       c,
       tabs2: [["datos", "Datos"], ["res", "Reservas"], ["ab", "Abonos"], ["doc", "Docs"]].map(([tid, l]) => { const s = tid === tab; return { id: "tb-" + tid, l, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, pick: () => setTab(tid) } }),
       tabId: "tb-" + tab, tDatos: tab === "datos", tOtro: tab !== "datos",
-      grupos, oIcon: o.icon, oList: o.rows.length > 0, oEmpty: !o.rows.length, oEmptyT: o.et, oEmptyS: o.es, oRows: sep(o.rows),
+      grupos, gOtro: tab === "ab" && grupoMem ? [grupoMem] : [], oTitulo: tab === "ab" && o.rows.length ? "HISTORIAL DE PAGOS" : "", oIcon: o.icon, oList: o.rows.length > 0, oEmpty: !o.rows.length, oEmptyT: o.et, oEmptyS: o.es, oRows: sep(o.rows),
       chip, chBg: off || cargando ? "transparent" : chOk ? c.okBg : c.warnBg, chBd: off || cargando ? c.btnLine : chOk ? c.okLine : c.warnLine, chFg: off || cargando ? c.muted : chOk ? c.okFg : c.warnFg, inactivo: off,
       reactivar: () => { if (puedeEditar && !propia) cambiarEstado("activo") },
       menu, openMenu: () => setMenu(true), closeAll: cerrar,

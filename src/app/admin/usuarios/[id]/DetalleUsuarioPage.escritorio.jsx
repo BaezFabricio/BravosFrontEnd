@@ -1,6 +1,6 @@
 import NumeroAnimado from "@/components/NumeroAnimado"
 import { useEffect, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { ChevronLeft, CreditCard, Eye, FileText, MoreHorizontal, Pencil, Plus, Stethoscope, UserCheck, UserX, Trash2, CalendarX } from "lucide-react"
 import { AdminFormSkeleton } from "@/components/AdminPageSkeleton"
 import apiClient, { cambiarEstadoUsuario, eliminarUsuario, getUsuarioById } from "@/api"
@@ -63,7 +63,8 @@ export default function DetalleUsuarioPage() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [error, setError] = useState("")
 
-  const [pestana, setPestana] = useState("datos")
+  const [paramsUrl] = useSearchParams()
+  const [pestana, setPestana] = useState(() => (["reservas", "abonos", "documentos", "notas"].includes(paramsUrl.get("pestana")) ? paramsUrl.get("pestana") : "datos"))
   const [reservas, setReservas] = useState([])
   const [cargandoReservas, setCargandoReservas] = useState(false)
   const [documentos, setDocumentos] = useState([])
@@ -294,7 +295,7 @@ export default function DetalleUsuarioPage() {
 
       {/* DATOS */}
       {pestana === "datos" && (
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16 }}>
           <section style={{ ...estiloTarjeta, padding: "20px 22px" }}>
             <h3 className="bv-admin-titulo" style={{ margin: "0px 0px 6px", font: "800 16px Archivo" }}>Datos personales</h3>
             <dl style={{ margin: 0, display: "grid" }}>
@@ -304,16 +305,6 @@ export default function DetalleUsuarioPage() {
               {filaDato("Correo", user?.email || "Sin correo")}
               {filaDato("Teléfono", user?.telefono || "—")}
               {filaDato("Contacto de emergencia", datosPersona.contactoEmergencia ? `${datosPersona.contactoEmergencia}${datosPersona.telefonoEmergencia ? ` · ${datosPersona.telefonoEmergencia}` : ""}` : "No cargado", datosPersona.contactoEmergencia ? undefined : "var(--muted-foreground)")}
-            </dl>
-          </section>
-          <section style={{ ...estiloTarjeta, padding: "20px 22px" }}>
-            <h3 className="bv-admin-titulo" style={{ margin: "0px 0px 6px", font: "800 16px Archivo" }}>Membresía</h3>
-            <dl style={{ margin: 0, display: "grid" }}>
-              {filaDato("Plan", vigente?.plan || "Sin plan vigente")}
-              {filaDato("Inicio", vigente?.inicio ? fechaDDMMAAAA(vigente.inicio) : "—")}
-              {filaDato("Vence", vigente?.vencimiento ? `${fechaDDMMAAAA(vigente.vencimiento)} · quedan ${vigente.diasRestantes} días` : "—")}
-              {filaDato("Créditos", vigente ? `${vigente.creditos} de ${vigente.totalCreditos}` : `${user?.creditos ?? 0}`)}
-              {filaDato("Cuenta", user?.sinAcceso ? "Sin cuenta" : user?.correoVerificado === 0 ? "Sin verificar" : "Verificada", user?.sinAcceso ? "var(--muted-foreground)" : user?.correoVerificado === 0 ? "var(--sh-warn)" : "var(--primary)")}
             </dl>
           </section>
         </div>
@@ -355,7 +346,18 @@ export default function DetalleUsuarioPage() {
 
       {/* ABONOS */}
       {pestana === "abonos" && (
-        cargandoPagos ? <Cargando filas={2} className="py-2" /> : pagos.length === 0 ? (
+        <div style={{ display: "grid", gap: 16 }}>
+            <section style={{ ...estiloTarjeta, padding: "20px 22px" }}>
+              <h3 className="bv-admin-titulo" style={{ margin: "0px 0px 6px", font: "800 16px Archivo" }}>Membresía</h3>
+              <dl style={{ margin: 0, display: "grid" }}>
+                {filaDato("Plan", vigente?.plan || "Sin plan vigente")}
+                {filaDato("Inicio", vigente?.inicio ? fechaDDMMAAAA(vigente.inicio) : "—")}
+                {filaDato("Vence", vigente?.vencimiento ? `${fechaDDMMAAAA(vigente.vencimiento)} · quedan ${vigente.diasRestantes} días` : "—")}
+                {filaDato("Créditos", vigente ? `${vigente.creditos} de ${vigente.totalCreditos}` : `${user?.creditos ?? 0}`)}
+                {filaDato("Cuenta", user?.sinAcceso ? "Sin cuenta" : user?.correoVerificado === 0 ? "Sin verificar" : "Verificada", user?.sinAcceso ? "var(--muted-foreground)" : user?.correoVerificado === 0 ? "var(--sh-warn)" : "var(--primary)")}
+              </dl>
+            </section>
+        {cargandoPagos ? <Cargando filas={2} className="py-2" /> : pagos.length === 0 ? (
           <div style={{ ...estiloTarjeta, borderStyle: "dashed", padding: "40px 24px", textAlign: "center", font: "500 14px Archivo", color: "var(--muted-foreground)" }}>Todavía no tiene abonos cargados.</div>
         ) : (
           <div style={{ ...estiloTarjeta, overflow: "hidden" }}>
@@ -378,7 +380,8 @@ export default function DetalleUsuarioPage() {
               </tbody>
             </table>
           </div>
-        )
+        )}
+        </div>
       )}
 
       {/* DOCUMENTOS */}
