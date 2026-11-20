@@ -59,7 +59,7 @@ export default function ConfiguracionCelular() {
       const bn = b?.data || {}
       const hero = Array.isArray(d.heroImages) ? d.heroImages : Object.values(d.heroImages || {})
       const v = {
-        titulo: d.tituloHero || "", logo: d.logoUrl || "", car0: hero[0] || "", car1: hero[1] || "", car2: hero[2] || "",
+        titulo: d.tituloHero || "", logo: d.logoUrl || "", car0: hero[0] || "", car1: hero[1] || "", car2: hero[2] || "", foco0: d.heroFoco1 || "", foco1: d.heroFoco2 || "", foco2: d.heroFoco3 || "",
         soFoto: d.imagenNosotros || "", soT: d.tituloNosotros || "", soS: d.subtituloNosotros || "", soD: d.descripcionNosotros || "", soM: d.mision || "",
         t0f: d.imagenClase1 || "", t0n: d.claseCard1Titulo || "", t0d: d.claseCard1Descripcion || "", t1f: d.imagenClase3 || "", t1n: d.claseCard3Titulo || "", t1d: d.claseCard3Descripcion || "",
         tel: d.telefono || "", ig: d.instagram || "", dir: d.direccion || "", hor: [d.horario_semana, d.horario_sabado, d.horario_domingo].filter((x) => x != null).join("\n"),
@@ -94,12 +94,13 @@ export default function ConfiguracionCelular() {
         v: V[k], on: upd(k), ph: "", im: type === "in" && typeof d[3] === "string" ? d[3] : "text", rows: type === "ta" ? d[3] : 3, inv: err ? "true" : "false", bd: err ? c.errFg : (V[k] !== S0[k] || archivos[ck] ? c.okLine : c.line),
         h: err || AYUDA[k] || false, hFg: err ? c.errFg : c.muted,
         bgSrc: `url('${src || ""}')`, alt: d[0], ratio: type === "car" ? "16/9" : (d[3] || "16/9"), fit: type === "car" ? "cover" : (d[4] || "cover"), imgBg: k === "logo" ? "#0e0e0e" : c.surf,
+        enfoque: type === "car" && src ? { src, valor: V[`foco${carI}`] || "", off: !puedeEditar, on: (val) => setVals((s) => ({ ...s, [`foco${carI}`]: val })) } : null,
         imgs: type === "car" ? [0, 1, 2].map((i) => ({ n: "Foto " + (i + 1), src: `url('${archivos[`car${i}`]?.url || V[`car${i}`] || ""}')`, bd: carI === i ? "#9be600" : "transparent", aria: `Ver foto ${i + 1} del carrusel`, pick: () => setCarI(i) })) : [],
         chg: () => { if (puedeEditar) { objetivo.current = ck; selector.current?.click() } },
       }
     })
     const cambio = (k) => (/^car/.test(k) && k !== "car" ? false : V[k] !== S0[k]) || !!archivos[k]
-    const claves = sec === "tarjetas" ? [`t${tab}f`, `t${tab}n`, `t${tab}d`] : (sec ? SECS[sec][5].flatMap((k) => (k === "car" ? ["car0", "car1", "car2"] : [k])) : [])
+    const claves = sec === "tarjetas" ? [`t${tab}f`, `t${tab}n`, `t${tab}d`] : (sec ? SECS[sec][5].flatMap((k) => (k === "car" ? ["car0", "car1", "car2", "foco0", "foco1", "foco2"] : [k])) : [])
     const dirty = sec ? claves.filter((k) => V[k] !== S0[k] || archivos[k]).length : 0
     void cambio
     const anyErr = keys.some((k) => errs[k])
@@ -122,7 +123,7 @@ export default function ConfiguracionCelular() {
           const pon = (k, val) => fd.append(k, val == null ? "" : val)
           pon("tituloHero", V.titulo); pon("tituloHeroSize", d.tituloHeroSize); pon("tituloHeroFont", d.tituloHeroFont); pon("tituloHeroAlign", d.tituloHeroAlign || "left")
           if (archivos.logo) fd.append("logo", archivos.logo.file)
-          ;[0, 1, 2].forEach((i) => { if (archivos[`car${i}`]) fd.append(`imagenHero${i + 1}`, archivos[`car${i}`].file) })
+          ;[0, 1, 2].forEach((i) => { if (archivos[`car${i}`]) fd.append(`imagenHero${i + 1}`, archivos[`car${i}`].file); if (V[`foco${i}`]) fd.append(`heroFoco${i + 1}`, V[`foco${i}`]) })
           if (archivos.soFoto) fd.append("imagenNosotros", archivos.soFoto.file)
           if (archivos.t0f) fd.append("imagenClase1", archivos.t0f.file)
           if (archivos.t1f) fd.append("imagenClase3", archivos.t1f.file)

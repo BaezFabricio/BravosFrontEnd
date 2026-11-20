@@ -4,6 +4,7 @@ import { ChevronRight, LogOut, Mail, MapPin, Menu, Trophy, X } from 'lucide-reac
 import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { ImgConSkeleton } from '@/components/ImgConSkeleton'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
+import FotoEnfocada from '@/components/FotoEnfocada'
 import UserMenu from '@/components/UserMenu'
 import CampanaPortada from '@/components/CampanaPortada'
 import NovedadesPortada from '@/components/NovedadesPortada'
@@ -134,8 +135,9 @@ function LandingPage() {
 
   // Carrusel de la portada: las fotos hero1..hero3 del admin, cambian cada 5 s con fundido.
   // Sin fotos cargadas queda la foto de Malvinas.
-  const fotosHero = Object.values(cfg.heroImages || {}).filter(Boolean)
-  const imagenesHero = fotosHero.length ? fotosHero : ['/hero-malvinas.png']
+  const fotosHero = [1, 2, 3].map((n) => ({ src: cfg.heroImages?.[`hero${n}`], foco: cfg[`heroFoco${n}`] })).filter((f) => f.src)
+  const imagenesHero = fotosHero.length ? fotosHero.map((f) => f.src) : ['/hero-malvinas.png']
+  const focosHero = fotosHero.length ? fotosHero.map((f) => f.foco) : ['']
   const [indiceHero, setIndiceHero] = useState(0)
   useEffect(() => {
     if (imagenesHero.length <= 1) return
@@ -345,7 +347,7 @@ function LandingPage() {
         {/* PORTADA: foto de Malvinas a pantalla completa */}
         <section aria-labelledby="t-hero" className="relative flex min-h-[calc(640*var(--u))] items-end overflow-hidden md:min-h-[min(calc(100vh-68*var(--u)),calc(820*var(--u)))]">
           {imagenesHero.map((src, i) => (
-            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-[62%_center] transition-opacity duration-1000 lg:object-center ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
+            <FotoEnfocada key={src} src={src} foco={focosHero[i]} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <div aria-hidden="true" className="absolute inset-0" style={{ background: 'linear-gradient(90deg,rgba(11,11,11,.9) 0%,rgba(11,11,11,.5) 45%,rgba(11,11,11,.1) 100%)' }} />
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}

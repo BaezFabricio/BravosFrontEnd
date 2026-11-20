@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { haySesion, cerrarSesionEnServidor } from '@/lib/sesion'
 import { LandingPageSkeleton } from '@/components/LandingPageSkeleton'
+import FotoEnfocada from '@/components/FotoEnfocada'
 import { PANELES, panelesPermitidos } from '@/lib/paneles'
 
 /*
@@ -97,8 +98,9 @@ export default function LandingPageMovil() {
   const rutaMiPanel = panelesDisponibles.length === 1 ? panelesDisponibles[0] : '/seleccionar-panel'
 
   // Carrusel de la portada: las fotos hero1..hero3 del admin, cambian cada 5 s. Sin fotos, queda la de Malvinas.
-  const fotosHero = Object.values(cfg.heroImages || {}).filter(Boolean)
-  const imagenesHero = fotosHero.length ? fotosHero : ['/hero-malvinas.png']
+  const fotosHero = [1, 2, 3].map((n) => ({ src: cfg.heroImages?.[`hero${n}`], foco: cfg[`heroFoco${n}`] })).filter((f) => f.src)
+  const imagenesHero = fotosHero.length ? fotosHero.map((f) => f.src) : ['/hero-malvinas.png']
+  const focosHero = fotosHero.length ? fotosHero.map((f) => f.foco) : ['']
   useEffect(() => {
     if (imagenesHero.length <= 1) return
     const intervalo = setInterval(() => setIndiceHero((i) => (i + 1) % imagenesHero.length), 5000)
@@ -233,7 +235,7 @@ export default function LandingPageMovil() {
         {/* PORTADA como la versión anterior: 85 % de la pantalla, carrusel de fotos, texto abajo a la izquierda */}
         <section aria-labelledby="t-hero" className="relative flex min-h-[74svh] items-end overflow-hidden bg-[#0b0b0b] pb-2">
           {imagenesHero.map((src, i) => (
-            <img key={src} src={src} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
+            <FotoEnfocada key={src} src={src} foco={focosHero[i]} alt={i === indiceHero ? 'Entrenamiento en Bravos Box' : ''} aria-hidden={i !== indiceHero ? 'true' : undefined} className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ${i === indiceHero ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/30" />
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-b from-transparent via-[#0b0b0b]/80 to-[#0b0b0b]" />

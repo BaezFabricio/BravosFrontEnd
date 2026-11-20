@@ -7,6 +7,7 @@ import { toast } from '@/lib/notificar'
 import { LogoBoxBravos } from '@/components/logo-box-bravos'
 import DatosBancarios from './DatosBancarios'
 import MenuAjustes from './MenuAjustes'
+import EnfoqueFoto from '@/components/EnfoqueFoto'
 import { TituloPagina } from "@/components/TituloPagina"
 
 // Cada sección se abre desde el menú de Configuración con ?seccion=
@@ -106,6 +107,9 @@ function ConfiguracionLandingPage() {
   const [heroPreview1, setHeroPreview1] = useState('/landing-hero-1.jpg')
   const [heroPreview2, setHeroPreview2] = useState('/landing-hero-2.jpg')
   const [heroPreview3, setHeroPreview3] = useState('/landing-hero-3.jpg')
+  // Punto de cada foto del carrusel ("x,y" en %): la portada del celular la deja centrada ahí
+  const [heroFocos, setHeroFocos] = useState(['', '', ''])
+  const cambiarFoco = (i, v) => setHeroFocos((p) => { const n = [...p]; n[i] = v; return n })
 
   // Nosotros
   const [tituloNosotros, setTituloNosotros] = useState('')
@@ -162,6 +166,7 @@ function ConfiguracionLandingPage() {
         if (imgs[1]) setHeroPreview2(imgs[1])
         if (imgs[2]) setHeroPreview3(imgs[2])
       }
+      setHeroFocos([d.heroFoco1 || '', d.heroFoco2 || '', d.heroFoco3 || ''])
 
       setTituloNosotros(d.tituloNosotros || '')
       setSubtituloNosotros(d.subtituloNosotros || '')
@@ -236,6 +241,7 @@ function ConfiguracionLandingPage() {
       if (imagenHero1) fd.append('imagenHero1', imagenHero1)
       if (imagenHero2) fd.append('imagenHero2', imagenHero2)
       if (imagenHero3) fd.append('imagenHero3', imagenHero3)
+      heroFocos.forEach((foco, i) => { if (foco) fd.append(`heroFoco${i + 1}`, foco) })
       if (imagenNosotros) fd.append('imagenNosotros', imagenNosotros)
       if (imagenesClase[0]) fd.append('imagenClase1', imagenesClase[0])
       if (imagenesClase[1]) fd.append('imagenClase2', imagenesClase[1])
@@ -395,6 +401,7 @@ function ConfiguracionLandingPage() {
                       label="Cambiar"
                       disabled={!puedeModificar}
                     />
+                    {preview && <EnfoqueFoto src={preview} valor={heroFocos[i]} onChange={(v) => cambiarFoco(i, v)} disabled={!puedeModificar} />}
                   </div>
                 ))}
               </div>
