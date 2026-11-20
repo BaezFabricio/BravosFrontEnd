@@ -10,7 +10,6 @@ const TIPOS_DOC = [["certificado_medico", "Certificado médico"], ["declaracion_
 const pesos = (n) => "$" + Number(n || 0).toLocaleString("es-AR", { maximumFractionDigits: 0 })
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 const fecha = (f) => { if (!f) return ""; const [y, m, d] = String(f).slice(0, 10).split("-").map(Number); return y ? `${d} ${MESES[m - 1]} ${y}` : "" }
-const corta = (f) => { if (!f) return ""; const [, m, d] = String(f).slice(0, 10).split("-").map(Number); return `${d} ${MESES[m - 1]}` }
 const ESTADO_RESERVA = { proxima: "Próxima", cancelada: "Cancelada", asistida: "Asistió", ausente: "No asistió", presente: "Asistió" }
 
 // Ficha del alumno en celular (referencia 04): datos, reservas, abonos y documentos, con desactivar y eliminar
@@ -78,7 +77,6 @@ export default function FichaCelular() {
         R("Plan", memCargando ? "Cargando…" : (vigente?.plan || ultimo?.plan || "Sin plan activo"), memCargando ? { fg: c.muted } : {}),
         R("Estado", memCargando ? "Cargando…" : estadoTxt, memCargando ? { fg: c.muted } : estadoTxt === "Activa" ? { fg: c.okFg } : { fg: c.warnFg }),
         ...(memCargando ? [] : vigente ? [R("Inicio", fecha(vigente.inicio)), R("Vence", fecha(vigente.vencimiento)), R("Créditos", `${vigente.creditos} de ${vigente.totalCreditos}`)] : [R("Créditos", "0")]),
-        ...(ultimo ? [R("Último pago", `${pesos(ultimo.importe)} · ${corta(ultimo.fecha)}`)] : []),
       ]) }] : []),
       { t: "DATOS PERSONALES", rows: sep([
         R("DNI", u.dni || "—"), R("Correo", u.email || "—", { font: "700 13px Archivo" }), R("Teléfono", u.telefono || "—"),
@@ -91,7 +89,7 @@ export default function FichaCelular() {
 
     const O = {
       res: { icon: I.cal, rows: reservas.map((r) => ({ t: r.nombreClase, s: `${fecha(r.fechaReserva)}${r.horaInicio ? " · " + String(r.horaInicio).slice(0, 5) : ""}`, v: ESTADO_RESERVA[r.asistencia === "presente" ? "presente" : r.estadoReserva] || r.estadoReserva || "", fg: r.estadoReserva === "cancelada" ? c.muted : c.ink })), et: "Sin reservas", es: "Todavía no reservó ninguna clase." },
-      ab: { icon: I.money, rows: pagos.map((p) => ({ t: p.plan || "Abono", s: `${fecha(p.fecha)}${p.vencimiento ? " → " + fecha(p.vencimiento) : ""}${p.formaPago ? " · " + p.formaPago : ""}`, v: pesos(p.importe), fg: String(p.estadoPago || "").toLowerCase().includes("pend") ? c.warnFg : c.okFg })), et: "Sin abonos", es: "Todavía no tiene pagos cargados." },
+      ab: { icon: I.money, rows: pagos.map((p) => ({ t: p.plan || "Abono", s: `${fecha(p.fecha)}${p.formaPago ? " · " + p.formaPago : ""}`, v: pesos(p.importe), fg: String(p.estadoPago || "").toLowerCase().includes("pend") ? c.warnFg : c.okFg })), et: "Sin abonos", es: "Todavía no tiene pagos cargados." },
       doc: { icon: I.doc, rows: TIPOS_DOC.map(([key, label]) => { const d = docs.find((x) => x.tipo === key); const ok = d?.estado === "aprobado"; return { t: label, s: d ? `Subido el ${fecha(d.creadoEn)}` : "Sin archivo subido", v: !d ? "Pendiente" : ok ? "Aprobado" : "Por revisar", fg: ok ? c.okFg : c.warnFg } }), et: "", es: "" },
     }
     const o = O[tab] || O.res

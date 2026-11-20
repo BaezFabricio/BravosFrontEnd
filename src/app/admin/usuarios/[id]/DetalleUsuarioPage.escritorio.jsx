@@ -313,7 +313,6 @@ export default function DetalleUsuarioPage() {
               {filaDato("Inicio", vigente?.inicio ? fechaDDMMAAAA(vigente.inicio) : "—")}
               {filaDato("Vence", vigente?.vencimiento ? `${fechaDDMMAAAA(vigente.vencimiento)} · quedan ${vigente.diasRestantes} días` : "—")}
               {filaDato("Créditos", vigente ? `${vigente.creditos} de ${vigente.totalCreditos}` : `${user?.creditos ?? 0}`)}
-              {filaDato("Último pago", pagos.find((p) => p.estadoPago === "confirmado") ? `${dinero(pagos.find((p) => p.estadoPago === "confirmado").importe)} · ${pagos.find((p) => p.estadoPago === "confirmado").formaPago || "—"}` : "Sin pagos")}
               {filaDato("Cuenta", user?.sinAcceso ? "Sin cuenta" : user?.correoVerificado === 0 ? "Sin verificar" : "Verificada", user?.sinAcceso ? "var(--muted-foreground)" : user?.correoVerificado === 0 ? "var(--sh-warn)" : "var(--primary)")}
             </dl>
           </section>
@@ -363,7 +362,7 @@ export default function DetalleUsuarioPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", font: "500 14px Archivo" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  {["Fecha", "Plan", "Importe", "Forma de pago", "Vence", "Estado"].map((t) => <th key={t} style={{ padding: "12px 16px", textAlign: "left", ...estiloEtiqueta }}>{t}</th>)}
+                  {["Fecha", "Plan", "Importe", "Forma de pago", "Estado"].map((t) => <th key={t} style={{ padding: "12px 16px", textAlign: "left", ...estiloEtiqueta }}>{t}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -373,7 +372,6 @@ export default function DetalleUsuarioPage() {
                     <td style={{ padding: "12px 16px", font: "700 14px Archivo" }}>{p.plan || "—"}</td>
                     <td style={{ padding: "12px 16px", font: "700 14px Archivo" }}>{dinero(p.importe)}</td>
                     <td style={{ padding: "12px 16px", color: "var(--sh-link)" }}>{p.formaPago || "—"}</td>
-                    <td style={{ padding: "12px 16px", color: "var(--sh-link)" }}>{p.vencimiento ? fechaDDMMAAAA(p.vencimiento) : "—"}</td>
                     <td style={{ padding: "12px 16px" }}><span style={pastilla("transparent", "var(--sh-control-line)", "var(--sh-link)")}>{p.estadoPago}</span></td>
                   </tr>
                 ))}
