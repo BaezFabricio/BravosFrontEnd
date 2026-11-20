@@ -226,7 +226,7 @@ function LandingPage() {
 
       {/* ENCABEZADO */}
       <header className="sticky top-0 z-40 border-b border-[#262626] bg-[rgba(11,11,11,.92)] backdrop-blur-[10px]">
-        <div className="relative mx-auto flex h-[calc(68*var(--u))] max-w-[calc(1720*var(--u))] items-center gap-6 px-5">
+        <div className="relative mx-auto flex h-[calc(68*var(--u))] max-w-[calc(1280*var(--u))] items-center gap-6 px-5 md:px-10">
           <Link to="/" aria-label="Bravos Box, inicio" className="flex shrink-0">
             <img src="/bravos-logo.png" alt="Bravos Box" className="h-[calc(34*var(--u))] w-auto" />
           </Link>
@@ -326,7 +326,7 @@ function LandingPage() {
           {/* Degradé de abajo a negro: en celular ocupa el 45 % de la portada (como antes); en escritorio solo un borde corto (12 %) para que la foto no corte de golpe */}
           <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0b0b] to-transparent md:h-[12%]" />
 
-          <div className="relative mx-auto w-full max-w-[calc(1720*var(--u))] px-5 pb-10 md:px-10 md:pb-16">
+          <div className="relative mx-auto w-full max-w-[calc(1280*var(--u))] px-5 pb-10 md:px-10 md:pb-16">
             <div className="landing-entra inline-flex items-center gap-2 text-[0.8125rem] font-semibold tracking-[.08em] text-[#c9ccbf]">
               <MapPin className="h-[calc(15*var(--u))] w-[calc(15*var(--u))] text-[#9be600]" aria-hidden="true" />
               FORMOSA CAPITAL · ARGENTINA
@@ -360,7 +360,7 @@ function LandingPage() {
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0b0b] to-transparent" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0b0b] to-transparent" />
           </div>
-          <div className="relative mx-auto grid max-w-[calc(1720*var(--u))] items-center gap-12 px-5 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
+          <div className="relative mx-auto grid max-w-[calc(1280*var(--u))] items-center gap-12 px-5 md:px-10 py-16 lg:py-16 md:grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] md:gap-12">
             <p data-revela className="landing-revelar m-0 font-[Barlow_Semi_Condensed]! text-[2.75rem] leading-[1.05] font-extrabold tracking-normal text-[#ecefe4] uppercase md:text-[3.5rem] lg:text-[4.5rem]" style={{ textShadow: '0 0 14px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.8)' }}>
               "El único entrenamiento malo <span className="text-[#9be600]" style={{ textShadow: '0 0 14px rgba(155,230,0,.55), 0 2px 6px rgba(0,0,0,.8)' }}>es el que no hiciste"</span>
             </p>
@@ -376,12 +376,12 @@ function LandingPage() {
 
         {/* CLASES: dos tarjetas que ocupan todo el ancho */}
         <section id="clases" aria-labelledby="t-cla" className="scroll-mt-20">
-          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1280*var(--u))] px-5 md:px-10 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">ENTRENAMIENTO GUIADO</p>
             <h2 id="t-cla" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Nuestras clases</h2>
             <div className="flex flex-col items-center gap-5 md:flex-row md:items-stretch md:justify-center md:gap-6">
               {clases.map((k, i) => (
-                <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[min(calc((100%-3rem)/3),22rem)] rounded-[calc(18*var(--u))] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
+                <article key={i} id={`clase-${i + 1}`} data-revela style={{ animationDelay: `${i * 140}ms` }} className="landing-revelar group flex w-full scroll-mt-20 flex-col overflow-hidden md:w-[calc((100%-1.5rem)/2)] rounded-[calc(18*var(--u))] border border-[#262626] bg-[#161616] transition-[transform,border-color] duration-300 hover:border-[#9be600]/50 motion-safe:hover:-translate-y-1">
                   {/* Marco de alto fijo: la foto llena el marco (se recorta un poco en los bordes) y las dos tarjetas quedan del mismo tamaño */}
                   <div className="relative aspect-[16/10] overflow-hidden md:aspect-auto md:h-[22rem]">
                     <ImgConSkeleton src={k.img} alt={k.alt} className="block h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-105" containerClassName="absolute inset-0 h-full w-full" />
@@ -405,7 +405,7 @@ function LandingPage() {
 
         {/* HORARIOS */}
         <section id="horarios" aria-labelledby="t-hor" className="scroll-mt-20 border-y border-[#1f1f1f] bg-[#0e0e0e]">
-          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1280*var(--u))] px-5 md:px-10 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CALENDARIO ACTIVO</p>
             <h2 id="t-hor" className="mt-2 mb-6 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Horarios semanales</h2>
 
@@ -486,7 +486,7 @@ function LandingPage() {
 
         {/* CONTACTO */}
         <section id="contacto" aria-labelledby="t-con" className="scroll-mt-20">
-          <div className="mx-auto max-w-[calc(1720*var(--u))] px-5 py-16 lg:py-16">
+          <div className="mx-auto max-w-[calc(1280*var(--u))] px-5 md:px-10 py-16 lg:py-16">
             <p className="m-0 text-xs font-bold tracking-[.12em] text-[#9be600]">CONTACTO DIRECTO</p>
             <h2 id="t-con" className="mt-2 mb-7 font-[Archivo]! text-[2rem] leading-[1.05] font-extrabold tracking-[-.02em] md:text-[2.75rem]">Encontranos</h2>
 
@@ -563,7 +563,7 @@ function LandingPage() {
 
       {/* PIE */}
       <footer className="border-t border-[#1f1f1f] bg-[#080808]">
-        <div className="mx-auto flex max-w-[calc(1720*var(--u))] flex-col gap-6 px-5 pt-10 pb-7">
+        <div className="mx-auto flex max-w-[calc(1280*var(--u))] flex-col gap-6 px-5 md:px-10 pt-10 pb-7">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex flex-col gap-2">
               <img src="/bravos-logo.png" alt="Bravos Box" className="h-[1.875rem] w-auto self-start" />

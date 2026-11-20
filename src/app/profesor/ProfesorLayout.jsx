@@ -211,7 +211,7 @@ export default function ProfesorLayout({ children }) {
           onLogout={handleLogout}
           conTema
         />
-        <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main p-4 lg:p-[24px] pb-36 lg:pb-6">
+        <main key={pathname} data-nav={tipoNavegacion === "POP" ? "atras" : "adelante"} className="bv-panel-main p-4 pb-36 lg:px-[32px] lg:pb-[48px] lg:pt-[24px]">
           {/* "Volver" solo en submódulos (pantallas dentro de un módulo). En las pantallas principales no hay botón */}
           {rutaPadre(location.pathname) && <BotonVolver a={rutaPadre(location.pathname)} texto="Volver" className="mb-4" />}
           <SlotTituloContext.Provider value={slotTitulo}>{children}</SlotTituloContext.Provider>
