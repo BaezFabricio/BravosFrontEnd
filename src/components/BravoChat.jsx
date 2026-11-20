@@ -123,17 +123,26 @@ export default function BravoChat({ rol = "alumno" }) {
   // La escala se mide con una pieza invisible de 100 px que está en el mismo lugar que el globo.
   const medidor = useRef(null)
   const [escala, setEscala] = useState(1)
+  // Se vuelve a medir en cada dibujo y al arrastrar: el zoom del panel se aplica DESPUÉS de que esta pieza aparece (y cambia al
+  // cambiar el tamaño de la ventana); medirla una sola vez dejaba una escala vieja y el globo saltaba y no llegaba a los bordes.
+  const medirEscala = () => {
+    const w = medidor.current?.getBoundingClientRect().width
+    if (!w) return 1
+    const e = w / 100
+    setEscala((previa) => (Math.abs(previa - e) > 0.001 ? e : previa))
+    return e
+  }
   useEffect(() => {
-    const medir = () => { const w = medidor.current?.getBoundingClientRect().width; if (w) setEscala(w / 100) }
-    medir()
-    window.addEventListener("resize", medir)
-    return () => window.removeEventListener("resize", medir)
-  }, [])
+    medirEscala()
+    window.addEventListener("resize", medirEscala)
+    return () => window.removeEventListener("resize", medirEscala)
+  })
 
   // Si el botón quedó pegado al borde izquierdo, el globo no entra a su izquierda: se muestra a la derecha
   const globoALaDerecha = !!posVista && posVista.x < 230
 
   const alPresionar = (e) => {
+    medirEscala()
     const r = e.currentTarget.getBoundingClientRect()
     e.currentTarget.setPointerCapture?.(e.pointerId)
     arrastre.current = { activo: true, movido: false, sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top }
@@ -143,6 +152,7 @@ export default function BravoChat({ rol = "alumno" }) {
     if (!a.activo) return
     if (!a.movido && Math.hypot(e.clientX - a.sx, e.clientY - a.sy) < 6) return
     a.movido = true
+    medirEscala()
     const p = ajustar(a.ox + e.clientX - a.sx, a.oy + e.clientY - a.sy)
     setPosicion(p)
     try { localStorage.setItem(POS_KEY, JSON.stringify(p)) } catch { /* sin almacenamiento: vuelve a su lugar */ }
