@@ -32,6 +32,9 @@ export default function FichaCelular() {
   const NOMBRE_TAB = { ab: "abonos", res: "reservas", doc: "documentos" }
   const sincronizarTab = (valor) => setParams((previos) => { const n = new URLSearchParams(previos); if (valor) n.set("tab", valor); else n.delete("tab"); return n }, { replace: true })
   // Desde "Ver abonos" se llega con ?tab=abonos y la ficha abre directo en esa pestaña
+  const [pagoSel, setPagoSel] = useState(null) // pago del historial abierto para ver su detalle
+  const [revConfirm, setRevConfirm] = useState(false) // pidiendo confirmación para revocar el abono abierto
+  const [revBusy, setRevBusy] = useState(false)
   const [tab, setTab] = useState(() => ({ abonos: "ab", reservas: "res", documentos: "doc" })[params.get("tab")] || "datos")
   const [menu, setMenu] = useState(false)
   const [dlg, setDlg] = useState(null)
@@ -94,10 +97,39 @@ export default function FichaCelular() {
 
     const O = {
       res: { icon: I.cal, rows: reservas.map((r) => ({ t: r.nombreClase, s: `${fecha(r.fechaReserva)}${r.horaInicio ? " · " + String(r.horaInicio).slice(0, 5) : ""}`, v: ESTADO_RESERVA[r.asistencia === "presente" ? "presente" : r.estadoReserva] || r.estadoReserva || "", fg: r.estadoReserva === "cancelada" ? c.muted : c.ink })), et: "Sin reservas", es: "Todavía no reservó ninguna clase." },
-      ab: { icon: I.money, rows: pagos.map((p) => ({ t: p.plan || "Abono", s: `${fecha(p.fecha)}${p.formaPago ? " · " + p.formaPago : ""}`, v: pesos(p.importe), fg: String(p.estadoPago || "").toLowerCase().includes("pend") ? c.warnFg : c.okFg })), et: "Sin abonos", es: "Todavía no tiene pagos cargados." },
+      ab: { icon: I.money, rows: pagos.map((p) => ({ t: p.plan || "Abono", s: `${fecha(p.fecha)}${p.formaPago ? " · " + p.formaPago : ""}${p.estadoCredito === "CANCELADO" ? " · Revocado" : ""}`, abrir: () => setPagoSel(p), aria: `Ver el detalle del abono ${p.plan || ""}`, v: pesos(p.importe), revocado: p.estadoCredito === "CANCELADO", fg: p.estadoCredito === "CANCELADO" ? c.muted : String(p.estadoPago || "").toLowerCase().includes("pend") ? c.warnFg : c.okFg })), et: "Sin abonos", es: "Todavía no tiene pagos cargados." },
       doc: { icon: I.doc, rows: TIPOS_DOC.map(([key, label]) => { const d = docs.find((x) => x.tipo === key); const ok = d?.estado === "aprobado"; return { t: label, s: d ? `Subido el ${fecha(d.creadoEn)}` : "Sin archivo subido", v: !d ? "Pendiente" : ok ? "Aprobado" : "Por revisar", fg: ok ? c.okFg : c.warnFg } }), et: "", es: "" },
     }
     const o = O[tab] || O.res
+    // Detalle de un pago del historial: solo se muestran los datos que existen
+    const pagoDetalle = pagoSel ? {
+      titulo: pagoSel.plan || "Abono",
+      filas: [
+        ["Importe", pesos(pagoSel.importe)],
+        ["Forma de pago", pagoSel.formaPago],
+        ["Estado del pago", pagoSel.estadoCredito === "CANCELADO" ? "Revocado" : pagoSel.estadoPago ? String(pagoSel.estadoPago).charAt(0).toUpperCase() + String(pagoSel.estadoPago).slice(1) : ""],
+        ["Fecha de pago", fecha(pagoSel.fecha)],
+        ["Inicio", fecha(pagoSel.inicio)],
+        ["Vencimiento", fecha(pagoSel.vencimiento)],
+        ["Créditos", pagoSel.creditosTotales != null ? `${pagoSel.creditosUsados ?? 0} usados de ${pagoSel.creditosTotales}` : ""],
+        ["Cargado por", pagoSel.operador],
+      ].filter(([, val]) => val).map(([k, val], i) => ({ k, v: val, sep: i ? c.line2 : "transparent" })),
+      rev: {
+        puede: Boolean(puedeBaja && pagoSel.idCredito && pagoSel.estadoCredito !== "CANCELADO" && String(pagoSel.estadoPago) === "confirmado"),
+        confirmando: revConfirm, busy: revBusy,
+        pedir: () => setRevConfirm(true), volver: () => setRevConfirm(false),
+        hacer: async () => {
+          setRevBusy(true)
+          try {
+            await apiClient.delete(`/usuarios/${id}/abonos/${pagoSel.idCredito}`)
+            const [rp, rf] = await Promise.all([apiClient.get(`/usuarios/${id}/pagos`), apiClient.get(`/usuarios/${id}/ficha`).catch(() => null)])
+            setPagos(rp.data?.data || []); if (rf) setFicha(rf.data?.data || null)
+            setPagoSel(null); setRevConfirm(false)
+            avisar("Abono revocado. Ya no cuenta en las estadísticas.")
+          } catch (err) { setRevConfirm(false); avisar(err.response?.data?.message || "No se pudo revocar el abono.") } finally { setRevBusy(false) }
+        },
+      },
+    } : null
     const okConf = conf.trim().toUpperCase() === "ELIMINAR"
     const cerrar = () => { setMenu(false); setDlg(null); setConf(""); setTimeout(() => document.getElementById("btn-more")?.focus(), 0) }
     const cambiarEstado = async (estado) => {
@@ -111,6 +143,7 @@ export default function FichaCelular() {
       c,
       tabs2: [["datos", "Datos"], ["res", "Reservas"], ["ab", "Abonos"], ["doc", "Docs"]].map(([tid, l]) => { const s = tid === tab; return { id: "tb-" + tid, l, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, pick: () => { setTab(tid); sincronizarTab(NOMBRE_TAB[tid] || "") } } }),
       tabId: "tb-" + tab, tDatos: tab === "datos", tOtro: tab !== "datos",
+      pagoDetalle, cerrarPago: () => { setPagoSel(null); setRevConfirm(false) },
       grupos, gOtro: tab === "ab" && grupoMem ? [grupoMem] : [], oTitulo: tab === "ab" && o.rows.length ? "HISTORIAL DE PAGOS" : "", oIcon: o.icon, oList: o.rows.length > 0, oEmpty: !o.rows.length, oEmptyT: o.et, oEmptyS: o.es, oRows: sep(o.rows),
       chip, chBg: off || cargando ? "transparent" : chOk ? c.okBg : c.warnBg, chBd: off || cargando ? c.btnLine : chOk ? c.okLine : c.warnLine, chFg: off || cargando ? c.muted : chOk ? c.okFg : c.warnFg, inactivo: off,
       reactivar: () => { if (puedeEditar && !propia) cambiarEstado("activo") },
@@ -132,7 +165,7 @@ export default function FichaCelular() {
       faltan: esAlumno && faltan > 0, faltanTxt: `Faltan ${faltan} ${faltan === 1 ? "dato" : "datos"}: ${[dp.fechaNacimiento ? null : "nacimiento", dp.contactoEmergencia ? null : "contacto de emergencia"].filter(Boolean).join(" y ")}`,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, ficha, fichaLista, reservas, pagos, docs, error, tab, menu, dlg, conf, busy, deleted, toast, c, oscuro, id, propia, puedeEditar, puedeBaja])
+  }, [user, ficha, fichaLista, reservas, pagos, docs, error, tab, pagoSel, revConfirm, revBusy, menu, dlg, conf, busy, deleted, toast, c, oscuro, id, propia, puedeEditar, puedeBaja])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver usuarios.</div>
 
