@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ContenedorPortal } from "@/lib/contenedorPortal"
 import { useZoomLienzo } from "@/lib/useZoomLienzo"
 import { Link, useLocation } from "react-router-dom"
@@ -84,6 +84,21 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
     try { localStorage.setItem("bx-menu-cerrado", abierto ? "0" : "1") } catch { /* sin almacenamiento: no se recuerda */ }
   }
 
+  // Al ocultar el menú con el botón, el mouse queda justo encima de la franja y ésta se desplegaba sola tapando el contenido.
+  // Hasta que el mouse se aleje de la franja no responde al pasar por encima.
+  const [sinHover, setSinHover] = useState(false)
+  const ocultarMenu = () => { cambiarMenu(false); setSinHover(true) }
+  useEffect(() => {
+    if (!sinHover) return undefined
+    // El borde de la franja se mide (la pantalla se escala según el ancho de la ventana)
+    const alMover = (e) => {
+      const franja = document.querySelector('aside[aria-label="Menú del alumno"]')?.getBoundingClientRect()
+      if (!franja || e.clientX > franja.right + 8 || e.clientY < franja.top || e.clientY > franja.bottom) setSinHover(false)
+    }
+    window.addEventListener("pointermove", alMover)
+    return () => window.removeEventListener("pointermove", alMover)
+  }, [sinHover])
+
   return (
     <ContenedorPortal.Provider value={anfitrion}>
     <div ref={setRaiz} className="bx min-h-screen bg-bx-bg text-bx-ink">
@@ -91,7 +106,7 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
       <aside
         style={{ height: "var(--bv-vh, 100vh)" }}
         aria-label="Menú del alumno"
-        className={`group/menu fixed left-0 top-0 z-20 flex h-screen flex-col overflow-hidden bg-bx-lateral text-[#ecefe4] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "w-[17rem]" : "w-[4.5rem] hover:w-[17rem] focus-within:w-[17rem] hover:shadow-[6px_0_24px_rgba(0,0,0,0.3)] focus-within:shadow-[6px_0_24px_rgba(0,0,0,0.3)]"}`}
+        className={`${sinHover ? "pointer-events-none " : ""}group/menu fixed left-0 top-0 z-20 flex h-screen flex-col overflow-hidden bg-bx-lateral text-[#ecefe4] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${menuAbierto ? "w-[17rem]" : "w-[4.5rem] hover:w-[17rem] focus-within:w-[17rem] hover:shadow-[6px_0_24px_rgba(0,0,0,0.3)] focus-within:shadow-[6px_0_24px_rgba(0,0,0,0.3)]"}`}
       >
         <div className="flex h-[4.75rem] shrink-0 items-center gap-3 border-b border-[#26281f] px-5">
           <img src="/logo.jpg" alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
@@ -99,7 +114,7 @@ export default function LayoutEscritorio({ userData, avatarUrl, onLogout, childr
           {menuAbierto && (
             <button
               type="button"
-              onClick={() => cambiarMenu(false)}
+              onClick={ocultarMenu}
               aria-label="Ocultar el menú"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-[#8b8e80] transition-[background-color,color,transform] duration-200 hover:bg-[#1f2119] hover:text-white active:scale-90"
             >
