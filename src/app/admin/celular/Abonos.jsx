@@ -9,7 +9,16 @@ const pesos = (n) => "$" + Number(n || 0).toLocaleString("es-AR", { maximumFract
 const dia = (f) => String(f || "").slice(0, 10)
 const fmtD = (d) => { const [Y, M, D] = String(d).split("-").map(Number); return Y ? `${D} ${MESES[M - 1].slice(0, 3)} ${Y}` : "" }
 const hoyISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` }
-const masUnMes = (iso) => { const [Y, M, D] = iso.split("-").map(Number); const d = new Date(Y, M, D, 12); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` }
+// Las membresías vencen siempre un día 10: el próximo 10 posterior al inicio, y si quedan menos de 10 días pasa al siguiente
+// (misma regla que el cobro online y la carga masiva)
+const proximoDia10 = (iso) => {
+  const [Y, M, D] = iso.split("-").map(Number)
+  const desde = new Date(Y, M - 1, D, 12)
+  const venc = new Date(Y, M - 1, 10, 12)
+  if (venc <= desde) venc.setMonth(venc.getMonth() + 1)
+  if ((venc - desde) / 86400000 < 10) venc.setMonth(venc.getMonth() + 1)
+  return `${venc.getFullYear()}-${String(venc.getMonth() + 1).padStart(2, "0")}-10`
+}
 const METODOS = [["Efectivo", "Efectivo"], ["Transferencia", "Transferencia"], ["Débito", "Débito"], ["Tarjeta Crédito", "Crédito"]]
 
 // Abonos del admin en celular (referencia 06): membresías del mes y hoja para cargar un abono a un alumno
@@ -36,7 +45,7 @@ export default function AbonosCelular() {
   const [met, setMet] = useState("Efectivo")
   const [monto, setMonto] = useState("")
   const [ini, setIni] = useState(hoyISO())
-  const [fin, setFin] = useState(masUnMes(hoyISO()))
+  const [fin, setFin] = useState(proximoDia10(hoyISO()))
   // Horario (opcional, solo para anotar: no se guarda), comprobantes del alumno y comprobante elegido (undefined = el más reciente)
   const [hor, setHor] = useState("")
   const [docs, setDocs] = useState([])
@@ -169,7 +178,7 @@ export default function AbonosCelular() {
       monto, onMonto: (ev) => setMonto(ev.target.value.replace(/\D/g, "").slice(0, 8)),
       montoInv: tried && mErr ? "true" : "false", montoBd: tried && mErr ? c.errFg : c.line,
       montoH: tried && mErr ? "Ingresá el monto cobrado." : elegido ? `Precio del plan: ${pesos(elegido.precio)}${met === "Tarjeta Crédito" ? " + 10% por tarjeta de crédito" : ""}. Podés cambiarlo si hubo descuento.` : "Se completa al elegir el plan.", montoHFg: tried && mErr ? c.errFg : c.muted,
-      ini, fin, scheme: oscuro ? "dark" : "light", onIni: (ev) => { const val = ev.target.value; if (val) { setIni(val); setFin(masUnMes(val)) } }, onFin: (ev) => setFin(ev.target.value),
+      ini, fin, scheme: oscuro ? "dark" : "light", onIni: (ev) => { const val = ev.target.value; if (val) { setIni(val); setFin(proximoDia10(val)) } }, onFin: (ev) => setFin(ev.target.value),
       err: tried && (nErr > 0 || !!errorServidor), errMsg: errorServidor || (!alumno ? "Elegí un alumno desde su ficha." : nErr === 1 ? "Revisá 1 campo antes de guardar." : `Revisá ${nErr} campos antes de guardar.`),
       resumen: elegido ? `${elegido.nombre} · ${met}` : false, resumenAmt: pesos(monto),
       saving, saveBg: saving ? "#7fbf00" : "#9be600", saveLabel: saving ? "Guardando…" : "GUARDAR ABONO", save: guardar, toast,
