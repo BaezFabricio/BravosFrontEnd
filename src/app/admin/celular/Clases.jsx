@@ -43,7 +43,8 @@ function textoRutina(r) {
 // Clases del admin en celular (referencia 07): próximas clases, turnos (horarios fijos) e historial
 export default function ClasesCelular() {
   const { c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta } = useCelular()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
+  const sincronizarPestana = (valor) => setParams((previos) => { const n = new URLSearchParams(previos); if (valor) n.set("pestana", valor); else n.delete("pestana"); return n }, { replace: true })
   const permisos = useMemo(() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }, [])
   const tiene = (p) => permisos.includes(p) || permisos.includes(p.replace(":consulta", ":ver"))
   const puedeVer = tiene("clases:consulta")
@@ -170,7 +171,7 @@ export default function ClasesCelular() {
     const nombre = (sesion.nombrecompleto || "").trim()
     return {
       c, loading, q, onQ: (ev) => setQ(ev.target.value), clear: () => { setQ(""); setTipo("todos") },
-      tabs2: [["clases", "Clases", 0], ["turnos", "Turnos", 0], ["hist", "Historial", pasadas.length]].map(([id, l, n]) => { const s = id === tab; return { id: "tb-" + id, l, n: n || false, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, cBg: s ? "#9be600" : c.line2, cFg: s ? "#0b0b0b" : c.ink, pick: () => setTab(id) } }),
+      tabs2: [["clases", "Clases", 0], ["turnos", "Turnos", 0], ["hist", "Historial", pasadas.length]].map(([id, l, n]) => { const s = id === tab; return { id: "tb-" + id, l, n: n || false, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, cBg: s ? "#9be600" : c.line2, cFg: s ? "#0b0b0b" : c.ink, pick: () => { setTab(id); sincronizarPestana(id === "hist" ? "historial" : "") } } }),
       tabId: "tb-" + tab, tClases: tab === "clases", tTurnos: tab === "turnos" && !loading, tHist: tab === "hist" && !loading,
       tipos: [["todos", "Todas", proximas.length], ...tiposActivos.map((t) => [t.codigo, t.nombre, cnt(t.codigo)])].map(([id, l, n]) => { const p = tipo === id; return { l, n, p: p ? "true" : "false", bg: p ? c.ink : "transparent", fg: p ? c.bg : c.ink, bd: p ? c.ink : c.btnLine, pick: () => setTipo(id) } }),
       emptyAll: tab === "clases" && !loading && !L.length,

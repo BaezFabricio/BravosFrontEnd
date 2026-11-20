@@ -28,7 +28,9 @@ export default function FichaCelular() {
   const [pagos, setPagos] = useState([])
   const [docs, setDocs] = useState([])
   const [error, setError] = useState(false)
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
+  const NOMBRE_TAB = { ab: "abonos", res: "reservas", doc: "documentos" }
+  const sincronizarTab = (valor) => setParams((previos) => { const n = new URLSearchParams(previos); if (valor) n.set("tab", valor); else n.delete("tab"); return n }, { replace: true })
   // Desde "Ver abonos" se llega con ?tab=abonos y la ficha abre directo en esa pestaña
   const [tab, setTab] = useState(() => ({ abonos: "ab", reservas: "res", documentos: "doc" })[params.get("tab")] || "datos")
   const [menu, setMenu] = useState(false)
@@ -107,7 +109,7 @@ export default function FichaCelular() {
     const chOk = !cargando && !off && (mem === "vigente" || mem === "activa")
     return {
       c,
-      tabs2: [["datos", "Datos"], ["res", "Reservas"], ["ab", "Abonos"], ["doc", "Docs"]].map(([tid, l]) => { const s = tid === tab; return { id: "tb-" + tid, l, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, pick: () => setTab(tid) } }),
+      tabs2: [["datos", "Datos"], ["res", "Reservas"], ["ab", "Abonos"], ["doc", "Docs"]].map(([tid, l]) => { const s = tid === tab; return { id: "tb-" + tid, l, sel: s ? "true" : "false", ti: s ? 0 : -1, bar: s ? "#9be600" : "transparent", fg: s ? c.ink : c.muted, pick: () => { setTab(tid); sincronizarTab(NOMBRE_TAB[tid] || "") } } }),
       tabId: "tb-" + tab, tDatos: tab === "datos", tOtro: tab !== "datos",
       grupos, gOtro: tab === "ab" && grupoMem ? [grupoMem] : [], oTitulo: tab === "ab" && o.rows.length ? "HISTORIAL DE PAGOS" : "", oIcon: o.icon, oList: o.rows.length > 0, oEmpty: !o.rows.length, oEmptyT: o.et, oEmptyS: o.es, oRows: sep(o.rows),
       chip, chBg: off || cargando ? "transparent" : chOk ? c.okBg : c.warnBg, chBd: off || cargando ? c.btnLine : chOk ? c.okLine : c.warnLine, chFg: off || cargando ? c.muted : chOk ? c.okFg : c.warnFg, inactivo: off,

@@ -63,8 +63,10 @@ export default function DetalleUsuarioPage() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [error, setError] = useState("")
 
-  const [paramsUrl] = useSearchParams()
-  const [pestana, setPestana] = useState(() => (["reservas", "abonos", "documentos", "notas"].includes(paramsUrl.get("pestana")) ? paramsUrl.get("pestana") : "datos"))
+  const [paramsUrl, setParams] = useSearchParams()
+  const [pestana, setPestanaEstado] = useState(() => (["reservas", "abonos", "documentos", "notas"].includes(paramsUrl.get("pestana")) ? paramsUrl.get("pestana") : "datos"))
+  // La dirección (?pestana=…) acompaña a la pestaña que se ve: si no, al volver con "atrás" (por ejemplo desde Editar) se reabría la vieja
+  const setPestana = (p) => { setPestanaEstado(p); ((valor) => setParams((previos) => { const n = new URLSearchParams(previos); if (valor) n.set("pestana", valor); else n.delete("pestana"); return n }, { replace: true }))(p === "datos" ? "" : p) }
   const [reservas, setReservas] = useState([])
   const [cargandoReservas, setCargandoReservas] = useState(false)
   const [documentos, setDocumentos] = useState([])

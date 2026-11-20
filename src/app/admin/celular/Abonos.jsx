@@ -24,15 +24,8 @@ const METODOS = [["Efectivo", "Efectivo"], ["Transferencia", "Transferencia"], [
 // Abonos del admin en celular (referencia 06): membresías del mes y hoja para cargar un abono a un alumno
 export default function AbonosCelular() {
   const { c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta } = useCelular()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
-  // Si se llegó con ?nuevo=1 (desde el resumen o la ficha) la hoja de "Nuevo abono" es lo único que se quería ver:
-  // al cerrarla se vuelve a donde se estaba, en vez de dejar la pantalla de Abonos de fondo
-  const vinoAPropósito = params.get("nuevo") === "1"
-  const cerrarHoja = useCallback(() => {
-    setSheet(false)
-    if (vinoAPropósito) { if (window.history.state?.idx > 0) navigate(-1); else navigate("/admin", { replace: true }) }
-  }, [vinoAPropósito, navigate])
   const usuarioPre = params.get("usuario")
   const permisos = useMemo(() => { try { return JSON.parse(localStorage.getItem("permisos") || "[]") } catch { return [] } }, [])
   const puedeVer = permisos.includes("usuarios:consulta") || permisos.includes("usuarios:ver") || permisos.includes("creditos:consulta")
@@ -46,7 +39,19 @@ export default function AbonosCelular() {
   // Elegir el alumno sin salir de la hoja: lista con buscador (se carga la primera vez que se abre)
   const [elegir, setElegir] = useState(false)
   const [busca, setBusca] = useState("")
+  const [vinoAPropósito] = useState(() => params.get("nuevo") === "1")
   const [usuarios, setUsuarios] = useState(null)
+  // Si se llegó con ?nuevo=1 (desde el resumen o la ficha) la hoja de "Nuevo abono" es lo único que se quería ver:
+  // al cerrarla se vuelve a donde se estaba, en vez de dejar la pantalla de Abonos de fondo
+  const cerrarHoja = useCallback(() => {
+    setSheet(false)
+    if (vinoAPropósito) { if (window.history.state?.idx > 0) navigate(-1); else navigate("/admin", { replace: true }) }
+  }, [vinoAPropósito, navigate])
+  // Cerrar el buscador de alumno: si se llegó para cargar un abono y todavía no hay alumno elegido, no queda nada más que mostrar
+  const cerrarSelector = useCallback(() => {
+    setElegir(false)
+    if (!alumno && vinoAPropósito) cerrarHoja()
+  }, [alumno, vinoAPropósito, cerrarHoja])
   // Filtro por hora de las clases próximas del alumno ("all" = todas)
   const [horaF, setHoraF] = useState("all")
   const [plan, setPlan] = useState(null)
@@ -87,21 +92,22 @@ export default function AbonosCelular() {
   useEffect(() => {
     if (abierto.current || !puedeAlta || params.get("nuevo") !== "1") return
     abierto.current = true
+    setParams((p) => { const n = new URLSearchParams(p); n.delete("nuevo"); return n }, { replace: true })
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSheet(true)
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!usuarioPre) abrirElegir()
-  }, [params, puedeAlta, usuarioPre, abrirElegir])
+  }, [params, setParams, puedeAlta, usuarioPre, abrirElegir])
 
   const cargarDocs = useCallback((id) => (id ? apiClient.get(`/documentos/usuario/${id}`).then((r) => setDocs(r.data?.data || [])).catch(() => setDocs([])) : Promise.resolve(setDocs([]))), [])
   useEffect(() => { setComp(undefined); cargarDocs(alumno?.id) }, [alumno?.id, cargarDocs])
 
   useEffect(() => {
     // Esc cierra primero la pantalla del comprobante y después la hoja
-    const tecla = (e) => { if (e.key === "Escape") { if (visor) setVisor(null); else if (elegir) setElegir(false); else cerrarHoja() } }
+    const tecla = (e) => { if (e.key === "Escape") { if (visor) setVisor(null); else if (elegir) cerrarSelector(); else cerrarHoja() } }
     window.addEventListener("keydown", tecla)
     return () => window.removeEventListener("keydown", tecla)
-  }, [visor, elegir, cerrarHoja])
+  }, [visor, elegir, cerrarHoja, cerrarSelector])
 
   const v = useMemo(() => {
     const hoy = new Date()
@@ -150,7 +156,7 @@ export default function AbonosCelular() {
       sheet, openNew: () => { if (puedeAlta) { setSheet(true); setTried(false) } }, close: cerrarHoja,
       alu: { img: alumno?.img || null, ini: alumno ? alumno.nombre.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase() : "?", nombre: alumno ? alumno.nombre : "Elegí un alumno", dni: alumno ? "DNI " + alumno.dni : "Desde su ficha o la lista de usuarios", cambiar: alumno ? "Cambiar" : "Elegir", abrirElegir, corto: primerNombre },
       pick: {
-        open: elegir, q: busca, onQ: (ev) => setBusca(ev.target.value), cerrar: () => setElegir(false), cargando: usuarios === null,
+        open: elegir, q: busca, onQ: (ev) => setBusca(ev.target.value), cerrar: cerrarSelector, cargando: usuarios === null,
         lista: (usuarios || []).map((u) => ({ id: u.idUsuario || u.id, nombre: u.nombre || u.nombrecompleto || "", dni: u.dni || "", img: u.avatarUrl || null }))
           .filter((u) => u.id && u.nombre && (!busca.trim() || (u.nombre + " " + u.dni).toLowerCase().includes(busca.trim().toLowerCase())))
           .slice(0, 60)
@@ -194,7 +200,7 @@ export default function AbonosCelular() {
       noLeidas, ariaNotif: `Notificaciones${noLeidas > 0 ? `, ${noLeidas} sin leer` : ""}`, abrirNotif, abrirCuenta,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abonos, planes, alumno, m, sheet, cerrarHoja, elegir, busca, usuarios, abrirElegir, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre, horaF, hor, docs, comp, visor])
+  }, [abonos, planes, alumno, m, sheet, cerrarHoja, cerrarSelector, elegir, busca, usuarios, abrirElegir, plan, met, monto, ini, fin, tried, saving, errorServidor, toast, c, oscuro, noLeidas, sesion, abrirNotif, abrirCuenta, usuarioPre, horaF, hor, docs, comp, visor])
 
   if (!puedeVer) return <div style={{ padding: "32px 16px", color: c.muted, font: "500 14px Archivo" }}>No tenés permiso para ver los abonos.</div>
 

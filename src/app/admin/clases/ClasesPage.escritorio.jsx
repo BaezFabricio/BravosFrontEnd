@@ -43,8 +43,8 @@ export default function ClasesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [permisos, setPermisos] = useState([])
-  const [parametros] = useSearchParams()
-  const [pestana, setPestana] = useState(parametros.get("pestana") === "historial" ? "historial" : "clases")
+  const [parametros, setParams] = useSearchParams()
+  const [pestana, setPestanaEstado] = useState(parametros.get("pestana") === "historial" ? "historial" : "clases")
   const [planFiltro, setPlanFiltro] = useState("all")
 
   const [deleteDialog, setDeleteDialog] = useState({ open: false, clase: null })
@@ -309,7 +309,7 @@ export default function ClasesPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <TituloPagina descripcion={pestana === "historial" ? "Clases que ya se dictaron" : "Las próximas clases, por tipo. Cuando pasan, se mueven al Historial."}>Clases</TituloPagina>
 
-      <PestanasClases activa={pestana} cantidad={totalHistorial} onCambiar={setPestana} />
+      <PestanasClases activa={pestana} cantidad={totalHistorial} onCambiar={(p) => { setPestanaEstado(p); ((valor) => setParams((previos) => { const n = new URLSearchParams(previos); if (valor) n.set("pestana", valor); else n.delete("pestana"); return n }, { replace: true }))(p === "historial" ? "historial" : "") }} />
 
       {/* Buscador */}
       <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
