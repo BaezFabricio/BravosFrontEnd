@@ -399,7 +399,7 @@ export default function LandingPageMovil() {
 
             <button type="button" onClick={() => setMapaVisible((v) => !v)} aria-expanded={mapaVisible}
               className="flex h-12 items-center justify-center gap-2 rounded-xl border border-[#333] bg-transparent text-sm font-bold text-[#ecefe4]">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9be600" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0" /></svg>
               {mapaVisible ? 'Ocultar mapa' : 'Ver mapa'}
             </button>
             {mapaVisible && (
@@ -448,7 +448,7 @@ export default function LandingPageMovil() {
               ['Clases', '#clases', 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12'],
               ['Horarios', '#horarios', 'M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z'],
               ['Nosotros', '#nosotros', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'],
-              ['Contacto', '#contacto', 'M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z'],
+              ['Contacto', '#contacto', 'M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0M15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0'],
             ].map(([label, destino, icono]) => {
               const contenido = (
                 <>
